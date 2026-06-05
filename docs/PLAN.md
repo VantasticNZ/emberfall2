@@ -1,7 +1,7 @@
 # EMBERFALL 2 - MASTER PLAN (locked, Plan B: design-whole-then-build)
 ## RULE: Follow this order. Do not skip, reorder, or start building until DESIGN is 100% done +
 ## coherence-reviewed. Every session states which plan step it is on.
-## CURRENT STEP: PHASE 2 BUILD — [DONE] karma/deed engine + QUEST ENGINE + DIALOGUE, and the first REAL content: Greenhollow childhood M1-M4 authored as DATA (src/data/quests/greenhollow.js) — Morning / Chores+Chicken / The Coin / The Boarded Cave, with real dialogue + seeded permanent deeds (chicken_kicked, coin_returned, cave_lore) + the orchard-ally lock; self-tested (`npm test`, full playthrough). NEXT: M5-M6 (the Festival + the Night It Burned catastrophe) then the karma-reactive adult return (M7).
+## CURRENT STEP: PHASE 2 BUILD — [DONE] karma/deed engine + QUEST ENGINE + DIALOGUE, and ALL of ACT 1 Greenhollow M1-M6 authored as DATA (src/data/quests/greenhollow.js): Morning / Chores+Chicken / The Coin / The Boarded Cave / The Festival / The Night It Burned — real dialogue (warmth -> dread -> the loss), seeded deeds (chicken_kicked, coin_returned, cave_lore, grief_vow) + orchard-ally lock + the TEN-WINTERS time-skip; self-tested (`npm test`, full M1-M6 playthrough). NEXT: M7 — the karma-reactive adult return + first weapon (Hodge), heading west into the Ashen Marsh (M8+).
 ## PHASE 1 - DESIGN (all on paper/docs first, to QUALITY-BIBLE) === COMPLETE ===
   [x] Quality Bible / DoD
   [x] World Map
