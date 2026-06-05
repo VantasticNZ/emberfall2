@@ -1,7 +1,7 @@
 # EMBERFALL 2 - MASTER PLAN (locked, Plan B: design-whole-then-build)
 ## RULE: Follow this order. Do not skip, reorder, or start building until DESIGN is 100% done +
 ## coherence-reviewed. Every session states which plan step it is on.
-## CURRENT STEP: PHASE 2 BUILD — [DONE] deed-memory + karma engine (src/systems/Karma.js + storage.js; 5-ending gating; self-tested via `npm test`). NEXT core system: the QUEST ENGINE (data-driven quests hooking karma/deeds) + DIALOGUE, then the Greenhollow + Ashen Marsh first shippable slice.
+## CURRENT STEP: PHASE 2 BUILD — [DONE] deed-memory + karma engine (Karma.js + storage.js) AND the data-driven QUEST ENGINE (src/systems/QuestEngine.js + Dialogue.js, quests as data in src/data/quests/; gating by prereqs/karma/deeds + unlock/lock graph; persistence; self-tested via `npm test`). NEXT: the first REAL Greenhollow quests — the childhood slice (M1-M4: Morning / Chores+Chicken / The Coin / The Boarded Cave) authored as DATA on the engine.
 ## PHASE 1 - DESIGN (all on paper/docs first, to QUALITY-BIBLE) === COMPLETE ===
   [x] Quality Bible / DoD
   [x] World Map
