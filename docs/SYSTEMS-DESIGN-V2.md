@@ -116,3 +116,26 @@ Data-driven, affect NPC reaction + reputation. Learned/unlocked through play:
 blow a kiss, high five, bear hug, butt slap, middle finger, thumbs up, follow me, stop, go away,
 wave, bow, kneel, hands-together (ask forgiveness / contrition), laugh, cry, dance, taunt, salute,
 fart, and "suck it" (arms down to crotch — crude, R18 tone). Each has NPC reactions by standing.
+
+## INPUT / CONTROLS (controller + keyboard) — added per Van
+REQUIREMENT: full **gamepad support with Xbox controller as the PRIMARY device**, AND full
+keyboard+mouse. Verified by QUALITY-BIBLE **Gate N — Input**.
+- COVERAGE: every action is playable end-to-end on Xbox controller alone, and on keyboard alone —
+  movement, interact/confirm, cancel/back, attack, block/dodge, cast/ability, item use, menus
+  (inventory/character/map/quests), dialogue advance + skip, fast-travel, and the social emotes
+  (gesture wheel).
+- DEFAULT XBOX MAP (suggested, all remappable): Left stick / D-pad = move; A = interact/confirm;
+  B = cancel/back; X = attack; Y = use/pickup; RT = primary attack / RB = secondary; LT = aim /
+  LB = block; right stick = camera/aim; right-stick click = lock-on; Start = pause/menu;
+  Select/View = map; bumpers or radial = ability/emote wheel.
+- REMAPPABLE BINDINGS: a Controls menu lets the player rebind EVERY action for BOTH controller and
+  keyboard; bindings persist to the save/config. No hard-coded inputs.
+- AUTO-DETECT (input method): the game detects the last-used device (controller button vs key/mouse)
+  and switches the active scheme live; hot-swap is seamless mid-session.
+- DEVICE-MATCHED PROMPTS: all on-screen prompts/tutorials show glyphs for the ACTIVE device — Xbox
+  button glyphs (A/B/X/Y/LB/RB/LT/RT/sticks/D-pad) when on controller, key/mouse labels when on
+  keyboard — and update immediately on hot-swap.
+- DATA-DRIVEN: bindings + the prompt glyph set are data (an input map), so adding an action or a
+  device is data, not new input plumbing. (Other devices, e.g. PlayStation glyphs, are a later
+  data add.)
+- ACCESSIBILITY ties: pairs with remap/hold-vs-toggle/sensitivity options (Gate L / Part 4).

@@ -217,6 +217,24 @@ frame; weapons swing from the hand; arms are used appropriately; pickups animate
 FAIL: any equipped item not shown, floating, swung from the body/feet, misaligned layer, or missing/
 inconsistent animation.
 
+================================================================
+## GATE N — INPUT (controller + keyboard, added per Van)
+================================================================
+WHAT: every action is fully playable on an Xbox controller (primary) AND keyboard; bindings are
+remappable; the active input device is auto-detected and on-screen prompts match it.
+HOW TO TEST:
+- Play a full slice with ONLY an Xbox controller: every action (move, interact, attack, block,
+  cast, menus, dialogue advance/skip, map, inventory, emotes) is reachable + comfortable; no
+  keyboard required.
+- Play the same slice with ONLY keyboard+mouse: every action reachable.
+- Open the controls menu: REBIND any action (controller and keyboard) -> the new binding works.
+- Auto-detect: press a controller button -> prompts switch to Xbox glyphs (A/B/X/Y/LB/RT...);
+  press a key -> prompts switch to key names. Hot-swap mid-play updates prompts immediately.
+PASS: 100% of actions on controller AND keyboard; remap works + persists; device auto-detected;
+on-screen prompts always match the device in use.
+FAIL: any action unreachable on either device; unremappable bindings; wrong/stale prompts; no
+auto-detect.
+
 ## PARKED POLISH ITEMS (revisit during polish pass, not now)
 - Camera/background scroll is choppy when moving (likely pixel-snap / no camera lerp / roundPixels
   on a fractional camera). Fix in polish: smooth camera follow (lerp), consistent pixel rounding,

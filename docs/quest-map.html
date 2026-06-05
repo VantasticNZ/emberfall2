@@ -1,0 +1,1497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Emberfall - Quest &amp; Decision Map</title>
+<style>
+  :root{
+    --bg:#14121c; --panel:#1d1930; --panel2:#252036; --line:#352d4d; --ink:#e9e4f5;
+    --dim:#9a92b4; --good:#2f9e57; --neutral:#c9912e; --dark:#b0413e; --accent:#7c5cff;
+    --perm:#e0b64a;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
+    font:14px/1.4 "Segoe UI",system-ui,sans-serif}
+  a{color:var(--accent)}
+  header{position:sticky;top:0;z-index:20;background:linear-gradient(#191527,#15121f);
+    border-bottom:1px solid var(--line);padding:10px 16px}
+  h1{margin:0 0 8px;font-size:18px;letter-spacing:.5px}
+  h1 .sub{color:var(--dim);font-size:12px;font-weight:400;margin-left:8px}
+  .hud{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+  .bars{min-width:280px}
+  .bar{display:flex;align-items:center;gap:8px;margin:4px 0}
+  .bar label{width:64px;font-size:12px;color:var(--dim);text-align:right}
+  .track{position:relative;flex:1;height:14px;background:var(--panel2);border:1px solid var(--line);
+    border-radius:7px;overflow:hidden;min-width:160px}
+  .track .mid{position:absolute;left:50%;top:0;bottom:0;width:1px;background:#5a5076}
+  .track .fill{position:absolute;top:0;bottom:0;left:50%;width:0;transition:.25s}
+  .track .fill.pos{background:linear-gradient(90deg,#2f9e57aa,#37c46a)}
+  .track .fill.neg{background:linear-gradient(270deg,#b0413eaa,#d05450)}
+  .bar .val{width:40px;font-variant-numeric:tabular-nums;font-size:12px}
+  .endings{display:flex;gap:8px;flex-wrap:wrap}
+  .ending{position:relative;background:var(--panel2);border:1px solid var(--line);border-radius:8px;
+    padding:6px 9px;min-width:120px;max-width:150px;opacity:.45;transition:.25s;filter:grayscale(.6)}
+  .ending.lit{opacity:1;filter:none}
+  .ending.lead{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 0 18px #7c5cff66}
+  .ending b{display:block;font-size:13px}
+  .ending small{color:var(--dim);font-size:10.5px;display:block;margin-top:2px}
+  .ending .pip{position:absolute;top:6px;right:8px;font-size:10px;color:var(--dim)}
+  .ending.secret{border-style:dashed}
+  .tools{display:flex;gap:10px;align-items:center;margin-left:auto}
+  button.btn{background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:6px;
+    padding:6px 12px;cursor:pointer}
+  button.btn:hover{border-color:var(--accent)}
+  .story{margin-top:8px;background:#120f1d;border:1px solid var(--line);border-radius:8px;
+    padding:8px 10px;min-height:34px;font-size:13px;color:#cfc6e6}
+  .story .who{color:var(--accent);font-weight:600}
+  main{height:calc(100vh - 0px);overflow:auto;padding:14px 16px 60px}
+  .board{display:flex;gap:14px;align-items:flex-start;min-width:max-content}
+  .col{flex:0 0 232px;width:232px}
+  .col h3{margin:0 0 8px;font-size:12px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;
+    border-bottom:1px solid var(--line);padding-bottom:4px}
+  .quest{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px;
+    margin-bottom:12px;transition:.2s}
+  .quest.perm{border-color:var(--perm)}
+  .quest.pruned{opacity:.28;filter:grayscale(1)}
+  .quest .qhead{display:flex;justify-content:space-between;gap:6px;align-items:baseline}
+  .quest .qid{font-size:11px;color:var(--dim);font-variant-numeric:tabular-nums}
+  .quest .qtitle{font-weight:600;font-size:13.5px}
+  .badges{display:flex;flex-wrap:wrap;gap:4px;margin:5px 0 2px}
+  .tag{font-size:10px;padding:1px 6px;border-radius:10px;background:var(--panel2);color:var(--dim);
+    border:1px solid var(--line)}
+  .tag.region{color:#9fd0ff}.tag.type{color:#cdb4ff}.tag.tone{color:#ffcaa8}
+  .tag.permt{color:#120f1d;background:var(--perm);border-color:var(--perm);font-weight:700}
+  .tag.lockedout{color:#120f1d;background:#b0413e;font-weight:700}
+  .choices{margin-top:6px;display:flex;flex-direction:column;gap:6px}
+  .choice{text-align:left;border:1px solid var(--line);border-left-width:4px;border-radius:7px;
+    background:#1a1628;padding:6px 8px;cursor:pointer;transition:.15s}
+  .choice:hover{background:#221c34}
+  .choice.good{border-left-color:var(--good)}
+  .choice.neutral{border-left-color:var(--neutral)}
+  .choice.dark{border-left-color:var(--dark)}
+  .choice.sel{outline:2px solid var(--accent);background:#2a2240}
+  .choice .clabel{font-size:12.5px;font-weight:600}
+  .choice .cmeta{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}
+  .pill{font-size:9.5px;padding:0 5px;border-radius:8px;background:#241f38;color:var(--dim);
+    border:1px solid var(--line)}
+  .pill.k{color:#ffe2a8}.pill.u{color:#9be7b0}.pill.l{color:#f0a6a3}.pill.e{color:#cdb4ff}
+  .pill.perm{color:#120f1d;background:var(--perm);font-weight:700}
+  .cstory{font-size:11px;color:var(--dim);margin-top:4px;font-style:italic}
+  .legend{display:flex;gap:12px;font-size:11px;color:var(--dim);margin-top:6px;flex-wrap:wrap}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;
+    vertical-align:-1px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Emberfall &mdash; Quest &amp; Decision Map <span class="sub" id="meta"></span></h1>
+  <div class="hud">
+    <div class="bars">
+      <div class="bar"><label>Morality</label>
+        <div class="track"><div class="mid"></div><div class="fill" id="mfill"></div></div>
+        <span class="val" id="mval">0</span></div>
+      <div class="bar"><label>Purity</label>
+        <div class="track"><div class="mid"></div><div class="fill" id="pfill"></div></div>
+        <span class="val" id="pval">0</span></div>
+      <div class="legend">
+        <span><i style="background:var(--good)"></i>good</span>
+        <span><i style="background:var(--neutral)"></i>neutral</span>
+        <span><i style="background:var(--dark)"></i>dark</span>
+        <span><i style="background:var(--perm)"></i>permanent</span>
+      </div>
+    </div>
+    <div class="endings" id="endings"></div>
+    <div class="tools"><button class="btn" id="reset">Reset choices</button></div>
+  </div>
+  <div class="story" id="story">Click choices to trace a path &mdash; locks grey out quests, the bars move, and an ending lights up.</div>
+</header>
+<main><div class="board" id="board"></div></main>
+
+<script>
+const QUEST_DATA = {
+ "_meta": {
+  "note": "Full Emberfall quest data. Source of truth for the visual + build. Each quest: id,title,region,act,type,tone,choices[].{label,impact(good|neutral|dark),karma,unlocks[],locks[],ending}. perm=permanent decision. Endings: W=Warden,T=Tyrant,L=Liberator.",
+  "endings": {
+   "W": "Warden (neutral/medium \u2014 re-bind, bittersweet default)",
+   "S": "Saint/Redeemer (good \u2014 heal + re-bind with compassion)",
+   "T": "Tyrant (bad \u2014 seize the god's power)",
+   "L": "Liberator (visionary \u2014 free the god, hardest of the main four)",
+   "A": "Ashbearer (SECRET \u2014 refuse all three; take the god's burden into yourself / break the cycle. Gated by hidden lore: M4 cave + Pem clue-hunt + a hidden mercy deed.)"
+  }
+ },
+ "quests": [
+  {
+   "id": "M1",
+   "title": "A Greenhollow Morning",
+   "region": "Greenhollow",
+   "act": 1,
+   "type": "main",
+   "tone": "wholesome",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Greet villagers warmly",
+     "impact": "good",
+     "karma": "+M",
+     "unlocks": [
+      "M2"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": "Village remembers you fondly; warmer adult return."
+    },
+    {
+     "label": "Ignore them",
+     "impact": "dark",
+     "karma": "-M",
+     "unlocks": [
+      "M2"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": "Seeds a cooler, lonelier childhood tone."
+    }
+   ]
+  },
+  {
+   "id": "M2",
+   "title": "Chores + Mischief",
+   "region": "Greenhollow",
+   "act": 1,
+   "type": "main",
+   "tone": "wholesome/funny",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Catch the chicken kindly",
+     "impact": "good",
+     "karma": "+M",
+     "unlocks": [
+      "M3",
+      "SG7ally"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": "The chicken's owner becomes a friendly face for life."
+    },
+    {
+     "label": "Kick the chicken",
+     "impact": "dark",
+     "karma": "-M deed:chicken_kicked",
+     "unlocks": [
+      "M3",
+      "ET1"
+     ],
+     "locks": [
+      "SG7ally"
+     ],
+     "ending": "T-lean",
+     "story": "The owner never forgets; the chicken cameos at the Spire; dark epilogue gag."
+    },
+    {
+     "label": "Free it from the coop",
+     "impact": "neutral",
+     "karma": "\u00b1P",
+     "unlocks": [
+      "M3"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": "A small chaos; a kid thinks you're a legend."
+    }
+   ]
+  },
+  {
+   "id": "M3",
+   "title": "The Coin",
+   "region": "Greenhollow",
+   "act": 1,
+   "type": "main",
+   "tone": "wholesome",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Return the purse",
+     "impact": "good",
+     "karma": "+M+P",
+     "unlocks": [
+      "M4",
+      "merchant_friendly"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": "Merchant trusts you; better prices as an adult."
+    },
+    {
+     "label": "Keep it quietly",
+     "impact": "dark",
+     "karma": "-P",
+     "unlocks": [
+      "M4",
+      "merchant_cold"
+     ],
+     "locks": [],
+     "ending": "T-lean",
+     "story": "Merchant is cold and watchful for the rest of the game."
+    },
+    {
+     "label": "Buy a friend a treat",
+     "impact": "good",
+     "karma": "+M",
+     "unlocks": [
+      "M4"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": "A childhood friend stays loyal into adulthood."
+    }
+   ]
+  },
+  {
+   "id": "M4",
+   "title": "The Boarded Cave",
+   "region": "Greenhollow",
+   "act": 1,
+   "type": "main",
+   "tone": "mystery",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Tell an adult",
+     "impact": "good",
+     "karma": "+P",
+     "unlocks": [
+      "M5"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": "Bram praises your caution; a tender memory before the fire."
+    },
+    {
+     "label": "Explore alone",
+     "impact": "neutral",
+     "karma": "lore:carving",
+     "unlocks": [
+      "M5",
+      "ET10",
+      "cave_lore"
+     ],
+     "locks": [],
+     "ending": "L-hint",
+     "story": "You see the weeping-flame carving \u2014 the FIRST seed of the god's truth; key to the secret ending."
+    },
+    {
+     "label": "Dare a friend in",
+     "impact": "dark",
+     "karma": "-P if hurt",
+     "unlocks": [
+      "M5"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": "If they're hurt, guilt haunts later dialogue."
+    }
+   ]
+  },
+  {
+   "id": "M5",
+   "title": "The Festival",
+   "region": "Greenhollow",
+   "act": 1,
+   "type": "main",
+   "tone": "wholesome/dread",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Comfort a scared child",
+     "impact": "good",
+     "karma": "+M",
+     "unlocks": [
+      "M6"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    },
+    {
+     "label": "Ignore the unease",
+     "impact": "neutral",
+     "karma": "",
+     "unlocks": [
+      "M6"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    }
+   ]
+  },
+  {
+   "id": "M6",
+   "title": "The Night It Burned",
+   "region": "Greenhollow",
+   "act": 1,
+   "type": "main",
+   "tone": "dark/heartfelt",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Vow vengeance over the ash",
+     "impact": "dark",
+     "karma": "tone:dark",
+     "unlocks": [
+      "M7"
+     ],
+     "locks": [],
+     "ending": "T-lean",
+     "story": "Your adult self is harder, colder; NPCs note the edge."
+    },
+    {
+     "label": "Vow protection",
+     "impact": "good",
+     "karma": "+M deed:grief_vow",
+     "unlocks": [
+      "M7",
+      "ET2"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": "Honored in the epilogue; a protective reputation."
+    }
+   ]
+  },
+  {
+   "id": "M7",
+   "title": "Ten Winters Gone",
+   "region": "Greenhollow",
+   "act": 2,
+   "type": "main",
+   "tone": "varies",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Accept Sela's mission",
+     "impact": "neutral",
+     "karma": "",
+     "unlocks": [
+      "M8",
+      "SG1",
+      "SG2",
+      "SG3"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    },
+    {
+     "label": "Press Sela for answers",
+     "impact": "neutral",
+     "karma": "+doubt",
+     "unlocks": [
+      "M8"
+     ],
+     "locks": [],
+     "ending": "L-hint",
+     "story": ""
+    }
+   ]
+  },
+  {
+   "id": "M8",
+   "title": "Into the Ashen Marsh",
+   "region": "Ashen Marsh",
+   "act": 2,
+   "type": "main",
+   "tone": "melancholy",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Kind to the bog-folk",
+     "impact": "good",
+     "karma": "+M",
+     "unlocks": [
+      "M9",
+      "SA1",
+      "SA2"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": "Mirefen opens up; extra lore + a helper."
+    },
+    {
+     "label": "Cruel/dismissive",
+     "impact": "dark",
+     "karma": "-M",
+     "unlocks": [
+      "M9"
+     ],
+     "locks": [],
+     "ending": "T-lean",
+     "story": "Bog-folk stonewall you; harder marsh."
+    }
+   ]
+  },
+  {
+   "id": "M9",
+   "title": "The Sunken Shrine",
+   "region": "Ashen Marsh",
+   "act": 2,
+   "type": "dungeon",
+   "tone": "tense",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Lantern + defeat Drowned Guardian -> Shard 1",
+     "impact": "neutral",
+     "karma": "tool:lantern shard:1",
+     "unlocks": [
+      "M10"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    }
+   ]
+  },
+  {
+   "id": "M10",
+   "title": "Hagga's Truth",
+   "region": "Ashen Marsh",
+   "act": 2,
+   "type": "main",
+   "tone": "dark/revelation",
+   "perm": true,
+   "choices": [
+    {
+     "label": "BELIEVE Hagga",
+     "impact": "good",
+     "karma": "+P ally:Hagga",
+     "unlocks": [
+      "M11",
+      "M10a",
+      "L-path"
+     ],
+     "locks": [],
+     "ending": "L",
+     "story": "You carry the truth early; Hagga guides you; unlocks the visionary path. Sela grows wary."
+    },
+    {
+     "label": "REPORT to Sela",
+     "impact": "dark",
+     "karma": "-P",
+     "unlocks": [
+      "M11",
+      "M10b"
+     ],
+     "locks": [
+      "ally:Hagga",
+      "L-path"
+     ],
+     "ending": "T",
+     "story": "Sela silences Hagga (she vanishes, darkly); you're her favoured tool; the lie tightens."
+    },
+    {
+     "label": "STAY SILENT",
+     "impact": "neutral",
+     "karma": "",
+     "unlocks": [
+      "M11",
+      "M10c"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": "You keep your own counsel; a later forced reckoning."
+    }
+   ]
+  },
+  {
+   "id": "M11",
+   "title": "The Sundered Peaks",
+   "region": "Sundered Peaks",
+   "act": 2,
+   "type": "main",
+   "tone": "hardy",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Lean toward workers (P3 seed)",
+     "impact": "good",
+     "karma": "+M",
+     "unlocks": [
+      "M12",
+      "SP1",
+      "SP2",
+      "SP3"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    },
+    {
+     "label": "Lean toward owners",
+     "impact": "dark",
+     "karma": "-P",
+     "unlocks": [
+      "M12"
+     ],
+     "locks": [],
+     "ending": "T-lean",
+     "story": ""
+    }
+   ]
+  },
+  {
+   "id": "M12",
+   "title": "Cinder Keep",
+   "region": "Sundered Peaks",
+   "act": 2,
+   "type": "dungeon",
+   "tone": "tense",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Grapple + boss -> Shard 2 (order knew)",
+     "impact": "neutral",
+     "karma": "tool:grapple shard:2",
+     "unlocks": [
+      "M13"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    }
+   ]
+  },
+  {
+   "id": "M13",
+   "title": "The Tidewreck Coast",
+   "region": "Tidewreck Coast",
+   "act": 2,
+   "type": "main",
+   "tone": "stormy",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Lean smugglers (T1 seed)",
+     "impact": "neutral",
+     "karma": "-P",
+     "unlocks": [
+      "M14",
+      "ST1",
+      "ST2"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    },
+    {
+     "label": "Lean authority",
+     "impact": "good",
+     "karma": "+P",
+     "unlocks": [
+      "M14"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    }
+   ]
+  },
+  {
+   "id": "M14",
+   "title": "The Drowned Vault",
+   "region": "Tidewreck Coast",
+   "act": 2,
+   "type": "dungeon",
+   "tone": "tense",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Hookshot + boss -> Shard 3 (past betrayal)",
+     "impact": "neutral",
+     "karma": "tool:hookshot shard:3",
+     "unlocks": [
+      "M15"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    }
+   ]
+  },
+  {
+   "id": "M15",
+   "title": "The Emberwood",
+   "region": "Emberwood",
+   "act": 2,
+   "type": "main",
+   "tone": "magical/dangerous",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Begin the settlement dilemma",
+     "impact": "neutral",
+     "karma": "",
+     "unlocks": [
+      "M16",
+      "SE2",
+      "SE4"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    }
+   ]
+  },
+  {
+   "id": "M16",
+   "title": "Ember Hollow",
+   "region": "Emberwood",
+   "act": 2,
+   "type": "dungeon",
+   "tone": "heartfelt/horror",
+   "perm": true,
+   "choices": [
+    {
+     "label": "MERCY to the god-fragment",
+     "impact": "good",
+     "karma": "+P",
+     "unlocks": [
+      "M17",
+      "M16a",
+      "L-path"
+     ],
+     "locks": [],
+     "ending": "L",
+     "story": "The god's fragment trusts you; you're weaker now but the visionary/secret paths open."
+    },
+    {
+     "label": "SEIZE its power",
+     "impact": "dark",
+     "karma": "-P power",
+     "unlocks": [
+      "M17",
+      "M16b",
+      "T-path"
+     ],
+     "locks": [
+      "L-path"
+     ],
+     "ending": "T",
+     "story": "Dark power surges through you; people flinch; the tyrant path locks in."
+    },
+    {
+     "label": "TAKE the shard plainly",
+     "impact": "neutral",
+     "karma": "shard:4",
+     "unlocks": [
+      "M17"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": "You stay your course, neither moved nor corrupted."
+    }
+   ]
+  },
+  {
+   "id": "M17",
+   "title": "Sela's Design",
+   "region": "Spire approach",
+   "act": 2,
+   "type": "main",
+   "tone": "betrayal",
+   "perm": true,
+   "choices": [
+    {
+     "label": "TRUST Sela",
+     "impact": "neutral",
+     "karma": "",
+     "unlocks": [
+      "M18"
+     ],
+     "locks": [
+      "L-path"
+     ],
+     "ending": "W",
+     "story": "She leads the Spire approach \u2014 and may betray you at the worst moment."
+    },
+    {
+     "label": "OPPOSE her (needs Hagga)",
+     "impact": "good",
+     "karma": "+P",
+     "unlocks": [
+      "M18",
+      "L-endgame"
+     ],
+     "locks": [],
+     "ending": "L",
+     "story": "Open war with the oracle order; the visionary ending becomes reachable."
+    },
+    {
+     "label": "GO ALONE",
+     "impact": "neutral",
+     "karma": "hard",
+     "unlocks": [
+      "M18"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": "No allies, no betrayer \u2014 the loneliest, hardest climb."
+    }
+   ]
+  },
+  {
+   "id": "M18",
+   "title": "The Long Ascent",
+   "region": "Spire",
+   "act": 3,
+   "type": "gauntlet",
+   "tone": "climactic",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Mercy beats on the climb",
+     "impact": "good",
+     "karma": "+M",
+     "unlocks": [
+      "M19"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    },
+    {
+     "label": "Cruelty beats",
+     "impact": "dark",
+     "karma": "-M",
+     "unlocks": [
+      "M19"
+     ],
+     "locks": [],
+     "ending": "T-lean",
+     "story": ""
+    }
+   ]
+  },
+  {
+   "id": "M19",
+   "title": "The Binding Chamber",
+   "region": "Spire",
+   "act": 3,
+   "type": "boss",
+   "tone": "climactic",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Defeat the over-built-up boss -> Shard 5",
+     "impact": "neutral",
+     "karma": "shard:5",
+     "unlocks": [
+      "M20"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    }
+   ]
+  },
+  {
+   "id": "M20",
+   "title": "The Choice",
+   "region": "Spire",
+   "act": 3,
+   "type": "finale",
+   "tone": "weighty",
+   "perm": true,
+   "choices": [
+    {
+     "label": "WARDEN: re-bind the god",
+     "impact": "neutral",
+     "karma": "",
+     "unlocks": [
+      "END_W"
+     ],
+     "locks": [],
+     "ending": "W",
+     "story": "The land lives; the god suffers on; you bear the quiet weight forever."
+    },
+    {
+     "label": "TYRANT: seize the god",
+     "impact": "dark",
+     "karma": "gated cruel+corrupt",
+     "unlocks": [
+      "END_T"
+     ],
+     "locks": [],
+     "ending": "T",
+     "story": "You become the new power on the throne of lies."
+    },
+    {
+     "label": "LIBERATOR: free the god",
+     "impact": "good",
+     "karma": "gated pure+mercy+believe+oppose",
+     "unlocks": [
+      "END_L"
+     ],
+     "locks": [],
+     "ending": "L",
+     "story": "The cycle ends; a transcendent, costly dawn."
+    }
+   ]
+  },
+  {
+   "id": "SG1",
+   "title": "Fatley's Mug",
+   "region": "Greenhollow",
+   "act": 2,
+   "type": "side",
+   "tone": "funny",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Fetch the mug (it's right there)",
+     "impact": "neutral",
+     "karma": "unlock:see-markers",
+     "unlocks": [
+      "skill:markers"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    }
+   ]
+  },
+  {
+   "id": "SG2",
+   "title": "PEM WOZ ERE (clue-hunt)",
+   "region": "Greenhollow",
+   "act": 2,
+   "type": "side",
+   "tone": "mystery/fun",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Assemble clues from all regions",
+     "impact": "good",
+     "karma": "reward:epic",
+     "unlocks": [
+      "ET9"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    }
+   ]
+  },
+  {
+   "id": "SG3",
+   "title": "Hodge's Apprentice",
+   "region": "Greenhollow",
+   "act": 2,
+   "type": "job",
+   "tone": "wholesome",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Help at the forge",
+     "impact": "good",
+     "karma": "skill:repair discount",
+     "unlocks": [],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    }
+   ]
+  },
+  {
+   "id": "SG4",
+   "title": "Mara's Letters",
+   "region": "Greenhollow",
+   "act": 2,
+   "type": "side",
+   "tone": "funny/dark",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Return discreetly",
+     "impact": "good",
+     "karma": "+M",
+     "unlocks": [],
+     "locks": [],
+     "ending": "",
+     "story": "Mara is quietly grateful; a warm ally."
+    },
+    {
+     "label": "Expose them",
+     "impact": "dark",
+     "karma": "-M deed:mara_exposed",
+     "unlocks": [
+      "ET3"
+     ],
+     "locks": [
+      "mara_epilogue"
+     ],
+     "ending": "",
+     "story": "Mara is humiliated; she's absent from your epilogue."
+    }
+   ]
+  },
+  {
+   "id": "SG7",
+   "title": "The Orchard Thief",
+   "region": "Greenhollow",
+   "act": 2,
+   "type": "side",
+   "tone": "funny/morality",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Cover for the kid",
+     "impact": "good",
+     "karma": "+M",
+     "unlocks": [
+      "ally:kid"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    },
+    {
+     "label": "Punish the kid",
+     "impact": "dark",
+     "karma": "-M",
+     "unlocks": [],
+     "locks": [
+      "ally:kid"
+     ],
+     "ending": "",
+     "story": ""
+    },
+    {
+     "label": "Recruit the kid",
+     "impact": "neutral",
+     "karma": "\u00b1P",
+     "unlocks": [
+      "ally:kid"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    }
+   ]
+  },
+  {
+   "id": "SA2",
+   "title": "Hagga's Errands",
+   "region": "Ashen Marsh",
+   "act": 2,
+   "type": "side",
+   "tone": "morality",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Do her favours",
+     "impact": "good",
+     "karma": "+P ally:Hagga+",
+     "unlocks": [
+      "L-support"
+     ],
+     "locks": [],
+     "ending": "L",
+     "story": ""
+    },
+    {
+     "label": "Refuse",
+     "impact": "neutral",
+     "karma": "",
+     "unlocks": [],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    }
+   ]
+  },
+  {
+   "id": "SA4",
+   "title": "Frog of the Fen",
+   "region": "Ashen Marsh",
+   "act": 2,
+   "type": "twist",
+   "tone": "funny",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Drop an apple / blow-a-kiss / lead away",
+     "impact": "neutral",
+     "karma": "trophy",
+     "unlocks": [],
+     "locks": [],
+     "ending": "",
+     "story": "You learn not everything is beaten by force \u2014 a quiet lesson (and a laugh)."
+    }
+   ]
+  },
+  {
+   "id": "SP3",
+   "title": "The Stubborn Miner",
+   "region": "Sundered Peaks",
+   "act": 2,
+   "type": "side",
+   "tone": "morality",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Side with workers",
+     "impact": "good",
+     "karma": "+M",
+     "unlocks": [
+      "ET6"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    },
+    {
+     "label": "Side with owner",
+     "impact": "dark",
+     "karma": "-P gold",
+     "unlocks": [
+      "ET6"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    },
+    {
+     "label": "Broker peace",
+     "impact": "good",
+     "karma": "+P",
+     "unlocks": [
+      "ET6"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    }
+   ]
+  },
+  {
+   "id": "SP5",
+   "title": "A Stranger's Plea",
+   "region": "Sundered Peaks",
+   "act": 2,
+   "type": "twist",
+   "tone": "trick",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Help (resolves by YOUR morality)",
+     "impact": "neutral",
+     "karma": "trick: rescue if kind / used if cruel",
+     "unlocks": [],
+     "locks": [],
+     "ending": "",
+     "story": "If kind: a real rescue. If cruel: you're played for a thug \u2014 a gut-punch twist."
+    }
+   ]
+  },
+  {
+   "id": "ST1",
+   "title": "Smuggler's Bargain",
+   "region": "Tidewreck Coast",
+   "act": 2,
+   "type": "side",
+   "tone": "morality",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Run the contraband",
+     "impact": "dark",
+     "karma": "-P faction:smuggler",
+     "unlocks": [
+      "ET5"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    },
+    {
+     "label": "Turn them in",
+     "impact": "good",
+     "karma": "+P faction:authority",
+     "unlocks": [
+      "ET5"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    }
+   ]
+  },
+  {
+   "id": "ST3",
+   "title": "The Lighthouse Keeper",
+   "region": "Tidewreck Coast",
+   "act": 2,
+   "type": "side",
+   "tone": "heartfelt",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Stay and listen",
+     "impact": "good",
+     "karma": "+M",
+     "unlocks": [
+      "ET2"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    },
+    {
+     "label": "Brush off",
+     "impact": "neutral",
+     "karma": "",
+     "unlocks": [],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    }
+   ]
+  },
+  {
+   "id": "ST5",
+   "title": "Saltbreak Betrayal",
+   "region": "Tidewreck Coast",
+   "act": 2,
+   "type": "twist",
+   "tone": "betrayal",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Vengeance",
+     "impact": "dark",
+     "karma": "-M",
+     "unlocks": [
+      "ET7"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": "A reputation for ruthlessness precedes you."
+    },
+    {
+     "label": "Mercy",
+     "impact": "good",
+     "karma": "+M+P",
+     "unlocks": [
+      "ET7"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": "Word spreads that you spare even traitors."
+    }
+   ]
+  },
+  {
+   "id": "SE2",
+   "title": "The Caught Settlement",
+   "region": "Emberwood",
+   "act": 2,
+   "type": "side",
+   "tone": "heavy",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Save the burning half",
+     "impact": "neutral",
+     "karma": "ET4",
+     "unlocks": [
+      "ET4"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": "The frozen half is lost; survivors remember which you chose."
+    },
+    {
+     "label": "Save the freezing half",
+     "impact": "neutral",
+     "karma": "ET4",
+     "unlocks": [
+      "ET4"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": "The burning half is lost; the choice haunts the epilogue."
+    }
+   ]
+  },
+  {
+   "id": "SE4",
+   "title": "The Weeping Tree",
+   "region": "Emberwood",
+   "act": 2,
+   "type": "side",
+   "tone": "heartfelt",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Witness the god's pain",
+     "impact": "good",
+     "karma": "+P compassion",
+     "unlocks": [
+      "ET11"
+     ],
+     "locks": [],
+     "ending": "L-hint",
+     "story": "Compassion deepens; nudges toward the visionary/secret endings."
+    }
+   ]
+  },
+  {
+   "id": "ST6",
+   "title": "The Fisher's Daughter",
+   "region": "Tidewreck Coast",
+   "act": 2,
+   "type": "side",
+   "tone": "romance",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Court / help her",
+     "impact": "good",
+     "karma": "companion",
+     "unlocks": [
+      "companion"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    },
+    {
+     "label": "Decline",
+     "impact": "neutral",
+     "karma": "",
+     "unlocks": [],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    }
+   ]
+  },
+  {
+   "id": "SS2",
+   "title": "The Last Confession",
+   "region": "Spire",
+   "act": 3,
+   "type": "side",
+   "tone": "weighty",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Confess your deeds",
+     "impact": "neutral",
+     "karma": "ending nuance",
+     "unlocks": [
+      "ET10",
+      "ET12"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    },
+    {
+     "label": "Refuse",
+     "impact": "neutral",
+     "karma": "",
+     "unlocks": [],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    }
+   ]
+  },
+  {
+   "id": "M21",
+   "title": "The Ashbearer (secret)",
+   "region": "Spire",
+   "act": 3,
+   "type": "finale-secret",
+   "tone": "transcendent/mysterious",
+   "perm": true,
+   "choices": [
+    {
+     "label": "Take the god's burden into yourself",
+     "impact": "good",
+     "karma": "gated: cave-lore + Pem + hidden mercy",
+     "story": "You refuse all three fates and bind the god's pain into your own soul \u2014 breaking the cycle no oracle dared. The rarest, most-shared ending.",
+     "locks": [],
+     "ending": "A"
+    }
+   ]
+  }
+ ]
+};
+const QUESTS = QUEST_DATA.quests;
+const ENDINGS = QUEST_DATA._meta.endings; // {W,S,T,L,A}
+const byId = {}; QUESTS.forEach(q => byId[q.id] = q);
+
+// resolve a unlock/lock target (may carry a branch suffix like "SG7ally") to a quest id
+function resolve(target){
+  if (byId[target]) return target;
+  let best=null;
+  for (const id in byId){ if (target.startsWith(id) && (!best || id.length>best.length)) best=id; }
+  return best; // may be null
+}
+
+// ---- completion layers (left->right): longest-path depth seeded by act ------
+const ACT_BASE = {1:0, 2:3, 3:9};
+const preds = {}; QUESTS.forEach(q => preds[q.id]=[]);
+QUESTS.forEach(q => (q.choices||[]).forEach(c => (c.unlocks||[]).forEach(u => {
+  const t = resolve(u); if (t && t!==q.id) preds[t].push(q.id);
+})));
+const depth = {}; QUESTS.forEach(q => depth[q.id] = ACT_BASE[q.act] ?? 0);
+for (let it=0; it<200; it++){
+  let changed=false;
+  QUESTS.forEach(q => (q.choices||[]).forEach(c => (c.unlocks||[]).forEach(u => {
+    const t=resolve(u); if(!t||t===q.id) return;
+    const nd = Math.max(depth[t], depth[q.id]+1, ACT_BASE[byId[t].act]??0);
+    if (nd!==depth[t]){ depth[t]=nd; changed=true; }
+  })));
+  if(!changed) break;
+}
+const layers = {};
+QUESTS.forEach(q => { (layers[depth[q.id]] = layers[depth[q.id]] || []).push(q); });
+const layerKeys = Object.keys(layers).map(Number).sort((a,b)=>a-b);
+
+// ---- karma parsing (Morality M, Purity P) -----------------------------------
+function karmaDelta(s){
+  let m=0,p=0; const re=/([+\-])\s*([MP])/g; let x;
+  while((x=re.exec(s||''))){ const v=x[1]==='+'?1:-1; if(x[2]==='M')m+=v; else p+=v; }
+  return {m,p};
+}
+function endingVote(s){ // returns {key, weight}
+  if(!s) return null;
+  const k = (s.match(/[WSTLA]/)||[])[0]; if(!k) return null;
+  const weight = /-lean|-hint/i.test(s) ? 0.5 : 1;
+  return {key:k, weight};
+}
+
+// ---- state ------------------------------------------------------------------
+const selected = {}; // questId -> choice index
+let lastStory = null;
+
+function recompute(){
+  let M=0,P=0; const votes={W:0,S:0,T:0,L:0,A:0}; const pruned=new Set();
+  for(const qid in selected){
+    const q=byId[qid]; const c=q.choices[selected[qid]]; if(!c) continue;
+    const d=karmaDelta(c.karma); M+=d.m; P+=d.p;
+    const v=endingVote(c.ending); if(v && votes[v.key]!==undefined) votes[v.key]+=v.weight;
+    (c.locks||[]).forEach(l => { const t=resolve(l); if(t) pruned.add(t); });
+  }
+  // ending scores
+  const score = {
+    W: 1 + votes.W + (Math.abs(M)<=2 ? 1.2 : 0),
+    S: votes.S + Math.max(0,M)*0.6 + Math.max(0,P)*0.3,
+    T: votes.T + Math.max(0,-M)*0.6 + Math.max(0,-P)*0.3,
+    L: votes.L + Math.max(0,P)*0.25,
+    A: votes.A*2,
+  };
+  let lead=null,max=-1; for(const k in score){ if(score[k]>max){max=score[k];lead=k;} }
+  if(max<=0.001) lead=null;
+  return {M,P,votes,pruned,score,lead};
+}
+
+function applyState(){
+  const st=recompute();
+  // bars (clamp display to +-8)
+  const setBar=(fill,val,v)=>{
+    const pct=Math.max(-8,Math.min(8,v))/8*50;
+    fill.className='fill '+(v>=0?'pos':'neg');
+    fill.style.left=v>=0?'50%':(50+pct)+'%';
+    fill.style.width=Math.abs(pct)+'%';
+    val.textContent=(v>0?'+':'')+v;
+  };
+  setBar(mfill,mval,st.M); setBar(pfill,pval,st.P);
+  // endings
+  const maxS=Math.max(0.001,...Object.values(st.score));
+  document.querySelectorAll('.ending').forEach(el=>{
+    const k=el.dataset.k; const s=st.score[k]||0;
+    el.classList.toggle('lit', s>0.001);
+    el.classList.toggle('lead', k===st.lead && st.lead!==null);
+    el.querySelector('.pip').textContent = s>0.001 ? s.toFixed(1) : '';
+    el.style.opacity = s>0.001 ? (0.5+0.5*Math.min(1,s/maxS)) : 0.4;
+  });
+  // pruned quests + selected/disabled choices
+  document.querySelectorAll('.quest').forEach(qel=>{
+    const qid=qel.dataset.q; const isPruned=st.pruned.has(qid);
+    qel.classList.toggle('pruned', isPruned);
+    const lo=qel.querySelector('.lockedout'); if(lo) lo.style.display=isPruned?'':'none';
+    qel.querySelectorAll('.choice').forEach(cel=>{
+      cel.classList.toggle('sel', selected[qid]===+cel.dataset.i);
+      cel.style.pointerEvents = isPruned ? 'none' : '';
+    });
+  });
+  // story
+  story.innerHTML = lastStory ? lastStory : story.innerHTML;
+}
+
+function pick(qid, idx){
+  if(selected[qid]===idx) delete selected[qid]; else selected[qid]=idx;
+  const q=byId[qid]; const c=q.choices[idx];
+  lastStory = (selected[qid]!==undefined && c.story)
+    ? '<span class="who">'+q.id+' &middot; '+esc(c.label)+':</span> '+esc(c.story)
+    : '<span class="who">'+q.id+'</span> (choice cleared)';
+  applyState();
+}
+function esc(s){return (s+'').replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));}
+
+// ---- render -----------------------------------------------------------------
+meta.textContent = QUESTS.length+' quests · '+layerKeys.length+' completion layers · 5 endings';
+const board=document.getElementById('board');
+layerKeys.forEach(k=>{
+  const col=document.createElement('div'); col.className='col';
+  const acts=[...new Set(layers[k].map(q=>q.act))].sort();
+  col.innerHTML='<h3>Layer '+k+' &middot; Act '+acts.join('/')+'</h3>';
+  layers[k].sort((a,b)=>a.id.localeCompare(b.id,undefined,{numeric:true})).forEach(q=>{
+    col.appendChild(renderQuest(q));
+  });
+  board.appendChild(col);
+});
+function renderQuest(q){
+  const el=document.createElement('div'); el.className='quest'+(q.perm?' perm':''); el.dataset.q=q.id;
+  let h='<div class="qhead"><span class="qtitle">'+esc(q.title)+'</span><span class="qid">'+q.id+'</span></div>';
+  h+='<div class="badges"><span class="tag region">'+esc(q.region)+'</span>'
+    +'<span class="tag type">'+esc(q.type)+'</span>'
+    +(q.tone?'<span class="tag tone">'+esc(q.tone)+'</span>':'')
+    +(q.perm?'<span class="tag permt">PERMANENT</span>':'')
+    +'<span class="tag lockedout" style="display:none">LOCKED OUT</span></div>';
+  h+='<div class="choices">';
+  (q.choices||[]).forEach((c,i)=>{
+    let meta='';
+    if(c.karma) meta+='<span class="pill k">'+esc(c.karma)+'</span>';
+    (c.unlocks||[]).forEach(u=>meta+='<span class="pill u">&rarr;'+esc(u)+'</span>');
+    (c.locks||[]).forEach(l=>meta+='<span class="pill l">&oslash;'+esc(l)+'</span>');
+    if(c.ending) meta+='<span class="pill e">ending '+esc(c.ending)+'</span>';
+    if(q.perm) meta+='<span class="pill perm">permanent</span>';
+    h+='<div class="choice '+esc(c.impact||'neutral')+'" data-i="'+i+'" onclick="pick(\''+q.id+'\','+i+')">'
+      +'<div class="clabel">'+esc(c.label)+'</div>'
+      +(meta?'<div class="cmeta">'+meta+'</div>':'')
+      +(c.story?'<div class="cstory">'+esc(c.story)+'</div>':'')+'</div>';
+  });
+  h+='</div>';
+  el.innerHTML=h; return el;
+}
+// ending cards
+const endWrap=document.getElementById('endings');
+['W','S','T','L','A'].forEach(k=>{
+  const el=document.createElement('div'); el.className='ending'+(k==='A'?' secret':''); el.dataset.k=k;
+  el.innerHTML='<span class="pip"></span><b>'+esc(ENDINGS[k].split('(')[0].trim())+'</b>'
+    +'<small>'+esc(ENDINGS[k])+'</small>';
+  endWrap.appendChild(el);
+});
+document.getElementById('reset').onclick=()=>{ for(const k in selected) delete selected[k];
+  lastStory=null; story.textContent='Choices reset.'; applyState(); };
+applyState();
+</script>
+</body></html>
