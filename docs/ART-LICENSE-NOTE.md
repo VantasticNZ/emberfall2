@@ -148,3 +148,28 @@ under "Plants/bush" above) — OGA-BY 3.0.
 ## VERDICT
 All art in the slice is AI-safe and commercially usable. Keep this note + an
 in-game credits screen current as assets are added.
+
+================================================================================
+# CHARACTER BASE MIGRATION (2026-06-06): ElizaWy LPC Revised
+================================================================================
+The sanderfrenken universal base (eyes/brows/nose/ears only — no mouth, no
+expressions) was MIGRATED to **ElizaWy "LPC Revised"** (github.com/ElizaWy/LPC),
+a complete base with full faces (eyes+brows+nose+mouth) and built-in EXPRESSIONS
+(happy/sad/angry/shock). ElizaWy ships one sheet PER ANIMATION (idle/walk/slash),
+64px frames, rows N,W,S,E; body+head+hair+clothing+props share the format and
+poses, so they align pixel-perfectly. Pre-fetched (renamed to idle/walk/attack/
+expr) into /public/art/eliza/ by scripts/fetch_eliza.sh.
+
+Licence: **OGA-BY 3.0** (attribution-only, no anti-AI clause) — per the repo's
+`Characters/Credits.txt`. Assets used + authors:
+- Body (Masculine, Thin) — Stephen Challener (Redshrike); Eliza Wyatt (DeathsDarling).
+- Head (Masculine) + **Expressions** — Stephen Challener (Redshrike);
+  Eliza Wyatt (DeathsDarling). ("Expressions by Eliza Wyatt.")
+- Hair (Short 04 - Cowlick) + Eyebrows (Thick) — Eliza Wyatt + contributors.
+- Clothing (Longsleeve Shirt / Pants / Shoes) — Eliza Wyatt + contributors.
+- Props (Arming Sword / Heater Shield) — Eliza Wyatt + contributors.
+Full per-asset attribution: ElizaWy/LPC `Characters/Credits.txt`. Keep an in-game
+credits screen for a commercial ship.
+
+The earlier sanderfrenken character files under /public/art/lpc/ are no longer
+wired into the manifest (superseded by the ElizaWy base).

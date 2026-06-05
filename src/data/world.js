@@ -6,6 +6,10 @@
 // and the hero differ only by the data they wear.
 // =============================================================================
 
+// The ElizaWy base outfit (one skin/outfit for this migration slice).
+const ELIZA_BASE = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_chestnut',
+  'shirt_blue', 'pants_black', 'shoes_brown'];
+
 export const WORLD = {
   widthTiles: 40,   // 1280 px — wider than the 480px viewport (camera clamp)
   heightTiles: 28,  // 896 px
@@ -52,22 +56,23 @@ export const WORLD = {
   // NPCs — same layered Character system as the hero; varied PARTS for variety.
   // Bryn is a watchman: he wears a sword + shield, proving NPCs use the same
   // equip pipeline the hero does.
+  // NPCs share the ElizaWy base outfit for this slice; each carries a different
+  // EXPRESSION (happy/sad/angry) — the migration's headline. Colour/skin/hair
+  // variants are more PARTS (data) once their /art/eliza folders are added.
   npcs: [
     { tx: 9, ty: 11, facing: 'down', name: 'Mara', speed: 70, expression: 'happy',
-      parts: ['body_brown', 'ears_brown', 'nose_brown', 'eyes_brown', 'brow_black', 'hair_black', 'pants_brown', 'shoes_brown', 'shirt_forest'],
+      parts: ELIZA_BASE,
       lines: ["Morning! Bread's nearly out the oven.", 'You grew up fast, you know that?'] },
     { tx: 16, ty: 10, facing: 'left', name: 'Old Edda', speed: 55, expression: 'sad',
-      parts: ['body_olive', 'ears_olive', 'nose_olive', 'eyes_green', 'brow_gold', 'hair_gold', 'pants_forest', 'shoes_black', 'shirt_brown', 'hat_feather'],
+      parts: ELIZA_BASE,
       lines: ['The Hearthflame remembers, child.', 'Some truths are kinder left in the ash.'] },
     { tx: 27, ty: 21, facing: 'up', name: 'Bryn', speed: 75, expression: 'angry',
-      parts: ['body_light', 'ears_light', 'nose_light', 'eyes_brown', 'brow_gold', 'hair_gold', 'pants_charcoal', 'shoes_black', 'shirt_brown', 'shield', 'sword'],
+      parts: ELIZA_BASE,
       lines: ['Heh. Mind where yer boots go.', "Tavern's shut. I drank it."] },
   ],
 
-  // The hero starts at the crossroads, plainly dressed: the Gate M demo equips
-  // a hat, sword and shield onto him live (keys 1/2/3) and triggers pickup (4).
   player: {
     tx: 19, ty: 18, facing: 'down', speed: 95, expression: 'neutral',
-    parts: ['body_light', 'ears_light', 'nose_light', 'eyes_blue', 'brow_chestnut', 'hair_chestnut', 'pants_charcoal', 'shoes_brown', 'shirt_blue'],
+    parts: ELIZA_BASE,
   },
 };

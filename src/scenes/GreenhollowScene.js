@@ -7,7 +7,7 @@
 
 import Phaser from 'phaser';
 import { WORLD } from '../data/world.js';
-import { PROPS, PARTS, TILE, DIR_ROW, CHAR_FOOTPRINT } from '../data/assets.js';
+import { PROPS, PARTS, TILE, DIR_ROW, ANIMS, EXPRESSIONS, EXPR_COLS, EXPR_ROW, CHAR_FOOTPRINT } from '../data/assets.js';
 import { AssetLoader } from '../art/AssetLoader.js';
 import { Character } from '../systems/Character.js';
 import { Movement } from '../systems/Movement.js';
@@ -115,7 +115,7 @@ export class GreenhollowScene extends Phaser.Scene {
   _buildNPCs() {
     for (const n of WORLD.npcs) {
       const npc = new Character(this, tileToPx(n.tx), tileToPx(n.ty),
-        { parts: n.parts, facing: n.facing, speed: n.speed });
+        { parts: n.parts, facing: n.facing, speed: n.speed, expression: n.expression });
       Collision.markSolidActor(npc);
       this.solids.add(npc);
       DepthSort.track(npc, CHAR_FOOTPRINT.offY);
@@ -135,7 +135,7 @@ export class GreenhollowScene extends Phaser.Scene {
   _buildPlayer() {
     const pd = WORLD.player;
     this.player = new Character(this, tileToPx(pd.tx), tileToPx(pd.ty),
-      { parts: pd.parts, facing: pd.facing, speed: pd.speed });
+      { parts: pd.parts, facing: pd.facing, speed: pd.speed, expression: pd.expression });
     Collision.markPlayer(this.player);
     this.actors.add(this.player);
     DepthSort.track(this.player, CHAR_FOOTPRINT.offY);
@@ -224,7 +224,7 @@ export class GreenhollowScene extends Phaser.Scene {
     if (this._portrait) { this._portrait.destroy(); this._portrait = null; }
     this.portraitFrame.setVisible(!!parts);
     if (!parts) return;
-    const FACE_SLOTS = new Set(['body', 'ears', 'nose', 'eyes', 'brows', 'hair', 'hat', 'torso']);
+    const FACE_SLOTS = new Set(['body', 'torso', 'head', 'brows', 'hair']);
     const layers = [];
     for (const pk of parts) {
       const part = PARTS[pk];
@@ -232,18 +232,15 @@ export class GreenhollowScene extends Phaser.Scene {
       for (const L of part.layers) layers.push({ ...L, slot: part.slot });
     }
     layers.sort((a, b) => a.z - b.z);
-    // head crop within the 64px down-idle frame (row 10, col 0 => frame 130).
-    // The LPC face sits high: hair ~y14-26, brows ~y27, eyes ~y29-32, so this
-    // box tightly frames hair+brows+eyes+chin (measured from the sheet).
-    const FRAME_DOWN_IDLE = (8 + DIR_ROW.down) * 13;
-    const cx = 16, cy = 13, cw = 32, ch = 38;      // bust: hair-top to shoulders
-    // Expression is conveyed by nudging the brow layer (the only expression art
-    // that aligns with this body): angry = furrowed (down), happy/sad = raised.
-    const browDy = { neutral: 0, happy: -1, sad: -1, angry: 2 }[expression] || 0;
+    // Bust crop within the 64px down frame. Each layer draws its down-idle frame;
+    // the head draws the chosen EXPRESSION face (real ElizaWy expression art).
+    const idleFrame = DIR_ROW.down * ANIMS.idle.frames;                 // down, frame 0
+    const exprFrame = EXPR_ROW.down * EXPR_COLS + (EXPRESSIONS[expression] ?? 0);
+    const cx = 16, cy = 10, cw = 32, ch = 42;      // head + shoulders
     const rt = this.make.renderTexture({ x: 0, y: 0, width: cw, height: ch }, false);
     for (const L of layers) {
-      const dy = L.slot === 'brows' ? browDy : 0;
-      rt.drawFrame(L.tex, FRAME_DOWN_IDLE, -cx, -cy + dy);
+      if (L.expressive) rt.drawFrame(`${L.tex}__expr`, exprFrame, -cx, -cy);
+      else rt.drawFrame(`${L.tex}__idle`, idleFrame, -cx, -cy);
     }
     const { x, y, size } = this.portraitBox;
     const scale = Math.min((size - 6) / cw, (size - 6) / ch); // fit within the frame
