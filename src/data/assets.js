@@ -66,6 +66,18 @@ export const PARTS = {
   shirt_blue:    { slot: 'torso', label: 'Shirt', layers: [{ tex: 'shirt', z: Z.torso }] },
   pants_black:   { slot: 'legs',  label: 'Pants', layers: [{ tex: 'pants', z: Z.legs }] },
   shoes_brown:   { slot: 'feet',  label: 'Shoes', layers: [{ tex: 'shoes', z: Z.shoes }] },
+
+  // Equipment (Gate M). ElizaWy weapons are COMBAT props — the swing is a 128px
+  // oversize sheet (the blade extends past the body); a layer with `states`
+  // shows only in those states. The sword draws + swings from the arm on attack.
+  sword: { slot: 'weapon', label: 'Sword', layers: [
+    { tex: 'sword_behind', z: Z.weaponBehind, fw: 128, states: ['attack'] },
+    { tex: 'sword_front',  z: Z.weaponFront,  fw: 128, states: ['attack'] },
+  ] },
+  shield: { slot: 'shield', label: 'Shield', layers: [
+    { tex: 'shield_behind', z: Z.shieldBehind, states: ['attack'] },
+    { tex: 'shield_front',  z: Z.shieldFront,  states: ['attack'] },
+  ] },
 };
 
 // Character footprint (feet box) in 64px frame space — collider + y-sort anchor.

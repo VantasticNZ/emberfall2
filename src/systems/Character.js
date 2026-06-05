@@ -52,7 +52,8 @@ export class Character extends Phaser.GameObjects.Container {
     if (!part) { console.warn('[Character] unknown part:', partKey); return this; }
     this.unequip(part.slot, true);
     const sprites = part.layers.map((layer) => {
-      const spr = this.scene.add.sprite(0, 0, `${layer.tex}__idle`).setOrigin(0.5, 0.5);
+      const initState = (layer.states || ['idle'])[0];
+      const spr = this.scene.add.sprite(0, 0, `${layer.tex}__${initState}`).setOrigin(0.5, 0.5);
       spr._layerDef = layer;
       this.add(spr);
       return spr;
@@ -138,10 +139,20 @@ export class Character extends Phaser.GameObjects.Container {
     return animFor(useTex, this.actState, this.facing);
   }
 
-  // Play the current state+facing on every layer.
+  // A layer that only exists in certain states (equipment) hides otherwise.
+  _shownIn(spr) {
+    const st = spr._layerDef.states;
+    return !st || st.includes(this.actState);
+  }
+
+  // Play the current state+facing on every layer (hiding state-limited gear).
   _applyState() {
     for (const sprites of Object.values(this._slotLayers)) {
-      for (const spr of sprites) spr.play(this._animKeyFor(spr), true);
+      for (const spr of sprites) {
+        if (!this._shownIn(spr)) { spr.setVisible(false); continue; }
+        spr.setVisible(true);
+        spr.play(this._animKeyFor(spr), true);
+      }
     }
   }
 
@@ -149,6 +160,8 @@ export class Character extends Phaser.GameObjects.Container {
   _ensurePlaying() {
     for (const sprites of Object.values(this._slotLayers)) {
       for (const spr of sprites) {
+        if (!this._shownIn(spr)) { spr.setVisible(false); continue; }
+        spr.setVisible(true);
         const key = this._animKeyFor(spr);
         if (spr.anims.currentAnim?.key !== key || !spr.anims.isPlaying) spr.play(key, true);
       }

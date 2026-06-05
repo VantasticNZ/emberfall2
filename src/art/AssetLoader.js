@@ -22,12 +22,14 @@ function layerDefs() {
 }
 
 export const AssetLoader = {
-  // Phase 1 (scene.preload): queue all files.
+  // Phase 1 (scene.preload): queue all files. A layer may restrict which states
+  // it has (equipment = attack only) and use a larger frame (oversize swing).
   queue(scene) {
     for (const [tex, L] of layerDefs()) {
-      for (const st of STATES) {
+      const fw = L.fw || FRAME;
+      for (const st of (L.states || STATES)) {
         scene.load.spritesheet(`${tex}__${st}`, `art/eliza/${tex}/${st}.png`,
-          { frameWidth: FRAME, frameHeight: FRAME });
+          { frameWidth: fw, frameHeight: fw });
       }
       if (L.expressive) {
         scene.load.spritesheet(`${tex}__expr`, `art/eliza/${tex}/expr.png`,
@@ -42,7 +44,7 @@ export const AssetLoader = {
   // Phase 2 (scene.create): register every layer's animation set.
   build(scene) {
     for (const [tex, L] of layerDefs()) {
-      for (const st of STATES) this._registerState(scene, tex, st);
+      for (const st of (L.states || STATES)) this._registerState(scene, tex, st);
       if (L.expressive) this._registerExpressions(scene, tex);
     }
   },
