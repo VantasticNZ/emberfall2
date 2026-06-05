@@ -3,150 +3,193 @@
 // (Quality Bible, Part 0 #3: ART-AGNOSTIC. "all art via a central manifest
 //  (keys/sizes), so swapping art packs = swap the manifest, not rewrite logic.")
 //
-// RULES (enforced by convention across the codebase):
-//   - Game code and systems reference ONLY logical keys (e.g. 'tile_grass',
-//     'char_hero', 'npc_villager'). They NEVER name a file path or a pixel size.
-//   - Everything an asset needs to be loaded, framed, collided and depth-sorted
-//     is DATA declared here: its source, its grid, its footprint, its anims.
-//   - A future art swap (new pack, or a 3D port) = edit THIS FILE ONLY.
+// RULES:
+//   - Game code references ONLY logical keys (tile_grass, part 'body_light',
+//     'sword') + animation STATES (idle/walk/run/attack/cast/use/pickup). It
+//     never names a file path, a pixel size, or a sheet row.
+//   - Everything needed to load, frame, animate, collide and depth-sort is DATA
+//     declared here. A future art swap = edit THIS FILE ONLY.
 // -----------------------------------------------------------------------------
-// ART SOURCE STATUS (2026-06-05): PLACEHOLDER.
-//   The Mana Seed starter pack CANNOT be used: its license forbids any project
-//   that uses generative AI "anywhere in your development pipeline," explicitly
-//   including "code" — and this project's code is AI-assisted. See
-//   docs/ART-LICENSE-NOTE.md. Real art is pending Van's licensing decision.
-//   While ART_SOURCE === 'placeholder', textures are generated procedurally
-//   in-engine (ArtForge) at the SAME grid the real art will use, so the slice
-//   proves the architecture + gates now. To adopt a license-compatible pack:
-//     1. drop its files under /public/art/...
-//     2. set ART_SOURCE = 'real'
-//     3. fill each descriptor's `src` (+ confirm grid/footprint/anims).
-//   Zero changes outside this file.
+// ART SOURCE STATUS (2026-06-05): REAL, AI-SAFE.
+//   CHARACTERS: LPC (Liberated Pixel Cup) via the Universal-LPC-Spritesheet
+//     project. 64px frames, LAYERED paper-doll (body+legs+feet+clothes+hair+hat
+//     +weapon+shield). Licences: CC-BY-SA 3.0 / OGA-BY 3.0 / GPL 3.0 — NO anti-AI
+//     clause => safe for this AI-assisted project. (Mana Seed remains BANNED: its
+//     licence forbids AI-built projects. See docs/ART-LICENSE-NOTE.md.)
+//   TILES/PROPS: Kenney "Tiny Town" (CC0) top-down RPG set, pre-baked by
+//     scripts/build_kenney_props.py into /public/art/kenney/.
 // =============================================================================
 
-export const ART_SOURCE = 'placeholder'; // 'placeholder' | 'real'
+export const ART_SOURCE = 'real';
 
-// --- GRID CONVENTION (declared as data, never hard-coded in systems) ---------
-//  World tiles : TILE px square. Floor/ground paints on a TILE grid.
-//  Characters  : directional sheet, FRAME px square per cell. Row order is
-//                [down, left, right, up]; columns are animation frames.
-//                A pack with a different layout changes ONLY the numbers below.
-export const TILE = 16;   // world tile size, px
-export const FRAME = 64;  // character frame size, px  (Mana Seed-style 64; data only)
+// --- GRID CONVENTIONS (data, never hard-coded in systems) --------------------
+//  WORLD TILES : Kenney tiles are 16px native; the world renders them at 2x, so
+//                one logical tile = TILE px. (3-tile houses ~96px read taller
+//                than the 64px hero — cohesion + Gate C occlusion.)
+//  CHARACTERS  : LPC universal sheet, FRAME px square cells, 13 columns.
+//                Animation BLOCKS are 4 rows in LPC direction order N,W,S,E; a
+//                facing picks a row via DIR_ROW. Oversize attack art (the sword
+//                swing) lives on a 192px sheet, centred on the same anchor, so
+//                origin-0.5 stacking keeps every layer aligned regardless of
+//                frame size.
+export const KENNEY_NATIVE = 16;  // Kenney source tile px
+export const TILE = 32;           // rendered world tile px (= 2 x native)
+export const FRAME = 64;          // LPC character frame px
 
-// Facing index -> sheet row, shared by every character (write-once mapping).
-export const DIR_ROW = { down: 0, left: 1, right: 2, up: 3 };
-
-// Helper so descriptors read declaratively.
-const sheet = (cols, rows) => ({ frameWidth: FRAME, frameHeight: FRAME, cols, rows });
+// LPC row order WITHIN an animation block: North, West, South, East.
+export const DIR_ROW = { up: 0, left: 1, down: 2, right: 3 };
 
 // =============================================================================
-// THE ASSETS
-//   kind      : 'tile' | 'image' | 'sheet'
-//   src       : path under /public (string) when ART_SOURCE==='real'; null in
-//               placeholder mode (ArtForge synthesises from `placeholder`).
-//   footprint : {w,h,offX,offY} — the SOLID/visual base of the sprite in px,
-//               anchored to the sprite's origin. Collision bodies and the
-//               depth-sort anchor are derived from this, so "collider matches
-//               the visual footprint" (Gate B) and the y-sort base (Gate C)
-//               are ART DATA, not magic numbers in the systems.
-//   anims     : named frame ranges {row, from, to} for 'sheet' assets.
-//   placeholder: hints used only while ART_SOURCE==='placeholder'.
+// ANIMATION CLIPS — the ONE write-once anim set every character + layer shares.
+//   block  : first sheet row of the animation block (DIR_ROW is added to it)
+//   frames : column indices played, in order
+//   fw     : frame px of the texture this clip is read from (64 standard;
+//            192 for the oversize sword swing)
+//   The classic LPC universal rows used here (spellcast 0-3, thrust 4-7,
+//   walk 8-11, slash 12-15) exist in EVERY layer sheet, so all layers stay in
+//   lock-step. 'run' reuses the walk rows faster (LPC base has no separate run
+//   that all equipment layers share); 'pickup' is a short reach built from the
+//   thrust frames (LPC has no dedicated pickup) — documented, not hidden.
 // =============================================================================
-export const ASSETS = {
-  // --- GROUND / FLOOR TILES (kind 'tile', TILE px) ---------------------------
-  tile_grass: {
-    kind: 'tile', src: 'art/tiles/grass.png', tileSize: TILE,
-    placeholder: { base: 0x5a8f4a, speck: 0x6fa85c, kind: 'ground' },
-  },
-  tile_path: {
-    kind: 'tile', src: 'art/tiles/path.png', tileSize: TILE,
-    placeholder: { base: 0xc2a878, speck: 0xd4bd92, kind: 'ground' },
-  },
-  tile_dirt: {
-    kind: 'tile', src: 'art/tiles/dirt.png', tileSize: TILE,
-    placeholder: { base: 0x8a6b46, speck: 0x9c7d56, kind: 'ground' },
-  },
-  tile_water: {
-    kind: 'tile', src: 'art/tiles/water.png', tileSize: TILE,
-    placeholder: { base: 0x3a6ea5, speck: 0x4f86c0, kind: 'ground' },
-  },
-
-  // --- TALL PROPS (kind 'image'; y-sorted; footprint = base that collides) ---
-  prop_tree: {
-    kind: 'image', src: 'art/props/tree.png',
-    width: 48, height: 64,
-    footprint: { w: 18, h: 10, offX: 0, offY: 27 }, // trunk base only
-    placeholder: { kind: 'tree' },
-  },
-  prop_house: {
-    kind: 'image', src: 'art/props/house.png',
-    width: 96, height: 96,
-    footprint: { w: 88, h: 30, offX: 0, offY: 33 }, // wall base (doorway is data in world.js)
-    placeholder: { kind: 'house' },
-  },
-  prop_sign: {
-    kind: 'image', src: 'art/props/sign.png',
-    width: 24, height: 28,
-    footprint: { w: 14, h: 6, offX: 0, offY: 11 },
-    placeholder: { kind: 'sign' },
-  },
-  prop_pot: {
-    kind: 'image', src: 'art/props/pot.png',
-    width: 16, height: 20,
-    footprint: { w: 12, h: 7, offX: 0, offY: 6 },
-    placeholder: { kind: 'pot' },
-  },
-
-  // --- CHARACTERS (kind 'sheet'; one write-once anim set; FRAME px) ----------
-  char_hero: {
-    kind: 'sheet', src: 'art/chars/hero.png', ...sheet(6, 4),
-    footprint: { w: 16, h: 10, offX: 0, offY: 26 }, // feet box, centred-bottom
-    anims: {
-      'idle-down':  { row: 0, from: 0, to: 0 },
-      'idle-left':  { row: 1, from: 0, to: 0 },
-      'idle-right': { row: 2, from: 0, to: 0 },
-      'idle-up':    { row: 3, from: 0, to: 0 },
-      'walk-down':  { row: 0, from: 0, to: 5 },
-      'walk-left':  { row: 1, from: 0, to: 5 },
-      'walk-right': { row: 2, from: 0, to: 5 },
-      'walk-up':    { row: 3, from: 0, to: 5 },
-    },
-    placeholder: { kind: 'char', body: 0x3b6ea5, trim: 0xf2d6a2 },
-  },
-  npc_villager: {
-    kind: 'sheet', src: 'art/chars/villager.png', ...sheet(6, 4),
-    footprint: { w: 16, h: 10, offX: 0, offY: 26 },
-    anims: {
-      'idle-down':  { row: 0, from: 0, to: 0 },
-      'idle-left':  { row: 1, from: 0, to: 0 },
-      'idle-right': { row: 2, from: 0, to: 0 },
-      'idle-up':    { row: 3, from: 0, to: 0 },
-      'walk-down':  { row: 0, from: 0, to: 5 },
-      'walk-left':  { row: 1, from: 0, to: 5 },
-      'walk-right': { row: 2, from: 0, to: 5 },
-      'walk-up':    { row: 3, from: 0, to: 5 },
-    },
-    placeholder: { kind: 'char', body: 0x8a5a3b, trim: 0xe6c27a },
-  },
-  npc_elder: {
-    kind: 'sheet', src: 'art/chars/elder.png', ...sheet(6, 4),
-    footprint: { w: 16, h: 10, offX: 0, offY: 26 },
-    anims: {
-      'idle-down':  { row: 0, from: 0, to: 0 },
-      'idle-left':  { row: 1, from: 0, to: 0 },
-      'idle-right': { row: 2, from: 0, to: 0 },
-      'idle-up':    { row: 3, from: 0, to: 0 },
-      'walk-down':  { row: 0, from: 0, to: 5 },
-      'walk-left':  { row: 1, from: 0, to: 5 },
-      'walk-right': { row: 2, from: 0, to: 5 },
-      'walk-up':    { row: 3, from: 0, to: 5 },
-    },
-    placeholder: { kind: 'char', body: 0x6b5a8a, trim: 0xd8d0e6 },
-  },
+export const CLIPS = {
+  idle:   { fw: 64, block: 8,  frames: [0],                   rate: 1,  repeat: 0 },
+  walk:   { fw: 64, block: 8,  frames: [1, 2, 3, 4, 5, 6, 7, 8], rate: 8,  repeat: -1 },
+  run:    { fw: 64, block: 8,  frames: [1, 2, 3, 4, 5, 6, 7, 8], rate: 13, repeat: -1 },
+  cast:   { fw: 64, block: 0,  frames: [0, 1, 2, 3, 4, 5, 6],  rate: 9,  repeat: 0 },
+  use:    { fw: 64, block: 4,  frames: [0, 1, 2, 3, 4, 5, 6, 7], rate: 11, repeat: 0 },
+  pickup: { fw: 64, block: 4,  frames: [1, 2, 3, 2, 1],        rate: 9,  repeat: 0 },
+  attack: { fw: 64, block: 12, frames: [0, 1, 2, 3, 4, 5],     rate: 13, repeat: 0 },
+  // Oversize sword-swing clip: 192px sheet, rows 0-3 = N,W,S,E, 6 frames.
+  attack_oversize: { fw: 192, block: 0, frames: [0, 1, 2, 3, 4, 5], rate: 13, repeat: 0 },
 };
 
-// Convenience: animation key for an actor + state + facing (write-once naming).
-export function animKey(state, facing) {
-  return `${state}-${facing}`;
+// States that loop vs play once is derived from `repeat`; the action states
+// (one-shot) settle back to idle/walk when done.
+export const ONESHOT = new Set(['attack', 'cast', 'use', 'pickup']);
+
+// =============================================================================
+// LAYER TEXTURES — every LPC sheet that can be drawn as a character layer.
+//   src  : path under /public
+//   fw   : frame px (64 universal | 192 oversize)
+//   cols : columns in the sheet (frame index = row*cols + col)
+//   states: which CLIP states this texture provides art for (registered as
+//           animations). Standard sheets provide the full set; the oversize
+//           swing sheets provide only the 'attack' state (via attack_oversize).
+// =============================================================================
+const STD_STATES = ['idle', 'walk', 'run', 'cast', 'use', 'pickup', 'attack'];
+const tex64 = (src) => ({ src, fw: 64, cols: 13, states: STD_STATES });
+
+export const LAYER_TEXTURES = {
+  // bodies (NPC variety = body colour)
+  body_light: tex64('art/lpc/body_light.png'),
+  body_brown: tex64('art/lpc/body_brown.png'),
+  body_olive: tex64('art/lpc/body_olive.png'),
+  // hair
+  hair_chestnut: tex64('art/lpc/hair_chestnut.png'),
+  hair_black:    tex64('art/lpc/hair_black.png'),
+  hair_gold:     tex64('art/lpc/hair_gold.png'),
+  // legs / feet
+  legs_charcoal: tex64('art/lpc/legs_charcoal.png'),
+  legs_forest:   tex64('art/lpc/legs_forest.png'),
+  legs_brown:    tex64('art/lpc/legs_brown.png'),
+  feet_brown:    tex64('art/lpc/feet_brown.png'),
+  feet_black:    tex64('art/lpc/feet_black.png'),
+  // torso (shirt)
+  torso_blue:    tex64('art/lpc/torso_blue.png'),
+  torso_forest:  tex64('art/lpc/torso_forest.png'),
+  torso_brown:   tex64('art/lpc/torso_brown.png'),
+  // hat
+  hat_feathercap: tex64('art/lpc/hat_feathercap.png'),
+  // weapon carry (held during walk/idle/cast/use) — front + behind halves
+  weapon_carry:        tex64('art/lpc/weapon_carry.png'),
+  weapon_carry_behind: tex64('art/lpc/weapon_carry_behind.png'),
+  // weapon swing (the slash arc) — oversize 192px, attack only, front + behind
+  weapon_slash:        { src: 'art/lpc/weapon_slash.png',        fw: 192, cols: 6, states: ['attack'] },
+  weapon_slash_behind: { src: 'art/lpc/weapon_slash_behind.png', fw: 192, cols: 6, states: ['attack'] },
+  // shield — single universal sheet works for every state (present in slash too)
+  shield_fg: tex64('art/lpc/shield_fg.png'),
+  shield_bg: tex64('art/lpc/shield_bg.png'),
+};
+
+// =============================================================================
+// PARTS — the paper-doll registry. Each part fills exactly one SLOT; equipping
+// a part in a slot replaces whatever was there (data-driven toggle). A part
+// contributes one or more visual LAYERS, each with a draw order `z` and an
+// optional per-state texture override (the sword swaps to its oversize swing
+// sheet for the 'attack' state).
+//   slot  : which exclusive slot this occupies
+//   layers: [{ tex, z, overrides? }]
+//   label : shown in the equip HUD (Gate M proof)
+// =============================================================================
+const Z = { shieldBack: 10, weaponBack: 12, body: 20, feet: 24, legs: 28,
+            torso: 40, hair: 50, hat: 54, weaponFront: 80, shieldFront: 84 };
+
+export const PARTS = {
+  // --- base body + hair (always-equipped foundation parts) ---
+  body_light:  { slot: 'body', label: 'Body (light)', layers: [{ tex: 'body_light', z: Z.body }] },
+  body_brown:  { slot: 'body', label: 'Body (brown)', layers: [{ tex: 'body_brown', z: Z.body }] },
+  body_olive:  { slot: 'body', label: 'Body (olive)', layers: [{ tex: 'body_olive', z: Z.body }] },
+  hair_chestnut: { slot: 'hair', label: 'Hair (chestnut)', layers: [{ tex: 'hair_chestnut', z: Z.hair }] },
+  hair_black:    { slot: 'hair', label: 'Hair (black)',    layers: [{ tex: 'hair_black', z: Z.hair }] },
+  hair_gold:     { slot: 'hair', label: 'Hair (gold)',     layers: [{ tex: 'hair_gold', z: Z.hair }] },
+
+  // --- clothing ---
+  pants_charcoal: { slot: 'legs', label: 'Pants (charcoal)', layers: [{ tex: 'legs_charcoal', z: Z.legs }] },
+  pants_forest:   { slot: 'legs', label: 'Pants (forest)',   layers: [{ tex: 'legs_forest', z: Z.legs }] },
+  pants_brown:    { slot: 'legs', label: 'Pants (brown)',    layers: [{ tex: 'legs_brown', z: Z.legs }] },
+  shoes_brown:    { slot: 'feet', label: 'Shoes (brown)',    layers: [{ tex: 'feet_brown', z: Z.feet }] },
+  shoes_black:    { slot: 'feet', label: 'Shoes (black)',    layers: [{ tex: 'feet_black', z: Z.feet }] },
+  shirt_blue:     { slot: 'torso', label: 'Shirt (blue)',    layers: [{ tex: 'torso_blue', z: Z.torso }] },
+  shirt_forest:   { slot: 'torso', label: 'Shirt (forest)',  layers: [{ tex: 'torso_forest', z: Z.torso }] },
+  shirt_brown:    { slot: 'torso', label: 'Shirt (brown)',   layers: [{ tex: 'torso_brown', z: Z.torso }] },
+
+  // --- equippable gear (Gate M) ---
+  hat_feather: { slot: 'hat', label: 'Feathered cap',
+    layers: [{ tex: 'hat_feathercap', z: Z.hat }] },
+  sword: { slot: 'weapon', label: 'Longsword',
+    layers: [
+      { tex: 'weapon_carry_behind', z: Z.weaponBack,  overrides: { attack: 'weapon_slash_behind' } },
+      { tex: 'weapon_carry',        z: Z.weaponFront, overrides: { attack: 'weapon_slash' } },
+    ] },
+  shield: { slot: 'shield', label: 'Heater shield',
+    layers: [
+      { tex: 'shield_bg', z: Z.shieldBack },
+      { tex: 'shield_fg', z: Z.shieldFront },
+    ] },
+};
+
+// Character footprint (feet box) in 64px frame space — collider + y-sort anchor.
+// Anchored to frame centre; offY pushes it down to the soles. (Gate B / Gate C.)
+export const CHAR_FOOTPRINT = { w: 16, h: 8, offX: 0, offY: 24 };
+
+// =============================================================================
+// TILES + PROPS (Kenney Tiny Town, CC0). Tiles are 16px native, tiled at 2x;
+// props are pre-baked to final px by scripts/build_kenney_props.py.
+//   footprint: solid/visual base in FINAL px, anchored to the centre origin.
+// =============================================================================
+export const TILES = {
+  tile_grass:  { src: 'art/kenney/grass.png' },
+  tile_flower: { src: 'art/kenney/grass_flower.png' },
+  tile_dirt:   { src: 'art/kenney/dirt.png' },
+  tile_garden: { src: 'art/kenney/garden.png' },
+};
+
+export const PROPS = {
+  prop_house:  { src: 'art/kenney/house.png',  width: 96, height: 96,
+                 footprint: { w: 84, h: 18, offX: 0, offY: 38 } },
+  prop_tree:   { src: 'art/kenney/tree.png',   width: 32, height: 32,
+                 footprint: { w: 10, h: 6, offX: 0, offY: 12 } },
+  prop_bush:   { src: 'art/kenney/bush.png',   width: 32, height: 32,
+                 footprint: { w: 14, h: 7, offX: 0, offY: 10 } },
+  prop_sign:   { src: 'art/kenney/sign.png',   width: 32, height: 32,
+                 footprint: { w: 14, h: 6, offX: 0, offY: 11 } },
+  prop_barrel: { src: 'art/kenney/barrel.png', width: 32, height: 32,
+                 footprint: { w: 14, h: 8, offX: 0, offY: 9 } },
+  prop_mushroom: { src: 'art/kenney/mushroom.png', width: 32, height: 32,
+                 footprint: null }, // decor, non-solid
+};
+
+// Animation key for a texture + state + facing (write-once naming).
+export function animFor(textureKey, state, facing) {
+  return `${textureKey}-${state}-${facing}`;
 }
