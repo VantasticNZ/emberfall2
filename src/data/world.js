@@ -47,13 +47,13 @@ export const WORLD = {
   // equip pipeline the hero does.
   npcs: [
     { tx: 9, ty: 11, facing: 'down', name: 'Mara', speed: 70,
-      parts: ['body_brown', 'hair_black', 'pants_brown', 'shoes_brown', 'shirt_forest'],
+      parts: ['body_brown', 'eyes_brown', 'hair_black', 'pants_brown', 'shoes_brown', 'shirt_forest'],
       lines: ["Morning! Bread's nearly out the oven.", 'You grew up fast, you know that?'] },
     { tx: 16, ty: 10, facing: 'left', name: 'Old Edda', speed: 55,
-      parts: ['body_olive', 'hair_gold', 'pants_forest', 'shoes_black', 'shirt_brown', 'hat_feather'],
+      parts: ['body_olive', 'eyes_green', 'hair_gold', 'pants_forest', 'shoes_black', 'shirt_brown', 'hat_feather'],
       lines: ['The Hearthflame remembers, child.', 'Some truths are kinder left in the ash.'] },
     { tx: 27, ty: 21, facing: 'up', name: 'Bryn', speed: 75,
-      parts: ['body_light', 'hair_gold', 'pants_charcoal', 'shoes_black', 'shirt_brown', 'shield', 'sword'],
+      parts: ['body_light', 'eyes_brown', 'hair_gold', 'pants_charcoal', 'shoes_black', 'shirt_brown', 'shield', 'sword'],
       lines: ['Heh. Mind where yer boots go.', "Tavern's shut. I drank it."] },
   ],
 
@@ -61,6 +61,6 @@ export const WORLD = {
   // a hat, sword and shield onto him live (keys 1/2/3) and triggers pickup (4).
   player: {
     tx: 19, ty: 18, facing: 'down', speed: 95,
-    parts: ['body_light', 'hair_chestnut', 'pants_charcoal', 'shoes_brown', 'shirt_blue'],
+    parts: ['body_light', 'eyes_blue', 'hair_chestnut', 'pants_charcoal', 'shoes_brown', 'shirt_blue'],
   },
 };

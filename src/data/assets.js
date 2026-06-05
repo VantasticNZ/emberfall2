@@ -85,6 +85,10 @@ export const LAYER_TEXTURES = {
   body_light: tex64('art/lpc/body_light.png'),
   body_brown: tex64('art/lpc/body_brown.png'),
   body_olive: tex64('art/lpc/body_olive.png'),
+  // eyes (the v3 base body has a BLANK face — eyes are their own layer)
+  eyes_blue:  tex64('art/lpc/eyes_blue.png'),
+  eyes_brown: tex64('art/lpc/eyes_brown.png'),
+  eyes_green: tex64('art/lpc/eyes_green.png'),
   // hair
   hair_chestnut: tex64('art/lpc/hair_chestnut.png'),
   hair_black:    tex64('art/lpc/hair_black.png'),
@@ -122,7 +126,7 @@ export const LAYER_TEXTURES = {
 //   layers: [{ tex, z, overrides? }]
 //   label : shown in the equip HUD (Gate M proof)
 // =============================================================================
-const Z = { shieldBack: 10, weaponBack: 12, body: 20, feet: 24, legs: 28,
+const Z = { shieldBack: 10, weaponBack: 12, body: 20, eyes: 22, feet: 24, legs: 28,
             torso: 40, hair: 50, hat: 54, weaponFront: 80, shieldFront: 84 };
 
 export const PARTS = {
@@ -130,6 +134,9 @@ export const PARTS = {
   body_light:  { slot: 'body', label: 'Body (light)', layers: [{ tex: 'body_light', z: Z.body }] },
   body_brown:  { slot: 'body', label: 'Body (brown)', layers: [{ tex: 'body_brown', z: Z.body }] },
   body_olive:  { slot: 'body', label: 'Body (olive)', layers: [{ tex: 'body_olive', z: Z.body }] },
+  eyes_blue:  { slot: 'eyes', label: 'Eyes (blue)',  layers: [{ tex: 'eyes_blue', z: Z.eyes }] },
+  eyes_brown: { slot: 'eyes', label: 'Eyes (brown)', layers: [{ tex: 'eyes_brown', z: Z.eyes }] },
+  eyes_green: { slot: 'eyes', label: 'Eyes (green)', layers: [{ tex: 'eyes_green', z: Z.eyes }] },
   hair_chestnut: { slot: 'hair', label: 'Hair (chestnut)', layers: [{ tex: 'hair_chestnut', z: Z.hair }] },
   hair_black:    { slot: 'hair', label: 'Hair (black)',    layers: [{ tex: 'hair_black', z: Z.hair }] },
   hair_gold:     { slot: 'hair', label: 'Hair (gold)',     layers: [{ tex: 'hair_gold', z: Z.hair }] },
