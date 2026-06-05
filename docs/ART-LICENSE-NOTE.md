@@ -117,11 +117,22 @@ art family + pixel density (cohesion). Attribution for the assets used:
 > into the manifest. (Its files may linger under `public/art/kenney/`; harmless,
 > CC0, unreferenced.)
 
-## CHARACTER FACES — LPC eyes layer
-The LPC v3 base body sheets render a head but **no eyes** (blank face). Fixed by
-adding an `eyes/human/adult/*.png` layer to every character. — OGA-BY 3.0 /
-CC-BY-SA 3.0 / GPL 3.0 — JaidynReiman; Matthew Krohn (makrohn); Stephen Challener
-(Redshrike); Mark Weyer; Johannes Sjölund (wulax).
+## CHARACTER FACES — LPC eyes + brows; face-revealing hair; portraits
+The LPC v3 base body renders a head but **no eyes** (blank face), and the "plain"
+hair buried the face. Fixed with:
+- **Eyes** (`eyes/human/adult/*.png`) — OGA-BY 3.0 / CC-BY-SA 3.0 / GPL 3.0 —
+  JaidynReiman; Matthew Krohn (makrohn); Stephen Challener (Redshrike);
+  Mark Weyer; Johannes Sjölund (wulax).
+- **Eyebrows** (`eyes/eyebrows/thick/adult/*.png`) — OGA-BY 3.0 — ElizaWy.
+- **Hair** swapped plain → **cowlick** (`hair/cowlick/adult/*.png`, kept the same
+  `hair_*.png` filenames) so the forehead/brows/eyes are visible — **CC0** —
+  ElizaWy; bluecarrot16.
+- **Dialogue portraits**: composed at runtime from the speaker's own LPC layers
+  (down-idle bust) into a RenderTexture — no new art, just the layers above.
+
+## GRASS DECALS
+Scattered tuft/flower decals from the same LPC plants sheet (already credited
+under "Plants/bush" above) — OGA-BY 3.0.
 
 ## VERDICT
 All art in the slice is AI-safe and commercially usable. Keep this note + an

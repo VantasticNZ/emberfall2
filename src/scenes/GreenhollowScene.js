@@ -7,7 +7,7 @@
 
 import Phaser from 'phaser';
 import { WORLD } from '../data/world.js';
-import { PROPS, TILE, CHAR_FOOTPRINT } from '../data/assets.js';
+import { PROPS, PARTS, TILE, DIR_ROW, CHAR_FOOTPRINT } from '../data/assets.js';
 import { AssetLoader } from '../art/AssetLoader.js';
 import { Character } from '../systems/Character.js';
 import { Movement } from '../systems/Movement.js';
@@ -125,7 +125,7 @@ export class GreenhollowScene extends Phaser.Scene {
         onInteract: () => {
           npc.facing = this._faceToward(npc, this.player);
           npc.setState('idle');
-          this._openDialogue(n.name, n.lines);
+          this._openDialogue(n.name, n.lines, n.parts);
         },
       });
     }
@@ -199,16 +199,51 @@ export class GreenhollowScene extends Phaser.Scene {
       backgroundColor: '#ffe9c2', padding: { x: 6, y: 3 },
     }).setOrigin(0.5, 1).setScrollFactor(0).setDepth(DEPTH.OVERLAY).setVisible(false);
 
-    const boxW = 380, boxH = 64, bx = (W - boxW) / 2, by = this.scale.height - boxH - 6;
+    // Dialogue box with a PORTRAIT panel on the left (a large composed LPC face
+    // of the speaker, so expression is actually visible — Gate H / faces).
+    const boxW = 470, boxH = 108, bx = (W - boxW) / 2, by = this.scale.height - boxH - 8;
+    const PS = 92, px = bx + 8, py = by + 8;       // portrait frame
+    this.portraitBox = { x: px, y: py, size: PS };
+    this._portrait = null;
     this.dialogue = this.add.container(0, 0).setScrollFactor(0).setDepth(DEPTH.OVERLAY).setVisible(false);
     const panel = this.add.rectangle(bx, by, boxW, boxH, 0x1c1422, 0.92).setOrigin(0, 0).setStrokeStyle(2, 0xffe9c2);
-    this.dlgName = this.add.text(bx + 10, by + 6, '', { fontFamily: 'monospace', fontSize: '10px', color: '#ffe9c2' });
-    this.dlgBody = this.add.text(bx + 10, by + 22, '', {
-      fontFamily: 'monospace', fontSize: '10px', color: '#f3ecff',
-      wordWrap: { width: boxW - 20 }, lineSpacing: 2,
+    this.portraitFrame = this.add.rectangle(px, py, PS, PS, 0x6d7488, 1).setOrigin(0, 0).setStrokeStyle(2, 0xffe9c2);
+    const tx = px + PS + 12;
+    this.dlgName = this.add.text(tx, by + 10, '', { fontFamily: 'monospace', fontSize: '12px', color: '#ffe9c2' });
+    this.dlgBody = this.add.text(tx, by + 30, '', {
+      fontFamily: 'monospace', fontSize: '11px', color: '#f3ecff',
+      wordWrap: { width: boxW - (PS + 12 + 8) - 12 }, lineSpacing: 3,
     });
     this.dlgHint = this.add.text(bx + boxW - 10, by + boxH - 6, 'E ▸', { fontFamily: 'monospace', fontSize: '8px', color: '#9b93b0' }).setOrigin(1, 1);
-    this.dialogue.add([panel, this.dlgName, this.dlgBody, this.dlgHint]);
+    this.dialogue.add([panel, this.portraitFrame, this.dlgName, this.dlgBody, this.dlgHint]);
+  }
+
+  // Compose a large face portrait of the speaker from its LPC face layers
+  // (down-idle frame, head region) into a RenderTexture shown in the box.
+  _buildPortrait(parts) {
+    if (this._portrait) { this._portrait.destroy(); this._portrait = null; }
+    this.portraitFrame.setVisible(!!parts);
+    if (!parts) return;
+    const FACE_SLOTS = new Set(['body', 'eyes', 'brows', 'hair', 'hat', 'torso']);
+    const layers = [];
+    for (const pk of parts) {
+      const part = PARTS[pk];
+      if (!part || !FACE_SLOTS.has(part.slot)) continue;
+      for (const L of part.layers) layers.push(L);
+    }
+    layers.sort((a, b) => a.z - b.z);
+    // head crop within the 64px down-idle frame (row 10, col 0 => frame 130).
+    // The LPC face sits high: hair ~y14-26, brows ~y27, eyes ~y29-32, so this
+    // box tightly frames hair+brows+eyes+chin (measured from the sheet).
+    const FRAME_DOWN_IDLE = (8 + DIR_ROW.down) * 13;
+    const cx = 16, cy = 13, cw = 32, ch = 38;      // bust: hair-top to shoulders
+    const rt = this.make.renderTexture({ x: 0, y: 0, width: cw, height: ch }, false);
+    for (const L of layers) rt.drawFrame(L.tex, FRAME_DOWN_IDLE, -cx, -cy);
+    const { x, y, size } = this.portraitBox;
+    const scale = Math.min((size - 6) / cw, (size - 6) / ch); // fit within the frame
+    rt.setOrigin(0.5, 0.5).setPosition(x + size / 2, y + size / 2).setScale(scale).setScrollFactor(0);
+    this.dialogue.add(rt);
+    this._portrait = rt;
   }
 
   _refreshGearHud() {
@@ -232,10 +267,11 @@ export class GreenhollowScene extends Phaser.Scene {
   }
 
   // ---- DIALOGUE -------------------------------------------------------------
-  _openDialogue(name, lines) {
+  _openDialogue(name, lines, parts = null) {
     this._dlgLines = lines; this._dlgIndex = 0;
     this.dlgName.setText(name);
     this.dlgBody.setText(lines[0]);
+    this._buildPortrait(parts);
     this.dialogue.setVisible(true);
     this.prompt.setVisible(false);
     Movement.stop(this.player);
