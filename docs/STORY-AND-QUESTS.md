@@ -191,3 +191,26 @@ DATA later if they serve the story. Quality-gate every one (Gate D); cut flat on
 
 ## NEXT (Pass 3 / next design piece): SYSTEMS DESIGN - weapons (~couple dozen), armour (dozen+),
 ## magic (5-10 spells), monsters, skill tree, stats - all as data on the engines. Then COHERENCE REVIEW.
+
+================================================================
+## FUNNY NPC NAMES (tonal spice — side characters only, used sparingly)
+================================================================
+Rude-pun names sprinkled on SIDE characters (never the main cast — Bram, Hagga, Sela, etc. stay
+serious). A starting batch (use ~where they land naturally):
+- Amanda Hugginkiss
+- Wayne Kerr
+- Mike Hunt
+- Hugh Jass
+- Ben Dover
+- Pat Mycrotch
+- Dixie Normous
+- Stu Pidasso
+- Connie Lingus
+- Phil McCracken
+- Ivana Tinkle
+- Seymour Butz
+- Anita Bath
+- Holden McGroin
+- Heywood Jablomi
+Use for shopkeepers, quest-givers, tavern patrons, bounty boards — a chuckle when you read the name,
+not a constant gag. Keep within the R18-not-explicit line.
