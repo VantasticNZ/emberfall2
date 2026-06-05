@@ -1,32 +1,33 @@
 // =============================================================================
 // GreenhollowScene — builds the proof slice ENTIRELY from data (world.js) using
-// the write-once systems (Movement, Collision, DepthSort, Interaction). The
-// scene contains no per-actor behaviour: it wires data into systems.
+// the write-once systems (Character, Movement, Collision, DepthSort,
+// Interaction). The scene wires data into systems; it holds no per-actor
+// behaviour. Characters are LPC paper-dolls; the Gate M demo equips gear live.
 // =============================================================================
 
 import Phaser from 'phaser';
 import { WORLD } from '../data/world.js';
-import { ASSETS, ART_SOURCE } from '../data/assets.js';
+import { PROPS, TILES, TILE, KENNEY_NATIVE, CHAR_FOOTPRINT } from '../data/assets.js';
 import { AssetLoader } from '../art/AssetLoader.js';
+import { Character } from '../systems/Character.js';
 import { Movement } from '../systems/Movement.js';
 import { Collision } from '../systems/Collision.js';
 import { DepthSort, DEPTH } from '../systems/DepthSort.js';
 import { Interaction } from '../systems/Interaction.js';
 
-const T = WORLD.tile;
-const tileToPx = (t) => t * T + T / 2; // centre of a tile
+const TILE_SCALE = TILE / KENNEY_NATIVE;          // 2 — Kenney 16px tiles at 2x
+const tileToPx = (t) => t * TILE + TILE / 2;       // centre of a tile
 
 export class GreenhollowScene extends Phaser.Scene {
   constructor() { super('Greenhollow'); }
 
   create() {
-    // 0) realise all art (placeholder synth + animation registration)
-    AssetLoader.build(this);
+    AssetLoader.build(this);          // register every layer's animation set
     DepthSort.reset();
     Interaction.reset();
 
-    const worldW = WORLD.widthTiles * T;
-    const worldH = WORLD.heightTiles * T;
+    const worldW = WORLD.widthTiles * TILE;
+    const worldH = WORLD.heightTiles * TILE;
     this.physics.world.setBounds(0, 0, worldW, worldH);
 
     this._buildGround(worldW, worldH);
@@ -36,10 +37,8 @@ export class GreenhollowScene extends Phaser.Scene {
     this._buildNPCs();
     this._buildPlayer();
 
-    // 1) wire collision relationships once
     Collision.wire(this, this.actors, this.solids);
 
-    // 2) camera follows + clamps to the world (never shows off-map)
     this.cameras.main.setBounds(0, 0, worldW, worldH);
     this.cameras.main.startFollow(this.player, true, 0.18, 0.18);
     this.cameras.main.setRoundPixels(true);
@@ -49,28 +48,32 @@ export class GreenhollowScene extends Phaser.Scene {
     this._buildDebug();
   }
 
-  // ---- GROUND ---------------------------------------------------------------
+  // ---- GROUND (Kenney tiles, tiled at 2x) -----------------------------------
   _buildGround(worldW, worldH) {
-    const base = this.add.tileSprite(0, 0, worldW, worldH, WORLD.ground.base).setOrigin(0, 0);
-    DepthSort.pinFloor(base);
-    for (const [key, tx, ty, w, h] of WORLD.ground.rects) {
-      const ts = this.add.tileSprite(tx * T, ty * T, w * T, h * T, key).setOrigin(0, 0);
+    const paint = (key, x, y, w, h) => {
+      const ts = this.add.tileSprite(x, y, w, h, key).setOrigin(0, 0);
+      ts.tileScaleX = TILE_SCALE; ts.tileScaleY = TILE_SCALE;
       DepthSort.pinFloor(ts);
+      return ts;
+    };
+    paint(WORLD.ground.base, 0, 0, worldW, worldH);
+    for (const [key, tx, ty, w, h] of WORLD.ground.rects) {
+      paint(key, tx * TILE, ty * TILE, w * TILE, h * TILE);
     }
   }
 
   // ---- PROPS ----------------------------------------------------------------
   _buildProps() {
     for (const p of WORLD.props) {
-      const d = ASSETS[p.key];
-      const spr = this.physics.add.sprite(tileToPx(p.tx), tileToPx(p.ty), p.key);
-      spr.setOrigin(0.5, 0.5);
-      if (p.solid) { Collision.makeSolid(spr, d.footprint); this.solids.add(spr); }
-      DepthSort.track(spr, d.footprint ? d.footprint.offY : 0);
+      const d = PROPS[p.key];
+      const spr = this.physics.add.sprite(tileToPx(p.tx), tileToPx(p.ty), p.key).setOrigin(0.5, 0.5);
+      if (p.solid && d.footprint) { Collision.makeSolid(spr, d.footprint); this.solids.add(spr); }
+      else if (spr.body) { spr.body.enable = false; }
+      DepthSort.track(spr, d.footprint ? d.footprint.offY : d.height / 2);
 
       if (p.interact) {
         Interaction.register({
-          x: spr.x, y: spr.y + (d.footprint ? d.footprint.offY : 0), radius: 30,
+          x: spr.x, y: spr.y + (d.footprint ? d.footprint.offY : 0), radius: 44,
           prompt: p.interact.prompt,
           onInteract: () => this._openDialogue(p.interact.name, p.interact.lines),
         });
@@ -78,22 +81,22 @@ export class GreenhollowScene extends Phaser.Scene {
     }
   }
 
-  // ---- NPCS (actors that are also solid + interactable) ---------------------
+  // ---- NPCS (layered characters; solid + interactable) ----------------------
   _buildNPCs() {
     for (const n of WORLD.npcs) {
-      const d = ASSETS[n.key];
-      const spr = this.physics.add.sprite(tileToPx(n.tx), tileToPx(n.ty), n.key);
-      spr.assetKey = n.key;
-      spr.facing = n.facing || 'down';
-      Collision.makeSolid(spr, d.footprint); // NPCs don't walk through / aren't pushed
-      this.solids.add(spr);
-      DepthSort.track(spr, d.footprint.offY);
-      Movement.animate(spr, 'idle');
+      const npc = new Character(this, tileToPx(n.tx), tileToPx(n.ty),
+        { parts: n.parts, facing: n.facing, speed: n.speed });
+      Collision.markSolidActor(npc);
+      this.solids.add(npc);
+      DepthSort.track(npc, CHAR_FOOTPRINT.offY);
 
       Interaction.register({
-        x: spr.x, y: spr.y + d.footprint.offY, radius: 34, prompt: 'Talk',
-        onInteract: () => { spr.facing = this._faceToward(spr, this.player); Movement.animate(spr, 'idle');
-          this._openDialogue(n.name, n.lines); },
+        x: npc.x, y: npc.y + CHAR_FOOTPRINT.offY, radius: 48, prompt: 'Talk',
+        onInteract: () => {
+          npc.facing = this._faceToward(npc, this.player);
+          npc.setState('idle');
+          this._openDialogue(n.name, n.lines);
+        },
       });
     }
   }
@@ -101,29 +104,34 @@ export class GreenhollowScene extends Phaser.Scene {
   // ---- PLAYER ---------------------------------------------------------------
   _buildPlayer() {
     const pd = WORLD.player;
-    const d = ASSETS[pd.key];
-    const spr = this.physics.add.sprite(tileToPx(pd.tx), tileToPx(pd.ty), pd.key);
-    spr.assetKey = pd.key;
-    spr.moveSpeed = pd.speed;
-    spr.facing = pd.facing || 'down';
-    Collision.makeActorBody(spr, d.footprint);
-    this.actors.add(spr);
-    DepthSort.track(spr, d.footprint.offY);
-    Movement.animate(spr, 'idle');
-    this.player = spr;
+    this.player = new Character(this, tileToPx(pd.tx), tileToPx(pd.ty),
+      { parts: pd.parts, facing: pd.facing, speed: pd.speed });
+    Collision.markPlayer(this.player);
+    this.actors.add(this.player);
+    DepthSort.track(this.player, CHAR_FOOTPRINT.offY);
   }
 
   // ---- INPUT ----------------------------------------------------------------
   _buildInput() {
     this.cursors = this.input.keyboard.createCursorKeys();
     this.keys = this.input.keyboard.addKeys({
-      up: 'W', down: 'S', left: 'A', right: 'D',
-      interact: 'E', debug: 'B', hud: 'H',
+      up: 'W', down: 'S', left: 'A', right: 'D', run: 'SHIFT',
+      interact: 'E', attack: 'SPACE', cast: 'C', use: 'F',
+      hat: 'ONE', sword: 'TWO', shield: 'THREE', pickup: 'FOUR',
+      debug: 'B', hud: 'H',
     });
+    const p = () => this.player;
     this.keys.interact.on('down', () => {
       if (this.dialogue.visible) { this._advanceDialogue(); return; }
       if (Interaction.active) Interaction.tryInteract();
     });
+    this.keys.attack.on('down', () => { if (!this.dialogue.visible) p().action('attack'); });
+    this.keys.cast.on('down', () => { if (!this.dialogue.visible) p().action('cast'); });
+    this.keys.use.on('down', () => { if (!this.dialogue.visible) p().action('use'); });
+    this.keys.pickup.on('down', () => { if (!this.dialogue.visible) p().action('pickup'); });
+    this.keys.hat.on('down', () => { p().toggle('hat_feather'); this._refreshGearHud(); });
+    this.keys.sword.on('down', () => { p().toggle('sword'); this._refreshGearHud(); });
+    this.keys.shield.on('down', () => { p().toggle('shield'); this._refreshGearHud(); });
     this.keys.debug.on('down', () => this._toggleDebug());
     this.keys.hud.on('down', () => { this.hud.visible = !this.hud.visible; });
   }
@@ -132,23 +140,23 @@ export class GreenhollowScene extends Phaser.Scene {
   _buildUI() {
     const W = this.scale.width;
     this.hud = this.add.container(0, 0).setScrollFactor(0).setDepth(DEPTH.OVERLAY);
-    const title = this.add.text(6, 5, 'EMBERFALL 2 — Greenhollow proof slice',
+    const title = this.add.text(6, 5, 'EMBERFALL 2 — Greenhollow (LPC + Kenney)',
       { fontFamily: 'monospace', fontSize: '10px', color: '#ffe9c2' }).setScrollFactor(0);
-    const help = this.add.text(6, 18, 'Move WASD/Arrows  ·  E interact  ·  B colliders  ·  H hud',
+    const help = this.add.text(6, 18,
+      'WASD move · Shift run · E talk/read · Space attack · 1 hat 2 sword 3 shield · 4 pickup · B colliders',
       { fontFamily: 'monospace', fontSize: '8px', color: '#bfb7d0' }).setScrollFactor(0);
-    const banner = this.add.text(W - 6, 5,
-      ART_SOURCE === 'placeholder' ? 'ART: PLACEHOLDER (license-safe)' : 'ART: real',
-      { fontFamily: 'monospace', fontSize: '8px', color: '#ff9d9d' }).setOrigin(1, 0).setScrollFactor(0);
-    this.hud.add([title, help, banner]);
+    const banner = this.add.text(W - 6, 5, 'ART: LPC (CC-BY-SA) + Kenney (CC0)',
+      { fontFamily: 'monospace', fontSize: '8px', color: '#9fe6a0' }).setOrigin(1, 0).setScrollFactor(0);
+    this.gearHud = this.add.text(6, 30, '', { fontFamily: 'monospace', fontSize: '8px', color: '#ffd9a0' }).setScrollFactor(0);
+    this.hud.add([title, help, banner, this.gearHud]);
+    this._refreshGearHud();
 
-    // interaction prompt (appears when an interactable is in reach)
-    this.prompt = this.add.text(W / 2, this.scale.height - 70, '', {
+    this.prompt = this.add.text(W / 2, this.scale.height - 74, '', {
       fontFamily: 'monospace', fontSize: '10px', color: '#1c1422',
       backgroundColor: '#ffe9c2', padding: { x: 6, y: 3 },
     }).setOrigin(0.5, 1).setScrollFactor(0).setDepth(DEPTH.OVERLAY).setVisible(false);
 
-    // dialogue box — sized so wrapped text always fits (Gate A)
-    const boxW = 360, boxH = 64, bx = (W - boxW) / 2, by = this.scale.height - boxH - 6;
+    const boxW = 380, boxH = 64, bx = (W - boxW) / 2, by = this.scale.height - boxH - 6;
     this.dialogue = this.add.container(0, 0).setScrollFactor(0).setDepth(DEPTH.OVERLAY).setVisible(false);
     const panel = this.add.rectangle(bx, by, boxW, boxH, 0x1c1422, 0.92).setOrigin(0, 0).setStrokeStyle(2, 0xffe9c2);
     this.dlgName = this.add.text(bx + 10, by + 6, '', { fontFamily: 'monospace', fontSize: '10px', color: '#ffe9c2' });
@@ -160,9 +168,15 @@ export class GreenhollowScene extends Phaser.Scene {
     this.dialogue.add([panel, this.dlgName, this.dlgBody, this.dlgHint]);
   }
 
+  _refreshGearHud() {
+    const g = this.player;
+    const on = (slot, label) => (g.equippedIn(slot) ? `[${label}]` : ` ${label} `);
+    this.gearHud.setText(`Equipped:  ${on('hat', 'hat')}  ${on('weapon', 'sword')}  ${on('shield', 'shield')}`);
+  }
+
   _buildDebug() {
     this.debugOn = false;
-    this.physics.world.createDebugGraphic();     // draws collider bodies (Gate B overlay)
+    this.physics.world.createDebugGraphic();
     this.physics.world.debugGraphic.setDepth(DEPTH.OVERLAY + 1).setVisible(false);
     this.physics.world.drawDebug = false;
   }
@@ -200,18 +214,17 @@ export class GreenhollowScene extends Phaser.Scene {
   update() {
     if (this.dialogue.visible) { Movement.stop(this.player); DepthSort.update(); return; }
 
-    // input vector -> Movement system (same path any actor would use)
     let dx = 0, dy = 0;
     if (this.cursors.left.isDown || this.keys.left.isDown) dx -= 1;
     if (this.cursors.right.isDown || this.keys.right.isDown) dx += 1;
     if (this.cursors.up.isDown || this.keys.up.isDown) dy -= 1;
     if (this.cursors.down.isDown || this.keys.down.isDown) dy += 1;
-    Movement.drive(this.player, dx, dy);
+    Movement.drive(this.player, dx, dy, this.keys.run.isDown);
 
     DepthSort.update();
 
     const active = Interaction.update(this.player);
-    if (active) { this.prompt.setText(`${active.prompt}  (E)`).setVisible(true); }
+    if (active) this.prompt.setText(`${active.prompt}  (E)`).setVisible(true);
     else this.prompt.setVisible(false);
   }
 }
