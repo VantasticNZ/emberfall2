@@ -10,38 +10,35 @@ export const WORLD = {
   widthTiles: 40,   // 1280 px — wider than the 480px viewport (camera clamp)
   heightTiles: 28,  // 896 px
 
-  // Ground: a base fill, then dirt roads + a garden + a flower patch.
+  // Ground: a base fill, then a dirt road + a sand path + a garden + a pond.
   ground: {
     base: 'tile_grass',
     // [key, tileX, tileY, widthTiles, heightTiles]
     rects: [
       ['tile_dirt',   0, 13, 40, 3],  // east-west road
-      ['tile_dirt',  18,  0,  3, 28], // north-south road (crossroads)
-      ['tile_garden', 4,  4,  5,  4], // tilled patch by the north house
-      ['tile_flower',30,  4,  4,  3], // wildflowers
-      ['tile_flower', 6, 21,  4,  2],
+      ['tile_path',  18,  0,  3, 28], // north-south path (crossroads)
+      ['tile_garden', 4,  4,  5,  4], // tilled patch
+      ['tile_water', 31,  4,  6,  5], // pond
     ],
   },
 
-  // Props. `solid` => Collision.makeSolid (footprint from manifest). Tall props
-  // (houses) y-sort and occlude actors behind them (Gate C).
+  // Props. `solid` => Collision.makeSolid (footprint from manifest). Tall LPC
+  // trees y-sort and occlude actors behind them (Gate C).
   props: [
-    { key: 'prop_house',  tx: 6,  ty: 8,  solid: true },
-    { key: 'prop_house',  tx: 31, ty: 19, solid: true },
-    { key: 'prop_tree',   tx: 12, ty: 5,  solid: true },
-    { key: 'prop_tree',   tx: 14, ty: 7,  solid: true },
-    { key: 'prop_tree',   tx: 34, ty: 6,  solid: true },
-    { key: 'prop_tree',   tx: 3,  ty: 20, solid: true },
-    { key: 'prop_tree',   tx: 25, ty: 10, solid: true }, // by the road, for the occlusion test
-    { key: 'prop_bush',   tx: 22, ty: 17, solid: false },
-    { key: 'prop_bush',   tx: 9,  ty: 18, solid: false },
-    { key: 'prop_mushroom', tx: 4, ty: 19, solid: false },
-    { key: 'prop_barrel', tx: 28, ty: 18, solid: true },
-    { key: 'prop_barrel', tx: 29, ty: 18, solid: true },
+    { key: 'prop_tree_oak',  tx: 6,  ty: 8,  solid: true },
+    { key: 'prop_tree_oak',  tx: 24, ty: 9,  solid: true }, // by the road, for the occlusion test
+    { key: 'prop_tree_oak',  tx: 34, ty: 19, solid: true },
+    { key: 'prop_tree_pine', tx: 12, ty: 6,  solid: true },
+    { key: 'prop_tree_pine', tx: 3,  ty: 20, solid: true },
+    { key: 'prop_tree_pine', tx: 37, ty: 9,  solid: true },
+    { key: 'prop_bush',      tx: 9,  ty: 18, solid: false },
+    { key: 'prop_bush',      tx: 22, ty: 17, solid: false },
+    { key: 'prop_bush',      tx: 28, ty: 11, solid: false },
+    { key: 'prop_bush',      tx: 14, ty: 22, solid: false },
     {
       key: 'prop_sign', tx: 20, ty: 16, solid: true,
       interact: { prompt: 'Read', name: 'Signpost',
-        lines: ['GREENHOLLOW', 'Population: small. Heart: large.', 'Mind the barrels. — the Hollowfolk'] },
+        lines: ['GREENHOLLOW', 'Population: small. Heart: large.', 'Mind the pond. — the Hollowfolk'] },
     },
   ],
 

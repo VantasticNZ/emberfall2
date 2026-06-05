@@ -7,7 +7,7 @@
 
 import Phaser from 'phaser';
 import { WORLD } from '../data/world.js';
-import { PROPS, TILES, TILE, KENNEY_NATIVE, CHAR_FOOTPRINT } from '../data/assets.js';
+import { PROPS, TILE, CHAR_FOOTPRINT } from '../data/assets.js';
 import { AssetLoader } from '../art/AssetLoader.js';
 import { Character } from '../systems/Character.js';
 import { Movement } from '../systems/Movement.js';
@@ -15,7 +15,6 @@ import { Collision } from '../systems/Collision.js';
 import { DepthSort, DEPTH } from '../systems/DepthSort.js';
 import { Interaction } from '../systems/Interaction.js';
 
-const TILE_SCALE = TILE / KENNEY_NATIVE;          // 2 — Kenney 16px tiles at 2x
 const tileToPx = (t) => t * TILE + TILE / 2;       // centre of a tile
 
 export class GreenhollowScene extends Phaser.Scene {
@@ -48,11 +47,10 @@ export class GreenhollowScene extends Phaser.Scene {
     this._buildDebug();
   }
 
-  // ---- GROUND (Kenney tiles, tiled at 2x) -----------------------------------
+  // ---- GROUND (LPC terrain tiles, 32px native, tiled 1:1) -------------------
   _buildGround(worldW, worldH) {
     const paint = (key, x, y, w, h) => {
       const ts = this.add.tileSprite(x, y, w, h, key).setOrigin(0, 0);
-      ts.tileScaleX = TILE_SCALE; ts.tileScaleY = TILE_SCALE;
       DepthSort.pinFloor(ts);
       return ts;
     };
@@ -140,12 +138,12 @@ export class GreenhollowScene extends Phaser.Scene {
   _buildUI() {
     const W = this.scale.width;
     this.hud = this.add.container(0, 0).setScrollFactor(0).setDepth(DEPTH.OVERLAY);
-    const title = this.add.text(6, 5, 'EMBERFALL 2 — Greenhollow (LPC + Kenney)',
+    const title = this.add.text(6, 5, 'EMBERFALL 2 — Greenhollow (all-LPC art)',
       { fontFamily: 'monospace', fontSize: '10px', color: '#ffe9c2' }).setScrollFactor(0);
     const help = this.add.text(6, 18,
       'WASD move · Shift run · E talk/read · Space attack · 1 hat 2 sword 3 shield · 4 pickup · B colliders',
       { fontFamily: 'monospace', fontSize: '8px', color: '#bfb7d0' }).setScrollFactor(0);
-    const banner = this.add.text(W - 6, 5, 'ART: LPC (CC-BY-SA) + Kenney (CC0)',
+    const banner = this.add.text(W - 6, 5, 'ART: LPC chars + terrain (CC-BY-SA / OGA-BY)',
       { fontFamily: 'monospace', fontSize: '8px', color: '#9fe6a0' }).setOrigin(1, 0).setScrollFactor(0);
     this.gearHud = this.add.text(6, 30, '', { fontFamily: 'monospace', fontSize: '8px', color: '#ffd9a0' }).setScrollFactor(0);
     this.hud.add([title, help, banner, this.gearHud]);

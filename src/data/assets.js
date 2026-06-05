@@ -16,24 +16,25 @@
 //     +weapon+shield). Licences: CC-BY-SA 3.0 / OGA-BY 3.0 / GPL 3.0 — NO anti-AI
 //     clause => safe for this AI-assisted project. (Mana Seed remains BANNED: its
 //     licence forbids AI-built projects. See docs/ART-LICENSE-NOTE.md.)
-//   TILES/PROPS: Kenney "Tiny Town" (CC0) top-down RPG set, pre-baked by
-//     scripts/build_kenney_props.py into /public/art/kenney/.
+//   TILES/PROPS: LPC's OWN terrain (ElizaWy LPC, OGA-BY 3.0) — same art family
+//     as the characters, so pixel density matches (cohesion). Pre-baked by
+//     scripts/build_lpc_terrain.py into /public/art/terrain/. (The earlier
+//     Kenney "Tiny Town" set was swapped out for cohesion; see ART-LICENSE-NOTE.)
 // =============================================================================
 
 export const ART_SOURCE = 'real';
 
 // --- GRID CONVENTIONS (data, never hard-coded in systems) --------------------
-//  WORLD TILES : Kenney tiles are 16px native; the world renders them at 2x, so
-//                one logical tile = TILE px. (3-tile houses ~96px read taller
-//                than the 64px hero — cohesion + Gate C occlusion.)
+//  WORLD TILES : LPC terrain is TILE px native, tiled 1:1 (no upscale => not
+//                blocky, and same pixel density as the 64px characters). Tall
+//                tree props (~125-136px) out-scale the hero (Gate C occlusion).
 //  CHARACTERS  : LPC universal sheet, FRAME px square cells, 13 columns.
 //                Animation BLOCKS are 4 rows in LPC direction order N,W,S,E; a
 //                facing picks a row via DIR_ROW. Oversize attack art (the sword
 //                swing) lives on a 192px sheet, centred on the same anchor, so
 //                origin-0.5 stacking keeps every layer aligned regardless of
 //                frame size.
-export const KENNEY_NATIVE = 16;  // Kenney source tile px
-export const TILE = 32;           // rendered world tile px (= 2 x native)
+export const TILE = 32;           // world tile px (LPC terrain native; tiled 1:1)
 export const FRAME = 64;          // LPC character frame px
 
 // LPC row order WITHIN an animation block: North, West, South, East.
@@ -163,30 +164,27 @@ export const PARTS = {
 export const CHAR_FOOTPRINT = { w: 16, h: 8, offX: 0, offY: 24 };
 
 // =============================================================================
-// TILES + PROPS (Kenney Tiny Town, CC0). Tiles are 16px native, tiled at 2x;
-// props are pre-baked to final px by scripts/build_kenney_props.py.
+// TILES + PROPS (LPC terrain, ElizaWy, OGA-BY 3.0). Tiles are TILE px native;
+// props are cropped to final px by scripts/build_lpc_terrain.py.
 //   footprint: solid/visual base in FINAL px, anchored to the centre origin.
 // =============================================================================
 export const TILES = {
-  tile_grass:  { src: 'art/kenney/grass.png' },
-  tile_flower: { src: 'art/kenney/grass_flower.png' },
-  tile_dirt:   { src: 'art/kenney/dirt.png' },
-  tile_garden: { src: 'art/kenney/garden.png' },
+  tile_grass:  { src: 'art/terrain/grass.png' },
+  tile_dirt:   { src: 'art/terrain/dirt.png' },
+  tile_path:   { src: 'art/terrain/path.png' },
+  tile_water:  { src: 'art/terrain/water.png' },
+  tile_garden: { src: 'art/terrain/garden.png' },
 };
 
 export const PROPS = {
-  prop_house:  { src: 'art/kenney/house.png',  width: 96, height: 96,
-                 footprint: { w: 84, h: 18, offX: 0, offY: 38 } },
-  prop_tree:   { src: 'art/kenney/tree.png',   width: 32, height: 32,
-                 footprint: { w: 10, h: 6, offX: 0, offY: 12 } },
-  prop_bush:   { src: 'art/kenney/bush.png',   width: 32, height: 32,
-                 footprint: { w: 14, h: 7, offX: 0, offY: 10 } },
-  prop_sign:   { src: 'art/kenney/sign.png',   width: 32, height: 32,
-                 footprint: { w: 14, h: 6, offX: 0, offY: 11 } },
-  prop_barrel: { src: 'art/kenney/barrel.png', width: 32, height: 32,
-                 footprint: { w: 14, h: 8, offX: 0, offY: 9 } },
-  prop_mushroom: { src: 'art/kenney/mushroom.png', width: 32, height: 32,
-                 footprint: null }, // decor, non-solid
+  prop_tree_oak:  { src: 'art/terrain/tree_oak.png',  width: 94, height: 125,
+                    footprint: { w: 16, h: 8, offX: 0, offY: 58 } }, // trunk base
+  prop_tree_pine: { src: 'art/terrain/tree_pine.png', width: 60, height: 136,
+                    footprint: { w: 12, h: 8, offX: 0, offY: 64 } },
+  prop_bush:      { src: 'art/terrain/bush.png', width: 32, height: 32,
+                    footprint: null }, // decor, non-solid
+  prop_sign:      { src: 'art/terrain/sign.png', width: 24, height: 24,
+                    footprint: { w: 14, h: 6, offX: 0, offY: 8 } },
 };
 
 // Animation key for a texture + state + facing (write-once naming).

@@ -95,12 +95,33 @@ authors/licences are in its `CREDITS.csv`. Every asset used here is some union o
 > screen listing the above, and ideally bundle the licence texts. (OGA-BY 3.0 is
 > attribution-only.) Re-confirm before commercial release.
 
-## TILES / PROPS — Kenney "Tiny Town" 1.1
-Source: https://kenney.nl/assets/tiny-town  (bundled sheet: `public/art/kenney/tiny_town.png`)
-Licence: **CC0 1.0** (public domain) — "free to use in personal, educational and
-commercial projects." Crediting Kenney is appreciated, not required. No anti-AI
-clause. The individual tiles + composed props under `public/art/kenney/` are
-derived from this CC0 sheet by `scripts/build_kenney_props.py` (also CC0).
+## TILES / PROPS — LPC terrain (ElizaWy LPC)
+Source: https://github.com/ElizaWy/LPC  (`Terrain/` + `Structure/Signs/`).
+Bundled source atlases under `public/art/terrain/_src/`; the 32px ground tiles +
+cropped tree/bush/sign props under `public/art/terrain/` are derived by
+`scripts/build_lpc_terrain.py`. Licence: **OGA-BY 3.0** (attribution-only, **no
+anti-AI clause**). Chosen to replace Kenney so terrain shares the characters' LPC
+art family + pixel density (cohesion). Attribution for the assets used:
+
+- **Terrain** (grass/dirt/path/water — `terrain_summer.png`) — OGA-BY 3.0 —
+  Lanea Zimmerman (Sharm); Eliza Wyatt (DeathsDarling).
+- **Tilled soil** (`tilled_soil.png` — garden) — OGA-BY 3.0 — Eliza Wyatt.
+- **Trees** (`trees_summer.png` — oak/pine) — OGA-BY 3.0 — Lanea Zimmerman (Sharm);
+  Eliza Wyatt.
+- **Plants/bush** (`plants_summer.png`) — OGA-BY 3.0 — Lanea Zimmerman (Sharm);
+  Eliza Wyatt; Hyptosis (used under OGA-BY per ElizaWy's Credits).
+- **Sign** (`Sign Backgrounds A.png`) — OGA-BY 3.0 — Lanea Zimmerman (Sharm);
+  Eliza Wyatt.
+
+> Kenney "Tiny Town" (CC0) was used in the first art pass and is no longer wired
+> into the manifest. (Its files may linger under `public/art/kenney/`; harmless,
+> CC0, unreferenced.)
+
+## CHARACTER FACES — LPC eyes layer
+The LPC v3 base body sheets render a head but **no eyes** (blank face). Fixed by
+adding an `eyes/human/adult/*.png` layer to every character. — OGA-BY 3.0 /
+CC-BY-SA 3.0 / GPL 3.0 — JaidynReiman; Matthew Krohn (makrohn); Stephen Challener
+(Redshrike); Mark Weyer; Johannes Sjölund (wulax).
 
 ## VERDICT
 All art in the slice is AI-safe and commercially usable. Keep this note + an
