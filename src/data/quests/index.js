@@ -34,8 +34,17 @@ import { GREENHOLLOW_CHILDHOOD } from './greenhollow.js';
 import { GREENHOLLOW_SIDE } from './greenhollow.side.js';
 import { ASHEN_MARSH } from './ashenmarsh.js';
 import { ASHEN_MARSH_SIDE } from './ashenmarsh.side.js';
-export { GREENHOLLOW_CHILDHOOD, GREENHOLLOW_SIDE, ASHEN_MARSH, ASHEN_MARSH_SIDE };
-export const QUESTS = [...GREENHOLLOW_CHILDHOOD, ...GREENHOLLOW_SIDE, ...ASHEN_MARSH, ...ASHEN_MARSH_SIDE];
+import { SUNDERED_PEAKS } from './sunderedpeaks.js';
+import { SUNDERED_PEAKS_SIDE } from './sunderedpeaks.side.js';
+export {
+  GREENHOLLOW_CHILDHOOD, GREENHOLLOW_SIDE, ASHEN_MARSH, ASHEN_MARSH_SIDE,
+  SUNDERED_PEAKS, SUNDERED_PEAKS_SIDE,
+};
+export const QUESTS = [
+  ...GREENHOLLOW_CHILDHOOD, ...GREENHOLLOW_SIDE,
+  ...ASHEN_MARSH, ...ASHEN_MARSH_SIDE,
+  ...SUNDERED_PEAKS, ...SUNDERED_PEAKS_SIDE,
+];
 
 const slug = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
 
