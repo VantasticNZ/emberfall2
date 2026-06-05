@@ -274,13 +274,106 @@ export const GREENHOLLOW_CHILDHOOD = [
   },
 
   // ---------------------------------------------------------------------------
-  // M7 — Ten Winters Gone (STUB — the karma-reactive adult return + first
-  // weapon, authored next session into Act 2 / the Ashen Marsh road).
+  // M7 — Ten Winters Gone (the KARMA-REACTIVE adult return; first weapon).
+  // The first big payoff of the deed-memory engine: the welcome BRANCHES on the
+  // Act 1 deeds/karma already in the Karma engine (reactive `route` nodes read
+  // ctx.karma). Earn the first blade from Hodge (data reward + a weapon flag the
+  // later combat system reads). Choice: accept Sela's charge / press her (doubt).
   // ---------------------------------------------------------------------------
   {
     id: 'M7', title: 'Ten Winters Gone', region: 'Greenhollow', act: 2,
     type: 'main', tone: 'varies', perm: false,
-    unlocks: [], reward: {}, choices: [],
-    steps: [ { id: 'stub', desc: 'Return to Greenhollow as an adult — karma-reactive welcome + earn your first weapon. (To be authored.)' } ],
+    unlocks: ['M8'],
+    reward: { weapon: 'wooden_sword', items: ['wooden_sword'], hub: 'Greenhollow' },
+    steps: [
+      { id: 'arrive', desc: 'Return to Greenhollow, ten winters on.' },
+      { id: 'welcome', desc: 'See how the village remembers you.' },
+      { id: 'forge', desc: 'Earn your first blade from Hodge the smith.' },
+      { id: 'charge', desc: "Hear Sela's charge — decide how far to trust it." },
+    ],
+    choices: [
+      { id: 'accept', label: "Accept Sela's mission", impact: 'neutral',
+        karma: {}, deed: 'sela_trusted', unlocks: ['SG1', 'SG2', 'SG3'], ending: '',
+        note: "You take the oracle's framing at face value; the village hub opens." },
+      { id: 'press', label: 'Press Sela for answers', impact: 'neutral',
+        karma: {}, deed: 'sela_doubt', ending: 'L-hint',
+        note: 'A seed of doubt in the oracles — quietly toward the truth-path.' },
+    ],
+    dialogue: { start: 'arrive', nodes: {
+      arrive: { speaker: '', text:
+        "Ten winters, and the west road finally bends back toward home. Greenhollow rises ahead — " +
+        "rebuilt, but scarred: new thatch on old stone, and a black scorch on the green where the " +
+        "Hearthflame stood.",
+        options: [ { label: '(Walk into the village.)', to: 'welcome' } ] },
+
+      // --- reactive welcome by overall Morality -------------------------------
+      welcome: { route: [
+        { when: (c) => c.karma.get('morality') >= 20, to: 'welcome_warm' },
+        { when: (c) => c.karma.get('morality') <= -20, to: 'welcome_wary' },
+        { to: 'welcome_neutral' } ] },
+      welcome_warm: { speaker: 'Villager', text:
+        "Is that— it IS! Look who the west road sent back to us! Ten winters and you've Bram's own " +
+        "shoulders on you now. Welcome home, love — we never stopped hoping.",
+        options: [ { label: '(Walk on through the square.)', to: 'cb_chicken' } ] },
+      welcome_wary: { speaker: 'Villager', text:
+        "...You. Grown, then. We weren't sure you'd come back — weren't altogether sure we wanted you " +
+        "to, if I'm honest. Mind how you go here.",
+        options: [ { label: '(Walk on through the square.)', to: 'cb_chicken' } ] },
+      welcome_neutral: { speaker: 'Villager', text:
+        "Well. The west road gives one back — grown and quiet. Greenhollow's smaller than you'll " +
+        "remember. Welcome back, I suppose.",
+        options: [ { label: '(Walk on through the square.)', to: 'cb_chicken' } ] },
+
+      // --- specific deed callback: the chicken -------------------------------
+      cb_chicken: { route: [
+        { when: (c) => c.karma.hasDeed('chicken_kicked'), to: 'chicken_cold' },
+        { to: 'cb_coin' } ] },
+      chicken_cold: { speaker: 'Henwife', text:
+        "*a brown hen glares from the crook of her arm* Oh. It's YOU. We remember what you did to poor " +
+        "Henrietta when you were small, clear as yesterday. Keep your boots to yourself this time.",
+        options: [ { label: '(Move along.)', to: 'cb_coin' } ] },
+
+      // --- specific deed callback: the coin / McCracken ----------------------
+      cb_coin: { route: [
+        { when: (c) => c.karma.hasDeed('coin_returned'), to: 'coin_friendly' },
+        { when: (c) => c.karma.hasDeed('coin_kept'), to: 'coin_wary' },
+        { to: 'sela' } ] },
+      coin_friendly: { speaker: 'Phil McCracken', text:
+        "Bless me — the honest one! You handed me back my whole purse when you were knee-high. Never " +
+        "forgot it, never will. Come to McCracken's stall any time — friend's price, always.",
+        options: [ { label: '(Smile back.)', to: 'sela' } ] },
+      coin_wary: { speaker: 'Phil McCracken', text:
+        "...I know that face. A fat purse went missing the same year you did, you know. Funny, that. " +
+        "I'll keep one hand on my stall, thanks all the same.",
+        options: [ { label: '(Move on.)', to: 'sela' } ] },
+
+      // --- Sela's charge -> the forge ----------------------------------------
+      sela: { speaker: 'Sela', text:
+        "You've grown well. I'll not soften it: the Hearthflame is failing — not here alone, but in " +
+        "every hearth across the land. Five shards were struck from it once; they must be found again. " +
+        "The first lies west, in the Ashen Marsh. But first — see Hodge. You'll not go unarmed.",
+        options: [ { label: '(Go to the forge.)', to: 'forge_tone' } ] },
+      // grief tone callback: vengeance-vow reads colder at the forge
+      forge_tone: { route: [
+        { when: (c) => c.karma.hasDeed('grief_vengeance'), to: 'forge_hard' },
+        { to: 'forge' } ] },
+      forge_hard: { speaker: 'Hodge', text:
+        "*Hodge studies your face a long moment* ...There's an edge on you the boy never had. Grief'll " +
+        "do that. Well — better a blade in your hand than a grudge in your chest. Come here.",
+        options: [ { label: '(Step up to the anvil.)', to: 'forge' } ] },
+      forge: { speaker: 'Hodge', text:
+        "Hodge, smith — I knew your Bram. Bring me a good branch off that split oak — aye, that one — " +
+        "and I'll cap and bind it. Wooden for now; bring me steel and ore off the road and I'll make " +
+        "it SING. There. Your first blade. Mind you don't lose it.",
+        options: [ { label: '(Take the blade.)', deed: 'weapon_wooden_sword', meta: { weapon: 'wooden_sword' }, to: 'charge' } ] },
+
+      // --- the choice: trust the oracle, or press her ------------------------
+      charge: { speaker: 'Sela', text:
+        "So. West, to the Ashen Marsh, and the first shard. Will you take up this charge?",
+        options: [
+          { label: "I'll go. Whatever it takes.", choice: { quest: 'M7', id: 'accept' }, end: true },
+          { label: "First — tell me what you're not saying.", choice: { quest: 'M7', id: 'press' }, end: true },
+        ] },
+    } },
   },
 ];
