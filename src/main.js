@@ -4,8 +4,10 @@ import { BootScene } from './scenes/BootScene.js';
 import { GreenhollowScene } from './scenes/GreenhollowScene.js';
 
 // Native render resolution; the canvas is FIT-scaled up to the window with
-// crisp pixels. World is larger than this viewport so camera-clamp is testable.
-export const VIEW = { width: 480, height: 300 };
+// crisp pixels. Wide framing (24x13.5 tiles of 32px) so a 64px hero reads as a
+// sensible ~15% of screen height — Zelda/Stardew-style — and more world shows.
+// World is larger than this viewport so camera-clamp is testable.
+export const VIEW = { width: 768, height: 432 };
 
 const config = {
   type: Phaser.AUTO,
