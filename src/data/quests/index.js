@@ -28,11 +28,12 @@
 // The schema can represent everything in docs/QUEST-DATA.json — see fromDesign().
 // =============================================================================
 
-// The live quest registry. Greenhollow's Act 1 childhood is the first content;
-// more regions append here as they are authored (all as DATA).
+// The live quest registry. Greenhollow Act 1 + the adult return is the first
+// content; more regions append here as they are authored (all as DATA).
 import { GREENHOLLOW_CHILDHOOD } from './greenhollow.js';
-export { GREENHOLLOW_CHILDHOOD };
-export const QUESTS = [...GREENHOLLOW_CHILDHOOD];
+import { ASHEN_MARSH } from './ashenmarsh.js';
+export { GREENHOLLOW_CHILDHOOD, ASHEN_MARSH };
+export const QUESTS = [...GREENHOLLOW_CHILDHOOD, ...ASHEN_MARSH];
 
 const slug = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
 
