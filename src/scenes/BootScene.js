@@ -6,7 +6,8 @@ export class BootScene extends Phaser.Scene {
   constructor() { super('Boot'); }
 
   preload() {
-    // Queues real files in ART_SOURCE==='real'; no-op in placeholder mode.
+    // Queue every real asset (LPC layer sheets + Kenney tiles/props) through
+    // the single manifest path before the world scene starts.
     AssetLoader.queue(this);
   }
 

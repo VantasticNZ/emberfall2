@@ -1,54 +1,52 @@
 // =============================================================================
-// AssetLoader — the ONE path through which all art enters the game.
-// Both real-art and placeholder modes flow through here; scenes call it and
-// never touch file paths. This is the concrete enforcement of the manifest
-// being the single source of truth (Bible Part 0 #3).
+// AssetLoader — the ONE path through which all art enters the game. Scenes call
+// it and never touch file paths. Concrete enforcement of the manifest being the
+// single source of truth (Bible Part 0 #3).
+//   queue() in preload  : load every LPC layer sheet + Kenney tile/prop image.
+//   build() in create   : register the shared animation set for every layer
+//                          texture (one anim per texture x state x facing).
 // =============================================================================
 
-import { ASSETS, ART_SOURCE, animKey } from '../data/assets.js';
-import { ArtForge } from './ArtForge.js';
+import { LAYER_TEXTURES, TILES, PROPS, CLIPS, DIR_ROW } from '../data/assets.js';
 
-// Full, unique animation key for a character texture + state + facing.
-export function animFor(textureKey, state, facing) {
-  return `${textureKey}-${animKey(state, facing)}`;
+// Pick the clip for a (state, texture): the oversize 192px swing sheets use the
+// oversize attack clip; everything else uses the standard clip.
+function clipFor(state, tex) {
+  if (state === 'attack' && tex.fw === CLIPS.attack_oversize.fw) return CLIPS.attack_oversize;
+  return CLIPS[state];
 }
 
 export const AssetLoader = {
-  // Phase 1 (in scene.preload): queue real files. No-op in placeholder mode.
+  // Phase 1 (scene.preload): queue all real files.
   queue(scene) {
-    if (ART_SOURCE !== 'real') return;
-    for (const [key, d] of Object.entries(ASSETS)) {
-      if (d.kind === 'sheet') {
-        scene.load.spritesheet(key, d.src, { frameWidth: d.frameWidth, frameHeight: d.frameHeight });
-      } else {
-        scene.load.image(key, d.src);
-      }
+    for (const [key, t] of Object.entries(LAYER_TEXTURES)) {
+      scene.load.spritesheet(key, t.src, { frameWidth: t.fw, frameHeight: t.fw });
     }
+    for (const [key, t] of Object.entries(TILES)) scene.load.image(key, t.src);
+    for (const [key, p] of Object.entries(PROPS)) scene.load.image(key, p.src);
   },
 
-  // Phase 2 (in scene.create): synthesise placeholders if needed, then register
-  // every character's animation set from the manifest. Idempotent.
+  // Phase 2 (scene.create): register every layer texture's animation set.
   build(scene) {
-    for (const [key, d] of Object.entries(ASSETS)) {
-      if (ART_SOURCE === 'placeholder') ArtForge.generate(scene, key, d);
-      if (d.kind === 'sheet' && d.anims) this._registerAnims(scene, key, d);
-    }
+    for (const [key, t] of Object.entries(LAYER_TEXTURES)) this._registerAnims(scene, key, t);
   },
 
-  _registerAnims(scene, key, d) {
-    for (const [name, range] of Object.entries(d.anims)) {
-      const animKeyFull = `${key}-${name}`;
-      if (scene.anims.exists(animKeyFull)) continue;
-      const base = range.row * d.cols;
-      const frames = [];
-      for (let f = range.from; f <= range.to; f++) frames.push({ key, frame: base + f });
-      const isIdle = range.from === range.to;
-      scene.anims.create({
-        key: animKeyFull,
-        frames,
-        frameRate: isIdle ? 1 : 8,   // ~125ms/frame walk (Mana Seed guide ~135ms)
-        repeat: isIdle ? 0 : -1,
-      });
+  _registerAnims(scene, key, tex) {
+    for (const state of tex.states) {
+      const clip = clipFor(state, tex);
+      if (!clip) continue;
+      for (const [facing, dirOff] of Object.entries(DIR_ROW)) {
+        const animKey = `${key}-${state}-${facing}`;
+        if (scene.anims.exists(animKey)) continue;
+        const row = clip.block + dirOff;
+        const frames = clip.frames.map((col) => ({ key, frame: row * tex.cols + col }));
+        scene.anims.create({
+          key: animKey,
+          frames,
+          frameRate: clip.rate,
+          repeat: clip.repeat,
+        });
+      }
     }
   },
 };
