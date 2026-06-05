@@ -6,11 +6,18 @@
 //   option = { label, to, deed, meta, choice:{quest,id}, set, end }
 // The runner threads through the SAME Karma + QuestEngine, so dialogue choices
 // move karma/deeds + advance quests with no bespoke code.
+//
+// REACTIVE ROUTER NODES (the world remembers): a node may instead carry
+//   { route: [ { when:(ctx)=>bool, to }, ... ] }
+// On entry the runner auto-jumps (no player input) to the first branch whose
+// when(ctx) is true (or a default branch with no `when`) — so dialogue can
+// branch on karma/deeds, e.g. a karma-reactive village welcome. `when` reads
+// ctx (which carries the live Karma engine). Added for M7's reactive return.
 // =============================================================================
 
 export class Dialogue {
   /**
-   * @param {object} graph { start, nodes: { id: {speaker,text,options[]} } }
+   * @param {object} graph { start, nodes: { id: {speaker,text,options[]} | {route[]} } }
    * @param {object} [ctx] { karma, engine, onSet }
    */
   constructor(graph, ctx = {}) {
@@ -18,10 +25,23 @@ export class Dialogue {
     this.ctx = ctx;
     this.nodeId = graph.start;
     this.done = false;
+    this._route(); // the entry node may itself be a reactive router
   }
 
   node() { return this.done ? null : this.graph.nodes[this.nodeId]; }
   options() { return this.node()?.options || []; }
+
+  // Auto-advance through reactive `route` nodes until a normal (player) node.
+  _route() {
+    let guard = 0;
+    while (!this.done && guard++ < 64) {
+      const node = this.graph.nodes[this.nodeId];
+      if (!node || !node.route) break;
+      const branch = node.route.find((b) => !b.when || b.when(this.ctx));
+      if (!branch || !branch.to) { this.done = true; this.nodeId = null; break; }
+      this.nodeId = branch.to;
+    }
+  }
 
   /** Select an option by index; applies its effects + returns the next node (or null at end). */
   select(i) {
@@ -32,6 +52,7 @@ export class Dialogue {
     if (opt.set && this.ctx.onSet) this.ctx.onSet(opt.set);
     if (opt.end || !opt.to) { this.done = true; this.nodeId = null; return null; }
     this.nodeId = opt.to;
+    this._route(); // the target may be a reactive router
     return this.node();
   }
 }
