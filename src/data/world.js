@@ -10,6 +10,13 @@ export const WORLD = {
   widthTiles: 40,   // 1280 px — wider than the 480px viewport (camera clamp)
   heightTiles: 28,  // 896 px
 
+  // Scattered grass decals (off-grid) so the flat grass base isn't uniform.
+  // pool repeats favour tufts over flowers; seed keeps screenshots stable.
+  decals: {
+    count: 110, seed: 20260605,
+    pool: ['decal_tuft', 'decal_tuft', 'decal_tuft', 'decal_flower_pink', 'decal_flower_white'],
+  },
+
   // Ground: a base fill, then a dirt road + a sand path + a garden + a pond.
   ground: {
     base: 'tile_grass',

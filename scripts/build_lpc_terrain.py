@@ -31,12 +31,23 @@ def save(im, name):
     print(f'  {name:16} {im.width}x{im.height}')
 
 # --- GROUND TILES (32px seamless fills, chosen by uniformity scan) ------------
+# Grass is a FLAT fill (no built-in tuft) so it doesn't tile into a visible
+# lattice; variety comes from scattered decals (below), placed off the grid.
 print('ground tiles (32px):')
-save(cell(terrain, 2, 5),  'grass.png')   # textured grass
+save(cell(terrain, 1, 1),  'grass.png')   # flat grass base
 save(cell(terrain, 3, 4),  'dirt.png')    # earth
 save(cell(terrain, 6, 3),  'path.png')    # light sand path
 save(cell(terrain, 11, 1), 'water.png')   # shallow water
 save(cell(tilled, 3, 3),   'garden.png')  # tilled soil (crop patch)
+
+# --- GRASS DECALS (small, scattered off-grid to break uniformity) ------------
+def pcell(r, c):
+    x = plants.crop((c * TS, r * TS, c * TS + TS, r * TS + TS))
+    bb = x.getbbox(); return x.crop(bb) if bb else x
+print('grass decals:')
+save(pcell(1, 8),  'decal_tuft.png')          # grass tuft
+save(pcell(0, 14), 'decal_flower_pink.png')   # pink flower
+save(pcell(1, 14), 'decal_flower_white.png')  # white flower
 
 # --- PROPS (cropped to alpha bbox; final px) ----------------------------------
 def crop_trim(img, box):

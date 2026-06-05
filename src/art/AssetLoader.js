@@ -7,7 +7,7 @@
 //                          texture (one anim per texture x state x facing).
 // =============================================================================
 
-import { LAYER_TEXTURES, TILES, PROPS, CLIPS, DIR_ROW } from '../data/assets.js';
+import { LAYER_TEXTURES, TILES, PROPS, DECALS, CLIPS, DIR_ROW } from '../data/assets.js';
 
 // Pick the clip for a (state, texture): the oversize 192px swing sheets use the
 // oversize attack clip; everything else uses the standard clip.
@@ -24,6 +24,7 @@ export const AssetLoader = {
     }
     for (const [key, t] of Object.entries(TILES)) scene.load.image(key, t.src);
     for (const [key, p] of Object.entries(PROPS)) scene.load.image(key, p.src);
+    for (const [key, d] of Object.entries(DECALS)) scene.load.image(key, d.src);
   },
 
   // Phase 2 (scene.create): register every layer texture's animation set.

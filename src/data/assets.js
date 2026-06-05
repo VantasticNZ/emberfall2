@@ -194,6 +194,14 @@ export const PROPS = {
                     footprint: { w: 14, h: 6, offX: 0, offY: 8 } },
 };
 
+// Small ground decals scattered off-grid over the grass (Gate I — break the
+// tiled-grass lattice). Non-solid; pinned just above the floor, below actors.
+export const DECALS = {
+  decal_tuft:         { src: 'art/terrain/decal_tuft.png' },
+  decal_flower_pink:  { src: 'art/terrain/decal_flower_pink.png' },
+  decal_flower_white: { src: 'art/terrain/decal_flower_white.png' },
+};
+
 // Animation key for a texture + state + facing (write-once naming).
 export function animFor(textureKey, state, facing) {
   return `${textureKey}-${state}-${facing}`;

@@ -30,6 +30,7 @@ export class GreenhollowScene extends Phaser.Scene {
     this.physics.world.setBounds(0, 0, worldW, worldH);
 
     this._buildGround(worldW, worldH);
+    this._scatterDecals();
     this.solids = this.add.group();
     this.actors = this.add.group();
     this._buildProps();
@@ -62,6 +63,32 @@ export class GreenhollowScene extends Phaser.Scene {
     paint(WORLD.ground.base, 0, 0, worldW, worldH);
     for (const [key, tx, ty, w, h] of WORLD.ground.rects) {
       paint(key, tx * TILE, ty * TILE, w * TILE, h * TILE);
+    }
+  }
+
+  // ---- GRASS DECALS (scattered off-grid, above floor, below actors) ---------
+  _scatterDecals() {
+    const cfg = WORLD.decals;
+    if (!cfg) return;
+    let seed = cfg.seed >>> 0;
+    const rnd = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
+    const onGrass = (px, py) => {            // only over the grass base, not roads/pond
+      const tx = px / TILE, ty = py / TILE;
+      for (const [key, rx, ry, rw, rh] of WORLD.ground.rects) {
+        if (key === 'tile_grass') continue;
+        if (tx >= rx && tx < rx + rw && ty >= ry && ty < ry + rh) return false;
+      }
+      return true;
+    };
+    const W = WORLD.widthTiles * TILE, H = WORLD.heightTiles * TILE;
+    let placed = 0, tries = 0;
+    while (placed < cfg.count && tries < cfg.count * 10) {
+      tries++;
+      const px = Math.floor(rnd() * W), py = Math.floor(rnd() * H);
+      if (!onGrass(px, py)) continue;
+      const key = cfg.pool[Math.floor(rnd() * cfg.pool.length)];
+      this.add.image(px, py, key).setOrigin(0.5, 1).setDepth(DEPTH.FLOOR + 1);
+      placed++;
     }
   }
 
