@@ -124,13 +124,63 @@ export const ASHEN_MARSH = [
   },
 
   // ---------------------------------------------------------------------------
-  // M10 — Hagga's Truth (STUB — the first big reveal + PERMANENT decision:
-  // believe Hagga / report to Sela / stay silent. Authored next session.)
+  // M10 — Hagga's Truth [PERMANENT DECISION 1]. Hagga reveals the Hearthflame is
+  // a living, bound god. Three genuinely-diverging branches that the later game
+  // + endings read: BELIEVE (ally + Liberator path) / REPORT (Hagga silenced,
+  // Liberator locked, Tyrant lean) / STAY SILENT (both ajar). perm: true.
   // ---------------------------------------------------------------------------
   {
     id: 'M10', title: "Hagga's Truth", region: 'Ashen Marsh', act: 2,
     type: 'main', tone: 'dark/revelation', perm: true,
+    unlocks: ['M11'],
+    reward: { truth: 'flame_is_a_bound_god' },
+    steps: [
+      { id: 'return', desc: 'Bring the shard back to Hagga across the black water.' },
+      { id: 'truth', desc: "Hear Hagga's truth about the Hearthflame." },
+      { id: 'decide', desc: 'PERMANENT: believe Hagga / report her to Sela / stay silent.' },
+    ],
+    choices: [
+      { id: 'believe', label: 'BELIEVE Hagga', impact: 'good',
+        karma: { purity: 10 }, deed: 'hagga_believed', unlocks: ['L-path'], ending: 'L',
+        note: 'You carry the truth early; Hagga becomes your ally; the visionary (Liberator) path opens. Sela grows wary.' },
+      { id: 'report', label: 'REPORT her to Sela', impact: 'dark',
+        karma: { purity: -10 }, deed: 'hagga_reported', locks: ['L-path'], ending: 'T',
+        note: "Sela silences Hagga (she vanishes, darkly). The Hagga ally + Liberator path are lost; you become the oracle's favoured tool." },
+      { id: 'silent', label: 'STAY SILENT', impact: 'neutral',
+        karma: {}, deed: 'hagga_silent', ending: '',
+        note: 'You keep your own counsel; both paths stay ajar, toward a later forced reckoning.' },
+    ],
+    dialogue: { start: 'return', nodes: {
+      return: { speaker: 'Hagga', text:
+        "You went into the black water and came back. Most don't. *she sees the shard, and her sharp " +
+        "face goes still* ...And you brought it OUT. Then sit. You've earned the truth, and Flame help " +
+        "us both, you're ready to hear it.",
+        options: [ { label: '(Sit. Listen.)', to: 'truth' } ] },
+      truth: { speaker: 'Hagga', text:
+        "That warmth in your hand is no holy fire, child. The Hearthflame is ALIVE — a god, old as the " +
+        "first hearth, broken into five shards and BOUND by the oracles, generations gone. It has been " +
+        "screaming ever since. That scream is the wind off the mountain. Its dying is the sickness in " +
+        "the land. And the oracles have known all along — they lie to keep their order, and they call " +
+        "the lie a mercy.",
+        options: [ { label: '(...and Sela is one of them.)', to: 'decide' } ] },
+      decide: { speaker: 'Hagga', text:
+        "Now you know. The question is what you'll DO with it — and whatever you choose, you cannot " +
+        "unchoose it. So choose true.",
+        options: [
+          { label: "I believe you, Hagga. Tell me how to help her.", choice: { quest: 'M10', id: 'believe' }, end: true },
+          { label: "This is heresy. Sela has to hear of it.", choice: { quest: 'M10', id: 'report' }, end: true },
+          { label: "...I need time. I'll keep this to myself for now.", choice: { quest: 'M10', id: 'silent' }, end: true },
+        ] },
+    } },
+  },
+
+  // ---------------------------------------------------------------------------
+  // M11 — The Sundered Peaks (STUB — Region 2 arrival; authored next region.)
+  // ---------------------------------------------------------------------------
+  {
+    id: 'M11', title: 'The Sundered Peaks', region: 'Sundered Peaks', act: 2,
+    type: 'main', tone: 'hardy', perm: false,
     unlocks: [], reward: {}, choices: [],
-    steps: [ { id: 'stub', desc: 'Return to Hagga: the Hearthflame is a living, bound god. PERMANENT choice — believe / report / stay silent. (To be authored.)' } ],
+    steps: [ { id: 'stub', desc: 'Travel north to the mountains + the old oracle stronghold. (To be authored.)' } ],
   },
 ];
