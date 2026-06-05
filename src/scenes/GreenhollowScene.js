@@ -42,6 +42,11 @@ export class GreenhollowScene extends Phaser.Scene {
     this.cameras.main.startFollow(this.player, true, 0.18, 0.18);
     this.cameras.main.setRoundPixels(true);
 
+    // Zoom: 3 discrete levels; default is index 1 (slightly more zoomed out than 1:1).
+    this.zoomLevels = [0.7, 0.85, 1.1];
+    this.zoomIndex = 1;
+    this.cameras.main.setZoom(this.zoomLevels[this.zoomIndex]);
+
     this._buildInput();
     this._buildUI();
     this._buildDebug();
@@ -116,9 +121,14 @@ export class GreenhollowScene extends Phaser.Scene {
       up: 'W', down: 'S', left: 'A', right: 'D', run: 'SHIFT',
       interact: 'E', attack: 'SPACE', cast: 'C', use: 'F',
       hat: 'ONE', sword: 'TWO', shield: 'THREE', pickup: 'FOUR',
+      zoomOut: 'OPEN_BRACKET', zoomIn: 'CLOSED_BRACKET',
       debug: 'B', hud: 'H',
     });
     const p = () => this.player;
+    // zoom: [ out, ] in, and mouse wheel (up = in)
+    this.keys.zoomOut.on('down', () => this._stepZoom(-1));
+    this.keys.zoomIn.on('down', () => this._stepZoom(+1));
+    this.input.on('wheel', (_ptr, _objs, _dx, dy) => this._stepZoom(dy > 0 ? -1 : +1));
     this.keys.interact.on('down', () => {
       if (this.dialogue.visible) { this._advanceDialogue(); return; }
       if (Interaction.active) Interaction.tryInteract();
@@ -134,6 +144,14 @@ export class GreenhollowScene extends Phaser.Scene {
     this.keys.hud.on('down', () => { this.hud.visible = !this.hud.visible; });
   }
 
+  // Step the camera zoom by ±1 level (clamped), smoothly.
+  _stepZoom(dir) {
+    const next = Phaser.Math.Clamp(this.zoomIndex + dir, 0, this.zoomLevels.length - 1);
+    if (next === this.zoomIndex) return;
+    this.zoomIndex = next;
+    this.cameras.main.zoomTo(this.zoomLevels[next], 220, 'Sine.easeInOut');
+  }
+
   // ---- UI (scroll-fixed overlay) --------------------------------------------
   _buildUI() {
     const W = this.scale.width;
@@ -141,7 +159,7 @@ export class GreenhollowScene extends Phaser.Scene {
     const title = this.add.text(6, 5, 'EMBERFALL 2 — Greenhollow (all-LPC art)',
       { fontFamily: 'monospace', fontSize: '10px', color: '#ffe9c2' }).setScrollFactor(0);
     const help = this.add.text(6, 18,
-      'WASD move · Shift run · E talk/read · Space attack · 1 hat 2 sword 3 shield · 4 pickup · B colliders',
+      'WASD move · Shift run · E talk · Space attack · 1/2/3 gear · 4 pickup · [ ] / wheel zoom · B colliders',
       { fontFamily: 'monospace', fontSize: '8px', color: '#bfb7d0' }).setScrollFactor(0);
     const banner = this.add.text(W - 6, 5, 'ART: LPC chars + terrain (CC-BY-SA / OGA-BY)',
       { fontFamily: 'monospace', fontSize: '8px', color: '#9fe6a0' }).setOrigin(1, 0).setScrollFactor(0);
