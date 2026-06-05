@@ -4,3 +4,5 @@ dist/
 .DS_Store
 .vite/
 # Screenshots captured as gate proof live under proof/ and ARE committed.
+.playwright-mcp/
+probe-initial.png
