@@ -173,12 +173,114 @@ export const GREENHOLLOW_CHILDHOOD = [
   },
 
   // ---------------------------------------------------------------------------
-  // M5 — The Festival (STUB — fleshed next session, M5-M6)
+  // M5 — The Festival (build-up + DREAD). Wholesome warmth tips into wrongness:
+  // the Hearthflame flickers wrong, Bram uneasy, the oracle too-quick to soothe.
   // ---------------------------------------------------------------------------
   {
     id: 'M5', title: 'The Festival', region: 'Greenhollow', act: 1,
     type: 'main', tone: 'wholesome/dread', perm: false,
+    unlocks: ['M6'],
+    reward: { item: 'festival_keepsake' },
+    steps: [
+      { id: 'prep', desc: 'Help prepare — hang the lanterns, stack the wood.' },
+      { id: 'festival', desc: 'Enjoy the Hearthflame Festival.' },
+      { id: 'wrong', desc: 'Something is wrong with the Flame...' },
+    ],
+    choices: [
+      { id: 'comfort', label: 'Comfort the scared child', impact: 'good',
+        karma: { morality: 10 }, deed: 'comforted_child',
+        note: 'A small kindness in the dark — quietly remembered.' },
+      { id: 'ignore', label: 'Ignore the unease', impact: 'neutral',
+        karma: {}, deed: 'ignored_unease',
+        note: 'The dread settles in, unspoken.' },
+    ],
+    dialogue: { start: 'prep', nodes: {
+      prep: { speaker: 'Mara', text:
+        "Lanterns up, wood on the pile — the Hearthflame Festival won't ready itself! Best night of " +
+        "the whole year, this one. Go on, lend a hand.",
+        options: [ { label: '(Hang the lanterns with the others.)', to: 'festival' } ] },
+      festival: { speaker: 'Bram', text:
+        "Look at them all — Edda dancing like she's twenty, the Tankard lads murdering a good song. " +
+        "THIS is what I stand at the forge for, you know. Nights like this one.",
+        options: [ { label: '(Watch the Oracle bless the Flame.)', to: 'flicker' } ] },
+      flicker: { speaker: 'Bram', text:
+        "...Did you see that? The Flame — it FLINCHED. Forty winters I've tended that fire and it's " +
+        "never once done that. *a cold wind cuts clean through the warmth, and the music falters*",
+        options: [ { label: '(Look to the Oracle.)', to: 'oracle' } ] },
+      oracle: { speaker: 'Oracle', text:
+        "All is well, good people — the Flame merely burns bright tonight, nothing more. Smile, now. " +
+        "It's a festival. *the smile arrives a half-beat too quick, and does not reach the eyes*",
+        options: [ { label: '(Nearby, a small child begins to cry.)', to: 'child' } ] },
+      child: { speaker: '', text:
+        "A little one has started crying — frightened by the cold wind, the wrong-coloured flame, the " +
+        "grown-ups' too-bright smiles.",
+        options: [
+          { label: '(Kneel down and comfort the scared child.)', choice: { quest: 'M5', id: 'comfort' }, end: true },
+          { label: '(Look away — the unease is catching.)', choice: { quest: 'M5', id: 'ignore' }, end: true },
+        ] },
+    } },
+  },
+
+  // ---------------------------------------------------------------------------
+  // M6 — The Night It Burned (CATASTROPHE). The Flame erupts; Bram is lost
+  // saving you (he gives back the toy + a last word); Sela sends you WEST;
+  // "TEN WINTERS PASS" (time-skip). The grief vow shapes the adult tone.
+  // ---------------------------------------------------------------------------
+  {
+    id: 'M6', title: 'The Night It Burned', region: 'Greenhollow', act: 1,
+    type: 'main', tone: 'dark/heartfelt', perm: false,
+    unlocks: ['M7'],
+    reward: {},
+    steps: [
+      { id: 'erupt', desc: 'The Hearthflame erupts — the village burns.' },
+      { id: 'flee', desc: 'Flee the fire with Bram.' },
+      { id: 'ash', desc: 'Dawn over the ash. Say what you must.' },
+    ],
+    choices: [
+      { id: 'vengeance', label: 'Vow vengeance over the ash', impact: 'dark',
+        karma: {}, deed: 'grief_vengeance', ending: 'T-lean',
+        note: 'Your adult self is harder, colder; NPCs note the edge.' },
+      { id: 'protect', label: 'Vow protection', impact: 'good',
+        karma: { morality: 10 }, deed: 'grief_vow', unlocks: ['ET2'], ending: '',
+        note: 'Honored in the epilogue; a protective reputation.' },
+    ],
+    dialogue: { start: 'night', nodes: {
+      night: { speaker: '', text:
+        "Night. A sound like the world tearing — and the Hearthflame ERUPTS, white and screaming. " +
+        "The thatch catches. Greenhollow begins to burn.",
+        options: [ { label: '(Run!)', to: 'flee' } ] },
+      flee: { speaker: 'Bram', text:
+        "I've got you — I've GOT you, don't you look back! *he shoulders through the fire, throws you " +
+        "clear of the falling beam — and then the flame takes the doorway between you* ...Take the toy. " +
+        "Take it and RUN. Tell them old Bram— *the roof comes down*",
+        options: [ { label: '(Stagger out into the ash.)', to: 'grief' } ] },
+      grief: { speaker: '', text:
+        "Dawn. Grey ash where the village stood. The little wooden toy is still clenched in your fist. " +
+        "Whatever you say over this silence, you will carry the rest of your life.",
+        options: [
+          { label: '"I will make the Flame pay for this." (vow vengeance)', choice: { quest: 'M6', id: 'vengeance' }, to: 'sela' },
+          { label: '"I will protect what\'s left. Always." (vow protection)', choice: { quest: 'M6', id: 'protect' }, to: 'sela' },
+        ] },
+      sela: { speaker: 'Sela', text:
+        "Breathe, child. I am Sela, of the Oracles. The Flame is... more than a fire; it must be tended, " +
+        "and it cannot be tended by the grieving. You will go west, where it is safe. You will grow. " +
+        "*she is kind — and just a little too composed*",
+        options: [ { label: '(Let her lead you from the ash.)', to: 'timeskip' } ] },
+      timeskip: { speaker: '', text:
+        "— TEN WINTERS PASS —\n\nThe child who fled is grown now, and the long road bends back, at last, " +
+        "toward home.",
+        options: [ { label: '(Return to Greenhollow, grown.)', deed: 'time_skip', end: true } ] },
+    } },
+  },
+
+  // ---------------------------------------------------------------------------
+  // M7 — Ten Winters Gone (STUB — the karma-reactive adult return + first
+  // weapon, authored next session into Act 2 / the Ashen Marsh road).
+  // ---------------------------------------------------------------------------
+  {
+    id: 'M7', title: 'Ten Winters Gone', region: 'Greenhollow', act: 2,
+    type: 'main', tone: 'varies', perm: false,
     unlocks: [], reward: {}, choices: [],
-    steps: [ { id: 'stub', desc: 'The Hearthflame Festival — warmth, then wrongness. (To be authored.)' } ],
+    steps: [ { id: 'stub', desc: 'Return to Greenhollow as an adult — karma-reactive welcome + earn your first weapon. (To be authored.)' } ],
   },
 ];
