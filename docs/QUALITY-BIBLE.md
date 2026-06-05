@@ -200,3 +200,25 @@ images; preserve + push. Build-right-first-time to avoid rework.
 Write systems ONCE and feed them DATA; design the whole then build in shippable region-increments;
 hold every piece to SELF-TESTING GATES proven to Van's eye; keep twists rare and quality high.
 That is how we build a professional 30hr game efficiently, without redoing things.
+
+================================================================
+## GATE M — CHARACTER ANIMATION & EQUIPMENT (added per Van)
+================================================================
+WHAT: characters must visibly wear/hold/use equipped items, with consistent, sensible animations.
+HOW TO TEST (per the LPC layered system):
+- Equip a shirt/armour/hat -> the layer VISIBLY appears on the body in all directions + frames.
+- Equip a weapon (sword/axe/bow) -> it shows IN HAND, and the attack animation uses the ARM
+  (thrust/slash/shoot), not the body/feet.
+- Equip a shield -> shows on the arm; block uses it.
+- Pick up an item -> a pickup/hold pose plays; carried items show.
+- Walk/run/idle/attack/cast/use all share aligned frames -> no layer drifts or misaligns.
+PASS: every equipped layer renders correctly on the body across all 4 directions + every animation
+frame; weapons swing from the hand; arms are used appropriately; pickups animate; nothing misaligns.
+FAIL: any equipped item not shown, floating, swung from the body/feet, misaligned layer, or missing/
+inconsistent animation.
+
+## PARKED POLISH ITEMS (revisit during polish pass, not now)
+- Camera/background scroll is choppy when moving (likely pixel-snap / no camera lerp / roundPixels
+  on a fractional camera). Fix in polish: smooth camera follow (lerp), consistent pixel rounding,
+  check zoom isn't fractional. Judge in-game with real content, not on the test field.
+- Walk cadence fine-tune (WALK_STRIDE constant) if feet still read slightly off.
