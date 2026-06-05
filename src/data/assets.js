@@ -92,6 +92,13 @@ export const LAYER_TEXTURES = {
   brow_chestnut: tex64('art/lpc/brow_chestnut.png'),
   brow_black:    tex64('art/lpc/brow_black.png'),
   brow_gold:     tex64('art/lpc/brow_gold.png'),
+  // nose + ears (skin-toned; complete the face)
+  nose_light: tex64('art/lpc/nose_light.png'),
+  nose_brown: tex64('art/lpc/nose_brown.png'),
+  nose_olive: tex64('art/lpc/nose_olive.png'),
+  ears_light: tex64('art/lpc/ears_light.png'),
+  ears_brown: tex64('art/lpc/ears_brown.png'),
+  ears_olive: tex64('art/lpc/ears_olive.png'),
   // hair
   hair_chestnut: tex64('art/lpc/hair_chestnut.png'),
   hair_black:    tex64('art/lpc/hair_black.png'),
@@ -129,8 +136,9 @@ export const LAYER_TEXTURES = {
 //   layers: [{ tex, z, overrides? }]
 //   label : shown in the equip HUD (Gate M proof)
 // =============================================================================
-const Z = { shieldBack: 10, weaponBack: 12, body: 20, eyes: 22, brows: 23, feet: 24,
-            legs: 28, torso: 40, hair: 50, hat: 54, weaponFront: 80, shieldFront: 84 };
+const Z = { shieldBack: 10, weaponBack: 12, body: 20, ears: 21, nose: 22, eyes: 23,
+            brows: 24, feet: 26, legs: 28, torso: 40, hair: 50, hat: 54,
+            weaponFront: 80, shieldFront: 84 };
 
 export const PARTS = {
   // --- base body + hair (always-equipped foundation parts) ---
@@ -143,6 +151,12 @@ export const PARTS = {
   brow_chestnut: { slot: 'brows', label: 'Brows (chestnut)', layers: [{ tex: 'brow_chestnut', z: Z.brows }] },
   brow_black:    { slot: 'brows', label: 'Brows (black)',    layers: [{ tex: 'brow_black', z: Z.brows }] },
   brow_gold:     { slot: 'brows', label: 'Brows (gold)',     layers: [{ tex: 'brow_gold', z: Z.brows }] },
+  nose_light: { slot: 'nose', label: 'Nose (light)', layers: [{ tex: 'nose_light', z: Z.nose }] },
+  nose_brown: { slot: 'nose', label: 'Nose (brown)', layers: [{ tex: 'nose_brown', z: Z.nose }] },
+  nose_olive: { slot: 'nose', label: 'Nose (olive)', layers: [{ tex: 'nose_olive', z: Z.nose }] },
+  ears_light: { slot: 'ears', label: 'Ears (light)', layers: [{ tex: 'ears_light', z: Z.ears }] },
+  ears_brown: { slot: 'ears', label: 'Ears (brown)', layers: [{ tex: 'ears_brown', z: Z.ears }] },
+  ears_olive: { slot: 'ears', label: 'Ears (olive)', layers: [{ tex: 'ears_olive', z: Z.ears }] },
   hair_chestnut: { slot: 'hair', label: 'Hair (chestnut)', layers: [{ tex: 'hair_chestnut', z: Z.hair }] },
   hair_black:    { slot: 'hair', label: 'Hair (black)',    layers: [{ tex: 'hair_black', z: Z.hair }] },
   hair_gold:     { slot: 'hair', label: 'Hair (gold)',     layers: [{ tex: 'hair_gold', z: Z.hair }] },

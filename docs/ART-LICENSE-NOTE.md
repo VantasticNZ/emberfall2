@@ -124,6 +124,17 @@ hair buried the face. Fixed with:
   JaidynReiman; Matthew Krohn (makrohn); Stephen Challener (Redshrike);
   Mark Weyer; Johannes Sjölund (wulax).
 - **Eyebrows** (`eyes/eyebrows/thick/adult/*.png`) — OGA-BY 3.0 — ElizaWy.
+- **Nose** (`head/nose/straight/adult/{light,brown,olive}.png`) — GPL 3.0 /
+  CC-BY-SA 3.0 — Thane Brimhall (pennomi); Matthew Krohn (makrohn).
+- **Ears** (`head/ears/medium/adult/{light,brown,olive}.png`) — OGA-BY 3.0+ /
+  CC-BY 3.0+ / GPL 3.0 — JaidynReiman.
+- **Expression** is a DATA field per face. True per-expression LPC eye/mouth art
+  (happy/sad/angry) exists only in ElizaWy's revised base, whose per-animation
+  idle pose does NOT align with this body's walk-frame-0 idle (verified ~10px
+  off), so it can't drop into our universal-sheet pipeline. Expression is instead
+  conveyed in the dialogue portrait by nudging the (AI-safe) brow layer
+  (angry = furrowed). Full per-expression art would mean migrating to ElizaWy's
+  whole base — noted for later.
 - **Hair** swapped plain → **cowlick** (`hair/cowlick/adult/*.png`, kept the same
   `hair_*.png` filenames) so the forehead/brows/eyes are visible — **CC0** —
   ElizaWy; bluecarrot16.

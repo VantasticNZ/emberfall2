@@ -53,21 +53,21 @@ export const WORLD = {
   // Bryn is a watchman: he wears a sword + shield, proving NPCs use the same
   // equip pipeline the hero does.
   npcs: [
-    { tx: 9, ty: 11, facing: 'down', name: 'Mara', speed: 70,
-      parts: ['body_brown', 'eyes_brown', 'brow_black', 'hair_black', 'pants_brown', 'shoes_brown', 'shirt_forest'],
+    { tx: 9, ty: 11, facing: 'down', name: 'Mara', speed: 70, expression: 'happy',
+      parts: ['body_brown', 'ears_brown', 'nose_brown', 'eyes_brown', 'brow_black', 'hair_black', 'pants_brown', 'shoes_brown', 'shirt_forest'],
       lines: ["Morning! Bread's nearly out the oven.", 'You grew up fast, you know that?'] },
-    { tx: 16, ty: 10, facing: 'left', name: 'Old Edda', speed: 55,
-      parts: ['body_olive', 'eyes_green', 'brow_gold', 'hair_gold', 'pants_forest', 'shoes_black', 'shirt_brown', 'hat_feather'],
+    { tx: 16, ty: 10, facing: 'left', name: 'Old Edda', speed: 55, expression: 'sad',
+      parts: ['body_olive', 'ears_olive', 'nose_olive', 'eyes_green', 'brow_gold', 'hair_gold', 'pants_forest', 'shoes_black', 'shirt_brown', 'hat_feather'],
       lines: ['The Hearthflame remembers, child.', 'Some truths are kinder left in the ash.'] },
-    { tx: 27, ty: 21, facing: 'up', name: 'Bryn', speed: 75,
-      parts: ['body_light', 'eyes_brown', 'brow_gold', 'hair_gold', 'pants_charcoal', 'shoes_black', 'shirt_brown', 'shield', 'sword'],
+    { tx: 27, ty: 21, facing: 'up', name: 'Bryn', speed: 75, expression: 'angry',
+      parts: ['body_light', 'ears_light', 'nose_light', 'eyes_brown', 'brow_gold', 'hair_gold', 'pants_charcoal', 'shoes_black', 'shirt_brown', 'shield', 'sword'],
       lines: ['Heh. Mind where yer boots go.', "Tavern's shut. I drank it."] },
   ],
 
   // The hero starts at the crossroads, plainly dressed: the Gate M demo equips
   // a hat, sword and shield onto him live (keys 1/2/3) and triggers pickup (4).
   player: {
-    tx: 19, ty: 18, facing: 'down', speed: 95,
-    parts: ['body_light', 'eyes_blue', 'brow_chestnut', 'hair_chestnut', 'pants_charcoal', 'shoes_brown', 'shirt_blue'],
+    tx: 19, ty: 18, facing: 'down', speed: 95, expression: 'neutral',
+    parts: ['body_light', 'ears_light', 'nose_light', 'eyes_blue', 'brow_chestnut', 'hair_chestnut', 'pants_charcoal', 'shoes_brown', 'shirt_blue'],
   },
 };
