@@ -6,3 +6,7 @@ dist/
 # Screenshots captured as gate proof live under proof/ and ARE committed.
 .playwright-mcp/
 probe-initial.png
+_tmp/
+verify-*.png
+public/art/lpc/body/
+public/art/lpc/weapon_longsword.png
