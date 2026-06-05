@@ -125,7 +125,7 @@ export class GreenhollowScene extends Phaser.Scene {
         onInteract: () => {
           npc.facing = this._faceToward(npc, this.player);
           npc.setState('idle');
-          this._openDialogue(n.name, n.lines, n.parts);
+          this._openDialogue(n.name, n.lines, n.parts, n.expression);
         },
       });
     }
@@ -220,16 +220,16 @@ export class GreenhollowScene extends Phaser.Scene {
 
   // Compose a large face portrait of the speaker from its LPC face layers
   // (down-idle frame, head region) into a RenderTexture shown in the box.
-  _buildPortrait(parts) {
+  _buildPortrait(parts, expression = 'neutral') {
     if (this._portrait) { this._portrait.destroy(); this._portrait = null; }
     this.portraitFrame.setVisible(!!parts);
     if (!parts) return;
-    const FACE_SLOTS = new Set(['body', 'eyes', 'brows', 'hair', 'hat', 'torso']);
+    const FACE_SLOTS = new Set(['body', 'ears', 'nose', 'eyes', 'brows', 'hair', 'hat', 'torso']);
     const layers = [];
     for (const pk of parts) {
       const part = PARTS[pk];
       if (!part || !FACE_SLOTS.has(part.slot)) continue;
-      for (const L of part.layers) layers.push(L);
+      for (const L of part.layers) layers.push({ ...L, slot: part.slot });
     }
     layers.sort((a, b) => a.z - b.z);
     // head crop within the 64px down-idle frame (row 10, col 0 => frame 130).
@@ -237,8 +237,14 @@ export class GreenhollowScene extends Phaser.Scene {
     // box tightly frames hair+brows+eyes+chin (measured from the sheet).
     const FRAME_DOWN_IDLE = (8 + DIR_ROW.down) * 13;
     const cx = 16, cy = 13, cw = 32, ch = 38;      // bust: hair-top to shoulders
+    // Expression is conveyed by nudging the brow layer (the only expression art
+    // that aligns with this body): angry = furrowed (down), happy/sad = raised.
+    const browDy = { neutral: 0, happy: -1, sad: -1, angry: 2 }[expression] || 0;
     const rt = this.make.renderTexture({ x: 0, y: 0, width: cw, height: ch }, false);
-    for (const L of layers) rt.drawFrame(L.tex, FRAME_DOWN_IDLE, -cx, -cy);
+    for (const L of layers) {
+      const dy = L.slot === 'brows' ? browDy : 0;
+      rt.drawFrame(L.tex, FRAME_DOWN_IDLE, -cx, -cy + dy);
+    }
     const { x, y, size } = this.portraitBox;
     const scale = Math.min((size - 6) / cw, (size - 6) / ch); // fit within the frame
     rt.setOrigin(0.5, 0.5).setPosition(x + size / 2, y + size / 2).setScale(scale).setScrollFactor(0);
@@ -267,11 +273,11 @@ export class GreenhollowScene extends Phaser.Scene {
   }
 
   // ---- DIALOGUE -------------------------------------------------------------
-  _openDialogue(name, lines, parts = null) {
+  _openDialogue(name, lines, parts = null, expression = 'neutral') {
     this._dlgLines = lines; this._dlgIndex = 0;
     this.dlgName.setText(name);
     this.dlgBody.setText(lines[0]);
-    this._buildPortrait(parts);
+    this._buildPortrait(parts, expression);
     this.dialogue.setVisible(true);
     this.prompt.setVisible(false);
     Movement.stop(this.player);
