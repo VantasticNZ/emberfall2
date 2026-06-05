@@ -48,7 +48,7 @@ play('M4', 'explore'); play('M5', 'comfort');
 assert.equal(engine.status('M6'), 'available');
 play('M6', 'protect');
 assert.equal(karma.hasDeed('chicken_kicked'), true);
-assert.ok(engine.pruned.has('SG7ally'));
+assert.ok(engine.pruned.has('SG7')); // kick locks SG7ally -> resolves to the real SG7 (Orchard Thief)
 assert.equal(karma.hasDeed('cave_lore'), true);
 assert.equal(karma.hasDeed('grief_vow'), true);
 assert.equal(karma.hasDeed('time_skip'), true);
@@ -123,7 +123,7 @@ assert.equal(engine2.loadSave(), true);
 assert.equal(engine2.status('M8'), 'available');
 assert.equal(engine2.chosenOn('M7'), 'press');
 assert.equal(karma2.hasDeed('weapon_wooden_sword'), true);
-assert.ok(engine2.pruned.has('SG7ally'));
+assert.ok(engine2.pruned.has('SG7'));
 assert.deepEqual(karma2.getStatus(), { morality: 25, moralityTier: 'Kind', purity: 10, purityTier: 'Untested' });
 pass('save -> reload: M1-M7 complete, M8 available, weapon + choices + deeds restored');
 
