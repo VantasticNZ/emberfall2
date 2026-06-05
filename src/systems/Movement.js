@@ -28,7 +28,7 @@ export const Movement = {
 
     const moving = len > 0;
     if (moving) actor.facing = faceFromVec(dx, dy);
-    actor.setState(moving ? (running ? 'run' : 'walk') : 'idle');
+    actor.setState(moving ? 'walk' : 'idle'); // run = faster walk (no separate run sheet)
   },
 
   /** Halt a character and settle to idle (unless mid-action). */

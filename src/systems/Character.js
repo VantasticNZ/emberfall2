@@ -30,6 +30,7 @@ export class Character extends Phaser.GameObjects.Container {
     this.moveSpeed = opts.speed || 90;
     this.runSpeed = opts.runSpeed || Math.round((opts.speed || 90) * 1.7);
     this.actState = 'idle';
+    this.expression = opts.expression || 'neutral'; // shown on the head when idle
     this._busy = false;                 // a one-shot action is playing
     this._equipped = {};                // slot -> partKey
     this._slotLayers = {};              // slot -> [sprite,...]
@@ -51,7 +52,7 @@ export class Character extends Phaser.GameObjects.Container {
     if (!part) { console.warn('[Character] unknown part:', partKey); return this; }
     this.unequip(part.slot, true);
     const sprites = part.layers.map((layer) => {
-      const spr = this.scene.add.sprite(0, 0, layer.tex).setOrigin(0.5, 0.5);
+      const spr = this.scene.add.sprite(0, 0, `${layer.tex}__idle`).setOrigin(0.5, 0.5);
       spr._layerDef = layer;
       this.add(spr);
       return spr;
@@ -122,15 +123,25 @@ export class Character extends Phaser.GameObjects.Container {
 
   isBusy() { return this._busy; }
 
-  // Play the current state+facing on every layer (each resolves its own
-  // texture: a layer may override a state with a different sheet — the sword
-  // swaps to its 192px swing sheet for 'attack').
+  /** Change the facial expression (data-driven); re-applies the head. */
+  setExpression(expr) { this.expression = expr || 'neutral'; this._applyState(); return this; }
+
+  // Resolve the animation key for one layer sprite. An expressive head shows the
+  // expression face while idle (except facing up = back of head); a layer may
+  // also override its texture for a state (e.g. a weapon's oversize swing).
+  _animKeyFor(spr) {
+    const L = spr._layerDef;
+    if (L.expressive && this.actState === 'idle' && this.expression !== 'neutral' && this.facing !== 'up') {
+      return `${L.tex}-expr-${this.expression}-${this.facing}`;
+    }
+    const useTex = L.overrides?.[this.actState] || L.tex;
+    return animFor(useTex, this.actState, this.facing);
+  }
+
+  // Play the current state+facing on every layer.
   _applyState() {
     for (const sprites of Object.values(this._slotLayers)) {
-      for (const spr of sprites) {
-        const useTex = spr._layerDef.overrides?.[this.actState] || spr._layerDef.tex;
-        spr.play(animFor(useTex, this.actState, this.facing), true);
-      }
+      for (const spr of sprites) spr.play(this._animKeyFor(spr), true);
     }
   }
 
@@ -138,8 +149,7 @@ export class Character extends Phaser.GameObjects.Container {
   _ensurePlaying() {
     for (const sprites of Object.values(this._slotLayers)) {
       for (const spr of sprites) {
-        const useTex = spr._layerDef.overrides?.[this.actState] || spr._layerDef.tex;
-        const key = animFor(useTex, this.actState, this.facing);
+        const key = this._animKeyFor(spr);
         if (spr.anims.currentAnim?.key !== key || !spr.anims.isPlaying) spr.play(key, true);
       }
     }
