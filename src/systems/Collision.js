@@ -25,7 +25,7 @@ export function fitBodyToFootprint(sprite, fp) {
 
 export const Collision = {
   /**
-   * Mark a sprite solid: a fixed obstacle bodies collide with.
+   * Mark a prop sprite solid: a fixed obstacle bodies collide with.
    * Solidity is the data decision of the caller; this system just applies it.
    */
   makeSolid(sprite, fp) {
@@ -35,11 +35,17 @@ export const Collision = {
     return sprite;
   },
 
-  /** Configure a moving actor's body from its footprint (player/NPC). */
-  makeActorBody(sprite, fp) {
-    fitBodyToFootprint(sprite, fp);
-    sprite.body.setCollideWorldBounds(true);
-    return sprite;
+  /** The moving player: clamps to the world, pushes against solids. */
+  markPlayer(character) {
+    character.body.setCollideWorldBounds(true);
+    return character;
+  },
+
+  /** A solid NPC: blocks the player, never shoved (its body is footprint-sized
+   *  already by the Character system). */
+  markSolidActor(character) {
+    character.body.setImmovable(true);
+    return character;
   },
 
   /**
