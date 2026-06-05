@@ -1,11 +1,12 @@
 # EMBERFALL 2 - MASTER PLAN (locked, Plan B: design-whole-then-build)
 ## RULE: Follow this order. Do not skip, reorder, or start building until DESIGN is 100% done +
 ## coherence-reviewed. Every session states which plan step it is on.
+## CURRENT STEP: Full Quest Flesh - main quests (next)
 ## PHASE 1 - DESIGN (all on paper/docs first, to QUALITY-BIBLE):
   [x] Quality Bible / DoD
   [x] World Map
   [x] Story & Quests - BLUEPRINT (main spine + side web + endings)
-  [ ] Systems Design (weapons ~24, armour ~12+, magic 5-10, monsters, skill tree, stats) - as data specs
+  [x] Systems Design (weapons ~24, armour ~12+, magic 5-10, monsters, skill tree, stats) - as data specs
   [ ] FULL QUEST FLESH - every main quest written in full (beats, dialogue, choices, rewards, deed hooks)
   [ ] FULL QUEST FLESH - every side quest written in full, per region
   [ ] COHERENCE REVIEW - read whole design end-to-end: every quest links, choices pay off, map holds
