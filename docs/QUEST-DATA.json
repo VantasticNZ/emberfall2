@@ -1,0 +1,1223 @@
+{
+ "_meta": {
+  "note": "Full Emberfall quest data. Source of truth for the visual + build. Each quest: id,title,region,act,type,tone,choices[].{label,impact(good|neutral|dark),karma,unlocks[],locks[],ending}. perm=permanent decision. Endings: W=Warden,T=Tyrant,L=Liberator.",
+  "endings": {
+   "W": "Warden (neutral/medium \u2014 re-bind, bittersweet default)",
+   "S": "Saint/Redeemer (good \u2014 heal + re-bind with compassion)",
+   "T": "Tyrant (bad \u2014 seize the god's power)",
+   "L": "Liberator (visionary \u2014 free the god, hardest of the main four)",
+   "A": "Ashbearer (SECRET \u2014 refuse all three; take the god's burden into yourself / break the cycle. Gated by hidden lore: M4 cave + Pem clue-hunt + a hidden mercy deed.)"
+  }
+ },
+ "quests": [
+  {
+   "id": "M1",
+   "title": "A Greenhollow Morning",
+   "region": "Greenhollow",
+   "act": 1,
+   "type": "main",
+   "tone": "wholesome",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Greet villagers warmly",
+     "impact": "good",
+     "karma": "+M",
+     "unlocks": [
+      "M2"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": "Village remembers you fondly; warmer adult return."
+    },
+    {
+     "label": "Ignore them",
+     "impact": "dark",
+     "karma": "-M",
+     "unlocks": [
+      "M2"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": "Seeds a cooler, lonelier childhood tone."
+    }
+   ]
+  },
+  {
+   "id": "M2",
+   "title": "Chores + Mischief",
+   "region": "Greenhollow",
+   "act": 1,
+   "type": "main",
+   "tone": "wholesome/funny",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Catch the chicken kindly",
+     "impact": "good",
+     "karma": "+M",
+     "unlocks": [
+      "M3",
+      "SG7ally"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": "The chicken's owner becomes a friendly face for life."
+    },
+    {
+     "label": "Kick the chicken",
+     "impact": "dark",
+     "karma": "-M deed:chicken_kicked",
+     "unlocks": [
+      "M3",
+      "ET1"
+     ],
+     "locks": [
+      "SG7ally"
+     ],
+     "ending": "T-lean",
+     "story": "The owner never forgets; the chicken cameos at the Spire; dark epilogue gag."
+    },
+    {
+     "label": "Free it from the coop",
+     "impact": "neutral",
+     "karma": "\u00b1P",
+     "unlocks": [
+      "M3"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": "A small chaos; a kid thinks you're a legend."
+    }
+   ]
+  },
+  {
+   "id": "M3",
+   "title": "The Coin",
+   "region": "Greenhollow",
+   "act": 1,
+   "type": "main",
+   "tone": "wholesome",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Return the purse",
+     "impact": "good",
+     "karma": "+M+P",
+     "unlocks": [
+      "M4",
+      "merchant_friendly"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": "Merchant trusts you; better prices as an adult."
+    },
+    {
+     "label": "Keep it quietly",
+     "impact": "dark",
+     "karma": "-P",
+     "unlocks": [
+      "M4",
+      "merchant_cold"
+     ],
+     "locks": [],
+     "ending": "T-lean",
+     "story": "Merchant is cold and watchful for the rest of the game."
+    },
+    {
+     "label": "Buy a friend a treat",
+     "impact": "good",
+     "karma": "+M",
+     "unlocks": [
+      "M4"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": "A childhood friend stays loyal into adulthood."
+    }
+   ]
+  },
+  {
+   "id": "M4",
+   "title": "The Boarded Cave",
+   "region": "Greenhollow",
+   "act": 1,
+   "type": "main",
+   "tone": "mystery",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Tell an adult",
+     "impact": "good",
+     "karma": "+P",
+     "unlocks": [
+      "M5"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": "Bram praises your caution; a tender memory before the fire."
+    },
+    {
+     "label": "Explore alone",
+     "impact": "neutral",
+     "karma": "lore:carving",
+     "unlocks": [
+      "M5",
+      "ET10",
+      "cave_lore"
+     ],
+     "locks": [],
+     "ending": "L-hint",
+     "story": "You see the weeping-flame carving \u2014 the FIRST seed of the god's truth; key to the secret ending."
+    },
+    {
+     "label": "Dare a friend in",
+     "impact": "dark",
+     "karma": "-P if hurt",
+     "unlocks": [
+      "M5"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": "If they're hurt, guilt haunts later dialogue."
+    }
+   ]
+  },
+  {
+   "id": "M5",
+   "title": "The Festival",
+   "region": "Greenhollow",
+   "act": 1,
+   "type": "main",
+   "tone": "wholesome/dread",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Comfort a scared child",
+     "impact": "good",
+     "karma": "+M",
+     "unlocks": [
+      "M6"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    },
+    {
+     "label": "Ignore the unease",
+     "impact": "neutral",
+     "karma": "",
+     "unlocks": [
+      "M6"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    }
+   ]
+  },
+  {
+   "id": "M6",
+   "title": "The Night It Burned",
+   "region": "Greenhollow",
+   "act": 1,
+   "type": "main",
+   "tone": "dark/heartfelt",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Vow vengeance over the ash",
+     "impact": "dark",
+     "karma": "tone:dark",
+     "unlocks": [
+      "M7"
+     ],
+     "locks": [],
+     "ending": "T-lean",
+     "story": "Your adult self is harder, colder; NPCs note the edge."
+    },
+    {
+     "label": "Vow protection",
+     "impact": "good",
+     "karma": "+M deed:grief_vow",
+     "unlocks": [
+      "M7",
+      "ET2"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": "Honored in the epilogue; a protective reputation."
+    }
+   ]
+  },
+  {
+   "id": "M7",
+   "title": "Ten Winters Gone",
+   "region": "Greenhollow",
+   "act": 2,
+   "type": "main",
+   "tone": "varies",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Accept Sela's mission",
+     "impact": "neutral",
+     "karma": "",
+     "unlocks": [
+      "M8",
+      "SG1",
+      "SG2",
+      "SG3"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    },
+    {
+     "label": "Press Sela for answers",
+     "impact": "neutral",
+     "karma": "+doubt",
+     "unlocks": [
+      "M8"
+     ],
+     "locks": [],
+     "ending": "L-hint",
+     "story": ""
+    }
+   ]
+  },
+  {
+   "id": "M8",
+   "title": "Into the Ashen Marsh",
+   "region": "Ashen Marsh",
+   "act": 2,
+   "type": "main",
+   "tone": "melancholy",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Kind to the bog-folk",
+     "impact": "good",
+     "karma": "+M",
+     "unlocks": [
+      "M9",
+      "SA1",
+      "SA2"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": "Mirefen opens up; extra lore + a helper."
+    },
+    {
+     "label": "Cruel/dismissive",
+     "impact": "dark",
+     "karma": "-M",
+     "unlocks": [
+      "M9"
+     ],
+     "locks": [],
+     "ending": "T-lean",
+     "story": "Bog-folk stonewall you; harder marsh."
+    }
+   ]
+  },
+  {
+   "id": "M9",
+   "title": "The Sunken Shrine",
+   "region": "Ashen Marsh",
+   "act": 2,
+   "type": "dungeon",
+   "tone": "tense",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Lantern + defeat Drowned Guardian -> Shard 1",
+     "impact": "neutral",
+     "karma": "tool:lantern shard:1",
+     "unlocks": [
+      "M10"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    }
+   ]
+  },
+  {
+   "id": "M10",
+   "title": "Hagga's Truth",
+   "region": "Ashen Marsh",
+   "act": 2,
+   "type": "main",
+   "tone": "dark/revelation",
+   "perm": true,
+   "choices": [
+    {
+     "label": "BELIEVE Hagga",
+     "impact": "good",
+     "karma": "+P ally:Hagga",
+     "unlocks": [
+      "M11",
+      "M10a",
+      "L-path"
+     ],
+     "locks": [],
+     "ending": "L",
+     "story": "You carry the truth early; Hagga guides you; unlocks the visionary path. Sela grows wary."
+    },
+    {
+     "label": "REPORT to Sela",
+     "impact": "dark",
+     "karma": "-P",
+     "unlocks": [
+      "M11",
+      "M10b"
+     ],
+     "locks": [
+      "ally:Hagga",
+      "L-path"
+     ],
+     "ending": "T",
+     "story": "Sela silences Hagga (she vanishes, darkly); you're her favoured tool; the lie tightens."
+    },
+    {
+     "label": "STAY SILENT",
+     "impact": "neutral",
+     "karma": "",
+     "unlocks": [
+      "M11",
+      "M10c"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": "You keep your own counsel; a later forced reckoning."
+    }
+   ]
+  },
+  {
+   "id": "M11",
+   "title": "The Sundered Peaks",
+   "region": "Sundered Peaks",
+   "act": 2,
+   "type": "main",
+   "tone": "hardy",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Lean toward workers (P3 seed)",
+     "impact": "good",
+     "karma": "+M",
+     "unlocks": [
+      "M12",
+      "SP1",
+      "SP2",
+      "SP3"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    },
+    {
+     "label": "Lean toward owners",
+     "impact": "dark",
+     "karma": "-P",
+     "unlocks": [
+      "M12"
+     ],
+     "locks": [],
+     "ending": "T-lean",
+     "story": ""
+    }
+   ]
+  },
+  {
+   "id": "M12",
+   "title": "Cinder Keep",
+   "region": "Sundered Peaks",
+   "act": 2,
+   "type": "dungeon",
+   "tone": "tense",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Grapple + boss -> Shard 2 (order knew)",
+     "impact": "neutral",
+     "karma": "tool:grapple shard:2",
+     "unlocks": [
+      "M13"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    }
+   ]
+  },
+  {
+   "id": "M13",
+   "title": "The Tidewreck Coast",
+   "region": "Tidewreck Coast",
+   "act": 2,
+   "type": "main",
+   "tone": "stormy",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Lean smugglers (T1 seed)",
+     "impact": "neutral",
+     "karma": "-P",
+     "unlocks": [
+      "M14",
+      "ST1",
+      "ST2"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    },
+    {
+     "label": "Lean authority",
+     "impact": "good",
+     "karma": "+P",
+     "unlocks": [
+      "M14"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    }
+   ]
+  },
+  {
+   "id": "M14",
+   "title": "The Drowned Vault",
+   "region": "Tidewreck Coast",
+   "act": 2,
+   "type": "dungeon",
+   "tone": "tense",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Hookshot + boss -> Shard 3 (past betrayal)",
+     "impact": "neutral",
+     "karma": "tool:hookshot shard:3",
+     "unlocks": [
+      "M15"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    }
+   ]
+  },
+  {
+   "id": "M15",
+   "title": "The Emberwood",
+   "region": "Emberwood",
+   "act": 2,
+   "type": "main",
+   "tone": "magical/dangerous",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Begin the settlement dilemma",
+     "impact": "neutral",
+     "karma": "",
+     "unlocks": [
+      "M16",
+      "SE2",
+      "SE4"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    }
+   ]
+  },
+  {
+   "id": "M16",
+   "title": "Ember Hollow",
+   "region": "Emberwood",
+   "act": 2,
+   "type": "dungeon",
+   "tone": "heartfelt/horror",
+   "perm": true,
+   "choices": [
+    {
+     "label": "MERCY to the god-fragment",
+     "impact": "good",
+     "karma": "+P",
+     "unlocks": [
+      "M17",
+      "M16a",
+      "L-path"
+     ],
+     "locks": [],
+     "ending": "L",
+     "story": "The god's fragment trusts you; you're weaker now but the visionary/secret paths open."
+    },
+    {
+     "label": "SEIZE its power",
+     "impact": "dark",
+     "karma": "-P power",
+     "unlocks": [
+      "M17",
+      "M16b",
+      "T-path"
+     ],
+     "locks": [
+      "L-path"
+     ],
+     "ending": "T",
+     "story": "Dark power surges through you; people flinch; the tyrant path locks in."
+    },
+    {
+     "label": "TAKE the shard plainly",
+     "impact": "neutral",
+     "karma": "shard:4",
+     "unlocks": [
+      "M17"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": "You stay your course, neither moved nor corrupted."
+    }
+   ]
+  },
+  {
+   "id": "M17",
+   "title": "Sela's Design",
+   "region": "Spire approach",
+   "act": 2,
+   "type": "main",
+   "tone": "betrayal",
+   "perm": true,
+   "choices": [
+    {
+     "label": "TRUST Sela",
+     "impact": "neutral",
+     "karma": "",
+     "unlocks": [
+      "M18"
+     ],
+     "locks": [
+      "L-path"
+     ],
+     "ending": "W",
+     "story": "She leads the Spire approach \u2014 and may betray you at the worst moment."
+    },
+    {
+     "label": "OPPOSE her (needs Hagga)",
+     "impact": "good",
+     "karma": "+P",
+     "unlocks": [
+      "M18",
+      "L-endgame"
+     ],
+     "locks": [],
+     "ending": "L",
+     "story": "Open war with the oracle order; the visionary ending becomes reachable."
+    },
+    {
+     "label": "GO ALONE",
+     "impact": "neutral",
+     "karma": "hard",
+     "unlocks": [
+      "M18"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": "No allies, no betrayer \u2014 the loneliest, hardest climb."
+    }
+   ]
+  },
+  {
+   "id": "M18",
+   "title": "The Long Ascent",
+   "region": "Spire",
+   "act": 3,
+   "type": "gauntlet",
+   "tone": "climactic",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Mercy beats on the climb",
+     "impact": "good",
+     "karma": "+M",
+     "unlocks": [
+      "M19"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    },
+    {
+     "label": "Cruelty beats",
+     "impact": "dark",
+     "karma": "-M",
+     "unlocks": [
+      "M19"
+     ],
+     "locks": [],
+     "ending": "T-lean",
+     "story": ""
+    }
+   ]
+  },
+  {
+   "id": "M19",
+   "title": "The Binding Chamber",
+   "region": "Spire",
+   "act": 3,
+   "type": "boss",
+   "tone": "climactic",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Defeat the over-built-up boss -> Shard 5",
+     "impact": "neutral",
+     "karma": "shard:5",
+     "unlocks": [
+      "M20"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    }
+   ]
+  },
+  {
+   "id": "M20",
+   "title": "The Choice",
+   "region": "Spire",
+   "act": 3,
+   "type": "finale",
+   "tone": "weighty",
+   "perm": true,
+   "choices": [
+    {
+     "label": "WARDEN: re-bind the god",
+     "impact": "neutral",
+     "karma": "",
+     "unlocks": [
+      "END_W"
+     ],
+     "locks": [],
+     "ending": "W",
+     "story": "The land lives; the god suffers on; you bear the quiet weight forever."
+    },
+    {
+     "label": "TYRANT: seize the god",
+     "impact": "dark",
+     "karma": "gated cruel+corrupt",
+     "unlocks": [
+      "END_T"
+     ],
+     "locks": [],
+     "ending": "T",
+     "story": "You become the new power on the throne of lies."
+    },
+    {
+     "label": "LIBERATOR: free the god",
+     "impact": "good",
+     "karma": "gated pure+mercy+believe+oppose",
+     "unlocks": [
+      "END_L"
+     ],
+     "locks": [],
+     "ending": "L",
+     "story": "The cycle ends; a transcendent, costly dawn."
+    }
+   ]
+  },
+  {
+   "id": "SG1",
+   "title": "Fatley's Mug",
+   "region": "Greenhollow",
+   "act": 2,
+   "type": "side",
+   "tone": "funny",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Fetch the mug (it's right there)",
+     "impact": "neutral",
+     "karma": "unlock:see-markers",
+     "unlocks": [
+      "skill:markers"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    }
+   ]
+  },
+  {
+   "id": "SG2",
+   "title": "PEM WOZ ERE (clue-hunt)",
+   "region": "Greenhollow",
+   "act": 2,
+   "type": "side",
+   "tone": "mystery/fun",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Assemble clues from all regions",
+     "impact": "good",
+     "karma": "reward:epic",
+     "unlocks": [
+      "ET9"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    }
+   ]
+  },
+  {
+   "id": "SG3",
+   "title": "Hodge's Apprentice",
+   "region": "Greenhollow",
+   "act": 2,
+   "type": "job",
+   "tone": "wholesome",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Help at the forge",
+     "impact": "good",
+     "karma": "skill:repair discount",
+     "unlocks": [],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    }
+   ]
+  },
+  {
+   "id": "SG4",
+   "title": "Mara's Letters",
+   "region": "Greenhollow",
+   "act": 2,
+   "type": "side",
+   "tone": "funny/dark",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Return discreetly",
+     "impact": "good",
+     "karma": "+M",
+     "unlocks": [],
+     "locks": [],
+     "ending": "",
+     "story": "Mara is quietly grateful; a warm ally."
+    },
+    {
+     "label": "Expose them",
+     "impact": "dark",
+     "karma": "-M deed:mara_exposed",
+     "unlocks": [
+      "ET3"
+     ],
+     "locks": [
+      "mara_epilogue"
+     ],
+     "ending": "",
+     "story": "Mara is humiliated; she's absent from your epilogue."
+    }
+   ]
+  },
+  {
+   "id": "SG7",
+   "title": "The Orchard Thief",
+   "region": "Greenhollow",
+   "act": 2,
+   "type": "side",
+   "tone": "funny/morality",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Cover for the kid",
+     "impact": "good",
+     "karma": "+M",
+     "unlocks": [
+      "ally:kid"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    },
+    {
+     "label": "Punish the kid",
+     "impact": "dark",
+     "karma": "-M",
+     "unlocks": [],
+     "locks": [
+      "ally:kid"
+     ],
+     "ending": "",
+     "story": ""
+    },
+    {
+     "label": "Recruit the kid",
+     "impact": "neutral",
+     "karma": "\u00b1P",
+     "unlocks": [
+      "ally:kid"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    }
+   ]
+  },
+  {
+   "id": "SA2",
+   "title": "Hagga's Errands",
+   "region": "Ashen Marsh",
+   "act": 2,
+   "type": "side",
+   "tone": "morality",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Do her favours",
+     "impact": "good",
+     "karma": "+P ally:Hagga+",
+     "unlocks": [
+      "L-support"
+     ],
+     "locks": [],
+     "ending": "L",
+     "story": ""
+    },
+    {
+     "label": "Refuse",
+     "impact": "neutral",
+     "karma": "",
+     "unlocks": [],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    }
+   ]
+  },
+  {
+   "id": "SA4",
+   "title": "Frog of the Fen",
+   "region": "Ashen Marsh",
+   "act": 2,
+   "type": "twist",
+   "tone": "funny",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Drop an apple / blow-a-kiss / lead away",
+     "impact": "neutral",
+     "karma": "trophy",
+     "unlocks": [],
+     "locks": [],
+     "ending": "",
+     "story": "You learn not everything is beaten by force \u2014 a quiet lesson (and a laugh)."
+    }
+   ]
+  },
+  {
+   "id": "SP3",
+   "title": "The Stubborn Miner",
+   "region": "Sundered Peaks",
+   "act": 2,
+   "type": "side",
+   "tone": "morality",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Side with workers",
+     "impact": "good",
+     "karma": "+M",
+     "unlocks": [
+      "ET6"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    },
+    {
+     "label": "Side with owner",
+     "impact": "dark",
+     "karma": "-P gold",
+     "unlocks": [
+      "ET6"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    },
+    {
+     "label": "Broker peace",
+     "impact": "good",
+     "karma": "+P",
+     "unlocks": [
+      "ET6"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    }
+   ]
+  },
+  {
+   "id": "SP5",
+   "title": "A Stranger's Plea",
+   "region": "Sundered Peaks",
+   "act": 2,
+   "type": "twist",
+   "tone": "trick",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Help (resolves by YOUR morality)",
+     "impact": "neutral",
+     "karma": "trick: rescue if kind / used if cruel",
+     "unlocks": [],
+     "locks": [],
+     "ending": "",
+     "story": "If kind: a real rescue. If cruel: you're played for a thug \u2014 a gut-punch twist."
+    }
+   ]
+  },
+  {
+   "id": "ST1",
+   "title": "Smuggler's Bargain",
+   "region": "Tidewreck Coast",
+   "act": 2,
+   "type": "side",
+   "tone": "morality",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Run the contraband",
+     "impact": "dark",
+     "karma": "-P faction:smuggler",
+     "unlocks": [
+      "ET5"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    },
+    {
+     "label": "Turn them in",
+     "impact": "good",
+     "karma": "+P faction:authority",
+     "unlocks": [
+      "ET5"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    }
+   ]
+  },
+  {
+   "id": "ST3",
+   "title": "The Lighthouse Keeper",
+   "region": "Tidewreck Coast",
+   "act": 2,
+   "type": "side",
+   "tone": "heartfelt",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Stay and listen",
+     "impact": "good",
+     "karma": "+M",
+     "unlocks": [
+      "ET2"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    },
+    {
+     "label": "Brush off",
+     "impact": "neutral",
+     "karma": "",
+     "unlocks": [],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    }
+   ]
+  },
+  {
+   "id": "ST5",
+   "title": "Saltbreak Betrayal",
+   "region": "Tidewreck Coast",
+   "act": 2,
+   "type": "twist",
+   "tone": "betrayal",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Vengeance",
+     "impact": "dark",
+     "karma": "-M",
+     "unlocks": [
+      "ET7"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": "A reputation for ruthlessness precedes you."
+    },
+    {
+     "label": "Mercy",
+     "impact": "good",
+     "karma": "+M+P",
+     "unlocks": [
+      "ET7"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": "Word spreads that you spare even traitors."
+    }
+   ]
+  },
+  {
+   "id": "SE2",
+   "title": "The Caught Settlement",
+   "region": "Emberwood",
+   "act": 2,
+   "type": "side",
+   "tone": "heavy",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Save the burning half",
+     "impact": "neutral",
+     "karma": "ET4",
+     "unlocks": [
+      "ET4"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": "The frozen half is lost; survivors remember which you chose."
+    },
+    {
+     "label": "Save the freezing half",
+     "impact": "neutral",
+     "karma": "ET4",
+     "unlocks": [
+      "ET4"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": "The burning half is lost; the choice haunts the epilogue."
+    }
+   ]
+  },
+  {
+   "id": "SE4",
+   "title": "The Weeping Tree",
+   "region": "Emberwood",
+   "act": 2,
+   "type": "side",
+   "tone": "heartfelt",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Witness the god's pain",
+     "impact": "good",
+     "karma": "+P compassion",
+     "unlocks": [
+      "ET11"
+     ],
+     "locks": [],
+     "ending": "L-hint",
+     "story": "Compassion deepens; nudges toward the visionary/secret endings."
+    }
+   ]
+  },
+  {
+   "id": "ST6",
+   "title": "The Fisher's Daughter",
+   "region": "Tidewreck Coast",
+   "act": 2,
+   "type": "side",
+   "tone": "romance",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Court / help her",
+     "impact": "good",
+     "karma": "companion",
+     "unlocks": [
+      "companion"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    },
+    {
+     "label": "Decline",
+     "impact": "neutral",
+     "karma": "",
+     "unlocks": [],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    }
+   ]
+  },
+  {
+   "id": "SS2",
+   "title": "The Last Confession",
+   "region": "Spire",
+   "act": 3,
+   "type": "side",
+   "tone": "weighty",
+   "perm": false,
+   "choices": [
+    {
+     "label": "Confess your deeds",
+     "impact": "neutral",
+     "karma": "ending nuance",
+     "unlocks": [
+      "ET10",
+      "ET12"
+     ],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    },
+    {
+     "label": "Refuse",
+     "impact": "neutral",
+     "karma": "",
+     "unlocks": [],
+     "locks": [],
+     "ending": "",
+     "story": ""
+    }
+   ]
+  },
+  {
+   "id": "M21",
+   "title": "The Ashbearer (secret)",
+   "region": "Spire",
+   "act": 3,
+   "type": "finale-secret",
+   "tone": "transcendent/mysterious",
+   "perm": true,
+   "choices": [
+    {
+     "label": "Take the god's burden into yourself",
+     "impact": "good",
+     "karma": "gated: cave-lore + Pem + hidden mercy",
+     "story": "You refuse all three fates and bind the god's pain into your own soul \u2014 breaking the cycle no oracle dared. The rarest, most-shared ending.",
+     "locks": [],
+     "ending": "A"
+    }
+   ]
+  }
+ ]
+}
