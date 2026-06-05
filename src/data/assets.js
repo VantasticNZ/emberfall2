@@ -29,10 +29,17 @@ export const DIR_ROW = { up: 0, left: 1, down: 2, right: 3 };
 // =============================================================================
 export const ANIMS = {
   idle:   { frames: 3, rate: 4,  repeat: -1 },
-  walk:   { frames: 8, rate: 10, repeat: -1 },
-  attack: { frames: 7, rate: 14, repeat: 0 },   // Combat 1h - Slash
+  walk:   { frames: 8, rate: 16, repeat: -1 },   // base fps; scaled to speed (below)
+  attack: { frames: 7, rate: 14, repeat: 0 },    // Combat 1h - Slash
 };
 export const STATES = ['idle', 'walk', 'attack'];
+
+// NO-SLIDE WALK: the leg cadence must match the move speed or the feet skate
+// (the jolty/slow look). ElizaWy's walk advances ~WALK_STRIDE px of ground per
+// step; an 8-frame cycle is 2 steps. So fps = 4*speed/stride, applied as a
+// per-character anims timeScale. `run` is just walking at runSpeed => a faster
+// (still matched) cycle. WALK_STRIDE is tuned to the eye.
+export const WALK_STRIDE = 21;
 
 // One-shot action states (settle back to idle when done).
 export const ONESHOT = new Set(['attack']);

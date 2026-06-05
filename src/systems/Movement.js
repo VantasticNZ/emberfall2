@@ -28,7 +28,9 @@ export const Movement = {
 
     const moving = len > 0;
     if (moving) actor.facing = faceFromVec(dx, dy);
-    actor.setState(moving ? 'walk' : 'idle'); // run = faster walk (no separate run sheet)
+    // pass the current speed so the walk leg cadence matches it (no slide);
+    // running just walks at runSpeed => a faster, still-matched cycle.
+    actor.setState(moving ? 'walk' : 'idle', speed);
   },
 
   /** Halt a character and settle to idle (unless mid-action). */

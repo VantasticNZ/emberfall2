@@ -13,7 +13,7 @@
 // =============================================================================
 
 import Phaser from 'phaser';
-import { PARTS, ONESHOT, CHAR_FOOTPRINT, animFor } from '../data/assets.js';
+import { PARTS, ONESHOT, ANIMS, WALK_STRIDE, CHAR_FOOTPRINT, animFor } from '../data/assets.js';
 
 export class Character extends Phaser.GameObjects.Container {
   /**
@@ -95,12 +95,22 @@ export class Character extends Phaser.GameObjects.Container {
   }
 
   // ---- ANIMATION (one set, fanned out to every layer) -----------------------
-  /** Set the movement/idle state (ignored while a one-shot action plays). */
-  setState(state) {
+  /** Set the movement/idle state. `speed` (px/s) sets the walk leg cadence so
+   *  the feet don't slide. Ignored while a one-shot action plays. */
+  setState(state, speed) {
     if (this._busy) return;
+    this._curSpeed = speed || this.moveSpeed;
     if (state === this.actState) { this._ensurePlaying(); return; }
     this.actState = state;
     this._applyState();
+  }
+
+  // Playback timeScale for the current state. Walk legs cycle at a rate matched
+  // to the move speed (no feet-slide): fps = 4*speed/stride.
+  _timeScale() {
+    if (this.actState !== 'walk') return 1;
+    const wantFps = (4 * (this._curSpeed || this.moveSpeed)) / WALK_STRIDE;
+    return wantFps / ANIMS.walk.rate;
   }
 
   /** Fire a one-shot action (attack/cast/use/pickup); reverts to idle after. */
@@ -147,23 +157,27 @@ export class Character extends Phaser.GameObjects.Container {
 
   // Play the current state+facing on every layer (hiding state-limited gear).
   _applyState() {
+    const ts = this._timeScale();
     for (const sprites of Object.values(this._slotLayers)) {
       for (const spr of sprites) {
         if (!this._shownIn(spr)) { spr.setVisible(false); continue; }
         spr.setVisible(true);
         spr.play(this._animKeyFor(spr), true);
+        spr.anims.timeScale = ts;
       }
     }
   }
 
   // Re-assert the current animation (e.g. after facing change) without restart.
   _ensurePlaying() {
+    const ts = this._timeScale();
     for (const sprites of Object.values(this._slotLayers)) {
       for (const spr of sprites) {
         if (!this._shownIn(spr)) { spr.setVisible(false); continue; }
         spr.setVisible(true);
         const key = this._animKeyFor(spr);
         if (spr.anims.currentAnim?.key !== key || !spr.anims.isPlaying) spr.play(key, true);
+        spr.anims.timeScale = ts; // keep legs matched to current speed every frame
       }
     }
   }
