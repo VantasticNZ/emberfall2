@@ -31,10 +31,11 @@
 // The live quest registry. Greenhollow Act 1 + the adult return is the first
 // content; more regions append here as they are authored (all as DATA).
 import { GREENHOLLOW_CHILDHOOD } from './greenhollow.js';
+import { GREENHOLLOW_SIDE } from './greenhollow.side.js';
 import { ASHEN_MARSH } from './ashenmarsh.js';
 import { ASHEN_MARSH_SIDE } from './ashenmarsh.side.js';
-export { GREENHOLLOW_CHILDHOOD, ASHEN_MARSH, ASHEN_MARSH_SIDE };
-export const QUESTS = [...GREENHOLLOW_CHILDHOOD, ...ASHEN_MARSH, ...ASHEN_MARSH_SIDE];
+export { GREENHOLLOW_CHILDHOOD, GREENHOLLOW_SIDE, ASHEN_MARSH, ASHEN_MARSH_SIDE };
+export const QUESTS = [...GREENHOLLOW_CHILDHOOD, ...GREENHOLLOW_SIDE, ...ASHEN_MARSH, ...ASHEN_MARSH_SIDE];
 
 const slug = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
 
