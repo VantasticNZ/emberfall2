@@ -53,3 +53,55 @@ Until Van decides, the manifest (`src/data/assets.js`) runs in `ART_SOURCE='plac
 mode: procedural textures generated in-engine (no third-party art, no license issue),
 sized to the same grid the real art will use, so the slice proves the architecture and
 gates now. Dropping in a compatible pack later is a manifest-only edit.
+
+================================================================================
+# RESOLUTION (2026-06-05): AI-SAFE ART NOW IN USE
+================================================================================
+The proof slice now renders REAL, AI-safe art. `ART_SOURCE='real'`. None of the
+licences below contain an anti-AI / no-genAI clause, so they are compatible with
+this AI-assisted project (unlike Mana Seed). Each was licence-checked against the
+project's CREDITS before use.
+
+## CHARACTERS — LPC (Liberated Pixel Cup), via the Universal-LPC-Spritesheet
+Source project: https://github.com/sanderfrenken/Universal-LPC-Spritesheet-Character-Generator
+Licence files: the repo ships `cc-by-sa-3_0.txt` and `gpl-3_0.txt`; per-asset
+authors/licences are in its `CREDITS.csv`. Every asset used here is some union of
+**CC-BY-SA 3.0 / OGA-BY 3.0 / GPL 3.0** — all attribution/share-alike licences,
+**none anti-AI**. Attribution (required by CC-BY-SA & OGA-BY) for the exact files used:
+
+- **Body** (`body_*.png` — male light/brown/olive) — CC-BY-SA 3.0, GPL 3.0 —
+  bluecarrot16; Benjamin K. Smith (BenCreating); Evert; Eliza Wyatt (ElizaWy);
+  TheraHedwig; MuffinElZangano; Durrani; Johannes Sjölund (wulax); Stephen
+  Challener (Redshrike).
+- **Hair** (`hair_*.png` — "plain", male) — CC-BY-SA 3.0, GPL 3.0 —
+  Manuel Riecke (MrBeast); Joe White.
+- **Pants** (`legs_*.png` — pants, male) — OGA-BY 3.0, GPL 3.0, CC-BY-SA 3.0 —
+  bluecarrot16; JaidynReiman; ElizaWy; Matthew Krohn (Makrohn); Johannes Sjölund (wulax).
+- **Shoes** (`feet_*.png` — shoes, male) — OGA-BY 3.0, CC-BY-SA 3.0, GPL 3.0 —
+  bluecarrot16; Johannes Sjölund (wulax).
+- **Shirt** (`torso_*.png` — longsleeve, male) — CC-BY-SA 3.0, GPL 3.0 —
+  JaidynReiman; Johannes Sjölund (wulax).
+- **Hat** (`hat_feathercap.png` — cloth/feather_cap) — OGA-BY 3.0, CC-BY-SA 3.0,
+  GPL 3.0 — Johannes Sjölund (wulax); Matthew Krohn (Makrohn); JaidynReiman.
+- **Sword** (`weapon_carry*.png`, `weapon_slash*.png` — sword/longsword + its
+  attack_slash/behind sheets) — OGA-BY 3.0, CC-BY-SA 3.0 —
+  Johannes Sjölund (wulax); bluecarrot16.
+- **Shield** (`shield_fg.png`, `shield_bg.png` — heater/original/wood) —
+  OGA-BY 3.0 — bluecarrot16; Sander Frenken (castelonia); ElizaWy.
+
+> SHARE-ALIKE NOTE: CC-BY-SA 3.0 / GPL 3.0 are copyleft. If Emberfall ships these
+> exact sprite sheets, the art assets (not necessarily the game code) must carry
+> the same licence + attribution. A commercial ship should keep an in-game CREDITS
+> screen listing the above, and ideally bundle the licence texts. (OGA-BY 3.0 is
+> attribution-only.) Re-confirm before commercial release.
+
+## TILES / PROPS — Kenney "Tiny Town" 1.1
+Source: https://kenney.nl/assets/tiny-town  (bundled sheet: `public/art/kenney/tiny_town.png`)
+Licence: **CC0 1.0** (public domain) — "free to use in personal, educational and
+commercial projects." Crediting Kenney is appreciated, not required. No anti-AI
+clause. The individual tiles + composed props under `public/art/kenney/` are
+derived from this CC0 sheet by `scripts/build_kenney_props.py` (also CC0).
+
+## VERDICT
+All art in the slice is AI-safe and commercially usable. Keep this note + an
+in-game credits screen current as assets are added.
