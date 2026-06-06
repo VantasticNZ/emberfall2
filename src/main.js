@@ -16,12 +16,13 @@ const config = {
   height: VIEW.height,
   backgroundColor: '#1a1726',
   pixelArt: true,
-  roundPixels: true,
+  roundPixels: false,   // smooth camera follow (no pixel-snap judder); see the scene's cover-zoom
   scale: {
-    // ENVELOP fills the whole window (no black letterbox bars) — scales to cover
-    // and crops only the overflow; identical to FIT on a 16:9 window.
-    mode: Phaser.Scale.ENVELOP,
-    autoCenter: Phaser.Scale.CENTER_BOTH,
+    // RESIZE: the canvas matches the window exactly — NO letterbox bars AND no
+    // ENVELOP-style cropping of content (which was decapitating edge trees). The
+    // scene applies a cover-zoom so the world always fills the view (no black
+    // beyond the world bounds) and reflows the camera/UI on resize.
+    mode: Phaser.Scale.RESIZE,
   },
   physics: {
     default: 'arcade',
