@@ -12,6 +12,7 @@
 // =============================================================================
 
 import { defaultStorage } from './storage.js';
+import { ENDING_DEEDS } from '../constants/endings.js';
 
 const AXES = ['morality', 'purity'];
 const clamp = (v) => Math.max(-100, Math.min(100, Math.round(v)));
@@ -37,14 +38,9 @@ export const TIERS = {
 // Gate thresholds (tunable). "cruel/corrupt" = clearly negative; "kind/pure" = clearly positive.
 const GATE = { cruel: -20, corrupt: -20, kind: 20, pure: 20 };
 
-// Deed ids the ENDINGS depend on (so quests record the same ids).
-export const ENDING_DEEDS = {
-  cave_lore: 'cave_lore',         // M4: read the weeping-flame carving
-  pem_found: 'pem_found',         // G2: the Pem clue-hunt paid off
-  mercy_shown: 'mercy_shown',     // M16: mercy to the god-fragment
-  hagga_believed: 'hagga_believed', // M10: believed Hagga's truth
-  sela_opposed: 'sela_opposed',   // M17: opposed Sela
-};
+// Deed ids the ENDINGS depend on — now single-sourced from the constants SSOT
+// (src/constants/endings.js). Re-exported so existing importers are unaffected.
+export { ENDING_DEEDS };
 
 // --- THE FIVE ENDINGS as DATA-DRIVEN GATES (matches QUEST-DATA.json _meta +
 //     STORY-AND-QUESTS.md). gate(v) reads {morality, purity, has(deedId)}. ----

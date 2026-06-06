@@ -9,6 +9,8 @@
 // Rendering comes later; the LOGIC + "what beats it" is real here.
 // =============================================================================
 
+import { TOOLS } from '../../constants/flags.js';
+
 export const ARCHETYPES = {
   // telegraphed rush in a line -> dodge sideways, punish the recovery
   charger: {
@@ -143,7 +145,7 @@ export const BOSSES = {
   drowned_guardian: {
     name: 'The Drowned Guardian', region: 'Ashen Marsh',
     stats: { hp: 120, dmg: 14, speed: 2 },
-    trick: { tool: 'tool_lantern', desc: "Lantern-light strips its shroud so your blows land." },
+    trick: { tool: TOOLS.tool_lantern, desc: "Lantern-light strips its shroud so your blows land." },
     twistDesc: 'At half health it tears off the last of the shroud and rampages.',
     phases: [
       { behaviour: 'shielded' },                                   // shrouded: must use the lantern (trick) or flank
