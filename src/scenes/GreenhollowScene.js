@@ -442,10 +442,15 @@ export class GreenhollowScene extends Phaser.Scene {
     const now = this.time.now;
     const { dx, dy } = this.im.vector(); this._inputDir = { dx, dy };
     this.pc.setBlocking(now, this.combatUnlocked && this.im.down('block') && !this.player.isBusy());
-    if (this.pc.isDodgeMoving(now)) {                  // DODGE-ROLL burst + spin (approx of a roll)
-      const v = this.pc.dodgeVelocity(); this.player.body.setVelocity(v.x, v.y);
-      this.player.setRotation(this.player.rotation + 0.55 * (dx < 0 || dy < 0 ? -1 : 1));
+    if (this.pc.isDodgeMoving(now)) {                  // DODGE-ROLL: a low CROUCH-SCOOT (duck + roll low),
+      const v = this.pc.dodgeVelocity(); this.player.body.setVelocity(v.x, v.y);   // NOT a full-sprite cartwheel.
+      // FLAG: LPC has NO roll/tumble frames (master library checked) — this squash-
+      // and-scoot is the honest approximation; proper roll art is a later art task.
+      const prog = Math.min(1, Math.max(0, 1 - (this.pc.dodgeMoveUntil - now) / COMBAT.DODGE_DURATION_MS));
+      const dip = Math.sin(prog * Math.PI);            // 0 -> 1 (mid-roll) -> 0
+      this.player.setScale(1 + 0.22 * dip, 1 - 0.5 * dip);   // duck low + a little wide while rolling
     } else {
+      if (this.player.scaleX !== 1 || this.player.scaleY !== 1) this.player.setScale(1, 1);
       if (this.player.rotation !== 0) this.player.setRotation(0);
       if (this.pc.isBlocking()) Movement.stop(this.player);          // BLOCK: brace
       else Movement.drive(this.player, dx, dy, this.im.runHeld());   // run from the canonical bindings
