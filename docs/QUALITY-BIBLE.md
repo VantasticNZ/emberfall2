@@ -149,6 +149,61 @@ items, but the method below is the standard.)
 - FAIL: confusing, untaught mechanics, missing accessibility/QoL, time-wasting.
 
 ================================================================
+## PART 2.5 — PRESENTATION & FEEL DoD (visual work is NOT done on a green test)
+================================================================
+> WHY THIS EXISTS: headless tests verify LOGIC. They said the slice "passed" while
+> the screen showed unreadable text, a flat-blue-box "pond", cut-off trees, raw
+> terrain stripes, and a black letterbox. A green `npm test` is NEVER sufficient for
+> anything that RENDERS. Any scene/render/UI/art work must pass EVERY check below —
+> verified by SCREENSHOT at normal zoom (and the FEEL items by Van PLAYING it) —
+> before it counts as done. Each check is pass/FAIL; one FAIL = the work is not done.
+> The proof is the screenshot/clip, not the assertion.
+
+P1. TEXT (self-verify by screenshot at normal zoom):
+- PASS: every on-screen string is comfortably readable at normal zoom — proper
+  size, high contrast, on a solid/semi panel wherever it sits over busy art, pixel
+  text crisp (no aliasing/blur; render UI text at higher resolution or use a bitmap
+  font). All text inside its box (Gate A still applies).
+- FAIL: any text you have to squint at, low-contrast text on art with no panel,
+  aliased/blurry glyphs, or text clipped/overflowing.
+
+P2. TILES / WORLD (self-verify by screenshot):
+- PASS: NO flat colour-box placeholders standing in for a feature; terrain meets
+  via proper edge/transition (autotile/9-slice) tiles, not hard stripes; every
+  sprite renders WHOLE (nothing clipped/cut-off at edges or by other layers);
+  depth-sort correct (player passes behind tall props + in front of low ones); the
+  view FILLS the canvas (no dead letterbox/pillarbox bars).
+- FAIL: a coloured rectangle posing as water/floor/building; raw butting terrain
+  edges; any clipped sprite; broken occlusion; black bars.
+
+P3. NO PLACEHOLDERS (this is now a RULE, not a preference):
+- A fake/placeholder asset (colour box, mismatched stand-in, programmer-art prop)
+  is WORSE than not having the feature. If the real, licence-confirmed asset is not
+  available, OMIT the feature and FLAG it (in the report + PLAN) — do not ship the
+  fake. ("A blue box is worse than no water.")
+
+P4. ART LICENCE (gate before any new art is used):
+- Any new art must be licence-CONFIRMED (CC0 / OGA-BY / CC-BY[-SA] with no anti-AI
+  clause) per docs/ART-LICENSE-NOTE.md + HARD RULE 3 BEFORE it goes in. Unconfirmed
+  = do NOT use; quarantine + flag. Record the source + licence (credits-ready).
+
+P5. NPC / ENTITY CLARITY (self-verify by screenshot):
+- PASS: player, NPCs, and enemies are distinguishable AT A GLANCE (silhouette /
+  colour / outfit), and a thing you can interact with reads as interactable.
+- FAIL: the player and an NPC share one look; an enemy is indistinguishable from a
+  villager; an interactable looks like scenery.
+
+P6. FEEL — OWNER-JUDGED (Van's eye; screenshot is not enough — he must PLAY it):
+These cannot be self-certified. List them in the report as "owner-judged — play
+proof required" and hand them to Van explicitly:
+- MOVEMENT: responsive, good walk/run cadence, no input lag.
+- CAMERA: follow is smooth, not choppy (see PARKED POLISH: camera lerp).
+- INTERACTION/DIALOGUE: prompts + advance/select feel responsive, not sticky.
+- COMBAT (when built): telegraphs are READABLE (you can see the wind-up + react),
+  hits have impact (hit-pause/flash/shake), dodge/block windows feel fair (Gate E).
+A visual session is only "provisionally done" until Van has played the FEEL items.
+
+================================================================
 ## PART 3 — THE VERIFICATION STANDARD (how "done" is proven)
 ================================================================
 - NOTHING is "done" until: (a) it passes its relevant gates by the gates' OWN test methods, and
