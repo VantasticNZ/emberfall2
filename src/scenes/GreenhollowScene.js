@@ -1,8 +1,10 @@
 // =============================================================================
-// GreenhollowScene — builds the proof slice ENTIRELY from data (world.js) using
-// the write-once systems (Character, Movement, Collision, DepthSort,
-// Interaction). The scene wires data into systems; it holds no per-actor
-// behaviour. Characters are LPC paper-dolls; the Gate M demo equips gear live.
+// GreenhollowScene — VERTICAL SLICE, STAGE 1. A small walkable Greenhollow green
+// on the write-once systems (Character/Movement/Collision/DepthSort/Interaction)
+// + LPC art, with ONE talkable NPC (Mara) whose dialogue is the REAL data-driven
+// M1 "A Greenhollow Morning" run through the Dialogue + QuestEngine systems:
+// talking actually starts M1, advancing walks its nodes, and the greet/ignore
+// CHOICE applies karma + completes the quest. No combat/shop/day-night yet.
 // =============================================================================
 
 import Phaser from 'phaser';
@@ -14,16 +16,31 @@ import { Movement } from '../systems/Movement.js';
 import { Collision } from '../systems/Collision.js';
 import { DepthSort, DEPTH } from '../systems/DepthSort.js';
 import { Interaction } from '../systems/Interaction.js';
+import { Dialogue } from '../systems/Dialogue.js';
+import { QuestEngine } from '../systems/QuestEngine.js';
+import { KarmaEngine } from '../systems/Karma.js';
+import { memoryStorage } from '../systems/storage.js';
+import { GREENHOLLOW_CHILDHOOD } from '../data/quests/index.js';
 
-const tileToPx = (t) => t * TILE + TILE / 2;       // centre of a tile
+const tileToPx = (t) => t * TILE + TILE / 2;
+
+// Which face/expression the dialogue portrait shows per speaker (same LPC base).
+const SPEAKER_FACE = {
+  Mara: { parts: WORLD.base, expression: 'happy' },
+  Bram: { parts: WORLD.base, expression: 'neutral' },
+};
 
 export class GreenhollowScene extends Phaser.Scene {
   constructor() { super('Greenhollow'); }
 
   create() {
-    AssetLoader.build(this);          // register every layer's animation set
+    AssetLoader.build(this);
     DepthSort.reset();
     Interaction.reset();
+
+    // The real systems, fresh for the slice (memory storage = clean each load).
+    this.karma = new KarmaEngine({ storage: memoryStorage() });
+    this.quests = new QuestEngine({ karma: this.karma, storage: memoryStorage(), quests: GREENHOLLOW_CHILDHOOD });
 
     const worldW = WORLD.widthTiles * TILE;
     const worldH = WORLD.heightTiles * TILE;
@@ -42,37 +59,28 @@ export class GreenhollowScene extends Phaser.Scene {
     this.cameras.main.setBounds(0, 0, worldW, worldH);
     this.cameras.main.startFollow(this.player, true, 0.18, 0.18);
     this.cameras.main.setRoundPixels(true);
-
-    // Zoom: 3 discrete levels; default is index 1 (slightly more zoomed out than 1:1).
     this.zoomLevels = [0.7, 0.85, 1.1];
     this.zoomIndex = 1;
     this.cameras.main.setZoom(this.zoomLevels[this.zoomIndex]);
 
+    this._dlg = null;
     this._buildInput();
     this._buildUI();
     this._buildDebug();
   }
 
-  // ---- GROUND (LPC terrain tiles, 32px native, tiled 1:1) -------------------
+  // ---- GROUND ---------------------------------------------------------------
   _buildGround(worldW, worldH) {
-    const paint = (key, x, y, w, h) => {
-      const ts = this.add.tileSprite(x, y, w, h, key).setOrigin(0, 0);
-      DepthSort.pinFloor(ts);
-      return ts;
-    };
+    const paint = (key, x, y, w, h) => { const ts = this.add.tileSprite(x, y, w, h, key).setOrigin(0, 0); DepthSort.pinFloor(ts); return ts; };
     paint(WORLD.ground.base, 0, 0, worldW, worldH);
-    for (const [key, tx, ty, w, h] of WORLD.ground.rects) {
-      paint(key, tx * TILE, ty * TILE, w * TILE, h * TILE);
-    }
+    for (const [key, tx, ty, w, h] of WORLD.ground.rects) paint(key, tx * TILE, ty * TILE, w * TILE, h * TILE);
   }
 
-  // ---- GRASS DECALS (scattered off-grid, above floor, below actors) ---------
   _scatterDecals() {
-    const cfg = WORLD.decals;
-    if (!cfg) return;
+    const cfg = WORLD.decals; if (!cfg) return;
     let seed = cfg.seed >>> 0;
     const rnd = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
-    const onGrass = (px, py) => {            // only over the grass base, not roads/pond
+    const onGrass = (px, py) => {
       const tx = px / TILE, ty = py / TILE;
       for (const [key, rx, ry, rw, rh] of WORLD.ground.rects) {
         if (key === 'tile_grass') continue;
@@ -86,13 +94,11 @@ export class GreenhollowScene extends Phaser.Scene {
       tries++;
       const px = Math.floor(rnd() * W), py = Math.floor(rnd() * H);
       if (!onGrass(px, py)) continue;
-      const key = cfg.pool[Math.floor(rnd() * cfg.pool.length)];
-      this.add.image(px, py, key).setOrigin(0.5, 1).setDepth(DEPTH.FLOOR + 1);
+      this.add.image(px, py, cfg.pool[Math.floor(rnd() * cfg.pool.length)]).setOrigin(0.5, 1).setDepth(DEPTH.FLOOR + 1);
       placed++;
     }
   }
 
-  // ---- PROPS ----------------------------------------------------------------
   _buildProps() {
     for (const p of WORLD.props) {
       const d = PROPS[p.key];
@@ -100,38 +106,22 @@ export class GreenhollowScene extends Phaser.Scene {
       if (p.solid && d.footprint) { Collision.makeSolid(spr, d.footprint); this.solids.add(spr); }
       else if (spr.body) { spr.body.enable = false; }
       DepthSort.track(spr, d.footprint ? d.footprint.offY : d.height / 2);
-
-      if (p.interact) {
-        Interaction.register({
-          x: spr.x, y: spr.y + (d.footprint ? d.footprint.offY : 0), radius: 44,
-          prompt: p.interact.prompt,
-          onInteract: () => this._openDialogue(p.interact.name, p.interact.lines),
-        });
-      }
     }
   }
 
-  // ---- NPCS (layered characters; solid + interactable) ----------------------
+  // ---- THE ONE NPC (Mara) — wired to the real M1 quest dialogue --------------
   _buildNPCs() {
     for (const n of WORLD.npcs) {
       const npc = new Character(this, tileToPx(n.tx), tileToPx(n.ty),
         { parts: n.parts, facing: n.facing, speed: n.speed, expression: n.expression });
-      Collision.markSolidActor(npc);
-      this.solids.add(npc);
-      DepthSort.track(npc, CHAR_FOOTPRINT.offY);
-
+      Collision.markSolidActor(npc); this.solids.add(npc); DepthSort.track(npc, CHAR_FOOTPRINT.offY);
       Interaction.register({
-        x: npc.x, y: npc.y + CHAR_FOOTPRINT.offY, radius: 48, prompt: 'Talk',
-        onInteract: () => {
-          npc.facing = this._faceToward(npc, this.player);
-          npc.setState('idle');
-          this._openDialogue(n.name, n.lines, n.parts, n.expression);
-        },
+        x: npc.x, y: npc.y + CHAR_FOOTPRINT.offY, radius: 50, prompt: `Talk to ${n.name}`,
+        onInteract: () => { npc.facing = this._faceToward(npc, this.player); npc.setState('idle'); this._startQuestDialogue(n.quest); },
       });
     }
   }
 
-  // ---- PLAYER ---------------------------------------------------------------
   _buildPlayer() {
     const pd = WORLD.player;
     this.player = new Character(this, tileToPx(pd.tx), tileToPx(pd.ty),
@@ -145,33 +135,30 @@ export class GreenhollowScene extends Phaser.Scene {
   _buildInput() {
     this.cursors = this.input.keyboard.createCursorKeys();
     this.keys = this.input.keyboard.addKeys({
-      up: 'W', down: 'S', left: 'A', right: 'D', run: 'SHIFT',
-      interact: 'E', attack: 'SPACE', cast: 'C', use: 'F',
-      hat: 'ONE', sword: 'TWO', shield: 'THREE', pickup: 'FOUR',
-      zoomOut: 'OPEN_BRACKET', zoomIn: 'CLOSED_BRACKET',
-      debug: 'B', hud: 'H',
+      up: 'W', down: 'S', left: 'A', right: 'D', run: 'SHIFT', interact: 'E',
+      one: 'ONE', two: 'TWO', three: 'THREE',
+      zoomOut: 'OPEN_BRACKET', zoomIn: 'CLOSED_BRACKET', debug: 'B',
     });
-    const p = () => this.player;
-    // zoom: [ out, ] in, and mouse wheel (up = in)
     this.keys.zoomOut.on('down', () => this._stepZoom(-1));
     this.keys.zoomIn.on('down', () => this._stepZoom(+1));
-    this.input.on('wheel', (_ptr, _objs, _dx, dy) => this._stepZoom(dy > 0 ? -1 : +1));
-    this.keys.interact.on('down', () => {
-      if (this.dialogue.visible) { this._advanceDialogue(); return; }
-      if (Interaction.active) Interaction.tryInteract();
-    });
-    this.keys.attack.on('down', () => { if (!this.dialogue.visible) p().action('attack'); });
-    this.keys.cast.on('down', () => { if (!this.dialogue.visible) p().action('cast'); });
-    this.keys.use.on('down', () => { if (!this.dialogue.visible) p().action('use'); });
-    this.keys.pickup.on('down', () => { if (!this.dialogue.visible) p().action('pickup'); });
-    this.keys.hat.on('down', () => { p().toggle('hat_feather'); this._refreshGearHud(); });
-    this.keys.sword.on('down', () => { p().toggle('sword'); this._refreshGearHud(); });
-    this.keys.shield.on('down', () => { p().toggle('shield'); this._refreshGearHud(); });
+    this.input.on('wheel', (_p, _o, _dx, dy) => this._stepZoom(dy > 0 ? -1 : +1));
     this.keys.debug.on('down', () => this._toggleDebug());
-    this.keys.hud.on('down', () => { this.hud.visible = !this.hud.visible; });
+
+    // E = advance/confirm in dialogue, else interact
+    this.keys.interact.on('down', () => {
+      if (this._dlg) this._dialogueConfirm();
+      else if (Interaction.active) Interaction.tryInteract();
+    });
+    // up/down navigate dialogue choices (W/S + arrows)
+    [this.cursors.up, this.keys.up].forEach((k) => k.on('down', () => { if (this._dlg) this._dialogueNav(-1); }));
+    [this.cursors.down, this.keys.down].forEach((k) => k.on('down', () => { if (this._dlg) this._dialogueNav(+1); }));
+    // number keys = direct-select an option
+    const pick = (i) => { if (this._dlg && i < this._dlg.options().length) { this._selOpt = i; this._dialogueConfirm(); } };
+    this.keys.one.on('down', () => pick(0));
+    this.keys.two.on('down', () => pick(1));
+    this.keys.three.on('down', () => pick(2));
   }
 
-  // Step the camera zoom by ±1 level (clamped), smoothly.
   _stepZoom(dir) {
     const next = Phaser.Math.Clamp(this.zoomIndex + dir, 0, this.zoomLevels.length - 1);
     if (next === this.zoomIndex) return;
@@ -179,47 +166,111 @@ export class GreenhollowScene extends Phaser.Scene {
     this.cameras.main.zoomTo(this.zoomLevels[next], 220, 'Sine.easeInOut');
   }
 
-  // ---- UI (scroll-fixed overlay) --------------------------------------------
+  // ---- UI -------------------------------------------------------------------
   _buildUI() {
-    const W = this.scale.width;
+    const W = this.scale.width, H = this.scale.height;
     this.hud = this.add.container(0, 0).setScrollFactor(0).setDepth(DEPTH.OVERLAY);
-    const title = this.add.text(6, 5, 'EMBERFALL 2 — Greenhollow (all-LPC art)',
-      { fontFamily: 'monospace', fontSize: '10px', color: '#ffe9c2' }).setScrollFactor(0);
-    const help = this.add.text(6, 18,
-      'WASD move · Shift run · E talk · Space attack · 1/2/3 gear · 4 pickup · [ ] / wheel zoom · B colliders',
-      { fontFamily: 'monospace', fontSize: '8px', color: '#bfb7d0' }).setScrollFactor(0);
-    const banner = this.add.text(W - 6, 5, 'ART: LPC chars + terrain (CC-BY-SA / OGA-BY)',
-      { fontFamily: 'monospace', fontSize: '8px', color: '#9fe6a0' }).setOrigin(1, 0).setScrollFactor(0);
-    this.gearHud = this.add.text(6, 30, '', { fontFamily: 'monospace', fontSize: '8px', color: '#ffd9a0' }).setScrollFactor(0);
-    this.hud.add([title, help, banner, this.gearHud]);
-    this._refreshGearHud();
+    const title = this.add.text(6, 5, 'EMBERFALL 2 — Greenhollow', { fontFamily: 'monospace', fontSize: '10px', color: '#ffe9c2' }).setScrollFactor(0);
+    const help = this.add.text(6, 18, 'WASD / arrows move · Shift run · E talk / advance · ↑↓ choose · [ ] zoom', { fontFamily: 'monospace', fontSize: '8px', color: '#bfb7d0' }).setScrollFactor(0);
+    this.questHud = this.add.text(6, 30, '', { fontFamily: 'monospace', fontSize: '8px', color: '#9fe6a0' }).setScrollFactor(0);
+    this.hud.add([title, help, this.questHud]);
+    this._updateQuestHud();
 
-    this.prompt = this.add.text(W / 2, this.scale.height - 74, '', {
-      fontFamily: 'monospace', fontSize: '10px', color: '#1c1422',
-      backgroundColor: '#ffe9c2', padding: { x: 6, y: 3 },
+    this.prompt = this.add.text(W / 2, H - 92, '', {
+      fontFamily: 'monospace', fontSize: '10px', color: '#1c1422', backgroundColor: '#ffe9c2', padding: { x: 6, y: 3 },
     }).setOrigin(0.5, 1).setScrollFactor(0).setDepth(DEPTH.OVERLAY).setVisible(false);
 
-    // Dialogue box with a PORTRAIT panel on the left (a large composed LPC face
-    // of the speaker, so expression is actually visible — Gate H / faces).
-    const boxW = 470, boxH = 108, bx = (W - boxW) / 2, by = this.scale.height - boxH - 8;
-    const PS = 92, px = bx + 8, py = by + 8;       // portrait frame
+    // dialogue box with a portrait panel on the left
+    const boxW = 500, boxH = 132, bx = (W - boxW) / 2, by = H - boxH - 8;
+    const PS = 100, px = bx + 8, py = by + 8;
     this.portraitBox = { x: px, y: py, size: PS };
     this._portrait = null;
     this.dialogue = this.add.container(0, 0).setScrollFactor(0).setDepth(DEPTH.OVERLAY).setVisible(false);
-    const panel = this.add.rectangle(bx, by, boxW, boxH, 0x1c1422, 0.92).setOrigin(0, 0).setStrokeStyle(2, 0xffe9c2);
+    const panel = this.add.rectangle(bx, by, boxW, boxH, 0x1c1422, 0.94).setOrigin(0, 0).setStrokeStyle(2, 0xffe9c2);
     this.portraitFrame = this.add.rectangle(px, py, PS, PS, 0x6d7488, 1).setOrigin(0, 0).setStrokeStyle(2, 0xffe9c2);
-    const tx = px + PS + 12;
-    this.dlgName = this.add.text(tx, by + 10, '', { fontFamily: 'monospace', fontSize: '12px', color: '#ffe9c2' });
-    this.dlgBody = this.add.text(tx, by + 30, '', {
-      fontFamily: 'monospace', fontSize: '11px', color: '#f3ecff',
-      wordWrap: { width: boxW - (PS + 12 + 8) - 12 }, lineSpacing: 3,
-    });
+    this._txtX = px + PS + 14;
+    this.dlgName = this.add.text(this._txtX, by + 10, '', { fontFamily: 'monospace', fontSize: '12px', color: '#ffe9c2' });
+    this.dlgBody = this.add.text(this._txtX, by + 30, '', { fontFamily: 'monospace', fontSize: '11px', color: '#f3ecff', wordWrap: { width: boxW - (PS + 14 + 8) - 12 }, lineSpacing: 3 });
     this.dlgHint = this.add.text(bx + boxW - 10, by + boxH - 6, 'E ▸', { fontFamily: 'monospace', fontSize: '8px', color: '#9b93b0' }).setOrigin(1, 1);
     this.dialogue.add([panel, this.portraitFrame, this.dlgName, this.dlgBody, this.dlgHint]);
+    this._optTexts = [];
   }
 
-  // Compose a large face portrait of the speaker from its LPC face layers
-  // (down-idle frame, head region) into a RenderTexture shown in the box.
+  _updateQuestHud() {
+    const st = this.quests.status('M1') || 'available';
+    const m = this.karma.get('morality');
+    this.questHud.setText(`Quest — A Greenhollow Morning: ${st.toUpperCase()}     Morality: ${m >= 0 ? '+' : ''}${m}`);
+  }
+
+  // ---- DATA-DRIVEN QUEST DIALOGUE -------------------------------------------
+  _startQuestDialogue(qid) {
+    const def = this.quests.defs[qid];
+    if (!def || !def.dialogue) return;
+    if (this.quests.status(qid) === 'available') this.quests.start(qid);
+    this._activeQuest = qid;
+    this._dlg = new Dialogue(def.dialogue, { karma: this.karma, engine: this.quests });
+    this._selOpt = 0;
+    Movement.stop(this.player);
+    this.prompt.setVisible(false);
+    this.dialogue.setVisible(true);
+    this._renderNode();
+    this._updateQuestHud();
+  }
+
+  _renderNode() {
+    const node = this._dlg.node();
+    if (!node) { this._closeDialogue(); return; }
+    this.dlgName.setText(node.speaker || '');
+    this.dlgBody.setText(node.text || '');
+    const face = SPEAKER_FACE[node.speaker];
+    this._buildPortrait(face ? face.parts : null, face ? face.expression : 'neutral');
+    this._renderOptions(this._dlg.options());
+  }
+
+  _renderOptions(opts) {
+    this._optTexts.forEach((t) => t.destroy());
+    this._optTexts = [];
+    this._selOpt = Phaser.Math.Clamp(this._selOpt, 0, Math.max(0, opts.length - 1));
+    const isChoice = opts.length > 1;
+    const oy = this.dlgBody.y + this.dlgBody.height + 8;
+    opts.forEach((o, i) => {
+      const sel = i === this._selOpt;
+      const t = this.add.text(this._txtX, oy + i * 15, `${sel ? '▸' : ' '} ${o.label}`, {
+        fontFamily: 'monospace', fontSize: '10px', color: sel ? '#ffe9c2' : '#cfc6e6',
+      }).setScrollFactor(0).setDepth(DEPTH.OVERLAY);
+      this.dialogue.add(t);
+      this._optTexts.push(t);
+    });
+    this.dlgHint.setText(isChoice ? '↑↓ choose · E select' : 'E ▸');
+  }
+
+  _dialogueNav(d) {
+    const opts = this._dlg.options();
+    if (opts.length < 2) return;
+    this._selOpt = Phaser.Math.Clamp(this._selOpt + d, 0, opts.length - 1);
+    this._renderOptions(opts);
+  }
+
+  _dialogueConfirm() {
+    this._dlg.select(this._selOpt);
+    this._selOpt = 0;
+    if (this._dlg.done || !this._dlg.node()) this._closeDialogue();
+    else this._renderNode();
+    this._updateQuestHud();
+  }
+
+  _closeDialogue() {
+    // finishing the quest's dialogue completes the quest (M1 active -> complete)
+    if (this._activeQuest && this.quests.status(this._activeQuest) === 'active') this.quests.complete(this._activeQuest);
+    this.dialogue.setVisible(false);
+    this._optTexts.forEach((t) => t.destroy());
+    this._optTexts = [];
+    this._dlg = null;
+    this._activeQuest = null;
+    this._updateQuestHud();
+  }
+
+  // Compose a large LPC face portrait of the speaker into the box.
   _buildPortrait(parts, expression = 'neutral') {
     if (this._portrait) { this._portrait.destroy(); this._portrait = null; }
     this.portraitFrame.setVisible(!!parts);
@@ -232,27 +283,19 @@ export class GreenhollowScene extends Phaser.Scene {
       for (const L of part.layers) layers.push({ ...L, slot: part.slot });
     }
     layers.sort((a, b) => a.z - b.z);
-    // Bust crop within the 64px down frame. Each layer draws its down-idle frame;
-    // the head draws the chosen EXPRESSION face (real ElizaWy expression art).
-    const idleFrame = DIR_ROW.down * ANIMS.idle.frames;                 // down, frame 0
+    const idleFrame = DIR_ROW.down * ANIMS.idle.frames;
     const exprFrame = EXPR_ROW.down * EXPR_COLS + (EXPRESSIONS[expression] ?? 0);
-    const cx = 16, cy = 10, cw = 32, ch = 42;      // head + shoulders
+    const cx = 16, cy = 10, cw = 32, ch = 42;
     const rt = this.make.renderTexture({ x: 0, y: 0, width: cw, height: ch }, false);
     for (const L of layers) {
       if (L.expressive) rt.drawFrame(`${L.tex}__expr`, exprFrame, -cx, -cy);
       else rt.drawFrame(`${L.tex}__idle`, idleFrame, -cx, -cy);
     }
     const { x, y, size } = this.portraitBox;
-    const scale = Math.min((size - 6) / cw, (size - 6) / ch); // fit within the frame
-    rt.setOrigin(0.5, 0.5).setPosition(x + size / 2, y + size / 2).setScale(scale).setScrollFactor(0);
+    const scale = Math.min((size - 6) / cw, (size - 6) / ch);
+    rt.setOrigin(0.5, 0.5).setPosition(x + size / 2, y + size / 2).setScale(scale).setScrollFactor(0).setDepth(DEPTH.OVERLAY);
     this.dialogue.add(rt);
     this._portrait = rt;
-  }
-
-  _refreshGearHud() {
-    const g = this.player;
-    const on = (slot, label) => (g.equippedIn(slot) ? `[${label}]` : ` ${label} `);
-    this.gearHud.setText(`Equipped:  ${on('hat', 'hat')}  ${on('weapon', 'sword')}  ${on('shield', 'shield')}`);
   }
 
   _buildDebug() {
@@ -261,29 +304,11 @@ export class GreenhollowScene extends Phaser.Scene {
     this.physics.world.debugGraphic.setDepth(DEPTH.OVERLAY + 1).setVisible(false);
     this.physics.world.drawDebug = false;
   }
-
   _toggleDebug() {
     this.debugOn = !this.debugOn;
     this.physics.world.drawDebug = this.debugOn;
     this.physics.world.debugGraphic.setVisible(this.debugOn);
     if (!this.debugOn) this.physics.world.debugGraphic.clear();
-  }
-
-  // ---- DIALOGUE -------------------------------------------------------------
-  _openDialogue(name, lines, parts = null, expression = 'neutral') {
-    this._dlgLines = lines; this._dlgIndex = 0;
-    this.dlgName.setText(name);
-    this.dlgBody.setText(lines[0]);
-    this._buildPortrait(parts, expression);
-    this.dialogue.setVisible(true);
-    this.prompt.setVisible(false);
-    Movement.stop(this.player);
-  }
-
-  _advanceDialogue() {
-    this._dlgIndex++;
-    if (this._dlgIndex >= this._dlgLines.length) { this.dialogue.setVisible(false); return; }
-    this.dlgBody.setText(this._dlgLines[this._dlgIndex]);
   }
 
   _faceToward(from, to) {
@@ -294,7 +319,7 @@ export class GreenhollowScene extends Phaser.Scene {
 
   // ---- LOOP -----------------------------------------------------------------
   update() {
-    if (this.dialogue.visible) { Movement.stop(this.player); DepthSort.update(); return; }
+    if (this._dlg) { Movement.stop(this.player); DepthSort.update(); return; }
 
     let dx = 0, dy = 0;
     if (this.cursors.left.isDown || this.keys.left.isDown) dx -= 1;
