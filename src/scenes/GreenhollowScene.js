@@ -49,11 +49,11 @@ export class GreenhollowScene extends RegionScene {
         props: WORLD.props,
         npcs: WORLD.npcs, player: WORLD.player,
       },
-      // DEV-TEST arena (flagged): combat in the childhood act is NOT canon — this
-      // charger is here only so Van can feel-test the fight; it respawns to replay.
-      combat: { enabled: true, adult: true, spawn: { tx: 17, ty: 19 }, respawn: true,
-        devNote: '[DEV TEST] charger — real combat starts in Ashen Marsh',
-        enemies: [{ id: 'charger', tx: 22, ty: 28 }] },
+      // SAFE VILLAGE (no monsters in settlements — see QUALITY-BIBLE). The childhood
+      // act has no combat anyway; combat begins in the wilds (Marsh/Peaks). A dev can
+      // press 0 to spawn a test charger for feel-testing — see onCreateExtra.
+      combat: { enabled: true, adult: true, spawn: { tx: 17, ty: 19 }, safeZone: true,
+        devNote: '[SAFE VILLAGE] press 0 = spawn a dev-test charger (dev only)' },
     };
   }
 
@@ -62,6 +62,8 @@ export class GreenhollowScene extends RegionScene {
     this.input.keyboard.addKey('M').on('down', () => { if (!this._dlg) this.scene.start('Marsh'); });   // -> Ashen Marsh (W)
     this.input.keyboard.addKey('N').on('down', () => { if (!this._dlg) this.scene.start('Peaks'); });   // -> Sundered Peaks (N road)
     this.input.keyboard.addKey('B').on('down', () => this._toggleDebug());
+    // DEV ONLY: spawn a test charger to feel-test combat in the (otherwise safe) village
+    this.input.keyboard.addKey('ZERO').on('down', () => { if (!this._dlg && this.combat.live.length === 0) this.combat.spawn('charger', { tx: 22, ty: 28 }); });
     this.input.on('wheel', (_p, _o, _dx, dy) => this._stepZoom(dy > 0 ? -1 : +1));
     this._buildDebug();
   }

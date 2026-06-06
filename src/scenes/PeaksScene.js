@@ -57,7 +57,8 @@ export class PeaksScene extends RegionScene {
         props: PEAKS.props, propTreeTint: PEAKS.tint.tree,
         npcs: PEAKS.npcs, player: PEAKS.player,
       },
-      combat: { enabled: true, adult: true, spawn: PEAKS.combatSpawn, enemies: PEAKS.enemies },
+      // The terraced stone town (the miners' quarter) is a SAFE hub — no aggro there.
+      combat: { enabled: true, adult: true, spawn: PEAKS.combatSpawn, enemies: PEAKS.enemies, safe: { tx: 21, ty: 18, r: 7 } },
     };
   }
 

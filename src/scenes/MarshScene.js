@@ -52,7 +52,8 @@ export class MarshScene extends RegionScene {
         props: MARSH.props, propTreeTint: MARSH.tint.tree,
         npcs: MARSH.npcs, player: MARSH.player,
       },
-      combat: { enabled: true, adult: true, spawn: MARSH.combatSpawn, enemies: MARSH.enemies },
+      // Mirefen (the bog-folk town around Elder Yssa) is a SAFE hub — no aggro there.
+      combat: { enabled: true, adult: true, spawn: MARSH.combatSpawn, enemies: MARSH.enemies, safe: { tx: 20, ty: 17, r: 6 } },
     };
   }
 
