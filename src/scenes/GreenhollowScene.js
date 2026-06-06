@@ -191,8 +191,9 @@ export class GreenhollowScene extends Phaser.Scene {
     this.keys = this.input.keyboard.addKeys({
       up: 'W', down: 'S', left: 'A', right: 'D', dodge: 'SHIFT', block: 'K', interact: 'E', attack: 'SPACE',
       one: 'ONE', two: 'TWO', three: 'THREE',
-      zoomOut: 'OPEN_BRACKET', zoomIn: 'CLOSED_BRACKET', debug: 'B',
+      zoomOut: 'OPEN_BRACKET', zoomIn: 'CLOSED_BRACKET', debug: 'B', marsh: 'M',
     });
+    this.keys.marsh.on('down', () => { if (!this._dlg) this.scene.start('Marsh'); });   // dev nav: visit the Ashen Marsh region
     this.keys.attack.on('down', () => { if (!this._dlg && this._hitFreeze <= 0) this._playerAttack(); });
     this.keys.dodge.on('down', () => { if (!this._dlg && this._hitFreeze <= 0) this._tryDodge(); });
     this.keys.zoomOut.on('down', () => this._stepZoom(-1));
