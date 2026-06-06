@@ -10,7 +10,8 @@ import { PlayerCombat } from './Combat.js';
 // deterministic tuning for exact-window tests
 const CFG = {
   DODGE_DISTANCE: 100, DODGE_DURATION_MS: 200, DODGE_IFRAME_MS: 250, DODGE_COOLDOWN_MS: 600,
-  BLOCK_DAMAGE_TAKEN: 0.25, PARRY_WINDOW_MS: 150, PARRY_STUN_MS: 800,
+  DASH_DISTANCE: 240, DASH_DURATION_MS: 260, DASH_COOLDOWN_MS: 1400,
+  NO_SHIELD_BLOCK: 0.75, PARRY_WINDOW_MS: 150, PARRY_STUN_MS: 800,   // bare-hand negates 75% here (test value)
 };
 let n = 0;
 const pass = (m) => { n++; console.log('  ✓ ' + m); };
@@ -42,19 +43,40 @@ console.log('PlayerCombat (abilities) — self test\n');
   pass('DODGE respects its cooldown; burst velocity points in the dash direction');
 }
 
-// 3) BLOCK reduces FRONTAL damage; back/flank hits are NOT blocked -----------
+// 3) BLOCK (shield-scaled) reduces FRONTAL damage; back/flank hits are NOT blocked
 {
-  const pc = new PlayerCombat(CFG);
+  const pc = new PlayerCombat(CFG);                       // bare-hand negate = 0.75
   pc.setBlocking(0, true);
   const front = pc.takeDamage(300, 20, { fromFront: true });   // past the parry window
   assert.equal(front.outcome, 'blocked');
-  assert.equal(front.taken, 5);                          // 20 * 0.25
+  assert.equal(front.taken, 5);                          // 20 * (1 - 0.75)
   const back = pc.takeDamage(300, 20, { fromFront: false });   // hit from behind/flank
   assert.equal(back.outcome, 'hit');
   assert.equal(back.taken, 20);                          // block doesn't cover the flank
   pc.setBlocking(400, false);
   assert.equal(pc.takeDamage(450, 20).taken, 20);        // not blocking -> full
-  pass('BLOCK cuts frontal damage to 25%; flank/back hits ignore the block; release -> full damage');
+  pass('BLOCK cuts frontal damage (shield-scaled); flank/back ignore the block; release -> full');
+}
+
+// 3b) SHIELD-SCALED block: better shield = less damage; best = full block ----
+{
+  const pc = new PlayerCombat(CFG); pc.setBlocking(0, true);
+  pc.setShieldBlock(0.5);  assert.equal(pc.takeDamage(300, 20, { fromFront: true }).taken, 10); // a weak shield
+  pc.setShieldBlock(0.9);  assert.equal(pc.takeDamage(300, 20, { fromFront: true }).taken, 2);  // a good shield
+  pc.setShieldBlock(1.0);  assert.equal(pc.takeDamage(300, 20, { fromFront: true }).taken, 0);  // best shield = full block
+  pass('SHIELD-SCALED: a better equipped shield blocks more (0.5->half, 1.0->full)');
+}
+
+// 3c) DASH is a SEPARATE traversal ability (its own cooldown; no i-frames) ----
+{
+  const pc = new PlayerCombat(CFG);
+  assert.equal(typeof pc.dash, 'function');
+  assert.equal(pc.dash(0, 1, 0), true);
+  assert.equal(pc.isDashing(100), true);
+  assert.equal(pc.isInvulnerable(100), false);           // dash gives NO i-frames (unlike the roll)
+  assert.equal(pc.dash(500, 1, 0), false);               // longer cooldown than the roll
+  assert.equal(typeof pc.dodgeRoll, 'function');         // the dodge-roll alias exists
+  pass('DASH is a separate traversal ability (own cooldown, no i-frames); dodgeRoll alias present');
 }
 
 // 4) PARRY: a hit in the START window negates + flags a punish ---------------

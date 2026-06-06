@@ -23,14 +23,18 @@ export class PlayerCombat {
     this.dodgeMoveUntil = 0;     // burst-movement window end (ms)
     this.dodgeReadyAt = 0;       // cooldown end (ms)
     this.dodgeDir = { x: 0, y: 0 };
+    this.dashMoveUntil = 0;      // DASH (traversal) burst end
+    this.dashReadyAt = 0;
+    this.dashDir = { x: 0, y: 0 };
     this.blocking = false;
     this.blockStart = -Infinity; // when the current block began (for the parry window)
+    this.blockNegate = cfg.NO_SHIELD_BLOCK ?? 0.35; // fraction of frontal damage negated (shield-scaled)
     this._parry = false;         // a parry happened, awaiting the scene to consume it
   }
 
-  // ---- DODGE ----------------------------------------------------------------
-  /** Begin a dodge in unit dir (dx,dy) if off cooldown. Returns true if it started. */
-  dodge(now, dx = 0, dy = 0) {
+  // ---- DODGE-ROLL (defensive, i-frames) -------------------------------------
+  /** Begin a dodge-roll in unit dir (dx,dy) if off cooldown. Returns true if started. */
+  dodgeRoll(now, dx = 0, dy = 0) {
     if (now < this.dodgeReadyAt) return false;
     const len = Math.hypot(dx, dy) || 1;
     this.dodgeDir = { x: dx / len, y: dy / len };
@@ -39,14 +43,32 @@ export class PlayerCombat {
     this.dodgeReadyAt = now + this.cfg.DODGE_COOLDOWN_MS;
     return true;
   }
+  dodge(now, dx, dy) { return this.dodgeRoll(now, dx, dy); }   // alias (was the old name)
   isInvulnerable(now) { return now < this.dodgeIframeUntil; }
   isDodgeMoving(now) { return now < this.dodgeMoveUntil; }
   dodgeReady(now) { return now >= this.dodgeReadyAt; }
-  /** px/frame burst velocity for the scene to apply while the dodge moves. */
   dodgeVelocity() {
     const v = (this.cfg.DODGE_DISTANCE / this.cfg.DODGE_DURATION_MS) * 1000; // px/s
     return { x: this.dodgeDir.x * v, y: this.dodgeDir.y * v };
   }
+
+  // ---- DASH (traversal; SEPARATE ability — a later skill, NO i-frames) ------
+  /** STUB ability (defined so it exists in the system; not wired into the slice yet). */
+  dash(now, dx = 0, dy = 0) {
+    if (now < this.dashReadyAt) return false;
+    const len = Math.hypot(dx, dy) || 1;
+    this.dashDir = { x: dx / len, y: dy / len };
+    this.dashMoveUntil = now + this.cfg.DASH_DURATION_MS;
+    this.dashReadyAt = now + this.cfg.DASH_COOLDOWN_MS;
+    return true;
+  }
+  isDashing(now) { return now < this.dashMoveUntil; }
+  dashVelocity() {
+    const v = (this.cfg.DASH_DISTANCE / this.cfg.DASH_DURATION_MS) * 1000;
+    return { x: this.dashDir.x * v, y: this.dashDir.y * v };
+  }
+  /** Shield-scaled block: set the fraction of frontal damage NEGATED (0..1). */
+  setShieldBlock(negate) { this.blockNegate = Math.max(0, Math.min(1, negate)); }
 
   // ---- BLOCK / PARRY --------------------------------------------------------
   /** Hold (on=true) / release (on=false) the block. A fresh block opens the parry window. */
@@ -68,7 +90,7 @@ export class PlayerCombat {
     const fromFront = opts.fromFront !== false;
     if (this.blocking && fromFront) {
       if (this.inParryWindow(now)) { this._parry = true; return { taken: 0, outcome: 'parried' }; }
-      return { taken: Math.round(amount * this.cfg.BLOCK_DAMAGE_TAKEN), outcome: 'blocked' };
+      return { taken: Math.round(amount * (1 - this.blockNegate)), outcome: 'blocked' }; // shield-scaled
     }
     return { taken: amount, outcome: 'hit' };
   }

@@ -13,4 +13,5 @@ export const ITEM_IDS = ids(
   'greenhollow_house', 'humming_trinket', 'iron_ore', 'lantern_oil', 'leather_jerkin', 'major_potion',
   'meat_pie', 'minor_potion', 'peak_mail', 'pearl_circlet', 'saltbreak_shop', 'skyiron_charm',
   'steel_sword', 'stew', 'tideglass_blade', 'timber', 'wooden_sword',
+  'wooden_shield', 'iron_shield', 'tower_shield',
 );

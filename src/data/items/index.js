@@ -23,6 +23,11 @@ export const ITEMS = [
   { id: 'frost_cloak',    name: 'Frost Cloak',    type: 'armour', tier: 2, value: 140, equipSlot: 'body', effects: [{ def: 4, frostResist: true }] },
   { id: 'cinderhide_cloak', name: 'Cinderhide Cloak', type: 'armour', tier: 2, value: 160, equipSlot: 'body', effects: [{ def: 5, fireResist: true }] }, // SE5
 
+  // --- shields (block effectiveness = `block` = fraction of frontal damage NEGATED; shield-scaled) -
+  { id: 'wooden_shield', name: 'Wooden Shield', type: 'shield', tier: 1, value: 22, equipSlot: 'shield', effects: [{ def: 1, block: 0.6 }] },
+  { id: 'iron_shield',   name: 'Iron Shield',   type: 'shield', tier: 2, value: 95, equipSlot: 'shield', effects: [{ def: 3, block: 0.8 }] },
+  { id: 'tower_shield',  name: 'Tower Shield',  type: 'shield', tier: 3, value: 240, equipSlot: 'shield', effects: [{ def: 5, block: 1.0 }] }, // full block
+
   // --- trinkets ------------------------------------------------------------
   { id: 'pearl_circlet',  name: 'Pearl Circlet',  type: 'trinket', tier: 3, value: 220, equipSlot: 'trinket', effects: [{ cha: 2 }] }, // ST2
   { id: 'skyiron_charm',  name: 'Sky-Iron Charm', type: 'trinket', tier: 2, value: 150, equipSlot: 'trinket', effects: [{ luck: 1 }] }, // SP4
