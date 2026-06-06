@@ -3,12 +3,15 @@ import Phaser from 'phaser';
 import { AssetLoader } from '../art/AssetLoader.js';
 
 // Real LPC monster spritesheets (OpenGameArt, CC-BY-SA/GPL — see ASSET-LEDGER).
-// 64px frames except the man-eater (128px). Row 0 is a front-facing cycle.
+// 64px frames except the man-eater (128px). Each sheet is 4 rows = the 4 LPC
+// directions (up/left/down/right, like characters); `cols` = frames per row.
 export const MONSTER_SHEETS = [
-  { key: 'snake', fw: 64 }, { key: 'bat', fw: 64 }, { key: 'big_worm', fw: 64 },
-  { key: 'eyeball', fw: 64 }, { key: 'ghost', fw: 64 }, { key: 'slime', fw: 64 },
-  { key: 'pumpking', fw: 64 }, { key: 'man_eater_flower', fw: 128 },
+  { key: 'snake', fw: 64, cols: 7 }, { key: 'bat', fw: 64, cols: 7 }, { key: 'big_worm', fw: 64, cols: 6 },
+  { key: 'eyeball', fw: 64, cols: 7 }, { key: 'ghost', fw: 64, cols: 6 }, { key: 'slime', fw: 64, cols: 8 },
+  { key: 'pumpking', fw: 64, cols: 6 }, { key: 'man_eater_flower', fw: 128, cols: 6 },
 ];
+// LPC row order (same as the player Character's DIR_ROW): up=0, left=1, down=2, right=3.
+const MON_DIR_ROW = { up: 0, left: 1, down: 2, right: 3 };
 
 export class BootScene extends Phaser.Scene {
   constructor() { super('Boot'); }
@@ -25,10 +28,15 @@ export class BootScene extends Phaser.Scene {
   }
 
   create() {
-    // a front-facing idle/move loop per monster (row 0, first 4 frames)
+    // 4 DIRECTIONAL anims per monster (one per LPC row) so creatures turn to face
+    // their movement/target, like the player. Each = the first 4 frames of its row.
     for (const m of MONSTER_SHEETS) {
-      const key = `mon_${m.key}_idle`;
-      if (!this.anims.exists(key)) this.anims.create({ key, frames: this.anims.generateFrameNumbers(`mon_${m.key}`, { frames: [0, 1, 2, 3] }), frameRate: 6, repeat: -1 });
+      for (const [dir, row] of Object.entries(MON_DIR_ROW)) {
+        const key = `mon_${m.key}_${dir}`;
+        if (this.anims.exists(key)) continue;
+        const frames = [0, 1, 2, 3].map((i) => row * m.cols + i);
+        this.anims.create({ key, frames: this.anims.generateFrameNumbers(`mon_${m.key}`, { frames }), frameRate: 6, repeat: -1 });
+      }
     }
     this.scene.start('Greenhollow');
   }

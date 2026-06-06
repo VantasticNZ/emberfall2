@@ -43,9 +43,9 @@ export class EnemyController {
     let spr, foot;
     if (skin.sheet) {                                   // a REAL LPC monster sprite
       spr = this.scene.physics.add.sprite(x, y, `mon_${skin.sheet}`).setOrigin(0.5, 0.72);
-      spr.play(`mon_${skin.sheet}_idle`);
-      spr.body.setSize(26, 20, true);
       spr.facing = 'down'; spr.setState = () => {};     // no-op so the shared behaviour code is sprite-safe
+      spr.play(`mon_${skin.sheet}_down`);               // start facing the player (usually below); turns by facing
+      spr.body.setSize(26, 20, true);
       foot = spr.height * 0.22;
     } else {                                            // humanoid (kept for future humanoid enemies)
       spr = new Character(this.scene, x, y, { parts: skin.parts, facing: 'down', speed: 0, expression: 'angry' });
@@ -115,7 +115,16 @@ export class EnemyController {
     if (e.flashFrames > 0) { tint = 0xffffff; e.flashFrames--; }
     spr.setScale(e.scale * (mon.isTelegraphing() && !mon.isInvulnerable() ? 1.08 : 1));
     this._tint(e, tint);
+    if (!spr.list) this._faceAnim(e);                  // monster sprite: turn its sheet to the facing row
   }
+
+  // play the directional animation matching the monster's facing (only on change)
+  _faceAnim(e) {
+    const anim = `mon_${e.skin.sheet}_${e.spr.facing}`;
+    if (e._curAnim === anim) return;
+    if (this.scene.anims.exists(anim)) { e.spr.play(anim, true); e._curAnim = anim; }
+  }
+  _vecFace(vx, vy) { if (Math.abs(vx) >= Math.abs(vy)) return vx < 0 ? 'left' : 'right'; return vy < 0 ? 'up' : 'down'; }
 
   _attacking(mon) { return ['rushing', 'slamming', 'leaping', 'firing', 'casting', 'discharging', 'swarming'].some((f) => mon.flag(f)); }
 
@@ -134,7 +143,9 @@ export class EnemyController {
     const mon = e.mon, spr = e.spr, stats = e.stats;
     const toP = Math.atan2(player.y - spr.y, player.x - spr.x);
     const dist = Math.hypot(player.x - spr.x, player.y - spr.y);
-    if (!mon.flag('rushing') && !mon.flag('leaping')) spr.facing = this._face(spr, player);
+    // FACING: face the charge/leap direction while attacking, else face the player
+    if (mon.flag('rushing') || mon.flag('slamming') || mon.flag('leaping')) spr.facing = this._vecFace(e.atkDir.x, e.atkDir.y);
+    else spr.facing = this._face(spr, player);
 
     if (mon.flag('rushing')) {                       // charger rush
       spr.body.setVelocity(e.atkDir.x * COMBAT.CHARGE_SPEED, e.atkDir.y * COMBAT.CHARGE_SPEED); spr.setState('walk');
