@@ -44,7 +44,11 @@ export class GreenhollowScene extends Phaser.Scene {
 
     const worldW = WORLD.widthTiles * TILE;
     const worldH = WORLD.heightTiles * TILE;
-    this.physics.world.setBounds(0, 0, worldW, worldH);
+    // PLAY bounds are INSET from the world: the player can't walk to the very edge,
+    // so the camera (clamped to the full world) always keeps a grass margin and no
+    // sprite (player/foliage) ever clips at the world/screen top. (Item 4 fix.)
+    this.edgeMargin = 3 * TILE;
+    this.physics.world.setBounds(this.edgeMargin, this.edgeMargin, worldW - this.edgeMargin * 2, worldH - this.edgeMargin * 2);
 
     this._buildGround(worldW, worldH);
     this._buildPond();
@@ -101,7 +105,9 @@ export class GreenhollowScene extends Phaser.Scene {
   _scatterDecals() {
     const W = WORLD.widthTiles * TILE, H = WORLD.heightTiles * TILE;
     const p = WORLD.pond;
-    const onGrass = (px, py) => {                  // keep scatter off the water
+    const m = 2 * TILE;                            // keep decals out of the edge margin (no clipped foliage)
+    const onGrass = (px, py) => {                  // off the water, and inside the edge margin
+      if (px < m || px > W - m || py < m || py > H - m) return false;
       const tx = px / TILE, ty = py / TILE;
       return !(p && tx >= p.tx - 0.5 && tx < p.tx + p.w + 0.5 && ty >= p.ty - 0.5 && ty < p.ty + p.h + 0.5);
     };
@@ -155,7 +161,8 @@ export class GreenhollowScene extends Phaser.Scene {
         x: npc.x, y: npc.y + CHAR_FOOTPRINT.offY, prompt: `Talk to ${n.name}`,  // canonical INTERACTION_RADIUS
         onInteract: () => {
           npc.facing = this._faceToward(npc, this.player); npc.setState('idle');
-          if (n.quest) this._startQuestDialogue(n.quest);
+          if (n.quest && this.quests.status(n.quest) !== 'complete') this._startQuestDialogue(n.quest);
+          else if (n.done) this._startGreeting(n.name, n.done);       // a finished quest -> a short post line (never re-run + re-award)
           else if (n.greeting) this._startGreeting(n.name, n.greeting);
         },
       });
@@ -232,7 +239,8 @@ export class GreenhollowScene extends Phaser.Scene {
     }).setOrigin(0.5, 1).setResolution(RES).setScrollFactor(0).setDepth(DEPTH.OVERLAY).setVisible(false);
 
     // --- dialogue box (portrait + name + body + crisp readable choices) ---
-    const boxW = 824, boxH = 252, bx = (W - boxW) / 2, by = H - boxH - 12;
+    const boxW = 824, boxH = 286, bx = (W - boxW) / 2, by = H - boxH - 12;
+    this._boxBx = bx; this._boxW = boxW;
     const PS = 168, px = bx + 14, py = by + 14;
     this.portraitBox = { x: px, y: py, size: PS };
     this._portrait = null;
@@ -309,16 +317,27 @@ export class GreenhollowScene extends Phaser.Scene {
     this._optTexts = [];
     this._selOpt = Phaser.Math.Clamp(this._selOpt, 0, Math.max(0, opts.length - 1));
     const isChoice = opts.length > 1;
-    const oy = this.dlgBody.y + this.dlgBody.height + 10;
+    const x = this._txtX, rowH = 28;
+    const barW = this._boxBx + this._boxW - x - 8;
+    const oy = this.dlgBody.y + this.dlgBody.height + (isChoice ? 24 : 12);
+    const add = (o) => { this.dialogue.add(o); this._optTexts.push(o); return o; };
+    // a label that separates the pickable CHOICES from the narration above
+    if (isChoice) add(this.add.text(x, oy - 20, '─ CHOOSE ─', {
+      fontFamily: 'monospace', fontSize: '11px', color: '#9b93b0', fontStyle: 'bold',
+    }).setResolution(this._RES).setScrollFactor(0).setDepth(DEPTH.OVERLAY));
     opts.forEach((o, i) => {
       const sel = i === this._selOpt;
-      const t = this.add.text(this._txtX, oy + i * 23, `${sel ? '▸' : '  '} ${o.label}`, {
-        fontFamily: 'monospace', fontSize: '16px', color: sel ? '#ffe9c2' : '#cfc6e6',
-      }).setResolution(this._RES).setScrollFactor(0).setDepth(DEPTH.OVERLAY);
-      this.dialogue.add(t);
-      this._optTexts.push(t);
+      const y = oy + i * rowH;
+      if (sel) {                                   // a filled highlight BAR behind the active choice
+        add(this.add.rectangle(x - 8, y - 3, barW, rowH - 4, 0xffe9c2, 1).setOrigin(0, 0)
+          .setScrollFactor(0).setDepth(DEPTH.OVERLAY));
+      }
+      const num = isChoice ? `${i + 1}. ` : '';
+      add(this.add.text(x, y, `${sel ? '▶ ' : '   '}${num}${o.label}`, {
+        fontFamily: 'monospace', fontSize: '16px', color: sel ? '#1c1422' : '#cfc6e6', fontStyle: sel ? 'bold' : 'normal',
+      }).setResolution(this._RES).setScrollFactor(0).setDepth(DEPTH.OVERLAY));
     });
-    this.dlgHint.setText(isChoice ? '↑↓ choose · E select' : 'E ▸');
+    this.dlgHint.setText(isChoice ? '↑↓ move · 1/2 or E to pick' : 'E to continue ▸');
   }
 
   _dialogueNav(d) {
