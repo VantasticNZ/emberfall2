@@ -21,8 +21,12 @@ import { QuestEngine } from '../systems/QuestEngine.js';
 import { KarmaEngine } from '../systems/Karma.js';
 import { memoryStorage } from '../systems/storage.js';
 import { GREENHOLLOW_CHILDHOOD } from '../data/quests/index.js';
+import { spawn as spawnMonster } from '../systems/Monsters.js';
+import { Inventory } from '../systems/Inventory.js';
+import { COMBAT } from '../constants/standards.js';
 
 const tileToPx = (t) => t * TILE + TILE / 2;
+const FACE_VEC = { up: { x: 0, y: -1 }, down: { x: 0, y: 1 }, left: { x: -1, y: 0 }, right: { x: 1, y: 0 } };
 
 // Which face/expression the dialogue portrait shows per speaker (real LPC outfits).
 const SPEAKER_FACE = {
@@ -71,6 +75,7 @@ export class GreenhollowScene extends Phaser.Scene {
     this._dlg = null;
     this._buildInput();
     this._buildUI();
+    this._initCombat();        // player HP (Inventory) + the charger + combat HUD/bars (world objects before the UI camera)
     this._buildDebug();
     this._setupUICamera();
     // keep the camera filling + the UI placed when the window resizes
@@ -81,7 +86,7 @@ export class GreenhollowScene extends Phaser.Scene {
   // the world camera's zoom (scrollFactor-0 alone is still affected by zoom). The
   // main camera draws the world; the UI camera draws only the UI.
   _setupUICamera() {
-    const ui = [this.hud, this.dialogue, this.prompt];
+    const ui = [this.hud, this.dialogue, this.prompt, this.playerHpUI];
     this.uiCamera = this.cameras.add(0, 0, this.scale.width, this.scale.height);
     this.cameras.main.ignore(ui);
     this.uiCamera.ignore(this.children.list.filter((o) => !ui.includes(o)));
@@ -173,6 +178,7 @@ export class GreenhollowScene extends Phaser.Scene {
     const pd = WORLD.player;
     this.player = new Character(this, tileToPx(pd.tx), tileToPx(pd.ty),
       { parts: pd.parts, facing: pd.facing, speed: pd.speed, expression: pd.expression });
+    this.player.equip('sword');                 // so the swing shows a blade (LPC attack layer)
     Collision.markPlayer(this.player);
     this.actors.add(this.player);
     DepthSort.track(this.player, CHAR_FOOTPRINT.offY);
@@ -182,10 +188,11 @@ export class GreenhollowScene extends Phaser.Scene {
   _buildInput() {
     this.cursors = this.input.keyboard.createCursorKeys();
     this.keys = this.input.keyboard.addKeys({
-      up: 'W', down: 'S', left: 'A', right: 'D', run: 'SHIFT', interact: 'E',
+      up: 'W', down: 'S', left: 'A', right: 'D', run: 'SHIFT', interact: 'E', attack: 'SPACE',
       one: 'ONE', two: 'TWO', three: 'THREE',
       zoomOut: 'OPEN_BRACKET', zoomIn: 'CLOSED_BRACKET', debug: 'B',
     });
+    this.keys.attack.on('down', () => { if (!this._dlg && this._hitFreeze <= 0) this._playerAttack(); });
     this.keys.zoomOut.on('down', () => this._stepZoom(-1));
     this.keys.zoomIn.on('down', () => this._stepZoom(+1));
     this.input.on('wheel', (_p, _o, _dx, dy) => this._stepZoom(dy > 0 ? -1 : +1));
@@ -228,7 +235,7 @@ export class GreenhollowScene extends Phaser.Scene {
     const hudPanel = this.add.rectangle(8, 8, 558, 84, 0x14121c, 0.84).setOrigin(0, 0)
       .setStrokeStyle(2, 0xffe9c2, 0.9).setScrollFactor(0).setDepth(DEPTH.OVERLAY);
     const title = txt(20, 16, 'EMBERFALL 2 — Greenhollow', 20, '#ffe9c2');
-    const help = txt(20, 46, 'WASD / arrows: move   Shift: run   E: talk / advance   ↑↓: choose', 13, '#cfc6e6');
+    const help = txt(20, 46, 'WASD: move   Shift: run   Space: attack   E: talk / advance   ↑↓: choose', 13, '#cfc6e6');
     this.questHud = txt(20, 66, '', 15, '#9fe6a0');
     this.hud.add([hudPanel, title, help, this.questHud]);
     this._updateQuestHud();
@@ -418,8 +425,16 @@ export class GreenhollowScene extends Phaser.Scene {
   }
 
   // ---- LOOP -----------------------------------------------------------------
-  update() {
-    if (this._dlg) { Movement.stop(this.player); DepthSort.update(); return; }
+  update(time, delta) {
+    const dt = Math.min(delta || 16, 50) / 1000;        // clamp dt (tab-out etc.)
+    // HIT-PAUSE: freeze a few frames on a landed hit so the impact reads as MEATY
+    if (this._hitFreeze > 0) {
+      this._hitFreeze -= 1;
+      Movement.stop(this.player);
+      if (this.enemy && this.enemy.spr.body) this.enemy.spr.body.setVelocity(0, 0);
+      DepthSort.update(); this._drawCombatUI(); return;
+    }
+    if (this._dlg) { Movement.stop(this.player); DepthSort.update(); this._drawCombatUI(); return; }
 
     let dx = 0, dy = 0;
     if (this.cursors.left.isDown || this.keys.left.isDown) dx -= 1;
@@ -428,10 +443,174 @@ export class GreenhollowScene extends Phaser.Scene {
     if (this.cursors.down.isDown || this.keys.down.isDown) dy += 1;
     Movement.drive(this.player, dx, dy, this.keys.run.isDown);
 
+    this._updateCombat(dt);
     DepthSort.update();
+    this._drawCombatUI();
 
     const active = Interaction.update(this.player);
     if (active) this.prompt.setText(`${active.prompt}  (E)`).setVisible(true);
     else this.prompt.setVisible(false);
+  }
+
+  // ===========================================================================
+  // COMBAT (Stage 2a) — the slice's first fight. Reuses the Monsters behaviour
+  // engine (the CHARGER FSM drives the visible enemy) + Inventory for player HP.
+  // All tuning is read from COMBAT (the standards SSOT).
+  // ===========================================================================
+  _initCombat() {
+    this.inv = new Inventory({ storage: memoryStorage() });   // player HP from the economy/stats system
+    this._hitFreeze = 0;
+    this._iframes = 0;
+    this._atkReady = 0;
+    // world-space combat FX: a bold "!" tell, a ground CHARGE-LINE (so the dodge is
+    // readable), and the enemy HP bar — all drawn/positioned each frame.
+    this._enemyMark = this.add.text(0, 0, '!', { fontFamily: 'monospace', fontSize: '34px', color: '#ffe14d', fontStyle: 'bold' })
+      .setStroke('#1c1422', 6).setOrigin(0.5, 1).setDepth(DEPTH.OVERLAY).setVisible(false);
+    this._telegraphG = this.add.graphics().setDepth(DEPTH.FLOOR + 5);   // on the ground, under the actors
+    this._enemyHpG = this.add.graphics().setDepth(DEPTH.OVERLAY);
+    // player HP bar (fixed UI — added to the UI camera in _setupUICamera)
+    this.playerHpUI = this.add.container(0, 0).setScrollFactor(0).setDepth(DEPTH.OVERLAY);
+    const panel = this.add.rectangle(8, 100, 220, 30, 0x14121c, 0.84).setOrigin(0, 0).setStrokeStyle(2, 0xffe9c2, 0.9).setScrollFactor(0);
+    this._hpBarBg = this.add.rectangle(16, 116, 160, 12, 0x3a1418, 1).setOrigin(0, 0.5).setScrollFactor(0);
+    this._hpBarFill = this.add.rectangle(16, 116, 160, 12, 0x5fcf6a, 1).setOrigin(0, 0.5).setScrollFactor(0);
+    this._hpLabel = this.add.text(182, 109, '', { fontFamily: 'monospace', fontSize: '13px', color: '#ffe9c2' }).setResolution(2).setScrollFactor(0);
+    this.playerHpUI.add([panel, this._hpBarBg, this._hpBarFill, this._hpLabel]);
+    this._spawnCharger();
+  }
+
+  _spawnCharger() {
+    const ENEMY = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_parted_gray', 'shirt_leather', 'pants_black', 'shoes_brown'];
+    const spr = new Character(this, 22 * TILE, 28 * TILE, { parts: ENEMY, facing: 'up', speed: 0, expression: 'angry' });
+    spr.equip('sword');
+    DepthSort.track(spr, CHAR_FOOTPRINT.offY);
+    if (this.uiCamera) this.uiCamera.ignore(spr);   // respawns: keep the enemy off the UI camera (avoid double-render)
+    this.physics.add.collider(spr, this.solids);    // bumps trees/forge, but NOT the player (so the charge connects)
+    this.enemy = {
+      mon: spawnMonster('charger', { hp: COMBAT.CHARGER_HP }),
+      spr, lastState: null, chargeDir: { x: 0, y: 1 }, hitThisCharge: false,
+      knockFrames: 0, knockVx: 0, knockVy: 0, flashFrames: 0, alive: true,
+    };
+  }
+
+  _playerAttack() {
+    const now = this.time.now;
+    if (now < this._atkReady || this.player.isBusy()) return;
+    this._atkReady = now + COMBAT.ATTACK_COOLDOWN_MS;
+    this.player.action('attack');                   // LPC sword-swing animation
+    this._sfx('sfx_swing', 0.45);
+    const e = this.enemy; if (!e || !e.alive) return;
+    const dx = e.spr.x - this.player.x, dy = e.spr.y - this.player.y, dist = Math.hypot(dx, dy) || 1;
+    if (dist > COMBAT.ATTACK_RANGE) return;         // out of reach
+    const f = FACE_VEC[this.player.facing] || FACE_VEC.down;
+    if ((dx / dist) * f.x + (dy / dist) * f.y < COMBAT.ATTACK_ARC_DOT) return; // not in the swing arc
+    this._hitEnemy(dx / dist, dy / dist);
+  }
+
+  _hitEnemy(nx, ny) {
+    const e = this.enemy;
+    e.mon.hit(COMBAT.ATTACK_DAMAGE);
+    this._sfx('sfx_hit', 0.7);
+    e.flashFrames = Math.round(COMBAT.FLASH_MS / 16);
+    this._hitFreeze = COMBAT.HIT_FREEZE_FRAMES;          // hit-pause
+    this.cameras.main.shake(110, COMBAT.SHAKE_HIT);      // screen-shake
+    e.knockVx = nx * COMBAT.KNOCKBACK_SPEED; e.knockVy = ny * COMBAT.KNOCKBACK_SPEED; // knockback
+    e.knockFrames = COMBAT.KNOCKBACK_FRAMES;
+    if (e.mon.dead) this._enemyDie();
+  }
+
+  _enemyHitsPlayer() {
+    if (this._iframes > 0) return;
+    this.inv.hp = Math.max(0, this.inv.hp - COMBAT.CHARGE_DAMAGE);
+    this._iframes = 30;                                  // ~0.5s i-frames -> one charge = one hit
+    this._sfx('sfx_charge_impact', 0.7);
+    this._flashPlayer();
+    this._hitFreeze = COMBAT.HIT_FREEZE_FRAMES + 2;
+    this.cameras.main.shake(220, COMBAT.SHAKE_CHARGE);   // bigger shake on the charge impact
+    const d = this.enemy.chargeDir;
+    this.player.body.setVelocity(d.x * COMBAT.KNOCKBACK_SPEED, d.y * COMBAT.KNOCKBACK_SPEED);
+    if (this.inv.hp <= 0) { this.inv.hp = this.inv.stats().maxHp; this.player.x = 17 * TILE; this.player.y = 19 * TILE; this.player.body.reset(17 * TILE, 19 * TILE); }
+  }
+
+  _updateCombat(dt) {
+    this._telegraphG.clear();
+    const e = this.enemy; if (!e || !e.alive) { this._enemyMark.setVisible(false); return; }
+    if (this._iframes > 0) this._iframes--;
+    e.mon.update(dt);
+    const st = e.mon.state, spr = e.spr;
+    // CHARGE-LINE telegraph: while winding up, paint the rush path toward the player
+    // on the ground so the dodge is obvious (step off the line).
+    if (st === 'telegraph') {
+      const a = Math.atan2(this.player.y - spr.y, this.player.x - spr.x);
+      const len = 300, bx = spr.x, by = spr.y + 14, tx2 = bx + Math.cos(a) * len, ty2 = by + Math.sin(a) * len;
+      this._telegraphG.lineStyle(10, 0xff5a3c, 0.45).beginPath().moveTo(bx, by).lineTo(tx2, ty2).strokePath();
+      const ah = 16, pa = a + Math.PI * 0.85, pb = a - Math.PI * 0.85;
+      this._telegraphG.fillStyle(0xff5a3c, 0.6).fillTriangle(tx2, ty2, tx2 + Math.cos(pa) * ah, ty2 + Math.sin(pa) * ah, tx2 + Math.cos(pb) * ah, ty2 + Math.sin(pb) * ah);
+    }
+
+    if (e.knockFrames > 0) {                             // knockback overrides movement
+      e.knockFrames--; spr.body.setVelocity(e.knockVx, e.knockVy); e.knockVx *= 0.8; e.knockVy *= 0.8;
+    } else {
+      if (st !== 'charge') spr.facing = this._faceToward(spr, this.player);
+      if (st !== e.lastState) {                          // transition: lock the charge line toward the player
+        if (st === 'charge') { const a = Math.atan2(this.player.y - spr.y, this.player.x - spr.x); e.chargeDir = { x: Math.cos(a), y: Math.sin(a) }; e.hitThisCharge = false; }
+        e.lastState = st;
+      }
+      if (st === 'idle') {                               // close in slowly
+        const a = Math.atan2(this.player.y - spr.y, this.player.x - spr.x);
+        spr.body.setVelocity(Math.cos(a) * COMBAT.APPROACH_SPEED, Math.sin(a) * COMBAT.APPROACH_SPEED); spr.setState('walk');
+      } else if (st === 'telegraph') {                   // WIND-UP: stop + the tell
+        spr.body.setVelocity(0, 0); spr.setState('idle');
+      } else if (st === 'charge') {                      // RUSH in the locked line
+        spr.body.setVelocity(e.chargeDir.x * COMBAT.CHARGE_SPEED, e.chargeDir.y * COMBAT.CHARGE_SPEED); spr.setState('walk');
+        if (!e.hitThisCharge && Math.hypot(spr.x - this.player.x, spr.y - this.player.y) < 40) { e.hitThisCharge = true; this._enemyHitsPlayer(); }
+      } else if (st === 'recover') {                     // PUNISH WINDOW: stop, vulnerable
+        spr.body.setVelocity(0, 0); spr.setState('idle');
+      }
+    }
+    // tint by state (the readable language): flash > telegraph(yellow) > charge(white) > recover(cyan) > idle(red)
+    let tint = 0xff8a7a;                                 // idle: hostile red cast
+    if (st === 'telegraph') tint = 0xffd23f;             // wind-up: bright yellow warning
+    else if (st === 'charge') tint = 0xffffff;           // rushing
+    else if (st === 'recover') tint = 0x66ccff;          // vulnerable: cyan "hit me"
+    if (e.flashFrames > 0) { tint = 0xffffff; e.flashFrames--; }
+    this._tint(spr, tint);
+    spr.setScale(st === 'telegraph' ? 1.14 : 1);        // a visible wind-up pulse
+    this._enemyMark.setVisible(st === 'telegraph');
+  }
+
+  _enemyDie() {
+    const e = this.enemy; e.alive = false;
+    this._enemyMark.setVisible(false);
+    this.tweens.add({ targets: e.spr.list, alpha: 0, duration: 350, onComplete: () => e.spr.destroy() });
+    // respawn after a beat so the fight is replayable (Van judges the feel repeatedly)
+    this.time.delayedCall(2200, () => this._spawnCharger());
+  }
+
+  // tint every layer sprite of a Character (it's a Container of layers)
+  _tint(charSpr, color) { charSpr.list.forEach((s) => s.setTint && s.setTint(color)); }
+  _flashPlayer() {
+    this.player.list.forEach((s) => s.setTint && s.setTint(0xff5555));
+    this.time.delayedCall(COMBAT.FLASH_MS, () => this.player.list.forEach((s) => s.clearTint && s.clearTint()));
+  }
+  _sfx(key, vol = 0.6) { if (this.cache.audio.exists(key)) this.sound.play(key, { volume: vol }); }
+
+  _drawCombatUI() {
+    // player HP bar
+    if (this.inv) {
+      const max = this.inv.stats().maxHp, hp = Math.max(0, this.inv.hp);
+      this._hpBarFill.width = 160 * (hp / max);
+      this._hpBarFill.fillColor = hp / max > 0.3 ? 0x5fcf6a : 0xcf5f5f;
+      this._hpLabel.setText(`HP ${hp}/${max}`);
+    }
+    // enemy HP bar + "!" mark follow the charger in world space
+    this._enemyHpG.clear();
+    const e = this.enemy;
+    if (e && e.alive) {
+      const x = e.spr.x - 22, y = e.spr.y - 52, w = 44, frac = Math.max(0, e.mon.hp / e.mon.maxHp);
+      this._enemyHpG.fillStyle(0x000000, 0.55).fillRect(x - 1, y - 1, w + 2, 7);
+      this._enemyHpG.fillStyle(0x3a1418, 1).fillRect(x, y, w, 5);
+      this._enemyHpG.fillStyle(0xe05a5a, 1).fillRect(x, y, w * frac, 5);
+      this._enemyMark.setPosition(e.spr.x, y - 6);
+    }
   }
 }
