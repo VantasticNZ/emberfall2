@@ -27,6 +27,15 @@ Verdict scale: ✅ good · ⚠ needs work · ❌ bad · ⏳ awaiting Van.
 
 | 2026-06-06 | Slice S2b — combat MECHANICS + Marsh (overnight) | DODGE (i-frames, beats charger) + BLOCK + PARRY built as a PURE, unit-tested system (PlayerCombat, 5 checks) + wired into the slice (Space attack / Shift dodge / K block); verified live (dodge negates a charge, block −75%, parry negates + staggers). Design rule recorded (no childhood combat). ASHEN MARSH rendered (bog mood via tints, black-water pools, dead trees, Yssa/Hagga) + M8 plays on-screen with choices + karma (verified). 0 console errors; verify green | ⏳⏳ **VAN, MORNING — all combat FEEL** (see MORNING TODO below) | proof/slice2b-* + slice3-marsh-* |
 
+| 2026-06-07 | Slice S2c — controls + combat polish + options menu | DODGE-ROLL (renamed; i-frames; roll spin — FLAG: proper LPC roll art needed) + DASH stub (separate traversal ability). BLOCK pose = a guard-ARC (FLAG: real block frames needed) + SHIELD-SCALED (iron shield equipped, blockNegate 0.8; shields are items). KID/ADULT gate (combat gated on isAdult; the slice = a dev adult). Canonical CONTROL MAP in SSOT read by InputMap (kbd + basic gamepad + rebind). OPTIONS MENU (Esc): rebind every action, audio sliders, aim-invert, modifiers, 18+-gated adult mode. Modifiers registry (big-head visible). All unit-tested (Combat 7, Modifiers 4); verify green; 0 errors | ⏳ **VAN: confirm BINDINGS + feel** (below) | proof/slice2c-* |
+
+## ⏰ MORNING TODO FOR VAN — CONTROL BINDINGS to confirm (canonical map — change any in-menu or tell me):
+Keyboard: WASD/arrows move · **Shift** run · **E** interact · **J / left-click** attack · **Space** dodge-roll ·
+**Q** use/throw · **C** block (hold; tap-at-impact = parry) · **R** aim (reserved) · **[ ]** cycle item · **Tab** game menu · **Esc** settings.
+Xbox (reserved, wired basic): LStick move (far=run) · A interact · B dodge-roll · X attack · Y use · RT aim · LT block · LB/RB cycle · Start menu · Back settings.
+→ Open settings (Esc) → CONTROLS → Enter on a row to rebind. Tell me your preferred layout.
+NEW feel items: dodge-roll (i-frames generous enough? roll reads?), block (shield-scaled feels right? parry timing?), shields (block 0.6/0.8/1.0 — tune on the items).
+
 ## ⏰ MORNING TODO FOR VAN — feel-tune these (all in src/constants/standards.js → COMBAT):
 The LOGIC is built + unit-tested; only the FEEL numbers are placeholders. Play the Greenhollow
 slice (the [DEV TEST] charger) and dial:
