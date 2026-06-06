@@ -23,6 +23,29 @@ Pack", "Platformer", "Easy Enemy", "Medieval Village" and "Ultimate …" names a
 all **3D** Quaternius packs, see below. In-game characters/terrain remain on the
 LPC pipeline.)
 
+## ✅ USABLE — LPC character parts (working set, committed 2026-06-07)
+A **two-tier** expansion (see `docs/ASSET-LEDGER.md` → "TWO-TIER ASSET LIBRARY"):
+- **Master library** `C:\GameAssets\lpc-full` (local, NOT in git) — the full
+  Universal-LPC generator: 145,452 PNG / 210 MB, every style/colour/bodytype, all
+  17 animations + `sheet_definitions` + `palette_definitions` + `CREDITS.csv`.
+  Catalogue at `C:\GameAssets\_INDEX\lpc-full.md`.
+- **Repo working set** `2d/sprites/characters/{bodies,hair,clothing,accessories,weapons,shields}`
+  — every style/colour/bodytype but only the rig's 3 anims (idle/walk/slash):
+  **625 parts, 34,569 PNG, ~49 MB**. PARTS data in `manifest.json`, attribution in
+  `CREDITS.md`. 64px paper-doll layers, LPC family. Source: Universal-LPC generator
+  (github.com/LiberatedPixelCup/...). Licences: OGA-BY / CC-BY / CC-BY-SA / GPL /
+  CC0 (all open-source, none anti-AI). **Not yet wired into the game** — catalogue
+  only; the live rig still uses `public/art/eliza`.
+
+| category | parts | source | licence (AI-safe) |
+|---|---:|---|---|
+| bodies (incl. skeleton/zombie + heads/eyes) | 130 | Universal-LPC | OGA-BY/CC-BY-SA/GPL/CC-BY/CC0 ✅ |
+| hair (+ beards) | 117 | Universal-LPC | OGA-BY/CC-BY-SA/GPL/CC0 ✅ |
+| clothing (torso/legs/feet/dress/arms/shoulders) | 182 | Universal-LPC | OGA-BY/CC-BY-SA/GPL ✅ |
+| accessories (hats/capes/neck/facial/wings/backpack/tools) | 139 | Universal-LPC | OGA-BY/CC-BY-SA/GPL/CC-BY ✅ |
+| weapons | 33 | Universal-LPC | OGA-BY/CC-BY-SA/GPL ✅ |
+| shields | 24 | Universal-LPC | OGA-BY ✅ |
+
 ## 🧊 PARKED 3D — `3d-future/` (CATALOGUE ONLY, binaries NOT copied — see note)
 All CC0, AI-safe, but 3D and therefore **not for the 2D pipeline**. Kept in
 `Downloads/`, catalogued + vetted here; not committed to git (they total >1 GB —
