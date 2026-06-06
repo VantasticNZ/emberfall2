@@ -5,8 +5,10 @@
 // One talkable NPC (Mara, distinct RED shirt) wired to the real M1 quest.
 // =============================================================================
 
+// Real, distinct LPC outfits (own body/hair/clothing layers — not a hue hack).
 const HERO = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_chestnut', 'shirt_blue', 'pants_black', 'shoes_brown'];
-const MARA = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_chestnut', 'shirt_red', 'pants_black', 'shoes_brown'];
+const MARA = ['body_fem', 'head_fem', 'brows_chestnut', 'hair_bob_blonde', 'shirt_forest', 'pants_brown', 'shoes_brown_fem'];
+const BRAM = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_parted_gray', 'beard_gray', 'shirt_leather', 'pants_black', 'shoes_brown'];
 
 export const WORLD = {
   widthTiles: 40,
@@ -32,18 +34,19 @@ export const WORLD = {
     { key: 'prop_tree_oak',  tx: 28, ty: 11, solid: true },
     { key: 'prop_tree_oak',  tx: 31, ty: 19, solid: true },
     { key: 'prop_tree_pine', tx: 12, ty: 17, solid: true },
-    { key: 'prop_tree_pine', tx: 25, ty: 8,  solid: true },
+    { key: 'prop_tree_pine', tx: 12, ty: 8,  solid: true },
     { key: 'prop_tree_pine', tx: 34, ty: 13, solid: true },
     { key: 'prop_bush', tx: 16, ty: 13, solid: false },
-    { key: 'prop_bush', tx: 24, ty: 15, solid: false },
+    { key: 'prop_bush', tx: 28, ty: 15, solid: false },
     { key: 'prop_bush', tx: 30, ty: 16, solid: false },
     { key: 'prop_bush', tx: 17, ty: 22, solid: false },
-    { key: 'prop_bush', tx: 20, ty: 9,  solid: false },
-    { key: 'prop_sign', tx: 24, ty: 17, solid: true },
+    { key: 'prop_sign', tx: 21, ty: 18, solid: true },
+    // the forge — Greenhollow's smithy (Bram's), a real LPC brick building.
+    { key: 'prop_forge', tx: 24, ty: 10, solid: true },
   ],
 
-  // one talkable NPC, wired to the real M1 quest. Mara wears a RED shirt so she
-  // reads as clearly distinct from the blue-shirted hero at a glance.
+  // one talkable NPC, wired to the real M1 quest. Mara wears a distinct FOREST-
+  // green dress-shirt + feminine LPC body so she reads as clearly NOT the hero.
   npcs: [
     { tx: 21, ty: 15, facing: 'down', name: 'Mara', speed: 70, expression: 'happy', parts: MARA, quest: 'M1' },
   ],
@@ -52,4 +55,5 @@ export const WORLD = {
 
   base: HERO,
   maraParts: MARA,
+  bramParts: BRAM,
 };
