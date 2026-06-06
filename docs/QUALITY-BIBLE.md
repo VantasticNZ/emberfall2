@@ -215,6 +215,24 @@ A visual session is only "provisionally done" until Van has played the FEEL item
   reach for.
 - EVERY build session ends by stating which gates were tested, how, and the proof.
 
+### REGRESSION RULE (no backsliding)
+- Breaking an EXISTING test suite BLOCKS the change — full stop. `scripts/verify.mjs`
+  (run via `npm run verify` + the git pre-commit hook) fails the commit if any suite
+  fails or any id/asset/storage rule is violated. Don't "fix" a red suite by deleting
+  its assertion; fix the cause.
+- EVERY bug found gets a TEST that reproduces it, added BEFORE/WITH the fix, so it can
+  never silently return. Bugs become permanent guardrails.
+- The SSOT + verify orphan-check exist so a typo'd/renamed/orphaned id is a build
+  error, not a quest that silently stops firing.
+
+### SAVE VERSIONING (a playthrough is sacred)
+- Every persisted blob carries a schema version (`serialize()` writes `v`). When the
+  schema changes, BUMP the version and MIGRATE old saves forward in `hydrate()` —
+  never read an old save in a way that throws or loses progress.
+- A save must survive an update: load an old-version save → migrate → play on. Test
+  the migration (a fixture of the old shape that hydrates cleanly). Losing a player's
+  run to a schema change is a SHIP-blocking failure (Gate K: no lost progress).
+
 ================================================================
 ## PART 4 — THE CONTENT STANDARDS (the spec, concretely)
 ================================================================
