@@ -17,6 +17,7 @@ public/art/eliza/   | ElizaWy LPC (github.com/ElizaWy/LPC)                      
 public/art/terrain/ | ElizaWy LPC terrain + Sharm LPC house (OpenGameArt/LiberatedPixelCup) | OGA-BY-3.0 / CC-BY-SA-3.0 / GPL-3.0 | yes | terrain+building
 public/art/kenney/  | Kenney (kenney.nl)                                            | CC0-1.0                           | yes | tiles (legacy, unreferenced)
 public/art/lpc/     | sanderfrenken Universal-LPC-Spritesheet                       | CC-BY-SA-3.0 / OGA-BY-3.0 / GPL-3.0 | yes | character (legacy, superseded by eliza)
+public/audio/       | Kenney RPG Audio (kenney.nl)                                  | CC0-1.0                           | yes | sfx (swing/hit/charge-impact)
 ```
 
 > Share-alike note: CC-BY-SA / GPL assets are copyleft — a commercial ship keeps

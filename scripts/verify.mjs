@@ -88,22 +88,24 @@ for (const line of inBlock.split('\n')) {
   const cells = line.split('|').map((c) => c.trim());
   if (cells.length >= 5 && cells[0].startsWith('public/')) ledger.push({ prefix: cells[0], aiSafe: cells[3].toLowerCase() });
 }
-const artDir = join(ROOT, 'public/art');
 const allArt = [];
-(function walkFs(d) {
+const walkFs = (d) => {
+  if (!existsSync(d)) return;
   for (const name of readdirSync(d)) {
     const p = join(d, name);
     if (statSync(p).isDirectory()) walkFs(p);
     else allArt.push(p.slice(ROOT.length + 1).split('\\').join('/'));
   }
-})(artDir);
+};
+walkFs(join(ROOT, 'public/art'));
+walkFs(join(ROOT, 'public/audio'));     // shipped audio is a licensed asset too
 let artOk = true;
 for (const f of allArt) {
   const entry = ledger.find((l) => f.startsWith(l.prefix));
-  if (!entry) { fail(`art file has NO asset-ledger entry: ${f}`); artOk = false; }
-  else if (entry.aiSafe !== 'yes') { fail(`art file under a NON-ai-safe ledger entry: ${f}`); artOk = false; }
+  if (!entry) { fail(`asset file has NO asset-ledger entry: ${f}`); artOk = false; }
+  else if (entry.aiSafe !== 'yes') { fail(`asset file under a NON-ai-safe ledger entry: ${f}`); artOk = false; }
 }
-if (artOk) ok(`licence: all ${allArt.length} public/art files covered by ${ledger.length} ai-safe ledger entries`);
+if (artOk) ok(`licence: all ${allArt.length} public asset files covered by ${ledger.length} ai-safe ledger entries`);
 
 // 5) STORAGE — no localStorage/sessionStorage outside the storage adapter ------
 const srcDir = join(ROOT, 'src');
