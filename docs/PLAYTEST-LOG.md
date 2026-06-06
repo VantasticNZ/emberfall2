@@ -25,6 +25,22 @@ Verdict scale: ✅ good · ⚠ needs work · ❌ bad · ⏳ awaiting Van.
 
 | 2026-06-06 | Slice S2a — the FIRST fight (charger) | sword attack (Space; hitbox + cooldown + SSOT tuning); ONE CHARGER driven by the Monsters FSM (idle→telegraph→charge→recover); player HP from Inventory + enemy HP, death/respawn, charge damages player; FEEL: hit-pause + screen-shake + Kenney swing/hit/charge SFX + enemy white-flash + knockback; readable TELEGRAPH (charge-line + "!" + wind-up pulse) + cyan PUNISH-WINDOW. Verified live (FSM cycles, hit lands 12, charge hits player, shake/knockback/flash fire); 0 console errors | ⏳⏳ **VAN — this is the whole point**: does HITTING feel satisfying? is the DODGE readable (charge-line)? does the CHARGE feel dangerous? | proof/slice2-combat-telegraph + punish-hit |
 
+| 2026-06-06 | Slice S2b — combat MECHANICS + Marsh (overnight) | DODGE (i-frames, beats charger) + BLOCK + PARRY built as a PURE, unit-tested system (PlayerCombat, 5 checks) + wired into the slice (Space attack / Shift dodge / K block); verified live (dodge negates a charge, block −75%, parry negates + staggers). Design rule recorded (no childhood combat). ASHEN MARSH rendered (bog mood via tints, black-water pools, dead trees, Yssa/Hagga) + M8 plays on-screen with choices + karma (verified). 0 console errors; verify green | ⏳⏳ **VAN, MORNING — all combat FEEL** (see MORNING TODO below) | proof/slice2b-* + slice3-marsh-* |
+
+## ⏰ MORNING TODO FOR VAN — feel-tune these (all in src/constants/standards.js → COMBAT):
+The LOGIC is built + unit-tested; only the FEEL numbers are placeholders. Play the Greenhollow
+slice (the [DEV TEST] charger) and dial:
+- ATTACK: ATTACK_DAMAGE / ATTACK_RANGE / ATTACK_COOLDOWN_MS — does the swing feel right?
+- DODGE: DODGE_DISTANCE / DODGE_DURATION_MS / DODGE_IFRAME_MS / DODGE_COOLDOWN_MS — does the i-frame
+  dash through the charge feel reliable + fair? (Shift)
+- BLOCK/PARRY: BLOCK_DAMAGE_TAKEN / PARRY_WINDOW_MS / PARRY_STUN_MS — is the parry window too
+  tight/loose? is the stagger a satisfying punish? (K, hold; tap-at-the-right-moment = parry)
+- CHARGER: CHARGE_SPEED / CHARGE_DAMAGE / APPROACH_SPEED — dangerous enough? telegraph long enough?
+- FEEL FX: HIT_FREEZE_FRAMES / SHAKE_HIT / SHAKE_CHARGE / FLASH_MS — too much/little?
+- CONTROLS: I dropped RUN to free SHIFT for dodge — tell me your preferred bindings (the real ones
+  are the controller map: A=interact, X=attack, B=dodge, LB=block; keyboard is a stand-in).
+- The whole RPS: does dodge↔charger / block↔frontal / flank↔shielded feel good once enemies vary?
+
 ## Combat — Van's questions to answer by playing (Stage 2a):
 - Are telegraphs READABLE (charge-line + "!" — can you see the wind-up + dodge sideways in time)?
 - Do hits have impact (hit-pause / white-flash / screen-shake / sound — does it feel MEATY)?
