@@ -247,6 +247,11 @@ A visual session is only "provisionally done" until Van has played the FEEL item
   undefeatable-frog-needs-a-trick type; a few sneaky betrayals. Spice, not texture.
 - COMBAT: challenging-not-brutal + difficulty options; dodge/roll/block; learn-the-pattern bosses
   (~3-5 hits of a specific type + a trick + a twist).
+- COMBAT PLACEMENT RULE (act-gating): NO combat enemies in the CHILDHOOD act (M1–M6) — the player
+  is a CHILD doing chores; the tone is wholesome/discovery, not danger. REAL combat begins AFTER the
+  catastrophe + time-skip, in the first ADULT region (ASHEN MARSH, M8+). The Greenhollow slice's
+  charger is a DEV TEST only (flagged in code) — it is NOT childhood canon and must not ship in
+  Greenhollow. Region scenes that are childhood-era render NPCs/quests/exploration but never enemies.
 - SYSTEMS CONTENT: ~couple-dozen weapons, dozen+ armor, 5-10 spells/abilities, varied monsters -
   all data on the systems.
 - QUEST MARKERS: givers have a "?" but the player can't SEE markers until the lazy-guy quest

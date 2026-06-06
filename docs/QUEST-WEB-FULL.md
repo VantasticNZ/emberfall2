@@ -21,6 +21,9 @@ PERM-3 @ M17 "Sela's Design": TRUST Sela / OPPOSE her / GO ALONE.
 ================================================================
 # ACT 1 — CHILDHOOD (all players; seeds long-range deeds)
 ================================================================
+## RULE — NO COMBAT in the childhood act (M1-M6): the player is a child; tone is wholesome/discovery.
+## Real combat begins post-time-skip in the first adult region (ASHEN MARSH, M8+). See QUALITY-BIBLE
+## "COMBAT PLACEMENT RULE". (The Greenhollow-slice charger is a DEV TEST only, not canon.)
 M1 "A Greenhollow Morning" | hub | tutorial | choice: greet warmly / ignore (M±) | deed: first_impression | unlocks M2
 M2 "Chores + Mischief" | hub | story | CHOICE the Chicken: catch(+M)/kick(-M, deed:chicken_kicked)/free(±P) | unlocks M3; chicken_kicked -> locks G7-ally, unlocks far Spire cameo + ending twist
 M3 "The Coin" | hub | story | CHOICE: return(+M+P)/keep(-P)/gift-friend(+M) | deed:coin_choice -> adult merchant price/attitude
