@@ -13,6 +13,7 @@ Verdict scale: ✅ good · ⚠ needs work · ❌ bad · ⏳ awaiting Van.
 | 2026-06-06 | Slice S1 — Greenhollow walkable + M1 dialogue | movement (WASD/arrows), camera-follow, dialogue advance/choice responsiveness | ⏳ awaiting Van | — |
 | 2026-06-06 | Slice S1.5 — presentation pass | same, plus readability at normal zoom | ⏳ awaiting Van | screenshots passed self-check; feel not yet played |
 | 2026-06-06 | Slice S1.6 — art foundation | same, plus walking BEHIND the forge + trees (depth-sort occlusion) | ⏳ awaiting Van | confirm occlusion reads right |
+| 2026-06-06 | Slice S1.7 — 4 bug fixes (Van-found) | portrait pants (FIXED, screenshot), whole trees at edges (FIXED — RESIZE camera, no crop, no bars, proven on a 21:9 window), camera jolt (roundPixels off + lerp), E-to-talk reliability (radius 50→72 + lenient facing, tested) | ⏳ awaiting Van on CAMERA smoothness + INTERACTION feel | self-checks pass; the two FEEL items need Van's hands |
 
 ## Open feel questions for Van (carry forward until answered)
 - Walk cadence / stride — does the character move feel responsive, right speed?
