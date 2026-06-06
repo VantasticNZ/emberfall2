@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+# Pre-commit gate: reject the commit if `npm run verify` fails (tests / orphan ids
+# / item SSOT / asset licence / storage adapter). Enable once per clone with:
+#   git config core.hooksPath .githooks
+echo "[pre-commit] running npm run verify ..."
+if ! npm run verify --silent; then
+  echo "[pre-commit] verify FAILED — commit rejected. Fix the issues above (or, if truly intended, commit with --no-verify)."
+  exit 1
+fi
+echo "[pre-commit] verify passed."
+exit 0
