@@ -173,3 +173,37 @@ credits screen for a commercial ship.
 
 The earlier sanderfrenken character files under /public/art/lpc/ are no longer
 wired into the manifest (superseded by the ElizaWy base).
+
+================================================================================
+# ART FOUNDATION PASS (2026-06-06): full cast + first building
+================================================================================
+Audit finding: the hero was ALREADY fully clothed (body + pants + shoes + shirt +
+hair render); the real defects were a sparse "Cowlick" hair (read as balding),
+Mara being a hue-rotate hack, and NO buildings. Fixed with real, licence-confirmed
+LPC art (none anti-AI). Reproducible via scripts/fetch_eliza_npcs.sh.
+
+## EXTRA CHARACTER LAYERS — ElizaWy LPC (github.com/ElizaWy/LPC) — OGA-BY 3.0
+All from `Characters/`, OGA-BY 3.0 (attribution-only, no anti-AI clause), authors
+per the repo's `Characters/Credits.txt` (Eliza Wyatt + contributors; bodies also
+Stephen Challener/Redshrike):
+- **Hero hair** swapped Cowlick → `Hair/Short 05 - Natural/Chestnut` (full coverage).
+- **Mara** (feminine villager): `Body/Body 01 - Feminine, Thin/Ivory`,
+  `Head/Head 01 - Feminine/Ivory` (+ Expressions), `Hair/Medium 07 - Bob, Side
+  Part/Blonde`, `Clothing/Feminine, Thin/Torso/Shirt 01 - Longsleeve Shirt/Forest`,
+  `.../Legs/Pants 03 - Pants/Brown`, `.../Feet/Shoes 01 - Shoes/Brown`.
+- **Bram** (bearded smith): `Hair/Short 02 - Parted/Gray`, `Hair/Facial Hair 07 -
+  Medium Beard/Gray`, `Clothing/Masculine, Thin/Torso/Shirt 01 - Longsleeve
+  Shirt/Leather`.
+> The earlier hue-rotated `shirt_red` hack (scripts/build_slice_art.py) is REMOVED.
+
+## BUILDING — LPC house-exterior (the forge) — CC-BY-SA 3.0 / GPL 3.0 / OGA-BY 3.0
+Source: `tileset/original/Sharm/building-exterior/house.png` from the official LPC
+repo **github.com/OpenGameArt/LiberatedPixelCup** (master). Artist: **Lanea
+Zimmerman (Sharm)**. Licence: LPC dual **CC-BY-SA 3.0 / GPL 3.0**, and OGA-BY 3.0
+for Sharm's work — **no anti-AI clause** (AI-safe). The 96×128 brick "forge"
+(public/art/terrain/forge.png) is assembled (brick wall + door + windows + base)
+from this kit; source kept under public/art/terrain/_src/lpc_house.png.
+> SHARE-ALIKE: CC-BY-SA/GPL are copyleft — a commercial ship must keep these art
+> assets under the same licence + the credits screen. (Considered the
+> Casper Nilsson "Victorian house" too — rejected: a grand grey mansion, wrong
+> for a rustic village.)
