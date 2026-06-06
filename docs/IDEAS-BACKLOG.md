@@ -61,3 +61,23 @@ from SYSTEMS-DESIGN-V2.
 - VISUAL: a crouch pose — **LPC has no crouch/roll frames** (checked, master library), so
   the same honest squash-approximation as the dodge-roll until proper art exists. FLAG art.
 - Stealth UI: a detection indicator (alert/searching/spotted), like the combat telegraph.
+
+---
+
+## PAID ASSET REQUIREMENTS (when a premium pack is eventually purchased)
+
+If/when we buy a premium character/sprite pack, it MUST meet these before purchase:
+
+- **ROLL / TUMBLE animation is REQUIRED** — this is the specific gap driving a paid pack.
+  LPC base has **no** roll/tumble/crouch frames (master library checked), so the current
+  dodge-roll is only a squash-and-scoot APPROXIMATION. A real rolling animation is the
+  thing we cannot get for free.
+- **Full animation set** desired: idle, walk, run, attack, **block**, hurt, death, and
+  **roll/tumble** (plus crouch if available — see the crouch+stealth note above).
+- **Consistent style** — one coherent art style across body/clothing/gear so layered
+  characters (hero + NPCs) read as the same world; no style clash with what's already in.
+- **Licence CHECKED BEFORE PURCHASE** — must be clearly **AI-safe + commercial** (no
+  anti-AI clause; commercial-use allowed; redistribution/modification terms understood).
+  Verify the licence FIRST, then buy. Record in `docs/ASSET-LEDGER.md` on acquisition.
+- Nice-to-have: 4- or 8-directional facing, expression/portrait support, and a layering
+  system compatible with our Character composition (or a clean migration path).
