@@ -71,6 +71,7 @@ export const PARTS = {
   brows_chestnut:{ slot: 'brows', label: 'Brows', layers: [{ tex: 'eyebrows', z: Z.brows }] },
   hair_chestnut: { slot: 'hair',  label: 'Hair',  layers: [{ tex: 'hair', z: Z.hair }] },
   shirt_blue:    { slot: 'torso', label: 'Shirt', layers: [{ tex: 'shirt', z: Z.torso }] },
+  shirt_red:     { slot: 'torso', label: 'Shirt', layers: [{ tex: 'shirt_red', z: Z.torso }] }, // Mara (distinct from the hero)
   pants_black:   { slot: 'legs',  label: 'Pants', layers: [{ tex: 'pants', z: Z.legs }] },
   shoes_brown:   { slot: 'feet',  label: 'Shoes', layers: [{ tex: 'shoes', z: Z.shoes }] },
 
@@ -99,6 +100,10 @@ export const TILES = {
   tile_path:   { src: 'art/terrain/path.png' },
   tile_water:  { src: 'art/terrain/water.png' },
   tile_garden: { src: 'art/terrain/garden.png' },
+  // pond 9-slice (grass-banked water; blends to grass — replaces the flat blue box)
+  pond_nw: { src: 'art/terrain/pond_nw.png' }, pond_n: { src: 'art/terrain/pond_n.png' }, pond_ne: { src: 'art/terrain/pond_ne.png' },
+  pond_w:  { src: 'art/terrain/pond_w.png' },  pond_c: { src: 'art/terrain/pond_c.png' },  pond_e:  { src: 'art/terrain/pond_e.png' },
+  pond_sw: { src: 'art/terrain/pond_sw.png' }, pond_s: { src: 'art/terrain/pond_s.png' }, pond_se: { src: 'art/terrain/pond_se.png' },
 };
 
 export const PROPS = {
