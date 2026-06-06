@@ -33,8 +33,15 @@ export class EnemyController {
     this.telegraphG = scene.add.graphics().setDepth(DEPTH.FLOOR + 5);   // ground tells
     this.fxG = scene.add.graphics().setDepth(DEPTH.OVERLAY);            // shimmers/rings/bars
     this.projectiles = [];
+    this._safe = null;                 // a peaceful hub: { x, y, r } — no aggro inside
+    this.indicators = false;           // threat indicators (chevrons) — off by default
+    this.intuition = false;            // ENEMY INTUITION skill — always-on + enhanced
     if (scene.uiCamera) { scene.uiCamera.ignore(this.telegraphG); scene.uiCamera.ignore(this.fxG); }
   }
+
+  /** Mark a peaceful hub (a town inside a combat region): enemies don't aggro there. */
+  setSafeZone(x, y, r) { this._safe = { x, y, r }; }
+  _inSafe(x, y) { return this._safe && Math.hypot(x - this._safe.x, y - this._safe.y) < this._safe.r; }
 
   /** Spawn an archetype (or boss) at a tile. Returns the enemy record. */
   spawn(id, { tx, ty, hp, boss = false, name, aggro = 230 } = {}) {
@@ -80,6 +87,7 @@ export class EnemyController {
     for (const e of this.enemies) if (e.alive) this._stepEnemy(dt, e, player);
     this._stepProjectiles(player);
     for (const e of this.live) this._drawHpBar(e);
+    if (this.indicators) for (const e of this.live) if (this._showIndicator(e, player)) this._drawThreatIndicator(e);
   }
 
   _stepEnemy(dt, e, player) {
@@ -87,6 +95,15 @@ export class EnemyController {
     if (e.staggerFrames > 0) {                       // parried -> frozen + vulnerable
       e.staggerFrames--; spr.body.setVelocity(0, 0); spr.setState('idle'); e.lastState = 'stagger';
       this._tint(e, e.flashFrames-- > 0 ? 0xffffff : 0x66ccff); return;
+    }
+    // SAFE ZONE: a settlement inside a combat region — enemies don't aggro/enter it
+    if (this._safe && (this._inSafe(player.x, player.y) || this._inSafe(spr.x, spr.y))) {
+      mon.state = mon.fsm.start; mon.elapsed = 0; e.lastState = null; e.awake = false;
+      if (this._inSafe(spr.x, spr.y)) { const a = Math.atan2(e.homeY - spr.y, e.homeX - spr.x); spr.body.setVelocity(Math.cos(a) * 50, Math.sin(a) * 50); spr.facing = this._vecFace(Math.cos(a), Math.sin(a)); }
+      else spr.body.setVelocity(0, 0);
+      spr.setState('idle'); spr.setScale(e.scale); this._tint(e, e.base);
+      if (!spr.list) this._faceAnim(e);
+      return;
     }
     // AGGRO: a placed enemy only wakes when the player comes near (discrete encounter)
     if (!e.awake) {
@@ -299,6 +316,18 @@ export class EnemyController {
     this.fxG.fillStyle(0x000000, 0.55).fillRect(x - 1, y - 1, w + 2, 7);
     this.fxG.fillStyle(0x3a1418, 1).fillRect(x, y, w, 5);
     this.fxG.fillStyle(e.boss ? 0xb05ad0 : 0xe05a5a, 1).fillRect(x, y, w * frac, 5);
+  }
+  // THREAT INDICATOR: a chevron over a threat. Toggle -> only engaged (awake) enemies;
+  // ENEMY INTUITION skill -> all nearby enemies, in a brighter "sensed" colour.
+  _showIndicator(e, player) {
+    if (this.intuition) return Math.hypot(e.spr.x - player.x, e.spr.y - player.y) < 420;
+    return e.awake;
+  }
+  _drawThreatIndicator(e) {
+    const spr = e.spr, top = spr.list ? 62 * e.scale : spr.displayHeight * 0.55 + 16;
+    const y = spr.y - top, col = this.intuition ? 0xff6a6a : 0xffd23f;
+    this.fxG.fillStyle(0x000000, 0.5).fillTriangle(spr.x - 9, y - 1, spr.x + 9, y - 1, spr.x, y + 11);
+    this.fxG.fillStyle(col, 0.95).fillTriangle(spr.x - 7, y, spr.x + 7, y, spr.x, y + 9);
   }
   _flash(e) { e.flashFrames = F; }
   _tint(e, c) { const s = e.spr; if (s.list) s.list.forEach((x) => x.setTint && x.setTint(c)); else s.setTint(c); }

@@ -318,7 +318,10 @@ export class RegionScene extends Phaser.Scene {
     this.banner = this.add.text(this.scale.width / 2, 92, '', { fontFamily: 'monospace', fontSize: '15px', color: '#ffe9c2', backgroundColor: '#10171acc', padding: { x: 10, y: 5 }, align: 'center' }).setOrigin(0.5, 0).setScrollFactor(0).setDepth(DEPTH.OVERLAY).setVisible(false);
 
     this.combat = new EnemyController(this, { solids: this.solids, onPlayerHit: (dmg, info) => this._onPlayerHit(dmg, info), onPlayerRecoil: (dmg) => this._onPlayerRecoil(dmg) });
-    for (const en of (c.enemies || [])) this.combat.spawn(en.id, { tx: en.tx, ty: en.ty });
+    // SAFE ZONES: a whole-region safeZone spawns NO combat enemies (villages/hubs);
+    // a `safe` hub keeps a settlement peaceful inside a combat region (no aggro there).
+    if (!c.safeZone) for (const en of (c.enemies || [])) this.combat.spawn(en.id, { tx: en.tx, ty: en.ty });
+    if (c.safe) this.combat.setSafeZone(c.safe.tx * TILE + TILE / 2, c.safe.ty * TILE + TILE / 2, c.safe.r * TILE);
     this._applyBigHead();
   }
   _refreshShieldBlock() {
@@ -403,6 +406,11 @@ export class RegionScene extends Phaser.Scene {
   // ---- LOOP -----------------------------------------------------------------
   update(time, delta) {
     const dt = Math.min(delta || 16, 50) / 1000;
+    // THREAT INDICATORS: off by default (clean screen); on via the options toggle,
+    // or always-on + enhanced with the ENEMY INTUITION skill (perception/instinct).
+    const intuition = !!(this.inv && this.inv.hasSkill('enemy_intuition'));
+    this.combat.intuition = intuition;
+    this.combat.indicators = bindings.options.threatIndicators || intuition;
     if (this._hitFreeze > 0) { this._hitFreeze--; Movement.stop(this.player); this.combat.update(dt, this.player); DepthSort.update(); this._drawCombatUI(); return; }
     if (this._dlg) { Movement.stop(this.player); this._blockArcG.clear(); this.combat.update(dt, this.player); DepthSort.update(); this._drawCombatUI(); return; }
     const now = this.time.now;
