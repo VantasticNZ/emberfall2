@@ -1,8 +1,18 @@
 # RegionScene base — refactor spec (the template for every region)
 
-Status: **NOT YET DONE** — specced here so it executes cleanly + safely in a focused
-session (per the Regression Rule: a botched refactor of two working combat scenes
-regresses M1/M8/M9/combat). Today the COMBAT is already a shared system
+Status: **✅ DONE (2026-06-07)** — `src/scenes/RegionScene.js` built; `GreenhollowScene`
++ `MarshScene` are now thin subclasses (config + hooks). Verified live: Greenhollow
+(walk/M1/Mara/Bram/combat, charger now a real snake monster, big-head, options) +
+Marsh (walk/M8/Yssa-Hagga/shrine-M9/lantern/Drowned-Guardian-boss/7 creature
+archetypes/combat) both play, 0 console errors, verify green. The Greenhollow dev
+charger MOVED onto the EnemyController (was a humanoid; now `mon_snake`) — the one
+intended visual change (unification); combat BEHAVIOUR is identical.
+
+--- original spec (executed) below ---
+
+Specced so it executes cleanly + safely in a focused session (per the Regression Rule:
+a botched refactor of two working combat scenes regresses M1/M8/M9/combat). The COMBAT
+is already a shared system
 (`EnemyController` + `PlayerCombat` + `InputMap` + `ModifierRegistry`); what remains
 is to dedupe the per-scene RENDERING + DIALOGUE + camera + the combat *orchestration*
 that `GreenhollowScene` and `MarshScene` currently duplicate.
