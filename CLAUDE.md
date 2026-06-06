@@ -9,8 +9,14 @@ until you know which plan step you are on.
   session does + what is already done). Every session states its plan step.
 - **`docs/WORKING-AGREEMENT.md`** — how we work (scope, DoD, automation, owner
   prefs, safety/guardrails, anti-drift). Read it before building.
-- **`docs/QUALITY-BIBLE.md`** — the quality bar + the DoD gates (A–N). Nothing is
-  "done" until it passes its gates to the owner's eye.
+- **`docs/QUALITY-BIBLE.md`** — the quality bar + DoD gates (A–N) + Part 2.5
+  Presentation & Feel DoD + the Regression / Save-Versioning rules. Nothing is "done"
+  until it passes its gates to the owner's eye.
+- **`src/constants/{deeds,flags,items,endings}.js`** — the SSOT for every canonical
+  id (import these, never hardcode). `scripts/verify.mjs` fails on drift.
+- **Governance:** `docs/ADR.md` (why settled decisions stand), `docs/STYLE-GUIDE.md`
+  (the objective "does this asset fit" values), `docs/ASSET-LEDGER.md` (every art file
+  → source/licence/AI-safe; verify reads it), `docs/PLAYTEST-LOG.md` (Van's feel-judgments).
 - **`docs/ASSET-LIBRARY.md`** → `asset-library/_INDEX.md` — the licence-vetted
   art/audio library (what is usable, what is parked 3D, what is quarantined).
 - **Design docs** (`docs/`): WORLD-MAP, WORLD-BIBLE, MASTER-DESIGN,
@@ -40,8 +46,11 @@ Karma + deed-memory engine. Tests are plain Node + `node:assert` (`npm test`).
    `QUEST-DATA.json` + `Karma.js` already use (e.g. `chicken_kicked`, `coin_returned`,
    `cave_lore`, `hagga_believed`, `tool_lantern`, `shard_1`, `mercy_shown`) so
    callbacks + ending-gates fire. Never invent a synonym for an existing id.
-6. **Commit + push every session**, in logical per-file/per-group commits. Never
-   force-push or delete branches without explicit instruction.
+6. **Commit + push every session**, in logical per-file/per-group commits. Run
+   **`npm run verify`** before every commit — it must pass (the git pre-commit hook
+   enforces it: tests + id-orphan + item-SSOT + asset-licence + storage-adapter).
+   Reuse canonical ids from `src/constants/`. Never force-push or delete branches
+   without explicit instruction.
 7. **Never email the owner** or take outward-facing actions on their behalf.
 8. **Be certain before running commands**; prefer scripts + absolute paths over
    manual moves. Stop and ask when genuinely blocked (see the stop-for list).
