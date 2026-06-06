@@ -60,6 +60,24 @@ export const MARSH = {
     ] },
   ],
 
+  // REAL combat encounters — the first ADULT combat region (placement rule). Each
+  // a different archetype = a different fight (Gate E). Placed as discrete aggro
+  // encounters across the bog approach + the deep marsh.
+  enemies: [
+    { id: 'charger', tx: 16, ty: 26 },           // bog approach: the rush -> dodge
+    { id: 'ranged', tx: 11, ty: 14 },            // slinger across the water -> close/block
+    { id: 'swarm', tx: 26, ty: 15 },             // fen gnats -> AoE swing
+    { id: 'shielded', tx: 33, ty: 27 },          // revenant -> flank it
+    { id: 'brute', tx: 9, ty: 9 },               // mire brute -> dodge the slam, punish
+    { id: 'caster', tx: 35, ty: 9 },             // bog caster -> interrupt the channel
+    { id: 'charger_electric', tx: 25, ty: 31 },  // storm crawler -> wait for the window
+  ],
+
+  // the SUNKEN SHRINE (M9): enter here -> the lantern + the Drowned Guardian boss.
+  shrine: { tx: 6, ty: 6, name: 'the Sunken Shrine' },
+  bossSpawn: { tx: 8, ty: 9 },
+  combatSpawn: { tx: 19, ty: 29 },   // where the player (re)spawns
+
   player: { tx: 19, ty: 29, facing: 'up', speed: 95, expression: 'neutral', parts: HERO },
 
   base: HERO,
