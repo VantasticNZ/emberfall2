@@ -54,7 +54,7 @@ export const EXPR_ROW = { left: 1, down: 2, right: 3 }; // 'up' => neutral head
 // Draw order (low = behind).
 const Z = {
   shieldBehind: 8, weaponBehind: 12, body: 20, shoes: 24, legs: 28, torso: 40,
-  head: 50, brows: 55, hair: 60, weaponFront: 70, shieldFront: 72,
+  head: 50, brows: 55, beard: 57, hair: 60, weaponFront: 70, shieldFront: 72,
 };
 
 // =============================================================================
@@ -69,11 +69,23 @@ export const PARTS = {
   body_ivory:    { slot: 'body',  label: 'Body',  layers: [{ tex: 'body', z: Z.body }] },
   head_ivory:    { slot: 'head',  label: 'Head',  layers: [{ tex: 'head', z: Z.head, expressive: true }] },
   brows_chestnut:{ slot: 'brows', label: 'Brows', layers: [{ tex: 'eyebrows', z: Z.brows }] },
-  hair_chestnut: { slot: 'hair',  label: 'Hair',  layers: [{ tex: 'hair', z: Z.hair }] },
+  hair_chestnut: { slot: 'hair',  label: 'Hair',  layers: [{ tex: 'hair', z: Z.hair }] }, // hero — full "Natural"
   shirt_blue:    { slot: 'torso', label: 'Shirt', layers: [{ tex: 'shirt', z: Z.torso }] },
-  shirt_red:     { slot: 'torso', label: 'Shirt', layers: [{ tex: 'shirt_red', z: Z.torso }] }, // Mara (distinct from the hero)
   pants_black:   { slot: 'legs',  label: 'Pants', layers: [{ tex: 'pants', z: Z.legs }] },
   shoes_brown:   { slot: 'feet',  label: 'Shoes', layers: [{ tex: 'shoes', z: Z.shoes }] },
+
+  // --- distinct CAST layers (real ElizaWy LPC parts, not hue-rotation) ---
+  // Mara — a feminine villager: feminine body/head, blonde bob, forest shirt.
+  body_fem:        { slot: 'body',  label: 'Body',  layers: [{ tex: 'body_fem', z: Z.body }] },
+  head_fem:        { slot: 'head',  label: 'Head',  layers: [{ tex: 'head_fem', z: Z.head, expressive: true }] },
+  hair_bob_blonde: { slot: 'hair',  label: 'Hair',  layers: [{ tex: 'hair_mara', z: Z.hair }] },
+  shirt_forest:    { slot: 'torso', label: 'Shirt', layers: [{ tex: 'shirt_forest', z: Z.torso }] },
+  pants_brown:     { slot: 'legs',  label: 'Pants', layers: [{ tex: 'pants_fem', z: Z.legs }] },
+  shoes_brown_fem: { slot: 'feet',  label: 'Shoes', layers: [{ tex: 'shoes_fem', z: Z.shoes }] },
+  // Bram — an older bearded smith: gray parted hair + gray beard + leather shirt.
+  hair_parted_gray:{ slot: 'hair',  label: 'Hair',  layers: [{ tex: 'hair_bram', z: Z.hair }] },
+  beard_gray:      { slot: 'beard', label: 'Beard', layers: [{ tex: 'beard_bram', z: Z.beard }] },
+  shirt_leather:   { slot: 'torso', label: 'Shirt', layers: [{ tex: 'shirt_leather', z: Z.torso }] },
 
   // Equipment (Gate M). ElizaWy weapons are COMBAT props — the swing is a 128px
   // oversize sheet (the blade extends past the body); a layer with `states`
@@ -114,6 +126,10 @@ export const PROPS = {
   prop_bush:      { src: 'art/terrain/bush.png', width: 32, height: 32, footprint: null },
   prop_sign:      { src: 'art/terrain/sign.png', width: 24, height: 24,
                     footprint: { w: 14, h: 6, offX: 0, offY: 8 } },
+  // The forge — a brick building assembled from the LPC house-exterior kit
+  // (Sharm, CC-BY-SA/OGA-BY). Solid at the base; y-sorts like a tall prop.
+  prop_forge:     { src: 'art/terrain/forge.png', width: 96, height: 128,
+                    footprint: { w: 84, h: 18, offX: 0, offY: 54 } },
 };
 
 export const DECALS = {
