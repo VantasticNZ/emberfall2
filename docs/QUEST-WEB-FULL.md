@@ -114,7 +114,17 @@ S-G12 "Festival Rebuilt" [exists if kind path] | hub | heartfelt | help rebuild 
 S-A1 "Bog-Folk Troubles" | marsh | story | help | bog trust; PEM clue | S-G2
 S-A2 "Hagga's Errands" | marsh | morality/P | do/refuse | sets Hagga ally strength (feeds PERM-3) | L
 S-A3 "The Sunken Dead" | marsh | fun/loot | lantern rooms | epic loot | -
-S-A4 "Frog of the Fen" | marsh | TWIST | escape: apple/blow-kiss/lead-away (NOT a fight) | trophy + lateral-thinking teach | -
+S-A4 "Frog of the Fen" | LATE region (NOT the early marsh) | TWIST | escape: apple/blow-kiss/lead-away (NOT a fight) | guards REAL treasure | see DESIGN RULE below
+
+## >>> DESIGN RULE — THE IMMORTAL TREASURE-GUARD FROG IS A LATE-GAME ENCOUNTER <<<
+## The undefeatable "don't fight it, outsmart it" frog must appear MID/LATE (a later
+## region or deep in one), GUARDING REAL TREASURE — never early or accidental. Its
+## whole subversion ("the thing you can't kill — so DON'T") only lands AFTER the
+## player has internalised the normal combat rules (telegraph/dodge/punish). Met
+## early, before combat is established, the player just reads it as a broken fight,
+## not a clever puzzle. So: gate S-A4 behind solid combat experience (relocate it
+## out of the Act-1 marsh to a later region / late beat), make it clearly guard
+## something worth the trick, and ensure no early/random spawn can trigger it.
 S-A5 "Drowned Letters" | marsh | deed-link | deliver to Greenhollow NPC | that NPC reacts | -
 S-A6 "The Lantern Smith" | marsh | job | gather oil materials | cheaper oil | -
 S-A7 "Mire Madness" | marsh | dark | a maddened exile; mercy/kill (M±) | world card | ET8
