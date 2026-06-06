@@ -23,6 +23,7 @@ import { memoryStorage } from '../systems/storage.js';
 import { GREENHOLLOW_CHILDHOOD } from '../data/quests/index.js';
 import { spawn as spawnMonster } from '../systems/Monsters.js';
 import { Inventory } from '../systems/Inventory.js';
+import { PlayerCombat } from '../systems/Combat.js';
 import { COMBAT } from '../constants/standards.js';
 
 const tileToPx = (t) => t * TILE + TILE / 2;
@@ -188,11 +189,12 @@ export class GreenhollowScene extends Phaser.Scene {
   _buildInput() {
     this.cursors = this.input.keyboard.createCursorKeys();
     this.keys = this.input.keyboard.addKeys({
-      up: 'W', down: 'S', left: 'A', right: 'D', run: 'SHIFT', interact: 'E', attack: 'SPACE',
+      up: 'W', down: 'S', left: 'A', right: 'D', dodge: 'SHIFT', block: 'K', interact: 'E', attack: 'SPACE',
       one: 'ONE', two: 'TWO', three: 'THREE',
       zoomOut: 'OPEN_BRACKET', zoomIn: 'CLOSED_BRACKET', debug: 'B',
     });
     this.keys.attack.on('down', () => { if (!this._dlg && this._hitFreeze <= 0) this._playerAttack(); });
+    this.keys.dodge.on('down', () => { if (!this._dlg && this._hitFreeze <= 0) this._tryDodge(); });
     this.keys.zoomOut.on('down', () => this._stepZoom(-1));
     this.keys.zoomIn.on('down', () => this._stepZoom(+1));
     this.input.on('wheel', (_p, _o, _dx, dy) => this._stepZoom(dy > 0 ? -1 : +1));
@@ -235,7 +237,7 @@ export class GreenhollowScene extends Phaser.Scene {
     const hudPanel = this.add.rectangle(8, 8, 558, 84, 0x14121c, 0.84).setOrigin(0, 0)
       .setStrokeStyle(2, 0xffe9c2, 0.9).setScrollFactor(0).setDepth(DEPTH.OVERLAY);
     const title = txt(20, 16, 'EMBERFALL 2 — Greenhollow', 20, '#ffe9c2');
-    const help = txt(20, 46, 'WASD: move   Shift: run   Space: attack   E: talk / advance   ↑↓: choose', 13, '#cfc6e6');
+    const help = txt(20, 46, 'WASD: move   Space: attack   Shift: dodge   K: block/parry   E: talk', 13, '#cfc6e6');
     this.questHud = txt(20, 66, '', 15, '#9fe6a0');
     this.hud.add([hudPanel, title, help, this.questHud]);
     this._updateQuestHud();
@@ -436,14 +438,23 @@ export class GreenhollowScene extends Phaser.Scene {
     }
     if (this._dlg) { Movement.stop(this.player); DepthSort.update(); this._drawCombatUI(); return; }
 
+    const now = this.time.now;
     let dx = 0, dy = 0;
     if (this.cursors.left.isDown || this.keys.left.isDown) dx -= 1;
     if (this.cursors.right.isDown || this.keys.right.isDown) dx += 1;
     if (this.cursors.up.isDown || this.keys.up.isDown) dy -= 1;
     if (this.cursors.down.isDown || this.keys.down.isDown) dy += 1;
-    Movement.drive(this.player, dx, dy, this.keys.run.isDown);
-
+    this._inputDir = { dx, dy };                       // remembered for _tryDodge
+    this.pc.setBlocking(now, this.keys.block.isDown && !this.player.isBusy());
+    if (this.pc.isDodgeMoving(now)) {                  // DASH burst overrides movement (with i-frames)
+      const v = this.pc.dodgeVelocity(); this.player.body.setVelocity(v.x, v.y);
+    } else if (this.pc.isBlocking()) {                 // BLOCK: brace, don't move
+      Movement.stop(this.player);
+    } else {
+      Movement.drive(this.player, dx, dy, false);
+    }
     this._updateCombat(dt);
+    this._updatePlayerTint(now);
     DepthSort.update();
     this._drawCombatUI();
 
@@ -459,9 +470,11 @@ export class GreenhollowScene extends Phaser.Scene {
   // ===========================================================================
   _initCombat() {
     this.inv = new Inventory({ storage: memoryStorage() });   // player HP from the economy/stats system
+    this.pc = new PlayerCombat();                             // dodge / block / parry (tested logic)
     this._hitFreeze = 0;
-    this._iframes = 0;
     this._atkReady = 0;
+    this._playerFlash = 0;
+    this._inputDir = { dx: 0, dy: 0 };
     // world-space combat FX: a bold "!" tell, a ground CHARGE-LINE (so the dodge is
     // readable), and the enemy HP bar — all drawn/positioned each frame.
     this._enemyMark = this.add.text(0, 0, '!', { fontFamily: 'monospace', fontSize: '34px', color: '#ffe14d', fontStyle: 'bold' })
@@ -474,10 +487,14 @@ export class GreenhollowScene extends Phaser.Scene {
     this._hpBarBg = this.add.rectangle(16, 116, 160, 12, 0x3a1418, 1).setOrigin(0, 0.5).setScrollFactor(0);
     this._hpBarFill = this.add.rectangle(16, 116, 160, 12, 0x5fcf6a, 1).setOrigin(0, 0.5).setScrollFactor(0);
     this._hpLabel = this.add.text(182, 109, '', { fontFamily: 'monospace', fontSize: '13px', color: '#ffe9c2' }).setResolution(2).setScrollFactor(0);
-    this.playerHpUI.add([panel, this._hpBarBg, this._hpBarFill, this._hpLabel]);
+    const devNote = this.add.text(10, 132, '[DEV TEST] charger — real combat starts in Ashen Marsh', { fontFamily: 'monospace', fontSize: '10px', color: '#e0a35a' }).setResolution(2).setScrollFactor(0);
+    this.playerHpUI.add([panel, this._hpBarBg, this._hpBarFill, this._hpLabel, devNote]);
     this._spawnCharger();
   }
 
+  // DEV TEST ONLY — see QUALITY-BIBLE "COMBAT PLACEMENT RULE": NO combat in the
+  // childhood act (Greenhollow, M1-M6). This charger exists so Van can feel-test
+  // the fight; it is NOT childhood canon. Real first-combat belongs in Ashen Marsh.
   _spawnCharger() {
     const ENEMY = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_parted_gray', 'shirt_leather', 'pants_black', 'shoes_brown'];
     const spr = new Character(this, 22 * TILE, 28 * TILE, { parts: ENEMY, facing: 'up', speed: 0, expression: 'angry' });
@@ -488,7 +505,7 @@ export class GreenhollowScene extends Phaser.Scene {
     this.enemy = {
       mon: spawnMonster('charger', { hp: COMBAT.CHARGER_HP }),
       spr, lastState: null, chargeDir: { x: 0, y: 1 }, hitThisCharge: false,
-      knockFrames: 0, knockVx: 0, knockVy: 0, flashFrames: 0, alive: true,
+      knockFrames: 0, knockVx: 0, knockVy: 0, flashFrames: 0, staggerFrames: 0, alive: true,
     };
   }
 
@@ -518,23 +535,55 @@ export class GreenhollowScene extends Phaser.Scene {
     if (e.mon.dead) this._enemyDie();
   }
 
+  // a charge connecting -> resolve through the abilities system (dodge/block/parry)
   _enemyHitsPlayer() {
-    if (this._iframes > 0) return;
-    this.inv.hp = Math.max(0, this.inv.hp - COMBAT.CHARGE_DAMAGE);
-    this._iframes = 30;                                  // ~0.5s i-frames -> one charge = one hit
-    this._sfx('sfx_charge_impact', 0.7);
-    this._flashPlayer();
-    this._hitFreeze = COMBAT.HIT_FREEZE_FRAMES + 2;
-    this.cameras.main.shake(220, COMBAT.SHAKE_CHARGE);   // bigger shake on the charge impact
-    const d = this.enemy.chargeDir;
-    this.player.body.setVelocity(d.x * COMBAT.KNOCKBACK_SPEED, d.y * COMBAT.KNOCKBACK_SPEED);
+    const now = this.time.now, e = this.enemy;
+    const f = FACE_VEC[this.player.facing] || FACE_VEC.down;
+    const tx = e.spr.x - this.player.x, ty = e.spr.y - this.player.y, tl = Math.hypot(tx, ty) || 1;
+    const fromFront = (tx / tl) * f.x + (ty / tl) * f.y > 0.3;       // facing the charger = a frontal hit
+    const r = this.pc.takeDamage(now, COMBAT.CHARGE_DAMAGE, { fromFront });
+    if (r.outcome === 'dodged') return;                              // i-frames -> the DODGE beat the charge
+    if (r.outcome === 'parried') { this._onParry(); return; }        // parry -> stagger + no damage
+    const blocked = r.outcome === 'blocked';
+    this.inv.hp = Math.max(0, this.inv.hp - r.taken);
+    this._sfx(blocked ? 'sfx_hit' : 'sfx_charge_impact', blocked ? 0.5 : 0.7);
+    this._playerFlash = Math.round(COMBAT.FLASH_MS / 16);
+    this._hitFreeze = COMBAT.HIT_FREEZE_FRAMES + (blocked ? 0 : 2);
+    this.cameras.main.shake(blocked ? 110 : 220, blocked ? COMBAT.SHAKE_HIT : COMBAT.SHAKE_CHARGE);
+    const k = blocked ? 0.4 : 1, d = e.chargeDir;
+    this.player.body.setVelocity(d.x * COMBAT.KNOCKBACK_SPEED * k, d.y * COMBAT.KNOCKBACK_SPEED * k);
     if (this.inv.hp <= 0) { this.inv.hp = this.inv.stats().maxHp; this.player.x = 17 * TILE; this.player.y = 19 * TILE; this.player.body.reset(17 * TILE, 19 * TILE); }
+  }
+
+  // a DODGE: dash with i-frames in the move dir (or facing if idle) — beats the charger
+  _tryDodge() {
+    const now = this.time.now;
+    let { dx, dy } = this._inputDir || { dx: 0, dy: 0 };
+    if (!dx && !dy) { const f = FACE_VEC[this.player.facing] || FACE_VEC.down; dx = f.x; dy = f.y; }
+    this.pc.dodge(now, dx, dy);                          // (no-op if on cooldown)
+  }
+
+  // a successful PARRY: stagger the charger into a long punish window + no damage
+  _onParry() {
+    const e = this.enemy;
+    this.pc.consumeParry();
+    e.staggerFrames = Math.round(COMBAT.PARRY_STUN_MS / 16);
+    e.flashFrames = 8;
+    this._sfx('sfx_hit', 0.85);
+    this._hitFreeze = COMBAT.HIT_FREEZE_FRAMES + 3;
+    this.cameras.main.shake(160, COMBAT.SHAKE_HIT);
   }
 
   _updateCombat(dt) {
     this._telegraphG.clear();
     const e = this.enemy; if (!e || !e.alive) { this._enemyMark.setVisible(false); return; }
-    if (this._iframes > 0) this._iframes--;
+    if (e.staggerFrames > 0) {                           // PARRIED -> staggered: frozen + vulnerable (the punish window)
+      e.staggerFrames--;
+      e.spr.body.setVelocity(0, 0); e.spr.setState('idle'); e.lastState = 'stagger'; e.spr.setScale(1);
+      let t = 0x66ccff; if (e.flashFrames > 0) { t = 0xffffff; e.flashFrames--; }
+      this._tint(e.spr, t); this._enemyMark.setVisible(false);
+      return;
+    }
     e.mon.update(dt);
     const st = e.mon.state, spr = e.spr;
     // CHARGE-LINE telegraph: while winding up, paint the rush path toward the player
@@ -588,9 +637,14 @@ export class GreenhollowScene extends Phaser.Scene {
 
   // tint every layer sprite of a Character (it's a Container of layers)
   _tint(charSpr, color) { charSpr.list.forEach((s) => s.setTint && s.setTint(color)); }
-  _flashPlayer() {
-    this.player.list.forEach((s) => s.setTint && s.setTint(0xff5555));
-    this.time.delayedCall(COMBAT.FLASH_MS, () => this.player.list.forEach((s) => s.clearTint && s.clearTint()));
+  // player tint each frame: hurt-flash > dodge-ghost > block-guard > none
+  _updatePlayerTint(now) {
+    let t = null;
+    if (this.pc.isBlocking()) t = 0x66ccff;             // guard
+    if (this.pc.isInvulnerable(now)) t = 0xeaf6ff;      // dodging (i-frames) — pale ghost
+    if (this._playerFlash > 0) { t = 0xff5555; this._playerFlash--; }
+    if (t == null) this.player.list.forEach((s) => s.clearTint && s.clearTint());
+    else this.player.list.forEach((s) => s.setTint && s.setTint(t));
   }
   _sfx(key, vol = 0.6) { if (this.cache.audio.exists(key)) this.sound.play(key, { volume: vol }); }
 
