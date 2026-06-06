@@ -8,7 +8,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview --port 5173 --strictPort",
-    "test": "node src/systems/Karma.test.js && node src/systems/QuestEngine.test.js && node src/systems/Economy.test.js && node src/data/quests/greenhollow.test.js && node src/data/quests/greenhollow.side.test.js && node src/data/quests/ashenmarsh.test.js && node src/data/quests/sunderedpeaks.test.js && node src/data/quests/tidewreck.test.js && node src/data/quests/emberwood.test.js && node src/data/quests/spire.test.js && node src/data/quests/philosophy.test.js && node src/data/quests/cameos.test.js"
+    "test": "node src/systems/Karma.test.js && node src/systems/QuestEngine.test.js && node src/systems/Economy.test.js && node src/systems/TimeOfDay.test.js && node src/systems/Monsters.test.js && node src/data/quests/greenhollow.test.js && node src/data/quests/greenhollow.side.test.js && node src/data/quests/ashenmarsh.test.js && node src/data/quests/sunderedpeaks.test.js && node src/data/quests/tidewreck.test.js && node src/data/quests/emberwood.test.js && node src/data/quests/spire.test.js && node src/data/quests/philosophy.test.js && node src/data/quests/cameos.test.js"
   },
   "dependencies": {
     "phaser": "^3.90.0"
