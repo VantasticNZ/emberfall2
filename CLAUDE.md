@@ -45,5 +45,12 @@ Karma + deed-memory engine. Tests are plain Node + `node:assert` (`npm test`).
 7. **Never email the owner** or take outward-facing actions on their behalf.
 8. **Be certain before running commands**; prefer scripts + absolute paths over
    manual moves. Stop and ask when genuinely blocked (see the stop-for list).
+9. **RENDER VERIFICATION — a green headless test is NOT enough for visual work.**
+   Any session that renders anything (scene/world/UI/art) MUST: (a) run it LIVE
+   (dev server), (b) SCREENSHOT it at normal zoom, (c) self-check against the
+   PRESENTATION & FEEL DoD (QUALITY-BIBLE Part 2.5) and report pass/FAIL per item
+   with the screenshot, (d) explicitly hand the FEEL items (movement/camera/combat
+   feel) to Van to play-judge. No placeholder/colour-box assets — omit + flag
+   instead. `npm test` passing proves LOGIC only, never presentation.
 
 The owner is Van (NZ). Be concise, honest, willing to push back; no emoji.
