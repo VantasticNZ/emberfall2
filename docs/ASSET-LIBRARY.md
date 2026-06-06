@@ -10,6 +10,12 @@ pipeline is separate and untouched.
 - **Usable 2D + audio (committed, CC0):** Kenney `ui-pack-pixel-adventure` +
   `ui-pack-rpg-expansion` → `asset-library/2d/ui/`; Kenney `rpg-audio`, `ui-audio`,
   `voiceover-pack` → `asset-library/audio/`.
+- **LPC environment/monsters/props/effects (committed, open-source — added 2026-06-07):**
+  364 files / ~5 MB in `asset-library/2d/{tiles,buildings,items,sprites/enemies,effects}`
+  filling Emberfall's flagged gaps — bog/marsh + caves + biomes ([LPC] Terrains),
+  cliffs/waterfall/interiors/props (ElizaWy/LPC), 64px monsters ([LPC] Monsters),
+  combat FX (Extended LPC Magic pack). Manifest `2d/ENV-MANIFEST.json`, attribution
+  `2d/ENV-CREDITS.md`. Full hauls at `C:\GameAssets\lpc-env` (NOT in git). Not yet wired in.
 - **LPC character parts (committed, open-source — added 2026-06-07):** 625 parts /
   34,569 PNG (~49 MB) in `asset-library/2d/sprites/characters/` — the rig-compatible
   (idle/walk/slash) working set of the Universal-LPC generator: bodies (incl.

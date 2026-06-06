@@ -46,6 +46,25 @@ A **two-tier** expansion (see `docs/ASSET-LEDGER.md` → "TWO-TIER ASSET LIBRARY
 | weapons | 33 | Universal-LPC | OGA-BY/CC-BY-SA/GPL ✅ |
 | shields | 24 | Universal-LPC | OGA-BY ✅ |
 
+## ✅ USABLE — LPC environment/monsters/props/effects (gap hunt, committed 2026-06-07)
+LPC-style assets filling Emberfall's flagged gaps (two-tier; full hauls at
+`C:\GameAssets\lpc-env`, NOT in git). 364 files / ~5 MB. Manifest `2d/ENV-MANIFEST.json`,
+attribution `2d/ENV-CREDITS.md`. **Not yet wired in** — staged catalogue.
+
+| repo path | gap filled | source | licence |
+|---|---|---|---|
+| `2d/tiles/lpc-terrains/` | **bog/marsh** + caves + water + biomes | [LPC] Terrains (bluecarrot16 + many) | CC-BY-SA 4.0/3.0, CC-BY 3.0, GPL 3.0 ✅ |
+| `2d/tiles/eliza-terrain/` | cliffs/waterfall/ice/plants/rocks | ElizaWy/LPC | OGA-BY 3.0 ✅ |
+| `2d/buildings/eliza-structure/` | buildings + interiors | ElizaWy/LPC | OGA-BY 3.0 ✅ |
+| `2d/items/eliza-objects/` | props (chests/barrels/furniture/…) | ElizaWy/LPC | OGA-BY 3.0 ✅ |
+| `2d/sprites/enemies/lpc-monsters/` | 64px creatures (slime/bat/…) | [LPC] Monsters + Bat | CC-BY-SA 3.0, GPL 3.0, OGA-BY 3.0 ✅ |
+| `2d/effects/lpc-magic/` | combat FX (fire/ice/lightning/…) | Extended LPC Magic pack | CC-BY-SA 3.0, GPL 3.0 ✅ |
+| `2d/effects/eliza-water/` | water splash/ripple | ElizaWy/LPC | OGA-BY 3.0 ✅ |
+
+Rejected (off-style, NOT committed): 16×16 monster packs; "Swamp 2D Tileset". UI: not
+hunted (note only — fetch only if clearly LPC). See `docs/ASSET-LEDGER.md` → "LPC
+ENVIRONMENT / MONSTER / PROP / EFFECT HUNT".
+
 ## 🧊 PARKED 3D — `3d-future/` (CATALOGUE ONLY, binaries NOT copied — see note)
 All CC0, AI-safe, but 3D and therefore **not for the 2D pipeline**. Kept in
 `Downloads/`, catalogued + vetted here; not committed to git (they total >1 GB —

@@ -74,3 +74,29 @@ copyleft (keep same licence + credits screen on a commercial ship).
 > catalogue, not shipped, so it is outside the gate — attribution is recorded here
 > + in `manifest.json`/`CREDITS.md` instead. Re-confirm before wiring any of it
 > into `public/`.
+
+## LPC ENVIRONMENT / MONSTER / PROP / EFFECT HUNT (2026-06-07)
+
+Gap-driven asset hunt — LPC-style only, two-tier. Master hauls at
+`C:\GameAssets\lpc-env` (local, NOT in git); the LPC-style, Emberfall-usable subset
+is committed to `asset-library/2d/`. Manifest: `asset-library/2d/ENV-MANIFEST.json`;
+full attribution: `asset-library/2d/ENV-CREDITS.md`. Build:
+`scripts/build_lpc_env.py` (copy subset from master) + `scripts/build_lpc_env_manifest.py`.
+**Not wired into the game** — staged catalogue only. 364 files / ~5 MB.
+
+| repo path | source | licence (AI-safe) | fills gap |
+|---|---|---|---|
+| `2d/tiles/lpc-terrains/` | **[LPC] Terrains** — bluecarrot16, Sharm, Daneeklu, Jetrel, Zabin, Hyptosis, C.Nilsson, Buko, Nushio, ZaPaper, billknye, W.Thompson, caeles, Redshrike, Bertram, RayaneFLX | CC-BY-SA 4.0/3.0 · CC-BY 3.0 · GPL 3.0 | **bog/marsh** (Ashen Marsh) + caves + water + biomes (32px) |
+| `2d/tiles/eliza-terrain/` | **ElizaWy/LPC — Terrain** — Eliza Wyatt, Sharm, Hyptosis, bluecarrot16 | OGA-BY 3.0 | cliffs (mountain/coast), waterfall, ice-shallows, plants, mushrooms, rocks, seasons |
+| `2d/buildings/eliza-structure/` | **ElizaWy/LPC — Structure** — Eliza Wyatt + LPC contributors | OGA-BY 3.0 | buildings + interiors (walls/floors/doors/windows/roofing/bridges/fences/stairs) |
+| `2d/items/eliza-objects/` | **ElizaWy/LPC — Objects** — Eliza Wyatt + LPC contributors | OGA-BY 3.0 | props (chests/barrels/crates/cauldron/furniture/smithing/dungeon/wall items) |
+| `2d/sprites/enemies/lpc-monsters/` | **[LPC] Monsters** + **[LPC] Bat extended** — CharlesGabriel, bagzie, bluecarrot16, Evert | CC-BY-SA 3.0 · GPL 3.0 · OGA-BY 3.0 | 64px creatures: slime/bat/eyeball/bee/worms/man-eater/pumpkin-king/ghost/snake |
+| `2d/effects/lpc-magic/` | **Extended LPC Magic pack** — Daniel Eddeland (Daneeklu) | CC-BY-SA 3.0 · GPL 3.0 | combat FX: fire/ice/lightning/tornado/spikes (128px) |
+| `2d/effects/eliza-water/` | **ElizaWy/LPC — FX** — Eliza Wyatt | OGA-BY 3.0 | water splash/ripple/reflections |
+
+> Per-folder source `Credits.txt` / `CREDITS-terrain.txt` are bundled alongside the
+> art. Skeleton/zombie/bandit enemies are covered by the LPC character base (Task A,
+> `characters/manifest.json`). REJECTED for the repo: 16×16 "Monsters Slime/Skeleton/
+> Goblin" and "Swamp 2D Tileset" — off-style (not LPC), so not committed. Clearly-
+> modern ElizaWy Objects (copy machine, fridge, TV, laptop, vending machine, …) were
+> excluded for medieval style fit (kept in master only). CC-BY-SA / GPL are copyleft.
