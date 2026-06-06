@@ -160,4 +160,57 @@ export const EMBERWOOD_SIDE = [
         options: [ { label: '(Claim the Cinderhide Cloak.)', choice: { quest: 'SE5', id: 'slay' }, end: true } ] },
     } },
   },
+
+  // PH4 — The Veil (set a rule for sharing scarce relief WITHOUT knowing which
+  // half you'll be assigned to — then it binds you too). Weighs Purity; ties to
+  // SE2 (the elder names your settlement choice if you made it). No right answer.
+  {
+    id: 'PH4', title: 'The Veil', region: 'Emberwood', act: 2,
+    type: 'side', tone: 'heavy', perm: false,
+    requires: { quests: ['M15'] },
+    reward: {},
+    steps: [
+      { id: 'rule', desc: 'Set the rule for dividing relief between the burnt and frozen halves.' },
+      { id: 'draw', desc: "Draw lots for which half you'll shelter with — AFTER you decide." },
+    ],
+    choices: [
+      { id: 'equal', label: 'Split everything equally between both halves', impact: 'good',
+        karma: { purity: 5 }, deed: 'veil_equal', ending: '',
+        note: 'A flat fair share, sight unseen — safe, if not always the kindest.' },
+      { id: 'need', label: 'Give most to whichever half is worse off', impact: 'good',
+        karma: { purity: 10 }, deed: 'veil_need', ending: '',
+        note: 'You protect the worst-off — the rule you would want if you woke among them.' },
+      { id: 'triage', label: 'Give to whichever half can still be saved; let the doomed go', impact: 'dark',
+        karma: { purity: -10 }, deed: 'veil_triage', ending: '',
+        note: 'Cold arithmetic — set knowing you might be the half it writes off.' },
+    ],
+    dialogue: { start: 'frame', nodes: {
+      // reactive: if you already made the SE2 settlement choice, the elder names it
+      frame: { route: [
+        { when: (c) => c.karma.hasDeed('saved_burning') || c.karma.hasDeed('saved_freezing'), to: 'frame_se2' },
+        { to: 'frame_plain' } ] },
+      frame_se2: { speaker: 'Elder Ash', text:
+        "You already chose which half to pull from the fire — I'll not make you weigh that again. But the " +
+        "survivors of BOTH halves are short of everything now, and someone must set how the little we have " +
+        "is shared. Here's the cruelty, traveller: you'll draw lots for which half you shelter with tonight " +
+        "AFTER you set the rule. Whatever you decide, you decide for yourself too, blind. So — how do we " +
+        "share what's left?",
+        options: [ { label: '(Set the rule, not knowing your own lot.)', to: 'decide' } ] },
+      frame_plain: { speaker: 'Elder Ash', text:
+        "Both halves of us are short of everything — blankets, broth, what scraps of medicine we saved. " +
+        "Someone must set how it's shared, and the council picked you: the outsider with no stake in either " +
+        "row. Except — here's the cruelty of it — you'll draw lots for which half you shelter with tonight " +
+        "AFTER you decide. Whatever rule you make, you make for yourself too, blind. How do we share what " +
+        "little's left?",
+        options: [ { label: '(Set the rule, not knowing your own lot.)', to: 'decide' } ] },
+      decide: { speaker: '', text:
+        "Two huddled, shivering, smoking halves of one village; one thin pile of relief between them; and " +
+        "your own fate folded into the choice, where you cannot see it.",
+        options: [
+          { label: '(Split it equally between both halves.)', choice: { quest: 'PH4', id: 'equal' }, end: true },
+          { label: '(Give most to whichever half is worse off.)', choice: { quest: 'PH4', id: 'need' }, end: true },
+          { label: '(Give it to whichever half can still be saved; let the rest go.)', choice: { quest: 'PH4', id: 'triage' }, end: true },
+        ] },
+    } },
+  },
 ];

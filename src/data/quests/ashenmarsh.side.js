@@ -179,4 +179,40 @@ export const ASHEN_MARSH_SIDE = [
         ] },
     } },
   },
+
+  // PH5 — The Experience Stone (a perfect, permanent blissful illusion vs the
+  // hard true world). Haunting + optional; it mirrors the whole game's lie-vs-
+  // truth in your palm. take (-P, turn from the real) / refuse (+P, keep it).
+  {
+    id: 'PH5', title: 'The Experience Stone', region: 'Ashen Marsh', act: 2,
+    type: 'twist', tone: 'melancholy', perm: false,
+    requires: { quests: ['M8'] },
+    reward: {},
+    steps: [ { id: 'offer', desc: 'A bog-mystic offers a stone of perfect, permanent bliss.' } ],
+    choices: [
+      { id: 'take', label: 'Take the stone — choose the perfect dream', impact: 'dark',
+        karma: { purity: -10 }, deed: 'stone_taken', ending: '',
+        note: 'You sink into a bliss that will never know itself false. A quiet ending, of a kind — and something in you does not come all the way back.' },
+      { id: 'refuse', label: 'Set the stone down — keep the real world', impact: 'good',
+        karma: { purity: 10 }, deed: 'stone_refused', ending: '',
+        note: 'You choose the hard true thing over the soft false one. It is, you realise, this whole land\'s question, sitting in your hand.' },
+    ],
+    dialogue: { start: 'offer', nodes: {
+      offer: { speaker: 'Mother Vell', text:
+        "*a still old woman sunk to the waist in the black water, eyes like wet slate* Hold this, child, and " +
+        "you need never hurt again. A whole long sweet life of every good thing you ever wanted — and you " +
+        "will not once, ever, know it isn't real. No grief. No marsh. No screaming flame. Just... warm. Or — " +
+        "*she opens her other, empty hand* — you keep all of THIS. The cold. The truth. The work. The ache " +
+        "of a real day. Choose honestly. No one watches but me, and I made my choice a long time ago.",
+        options: [
+          { label: '(Take the stone. Let it all be warm.)', choice: { quest: 'PH5', id: 'take' }, to: 'after' },
+          { label: '(Set it down. Keep the real, hard world.)', choice: { quest: 'PH5', id: 'refuse' }, to: 'after' },
+        ] },
+      after: { speaker: 'Mother Vell', text:
+        "*she watches what you did with the kind, terrible patience of someone who knows there was no wrong " +
+        "answer — only your answer* ...Mm. So that's the shape of you, under it all. Go on, then, whichever " +
+        "way you chose. The flame's still screaming out there either way.",
+        options: [ { label: '(Leave the still water.)', end: true } ] },
+    } },
+  },
 ];

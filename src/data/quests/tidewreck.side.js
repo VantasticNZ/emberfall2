@@ -204,4 +204,39 @@ export const TIDEWRECK_COAST_SIDE = [
         options: [ { label: '(Note it.)', choice: { quest: 'ST8', id: 'read' }, end: true } ] },
     } },
   },
+
+  // PH2 — The Barber of Saltbreak (a self-referential paradox dressed up as a
+  // tavern bet). Light; the reward is for SEEING that the rule is impossible.
+  // Little/no karma — it's a puzzle with a wink, not a moral test.
+  {
+    id: 'PH2', title: 'The Barber of Saltbreak', region: 'Tidewreck Coast', act: 2,
+    type: 'side', tone: 'mystery/fun', perm: false,
+    requires: { quests: ['M13'] },
+    reward: { drink: 'on_the_house', rep: 'wit' },
+    steps: [ { id: 'riddle', desc: 'Settle the week-old tavern bet: who shaves the barber?' } ],
+    choices: [
+      { id: 'spot', label: 'Point out the rule itself is impossible', impact: 'neutral',
+        karma: {}, deed: 'barber_paradox_seen', ending: '',
+        note: 'You see it: no such barber can exist. The tavern groans, then buys you a drink for the cleverness.' },
+      { id: 'dodge', label: '"He grows a beard / rides to the next town."', impact: 'neutral',
+        karma: {}, deed: 'barber_dodged', ending: '',
+        note: 'A pragmatic dodge — the logic stands untouched, but the poor barber can sleep again.' },
+      { id: 'guess', label: '"He shaves himself." (Say it confidently; move on.)', impact: 'neutral',
+        karma: {}, deed: 'barber_guessed', ending: '',
+        note: 'A confident wrong answer; old Crannock nods sagely, none the wiser.' },
+    ],
+    dialogue: { start: 'riddle', nodes: {
+      riddle: { speaker: 'Old Crannock', text:
+        "You! Settle a bet that's split this tavern a clean week. Our barber shaves every man in Saltbreak " +
+        "who does NOT shave himself — and ONLY those men. Simple rule. So riddle me this: who shaves the " +
+        "BARBER? If he shaves himself, then he's a man who shaves himself — so by his own rule he must NOT! " +
+        "But if he does NOT, then he's a man who doesn't — so the barber MUST! The poor devil's been too " +
+        "feared to touch a razor for days, going about like a hedge. WELL? Out with it!",
+        options: [
+          { label: '(The rule eats its own tail — no such barber can exist.)', choice: { quest: 'PH2', id: 'spot' }, end: true },
+          { label: '("He just grows a beard, or rides to the next town for a shave.")', choice: { quest: 'PH2', id: 'dodge' }, end: true },
+          { label: '("He shaves himself." Shrug. Order a drink.)', choice: { quest: 'PH2', id: 'guess' }, end: true },
+        ] },
+    } },
+  },
 ];

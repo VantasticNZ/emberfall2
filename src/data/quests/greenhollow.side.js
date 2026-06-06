@@ -259,4 +259,80 @@ export const GREENHOLLOW_SIDE = [
         options: [ { label: '(Take it all in.)', choice: { quest: 'GHUB', id: 'reconnect' }, end: true } ] },
     } },
   },
+
+  // PH3 — Grandfather's Axe (continuity vs material identity). An heirloom dispute
+  // you arbitrate; no right answer; a relationship/reputation deed with Hodge.
+  {
+    id: 'PH3', title: "Grandfather's Axe", region: 'Greenhollow', act: 2,
+    type: 'side', tone: 'reflective', perm: false,
+    requires: { quests: ['M7'] },
+    reward: {},
+    steps: [ { id: 'arbitrate', desc: "Settle whether Hodge's much-mended axe is still his grandfather's." } ],
+    choices: [
+      { id: 'same', label: "It's the same axe — the line, not the wood", impact: 'neutral',
+        karma: {}, deed: 'axe_continuity', ending: '',
+        note: 'You rule for continuity; Hodge keeps the heirloom and the meaning both.' },
+      { id: 'new', label: "It's a different axe — nothing of the first remains", impact: 'neutral',
+        karma: {}, deed: 'axe_material', ending: '',
+        note: 'You rule for the plain material truth; the cousin is satisfied, Hodge a little wounded.' },
+      { id: 'his', label: "It's his grandfather's because it matters to Hodge", impact: 'good',
+        karma: { morality: 5 }, deed: 'axe_meaning', ending: '',
+        note: 'You rule for what it means to the man holding it; Hodge will not forget the kindness.' },
+    ],
+    dialogue: { start: 'arbitrate', nodes: {
+      arbitrate: { speaker: 'Hodge', text:
+        "Settle this for us before I brain my cousin with the thing in question. THIS — *hefts a worn axe* " +
+        "— is my grandfather's axe. The head's been replaced twice, mind, and the handle three times over " +
+        "the years, but it's HIS, same as it ever was, and he taught me my trade at it.",
+        options: [ { label: '(And the cousin?)', to: 'cousin' } ] },
+      cousin: { speaker: 'Cousin Ruck', text:
+        "Replaced twice and three times! There's not a SPLINTER of the old man's axe left in it — it's a " +
+        "brand new axe with an old story glued on! You can't hand down a thing you've thrown away piece by " +
+        "piece, Hodge! Go on, traveller, you've an honest face on you — whose axe is it, truly?",
+        options: [
+          { label: "(It's the same axe — a thing is its line, not its splinters.)", choice: { quest: 'PH3', id: 'same' }, end: true },
+          { label: "(It's a new axe — none of the first is left in it.)", choice: { quest: 'PH3', id: 'new' }, end: true },
+          { label: "(It's his grandfather's because his grandfather is in what it means to him.)", choice: { quest: 'PH3', id: 'his' }, end: true },
+        ] },
+    } },
+  },
+
+  // PH6 — Buridan's Mule (a beast paralysed between two identical choices). Comic;
+  // small reward; the sly lesson that a clumsy choice beats perfect paralysis.
+  {
+    id: 'PH6', title: "Buridan's Mule", region: 'Greenhollow', act: 2,
+    type: 'twist', tone: 'funny', perm: false,
+    requires: { quests: ['M7'] },
+    reward: { gold: 10 },
+    steps: [ { id: 'mule', desc: "A carter's mule is starving between two identical hay piles." } ],
+    choices: [
+      { id: 'break', label: 'Break the tie — shove a pile / nudge the mule', impact: 'neutral',
+        karma: {}, deed: 'mule_freed', ending: '',
+        note: 'You make the two piles unequal; the daft beast eats. Any choice beat no choice.' },
+    ],
+    dialogue: { start: 'mule', nodes: {
+      mule: { speaker: 'Seymour Butz', text:
+        "*a flustered carter* Oi — you look like a soul who can make up their mind! MINE can't. The mule, " +
+        "I mean. Two piles of hay, exact same size, exact same distance, and the daft creature just stands " +
+        "DEAD BETWIXT 'em, head swinging from one to t'other, STARVING on a full larder. Do something afore " +
+        "it drops, I'm begging you.",
+        options: [ { label: '(Regard the agonised, perfectly-balanced mule.)', to: 'decide' } ] },
+      decide: { speaker: '', text:
+        "The mule's head swings left. Then right. Then left. It is, impossibly, getting thinner as you watch.",
+        options: [
+          { label: '(Shove one pile a foot closer.)', choice: { quest: 'PH6', id: 'break' }, to: 'done' },
+          { label: '(Take a bite of one pile yourself — now they differ.)', choice: { quest: 'PH6', id: 'break' }, to: 'done' },
+          { label: "(Wait — surely it'll decide on its own.)", to: 'wait' },
+        ] },
+      wait: { speaker: '', text:
+        "It looks left. It looks right. It looks at YOU, with enormous reproach. It does nothing whatsoever. " +
+        "It is now noticeably thinner. This could, genuinely, go on forever.",
+        options: [ { label: '(All right, all right — DO something.)', to: 'decide' } ] },
+      done: { speaker: 'Seymour Butz', text:
+        "HAH — look at it GO! All it ever needed was someone to tip the scales a hair. *presses a few coins " +
+        "on you* Funny, that. Daft little lesson, but maybe the only one worth a damn: a clumsy choice beats " +
+        "a perfect dither, every single time. You'd do well to carry that, wherever it is you're bound.",
+        options: [ { label: '(Pocket the coins, and the lesson.)', end: true } ] },
+    } },
+  },
 ];

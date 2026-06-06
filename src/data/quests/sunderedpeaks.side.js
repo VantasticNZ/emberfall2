@@ -175,4 +175,61 @@ export const SUNDERED_PEAKS_SIDE = [
         options: [ { label: '(Used. Too late.)', choice: { quest: 'SP5', id: 'duped' }, end: true } ] },
     } },
   },
+
+  // PH1 — The Runaway Cart (a genuinely no-win choice: ACT and kill more, do
+  // NOTHING and let one die, or try for all and likely fail). Weighs Morality.
+  // The Peaks react to WHAT you chose, never to whether it was "correct".
+  {
+    id: 'PH1', title: 'The Runaway Cart', region: 'Sundered Peaks', act: 2,
+    type: 'twist', tone: 'morality', perm: false,
+    requires: { quests: ['M11'] },
+    reward: {},
+    steps: [
+      { id: 'scene', desc: 'A runaway ore cart bears down on a pinned miner; a lever would divert it.' },
+      { id: 'decide', desc: 'Act, or not — there is no clean road out of this.' },
+    ],
+    choices: [
+      { id: 'divert', label: 'Pull the lever — divert the cart', impact: 'dark',
+        karma: { morality: -10 }, deed: 'cart_diverted', meta: { died: 3 }, ending: '',
+        note: 'You act; the cart takes the side tunnel. One would have died — now three do, by your hand.' },
+      { id: 'hold', label: "Don't touch the lever", impact: 'neutral',
+        karma: { morality: -5 }, deed: 'cart_held', meta: { died: 1 }, ending: '',
+        note: 'You let it run its course; the pinned miner dies, and you did nothing to stop it.' },
+      { id: 'try', label: 'Throw yourself at saving everyone', impact: 'good',
+        karma: { morality: 5 }, deed: 'cart_tried_all', meta: { died: 1 }, ending: '',
+        note: 'You go for all of them; the cart is faster than hope. The one still dies — but the Peaks saw you try.' },
+    ],
+    dialogue: { start: 'scene', nodes: {
+      scene: { speaker: 'Miner', text:
+        "*a scream of iron on iron* The CART — the brake's gone! Tomas is pinned on the main line, it'll cut " +
+        "him clean in half! *jabs at a switch-lever* That throws it down the east tunnel — but Garrick and " +
+        "his lads are in the east tunnel, three of 'em, backs turned, can't hear a thing! There's no TIME — " +
+        "what do we DO?!",
+        options: [ { label: '(One on the main line. Three down the tunnel. A lever between.)', to: 'decide' } ] },
+      decide: { speaker: '', text:
+        "The cart screams closer. Every road from this moment ends with someone under it. You have a breath. " +
+        "Maybe two.",
+        options: [
+          { label: '(Pull the lever — send it down the tunnel.)', choice: { quest: 'PH1', id: 'divert' }, to: 'out_divert' },
+          { label: "(Leave the lever — refuse to pick who dies.)", choice: { quest: 'PH1', id: 'hold' }, to: 'out_hold' },
+          { label: '(Drop the lever — run to drag Tomas free yourself.)', choice: { quest: 'PH1', id: 'try' }, to: 'out_try' },
+        ] },
+      out_divert: { speaker: '', text:
+        "The cart screams into the east tunnel. Three voices stop at once, mid-whistle. Tomas lives, and will " +
+        "not meet your eye again — because he knows exactly what you spent to keep him. No one in the Peaks " +
+        "calls it murder. No one calls it anything at all. That's almost the worst of it.",
+        options: [ { label: '(...)', end: true } ] },
+      out_hold: { speaker: '', text:
+        "You keep your hand off the iron. The cart takes Tomas. An hour on, Garrick's lads climb out of the " +
+        "east tunnel whistling, never knowing how close it came, never knowing the trade you didn't make. " +
+        "You did nothing, and a man died, and you will turn that word — nothing — over for a long while.",
+        options: [ { label: '(...)', end: true } ] },
+      out_try: { speaker: '', text:
+        "You fling the lever aside and HURL yourself at Tomas's pinned leg — and the cart is just that bit " +
+        "faster than you are brave. It takes him anyway. You're left with torn hands and the plain truth " +
+        "that wanting to save everyone is not the same as doing it. The miners haul you back from the rails, " +
+        "and they remember, after, that you tried.",
+        options: [ { label: '(...)', end: true } ] },
+    } },
+  },
 ];
