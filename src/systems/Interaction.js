@@ -38,11 +38,13 @@ export const Interaction = {
       const dist = Math.hypot(dx, dy);
       if (dist > it.radius) continue;
 
-      if (it.requireFacing && dist > 4) {
-        // forgiving facing test: candidate must be within ~120° of facing
+      if (it.requireFacing && dist > it.radius * 0.6) {
+        // Lenient facing: when you're close (within 60% of reach) no facing is
+        // needed at all; further out, only reject if you're facing clearly AWAY
+        // (>~115°). Makes "walk up + press E" rock-solid, not finicky.
         const len = dist || 1;
         const dot = (dx / len) * facing.x + (dy / len) * facing.y;
-        if (dot < -0.25) continue;
+        if (dot < -0.4) continue;
       }
       // prefer the nearest in-range candidate
       if (dist < bestScore) { bestScore = dist; best = it; }
