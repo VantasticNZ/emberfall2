@@ -30,6 +30,16 @@ export const COMBAT = Object.freeze({
   SHAKE_HIT: 0.006,         // screen-shake on a sword hit
   SHAKE_CHARGE: 0.014,      // bigger shake on charge impact
   FLASH_MS: 90,             // white/red flash duration on hit
+
+  // — ABILITIES (Stage 2b). FEEL-TUNE PENDING: Van tunes every timing/distance in
+  //   the morning; these are sane defaults only. The LOGIC is unit-tested. —
+  DODGE_DISTANCE: 96,       // px of the dash burst                         [feel-tune]
+  DODGE_DURATION_MS: 170,   // how long the burst moves                     [feel-tune]
+  DODGE_IFRAME_MS: 230,     // invulnerability window (>= duration = safe)  [feel-tune]
+  DODGE_COOLDOWN_MS: 620,   // between dodges                               [feel-tune]
+  BLOCK_DAMAGE_TAKEN: 0.25, // fraction of FRONTAL damage taken while blocking (0.25 = 75% blocked) [feel-tune]
+  PARRY_WINDOW_MS: 160,     // tight window at the START of a block: negates + opens a punish [feel-tune]
+  PARRY_STUN_MS: 900,       // enemy stagger after a successful parry        [feel-tune]
 });
 
 // Other tuning is ALSO single-sourced — it lives in its owning module (listed
