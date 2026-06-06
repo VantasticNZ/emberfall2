@@ -56,7 +56,8 @@ export const WORLD = {
   // NPCs — Mara (M1 quest) stands in the green; Bram (greeting only for now) stands
   // AT the forge, so "Bram's down at the forge already" pays off when you walk over.
   npcs: [
-    { tx: 19, ty: 18, facing: 'down', name: 'Mara', speed: 70, expression: 'happy', parts: MARA, quest: 'M1' },
+    { tx: 19, ty: 18, facing: 'down', name: 'Mara', speed: 70, expression: 'happy', parts: MARA, quest: 'M1',
+      done: ['Off you go then — and mind Old Edda, she\'s in a mood this morning.'] },
     { tx: 24, ty: 16, facing: 'down', name: 'Bram', speed: 70, expression: 'neutral', parts: BRAM, greeting: [
       "There's my little terror — up early for once! The forge is hot if you've come to watch me work.",
       "Go on now, say hello to your mother before she skins the both of us. I'll be right here.",
