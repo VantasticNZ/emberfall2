@@ -22,7 +22,9 @@ export const ENEMY_SKINS = {
   jumper: { name: 'Leap Horror', sheet: 'bat', scale: 0.9, base: 0xffffff },                   // (not placed yet)
 };
 
-// the BOSS — a vast tentacled bog-maw (closest to the "Drowned Guardian"; FLAG)
+// BOSS skins. FLAG: no armoured-construct sprite exists in the set — the Keep
+// Sentinel uses an iron-tinted pumpking (a big looming hulk) as the closest.
 export const BOSS_SKINS = {
   drowned_guardian: { name: 'The Drowned Guardian', sheet: 'man_eater_flower', scale: 1.4, base: 0x9fd6d0 },
+  keep_sentinel: { name: 'The Keep Sentinel', sheet: 'pumpking', scale: 1.8, base: 0x9098a8 },
 };

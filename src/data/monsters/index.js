@@ -152,6 +152,20 @@ export const BOSSES = {
       { belowHp: 0.5, behaviour: 'brute', twist: 'enraged' },      // the twist
     ],
   },
+
+  // The Keep Sentinel (Cinder Keep, Sundered Peaks M12) — welded armour, too
+  // armoured to face head-on; the GRAPPLE (trick) hauls its shield-arm off-balance
+  // so your blows land; at half armour it tears loose and rampages (BRUTE twist).
+  keep_sentinel: {
+    name: 'The Keep Sentinel', region: 'Sundered Peaks',
+    stats: { hp: 130, dmg: 15, speed: 2 },
+    trick: { tool: TOOLS.tool_grapple, desc: 'Grapple its shield-arm to haul it off-balance, then strike.' },
+    twistDesc: 'At half armour it tears loose of its mounts and rampages.',
+    phases: [
+      { behaviour: 'shielded' },                                   // armoured: grapple (trick) or flank
+      { belowHp: 0.5, behaviour: 'brute', twist: 'unleashed' },    // the twist
+    ],
+  },
 };
 
 export function archetype(id) { const a = ARCHETYPES[id]; if (!a) throw new Error(`unknown archetype: ${id}`); return a; }
