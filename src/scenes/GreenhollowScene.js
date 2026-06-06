@@ -24,6 +24,10 @@ import { GREENHOLLOW_CHILDHOOD } from '../data/quests/index.js';
 import { spawn as spawnMonster } from '../systems/Monsters.js';
 import { Inventory } from '../systems/Inventory.js';
 import { PlayerCombat } from '../systems/Combat.js';
+import { InputMap } from '../systems/Input.js';
+import { ModifierRegistry } from '../systems/Modifiers.js';
+import { item } from '../data/items/index.js';
+import { bindings } from '../constants/controls.js';
 import { COMBAT } from '../constants/standards.js';
 
 const tileToPx = (t) => t * TILE + TILE / 2;
@@ -185,30 +189,26 @@ export class GreenhollowScene extends Phaser.Scene {
     DepthSort.track(this.player, CHAR_FOOTPRINT.offY);
   }
 
-  // ---- INPUT ----------------------------------------------------------------
+  // ---- INPUT (reads the canonical CONTROL MAP via InputMap) ------------------
   _buildInput() {
+    this.im = new InputMap(this);                       // canonical bindings (src/constants/controls.js)
     this.cursors = this.input.keyboard.createCursorKeys();
-    this.keys = this.input.keyboard.addKeys({
-      up: 'W', down: 'S', left: 'A', right: 'D', dodge: 'SHIFT', block: 'K', interact: 'E', attack: 'SPACE',
-      one: 'ONE', two: 'TWO', three: 'THREE',
-      zoomOut: 'OPEN_BRACKET', zoomIn: 'CLOSED_BRACKET', debug: 'B', marsh: 'M',
-    });
-    this.keys.marsh.on('down', () => { if (!this._dlg) this.scene.start('Marsh'); });   // dev nav: visit the Ashen Marsh region
-    this.keys.attack.on('down', () => { if (!this._dlg && this._hitFreeze <= 0) this._playerAttack(); });
-    this.keys.dodge.on('down', () => { if (!this._dlg && this._hitFreeze <= 0) this._tryDodge(); });
-    this.keys.zoomOut.on('down', () => this._stepZoom(-1));
-    this.keys.zoomIn.on('down', () => this._stepZoom(+1));
-    this.input.on('wheel', (_p, _o, _dx, dy) => this._stepZoom(dy > 0 ? -1 : +1));
+    this.keys = this.input.keyboard.addKeys({ one: 'ONE', two: 'TWO', three: 'THREE', debug: 'B', marsh: 'M' });
+    // canonical actions:
+    this.im.onPress('interact', () => { if (this._dlg) this._dialogueConfirm(); else if (Interaction.active) Interaction.tryInteract(); });
+    this.im.onPress('attack', () => { if (this._canAct()) this._playerAttack(); });
+    this.im.onPress('dodge', () => { if (this._canAct()) this._tryDodge(); });          // DODGE-ROLL
+    this.im.onPress('settings', () => this._openSettings());
+    this.im.onPress('move_up', () => { if (this._dlg) this._dialogueNav(-1); });
+    this.im.onPress('move_down', () => { if (this._dlg) this._dialogueNav(+1); });
+    // left-click also attacks (mouse)
+    this.input.on('pointerdown', (ptr) => { if (ptr.leftButtonDown() && this._canAct()) this._playerAttack(); });
+    // dialogue choices via arrows + number keys; dev keys
+    this.cursors.up.on('down', () => { if (this._dlg) this._dialogueNav(-1); });
+    this.cursors.down.on('down', () => { if (this._dlg) this._dialogueNav(+1); });
+    this.keys.marsh.on('down', () => { if (!this._dlg) this.scene.start('Marsh'); });    // dev nav: Ashen Marsh
     this.keys.debug.on('down', () => this._toggleDebug());
-
-    // E = advance/confirm in dialogue, else interact
-    this.keys.interact.on('down', () => {
-      if (this._dlg) this._dialogueConfirm();
-      else if (Interaction.active) Interaction.tryInteract();
-    });
-    // up/down navigate dialogue choices (W/S + arrows)
-    [this.cursors.up, this.keys.up].forEach((k) => k.on('down', () => { if (this._dlg) this._dialogueNav(-1); }));
-    [this.cursors.down, this.keys.down].forEach((k) => k.on('down', () => { if (this._dlg) this._dialogueNav(+1); }));
+    this.input.on('wheel', (_p, _o, _dx, dy) => this._stepZoom(dy > 0 ? -1 : +1));
     // number keys = direct-select an option
     const pick = (i) => { if (this._dlg && i < this._dlg.options().length) { this._selOpt = i; this._dialogueConfirm(); } };
     this.keys.one.on('down', () => pick(0));
@@ -238,7 +238,7 @@ export class GreenhollowScene extends Phaser.Scene {
     const hudPanel = this.add.rectangle(8, 8, 558, 84, 0x14121c, 0.84).setOrigin(0, 0)
       .setStrokeStyle(2, 0xffe9c2, 0.9).setScrollFactor(0).setDepth(DEPTH.OVERLAY);
     const title = txt(20, 16, 'EMBERFALL 2 — Greenhollow', 20, '#ffe9c2');
-    const help = txt(20, 46, 'WASD: move   Space: attack   Shift: dodge   K: block/parry   E: talk', 13, '#cfc6e6');
+    const help = txt(20, 46, 'WASD move  Shift run  J attack  Space dodge-roll  C block  E talk  Esc settings', 12, '#cfc6e6');
     this.questHud = txt(20, 66, '', 15, '#9fe6a0');
     this.hud.add([hudPanel, title, help, this.questHud]);
     this._updateQuestHud();
@@ -437,25 +437,22 @@ export class GreenhollowScene extends Phaser.Scene {
       if (this.enemy && this.enemy.spr.body) this.enemy.spr.body.setVelocity(0, 0);
       DepthSort.update(); this._drawCombatUI(); return;
     }
-    if (this._dlg) { Movement.stop(this.player); DepthSort.update(); this._drawCombatUI(); return; }
+    if (this._dlg) { Movement.stop(this.player); this._blockArcG.clear(); DepthSort.update(); this._drawCombatUI(); return; }
 
     const now = this.time.now;
-    let dx = 0, dy = 0;
-    if (this.cursors.left.isDown || this.keys.left.isDown) dx -= 1;
-    if (this.cursors.right.isDown || this.keys.right.isDown) dx += 1;
-    if (this.cursors.up.isDown || this.keys.up.isDown) dy -= 1;
-    if (this.cursors.down.isDown || this.keys.down.isDown) dy += 1;
-    this._inputDir = { dx, dy };                       // remembered for _tryDodge
-    this.pc.setBlocking(now, this.keys.block.isDown && !this.player.isBusy());
-    if (this.pc.isDodgeMoving(now)) {                  // DASH burst overrides movement (with i-frames)
+    const { dx, dy } = this.im.vector(); this._inputDir = { dx, dy };
+    this.pc.setBlocking(now, this.combatUnlocked && this.im.down('block') && !this.player.isBusy());
+    if (this.pc.isDodgeMoving(now)) {                  // DODGE-ROLL burst + spin (approx of a roll)
       const v = this.pc.dodgeVelocity(); this.player.body.setVelocity(v.x, v.y);
-    } else if (this.pc.isBlocking()) {                 // BLOCK: brace, don't move
-      Movement.stop(this.player);
+      this.player.setRotation(this.player.rotation + 0.55 * (dx < 0 || dy < 0 ? -1 : 1));
     } else {
-      Movement.drive(this.player, dx, dy, false);
+      if (this.player.rotation !== 0) this.player.setRotation(0);
+      if (this.pc.isBlocking()) Movement.stop(this.player);          // BLOCK: brace
+      else Movement.drive(this.player, dx, dy, this.im.runHeld());   // run from the canonical bindings
     }
     this._updateCombat(dt);
     this._updatePlayerTint(now);
+    this._updateBlockArc();
     DepthSort.update();
     this._drawCombatUI();
 
@@ -471,11 +468,21 @@ export class GreenhollowScene extends Phaser.Scene {
   // ===========================================================================
   _initCombat() {
     this.inv = new Inventory({ storage: memoryStorage() });   // player HP from the economy/stats system
-    this.pc = new PlayerCombat();                             // dodge / block / parry (tested logic)
+    this.pc = new PlayerCombat();                             // dodge-roll / block / parry (tested logic)
+    this.mods = new ModifierRegistry(undefined, { dev: true }); // dev: easy modifiers ON (adult stays off)
+    // ADULT/ACT GATE: childhood (M1-M6) has NO combat. This is a DEV TEST arena
+    // (flagged on-screen), so the player is marked ADULT to let Van feel-test the
+    // charger; childhood scenes set isAdult=false -> the gate below disables combat.
+    this.player.isAdult = true; this.player.isMinor = false;
+    this.combatUnlocked = this.player.isAdult;
+    // SHIELD-SCALED block: equip a shield -> blockNegate comes from the shield item.
+    if (this.inv.add('iron_shield')) this.inv.equip('iron_shield');
+    this._refreshShieldBlock();
     this._hitFreeze = 0;
     this._atkReady = 0;
     this._playerFlash = 0;
     this._inputDir = { dx: 0, dy: 0 };
+    this._blockArcG = this.add.graphics().setDepth(DEPTH.OVERLAY);   // the BLOCK pose visual (guard arc)
     // world-space combat FX: a bold "!" tell, a ground CHARGE-LINE (so the dodge is
     // readable), and the enemy HP bar — all drawn/positioned each frame.
     this._enemyMark = this.add.text(0, 0, '!', { fontFamily: 'monospace', fontSize: '34px', color: '#ffe14d', fontStyle: 'bold' })
@@ -491,6 +498,7 @@ export class GreenhollowScene extends Phaser.Scene {
     const devNote = this.add.text(10, 132, '[DEV TEST] charger — real combat starts in Ashen Marsh', { fontFamily: 'monospace', fontSize: '10px', color: '#e0a35a' }).setResolution(2).setScrollFactor(0);
     this.playerHpUI.add([panel, this._hpBarBg, this._hpBarFill, this._hpLabel, devNote]);
     this._spawnCharger();
+    this._applyBigHead();   // dev: big-head modifier is ON by default (toggle in the options menu)
   }
 
   // DEV TEST ONLY — see QUALITY-BIBLE "COMBAT PLACEMENT RULE": NO combat in the
@@ -647,7 +655,39 @@ export class GreenhollowScene extends Phaser.Scene {
     if (t == null) this.player.list.forEach((s) => s.clearTint && s.clearTint());
     else this.player.list.forEach((s) => s.setTint && s.setTint(t));
   }
-  _sfx(key, vol = 0.6) { if (this.cache.audio.exists(key)) this.sound.play(key, { volume: vol }); }
+  _sfx(key, vol = 0.6) {
+    if (!this.cache.audio.exists(key)) return;
+    const a = bindings.options.audio;                    // master x sfx from the options menu
+    this.sound.play(key, { volume: vol * a.master * a.sfx });
+  }
+
+  // SHIELD-SCALED block: read the equipped shield's `block` (else bare-hand value).
+  _refreshShieldBlock() {
+    const sh = this.inv.equipped('shield');
+    const b = sh ? (item(sh).effects.find((e) => e.block != null)?.block ?? COMBAT.NO_SHIELD_BLOCK) : COMBAT.NO_SHIELD_BLOCK;
+    this.pc.setShieldBlock(b);
+  }
+  _canAct() { return !this._dlg && this._hitFreeze <= 0 && this.combatUnlocked; }
+  _openSettings() { if (this._dlg) return; this.scene.launch('Options', { caller: 'Greenhollow', mods: this.mods, im: this.im }); this.scene.pause(); }
+
+  // BLOCK POSE (real visual, not a tint): a raised guard ARC in the facing dir.
+  // FLAG: a proper LPC shield-raised / arm-up BLOCK animation needs block frames.
+  _updateBlockArc() {
+    this._blockArcG.clear();
+    if (!this.pc.isBlocking()) return;
+    const f = FACE_VEC[this.player.facing] || FACE_VEC.down;
+    const ang = Math.atan2(f.y, f.x), cx = this.player.x + f.x * 20, cy = this.player.y + f.y * 20 - 6;
+    this._blockArcG.lineStyle(7, 0x9fd8ff, 0.95).beginPath().arc(cx, cy, 22, ang - 1.0, ang + 1.0).strokePath();
+    this._blockArcG.lineStyle(3, 0xffffff, 0.7).beginPath().arc(cx, cy, 22, ang - 1.0, ang + 1.0).strokePath();
+  }
+
+  // BIG-HEAD modifier — scale the head-region layers of every Character.
+  _applyBigHead() {
+    const s = this.mods.headScale();
+    const heads = (c) => { if (!c?._slotLayers) return; for (const slot of ['head', 'hair', 'brows', 'beard']) (c._slotLayers[slot] || []).forEach((sp) => sp.setScale(s, s).setY(s > 1 ? -10 * (s - 1) : 0)); };
+    heads(this.player); if (this.enemy) heads(this.enemy.spr);
+    this.children.list.forEach((o) => { if (o.constructor?.name === 'Character') heads(o); });
+  }
 
   _drawCombatUI() {
     // player HP bar
