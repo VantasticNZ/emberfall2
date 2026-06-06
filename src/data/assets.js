@@ -136,6 +136,13 @@ export const DECALS = {
   decal_tuft:         { src: 'art/terrain/decal_tuft.png' },
   decal_flower_pink:  { src: 'art/terrain/decal_flower_pink.png' },
   decal_flower_white: { src: 'art/terrain/decal_flower_white.png' },
+  // ground-detail variety (lived-in field) — LPC plants_summer, OGA-BY
+  decal_grass_lush:   { src: 'art/terrain/decal_grass_lush.png' },
+  decal_grass_tall:   { src: 'art/terrain/decal_grass_tall.png' },
+  decal_clover:       { src: 'art/terrain/decal_clover.png' },
+  decal_fern:         { src: 'art/terrain/decal_fern.png' },
+  decal_flower_blue:  { src: 'art/terrain/decal_flower_blue.png' },
+  decal_dirt_patch:   { src: 'art/terrain/decal_dirt_patch.png' }, // soft worn ground
 };
 
 // Animation key for a layer texture + state + facing (write-once naming).
