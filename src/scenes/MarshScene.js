@@ -21,8 +21,16 @@ import { Interaction } from '../systems/Interaction.js';
 import { Dialogue } from '../systems/Dialogue.js';
 import { QuestEngine } from '../systems/QuestEngine.js';
 import { KarmaEngine } from '../systems/Karma.js';
+import { Inventory } from '../systems/Inventory.js';
+import { PlayerCombat } from '../systems/Combat.js';
+import { InputMap } from '../systems/Input.js';
+import { EnemyController } from '../systems/EnemyController.js';
 import { memoryStorage } from '../systems/storage.js';
+import { COMBAT } from '../constants/standards.js';
+import { bindings } from '../constants/controls.js';
 import { ASHEN_MARSH } from '../data/quests/index.js';
+
+const FACE_VEC = { up: { x: 0, y: -1 }, down: { x: 0, y: 1 }, left: { x: -1, y: 0 }, right: { x: 1, y: 0 } };
 
 const tileToPx = (t) => t * TILE + TILE / 2;
 const SPEAKER_FACE = {
@@ -64,12 +72,13 @@ export class MarshScene extends Phaser.Scene {
     this._dlg = null;
     this._buildInput();
     this._buildUI();
+    this._initCombat();
     this._setupUICamera();
     this.scale.on('resize', (sz) => { this._applyCamera(); this._layoutUI(); this.uiCamera.setSize(sz.width, sz.height); });
   }
 
   _setupUICamera() {
-    const ui = [this.hud, this.dialogue, this.prompt];
+    const ui = [this.hud, this.dialogue, this.prompt, this.playerHpUI, this.banner];
     this.uiCamera = this.cameras.add(0, 0, this.scale.width, this.scale.height);
     this.cameras.main.ignore(ui);
     this.uiCamera.ignore(this.children.list.filter((o) => !ui.includes(o)));
@@ -146,15 +155,22 @@ export class MarshScene extends Phaser.Scene {
     Collision.markPlayer(this.player); this.actors.add(this.player); DepthSort.track(this.player, CHAR_FOOTPRINT.offY);
   }
 
-  // ---- INPUT ----------------------------------------------------------------
+  // ---- INPUT (canonical control map; combat actions wired) ------------------
   _buildInput() {
+    this.im = new InputMap(this);
     this.cursors = this.input.keyboard.createCursorKeys();
-    this.keys = this.input.keyboard.addKeys({ up: 'W', down: 'S', left: 'A', right: 'D', interact: 'E', back: 'G' });
-    this.keys.interact.on('down', () => { if (this._dlg) this._dialogueConfirm(); else if (Interaction.active) Interaction.tryInteract(); });
-    [this.cursors.up, this.keys.up].forEach((k) => k.on('down', () => { if (this._dlg) this._dialogueNav(-1); }));
-    [this.cursors.down, this.keys.down].forEach((k) => k.on('down', () => { if (this._dlg) this._dialogueNav(1); }));
+    this.keys = this.input.keyboard.addKeys({ back: 'G' });
+    this.im.onPress('interact', () => { if (this._dlg) this._dialogueConfirm(); else if (Interaction.active) Interaction.tryInteract(); });
+    this.im.onPress('attack', () => { if (this._canAct()) this._playerAttack(); });
+    this.im.onPress('dodge', () => { if (this._canAct()) this._tryDodge(); });
+    this.im.onPress('move_up', () => { if (this._dlg) this._dialogueNav(-1); });
+    this.im.onPress('move_down', () => { if (this._dlg) this._dialogueNav(+1); });
+    this.cursors.up.on('down', () => { if (this._dlg) this._dialogueNav(-1); });
+    this.cursors.down.on('down', () => { if (this._dlg) this._dialogueNav(+1); });
+    this.input.on('pointerdown', (ptr) => { if (ptr.leftButtonDown() && this._canAct()) this._playerAttack(); });
     this.keys.back.on('down', () => this.scene.start('Greenhollow'));   // dev nav back to the slice
   }
+  _canAct() { return !this._dlg && this._hitFreeze <= 0; }
 
   // ---- UI + DIALOGUE (same language as Greenhollow) -------------------------
   _buildUI() {
@@ -163,7 +179,7 @@ export class MarshScene extends Phaser.Scene {
     this.hud = this.add.container(0, 0).setScrollFactor(0).setDepth(DEPTH.OVERLAY);
     const panel = this.add.rectangle(8, 8, 470, 62, 0x10171a, 0.86).setOrigin(0, 0).setStrokeStyle(2, 0x9fd0c2, 0.9).setScrollFactor(0).setDepth(DEPTH.OVERLAY);
     const title = txt(18, 14, 'EMBERFALL 2 — Ashen Marsh', 18, '#cfeee2');
-    const help = txt(18, 42, 'WASD: move    E: talk / advance    ↑↓: choose    G: back to Greenhollow', 11, '#9fc0b6');
+    const help = txt(18, 42, 'WASD move · J attack · Space dodge · C block · E talk · G back', 11, '#9fc0b6');
     this.questHud = txt(18, 0, '', 12, '#bfe6c2'); this.questHud.setVisible(false);
     this.hud.add([panel, title, help]);
     this.prompt = this.add.text(W / 2, H - 140, '', { fontFamily: 'monospace', fontSize: '17px', color: '#102018', backgroundColor: '#bfe6c2', padding: { x: 10, y: 5 } }).setOrigin(0.5, 1).setResolution(2).setScrollFactor(0).setDepth(DEPTH.OVERLAY).setVisible(false);
@@ -214,7 +230,13 @@ export class MarshScene extends Phaser.Scene {
     this.dlgHint.setText(isChoice ? '↑↓ move · 1/2 or E to pick' : 'E to continue ▸');
   }
   _dialogueNav(d) { const o = this._dlg.options(); if (o.length < 2) return; this._selOpt = Phaser.Math.Clamp(this._selOpt + d, 0, o.length - 1); this._renderOptions(o); }
-  _dialogueConfirm() { this._dlg.select(this._selOpt); this._selOpt = 0; if (this._dlg.done || !this._dlg.node()) this._closeDialogue(); else this._renderNode(); }
+  _dialogueConfirm() {
+    const wasNode = this._dlg.nodeId;
+    this._dlg.select(this._selOpt); this._selOpt = 0;
+    // M9: choosing "Raise the Lantern" at the guardian beat starts the REAL boss fight
+    if (this._activeQuest === 'M9' && wasNode === 'guardian') { this._startBossFight(); return; }
+    if (this._dlg.done || !this._dlg.node()) this._closeDialogue(); else this._renderNode();
+  }
   _closeDialogue() {
     if (this._activeQuest && this.quests.status(this._activeQuest) === 'active') this.quests.complete(this._activeQuest);
     this.dialogue.setVisible(false); this._optTexts.forEach((t) => t.destroy()); this._optTexts = []; this._dlg = null; this._activeQuest = null;
@@ -234,15 +256,132 @@ export class MarshScene extends Phaser.Scene {
   }
   _faceToward(from, to) { const dx = to.x - from.x, dy = to.y - from.y; if (Math.abs(dx) >= Math.abs(dy)) return dx < 0 ? 'left' : 'right'; return dy < 0 ? 'up' : 'down'; }
 
-  update() {
-    if (this._dlg) { Movement.stop(this.player); DepthSort.update(); return; }
-    let dx = 0, dy = 0;
-    if (this.cursors.left.isDown || this.keys.left.isDown) dx -= 1;
-    if (this.cursors.right.isDown || this.keys.right.isDown) dx += 1;
-    if (this.cursors.up.isDown || this.keys.up.isDown) dy -= 1;
-    if (this.cursors.down.isDown || this.keys.down.isDown) dy += 1;
-    Movement.drive(this.player, dx, dy, false);
+  // ---- COMBAT (the first ADULT combat region — placement rule says combat is correct here) ----
+  _initCombat() {
+    this.player.isAdult = true; this.player.isMinor = false;
+    this.player.equip('sword');
+    this.inv = new Inventory({ storage: memoryStorage() });
+    this.pc = new PlayerCombat();
+    this._hitFreeze = 0; this._atkReady = 0; this._playerFlash = 0; this._inputDir = { dx: 0, dy: 0 }; this._bossActive = false;
+    this._blockArcG = this.add.graphics().setDepth(DEPTH.OVERLAY);
+    this.playerHpUI = this.add.container(0, 0).setScrollFactor(0).setDepth(DEPTH.OVERLAY);
+    const panel = this.add.rectangle(8, 78, 220, 30, 0x10171a, 0.86).setOrigin(0, 0).setStrokeStyle(2, 0x9fd0c2, 0.9).setScrollFactor(0);
+    this._hpBarBg = this.add.rectangle(16, 94, 160, 12, 0x3a1418, 1).setOrigin(0, 0.5).setScrollFactor(0);
+    this._hpBarFill = this.add.rectangle(16, 94, 160, 12, 0x5fcf6a, 1).setOrigin(0, 0.5).setScrollFactor(0);
+    this._hpLabel = this.add.text(182, 87, '', { fontFamily: 'monospace', fontSize: '13px', color: '#eaf6ef' }).setResolution(2).setScrollFactor(0);
+    this.playerHpUI.add([panel, this._hpBarBg, this._hpBarFill, this._hpLabel]);
+    this.banner = this.add.text(this.scale.width / 2, 92, '', { fontFamily: 'monospace', fontSize: '15px', color: '#ffe9c2', backgroundColor: '#10171acc', padding: { x: 10, y: 5 }, align: 'center' }).setOrigin(0.5, 0).setScrollFactor(0).setDepth(DEPTH.OVERLAY).setVisible(false);
+    this.combat = new EnemyController(this, {
+      solids: this.solids,
+      onPlayerHit: (dmg, info) => this._onPlayerHit(dmg, info),
+      onPlayerRecoil: (dmg) => this._onPlayerRecoil(dmg),
+    });
+    for (const en of (MARSH.enemies || [])) this.combat.spawn(en.id, { tx: en.tx, ty: en.ty });
+    this._buildShrine();
+  }
+  _buildShrine() {
+    const sh = MARSH.shrine; if (!sh) return;
+    const x = tileToPx(sh.tx), y = tileToPx(sh.ty);
+    const marker = this.physics.add.sprite(x, y, 'prop_sign').setTint(0x6a8a9a);  // FLAG: a real shrine-arch tile is wanted
+    marker.body.enable = false; DepthSort.track(marker, 8);
+    Interaction.register({ x, y: y + 8, prompt: `Enter ${sh.name}`, onInteract: () => {
+      if (this.quests.status('M9') === 'complete') return this._startGreeting('', ['The shrine is silent now — the Guardian gone, the shard claimed.']);
+      if (this.quests.status('M8') !== 'complete') return this._banner('Speak with Elder Yssa, then cross to Hagga (M8) first.');
+      this._startQuest('M9');
+    } });
+  }
+  _banner(t, ms = 2600) { this.banner.setText(t).setVisible(true); this.time.delayedCall(ms, () => this.banner && this.banner.setVisible(false)); }
+
+  _playerAttack() {
+    const now = this.time.now;
+    if (now < this._atkReady || this.player.isBusy()) return;
+    this._atkReady = now + COMBAT.ATTACK_COOLDOWN_MS;
+    this.player.action('attack'); this._sfx('sfx_swing', 0.45);
+    const tool = this._bossActive ? 'tool_lantern' : null;          // lantern strips the Guardian's shroud
+    const out = this.combat.playerAttack(this.player, COMBAT.ATTACK_DAMAGE, { tool });
+    for (const r of out) {
+      if (r.outcome === 'hit' || r.outcome === 'swarm') { this._sfx('sfx_hit', 0.7); this._hitFreeze = COMBAT.HIT_FREEZE_FRAMES; this.cameras.main.shake(110, COMBAT.SHAKE_HIT); }
+      else if (r.outcome === 'interrupted') { this._sfx('sfx_hit', 0.55); this._banner('Channel interrupted!', 1200); }
+      else if (r.outcome === 'guarding') { this._sfx('sfx_swing', 0.3); this._banner('Blocked up front — FLANK it!', 1400); }
+      else if (r.outcome === 'recoil') this._banner('It is charged — wait for the window!', 1400);
+      if (r.killed && r.e.boss) this._onBossDefeated();
+    }
+  }
+  _tryDodge() {
+    const now = this.time.now;
+    let { dx, dy } = this._inputDir; if (!dx && !dy) { const f = FACE_VEC[this.player.facing] || FACE_VEC.down; dx = f.x; dy = f.y; }
+    this.pc.dodge(now, dx, dy);
+  }
+  _onPlayerHit(dmg, { fromFront, dir }) {
+    const now = this.time.now, r = this.pc.takeDamage(now, dmg, { fromFront });
+    if (r.outcome === 'dodged') return;
+    if (r.outcome === 'parried') { this.pc.consumeParry(); const a = this.combat.nearest(this.player); if (a) this.combat.stagger(a); this._sfx('sfx_hit', 0.85); this._hitFreeze = COMBAT.HIT_FREEZE_FRAMES + 3; this.cameras.main.shake(160, COMBAT.SHAKE_HIT); return; }
+    const blocked = r.outcome === 'blocked';
+    this.inv.hp = Math.max(0, this.inv.hp - r.taken);
+    this._sfx(blocked ? 'sfx_hit' : 'sfx_charge_impact', blocked ? 0.5 : 0.7);
+    this._playerFlash = Math.round(COMBAT.FLASH_MS / 16); this._hitFreeze = COMBAT.HIT_FREEZE_FRAMES + (blocked ? 0 : 2);
+    this.cameras.main.shake(blocked ? 110 : 200, blocked ? COMBAT.SHAKE_HIT : COMBAT.SHAKE_CHARGE);
+    const k = blocked ? 0.4 : 1, d = dir || FACE_VEC.down;
+    this.player.body.setVelocity(d.x * COMBAT.KNOCKBACK_SPEED * k, d.y * COMBAT.KNOCKBACK_SPEED * k);
+    if (this.inv.hp <= 0) this._playerDown();
+  }
+  _onPlayerRecoil(dmg) {
+    this.inv.hp = Math.max(0, this.inv.hp - dmg);
+    this._playerFlash = Math.round(COMBAT.FLASH_MS / 16); this._hitFreeze = COMBAT.HIT_FREEZE_FRAMES;
+    this.cameras.main.shake(140, COMBAT.SHAKE_CHARGE);
+    if (this.inv.hp <= 0) this._playerDown();
+  }
+  _playerDown() {
+    this.inv.hp = this.inv.stats().maxHp;
+    const sp = MARSH.combatSpawn; this.player.x = tileToPx(sp.tx); this.player.y = tileToPx(sp.ty); this.player.body.reset(this.player.x, this.player.y);
+    this.combat.enemies.forEach((e) => { e.awake = false; });
+    if (this._bossActive && this.boss) { this.boss.alive = false; this.boss.spr.destroy(); this.boss = null; this._bossActive = false; if (this._dlg) this._closeDialogue(); }
+    this._banner('You fall — and wake at the marsh edge.');
+  }
+  _startBossFight() {
+    this.dialogue.setVisible(false); this._optTexts.forEach((t) => t.destroy()); this._optTexts = [];
+    Movement.stop(this.player);
+    this._bossActive = true;
+    const bs = MARSH.bossSpawn;
+    this.boss = this.combat.spawn('drowned_guardian', { boss: true, tx: bs.tx, ty: bs.ty });
+    this.player.x = tileToPx(bs.tx); this.player.y = tileToPx(bs.ty + 4); this.player.body.reset(this.player.x, this.player.y);
+    this._banner('THE DROWNED GUARDIAN — your lantern strips its shroud, then strike. At half HP it rampages.', 4500);
+  }
+  _onBossDefeated() {
+    this._bossActive = false; this.boss = null;
+    if (this._dlg) { this._dlg.nodeId = 'claim'; this._dlg.done = false; this.dialogue.setVisible(true); this._renderNode(); }
+    this._banner('The Guardian sinks. Something warm waits in the still water…', 3200);
+  }
+  _updatePlayerVisual(now) {
+    this._blockArcG.clear();
+    let t = null;
+    if (this.pc.isBlocking()) { t = 0x66ccff; const f = FACE_VEC[this.player.facing] || FACE_VEC.down, ang = Math.atan2(f.y, f.x); this._blockArcG.lineStyle(7, 0x9fd8ff, 0.95).beginPath().arc(this.player.x + f.x * 20, this.player.y + f.y * 20 - 6, 22, ang - 1.0, ang + 1.0).strokePath(); }
+    if (this.pc.isDodgeMoving(now)) { t = 0xeaf6ff; const prog = Math.min(1, Math.max(0, 1 - (this.pc.dodgeMoveUntil - now) / COMBAT.DODGE_DURATION_MS)), dip = Math.sin(prog * Math.PI); this.player.setScale(1 + 0.22 * dip, 1 - 0.5 * dip); }
+    else if (this.player.scaleX !== 1 || this.player.scaleY !== 1) this.player.setScale(1, 1);
+    if (this._playerFlash > 0) { t = 0xff5555; this._playerFlash--; }
+    if (t == null) this.player.list.forEach((s) => s.clearTint && s.clearTint()); else this.player.list.forEach((s) => s.setTint && s.setTint(t));
+  }
+  _drawCombatUI() {
+    const max = this.inv.stats().maxHp, hp = Math.max(0, this.inv.hp);
+    this._hpBarFill.width = 160 * (hp / max); this._hpBarFill.fillColor = hp / max > 0.3 ? 0x5fcf6a : 0xcf5f5f;
+    this._hpLabel.setText(`HP ${hp}/${max}`);
+  }
+  _sfx(key, vol = 0.6) { if (this.cache.audio.exists(key)) { const a = bindings.options.audio; this.sound.play(key, { volume: vol * a.master * a.sfx }); } }
+
+  update(time, delta) {
+    const dt = Math.min(delta || 16, 50) / 1000;
+    if (this._hitFreeze > 0) { this._hitFreeze--; Movement.stop(this.player); this.combat.update(dt, this.player); DepthSort.update(); this._drawCombatUI(); return; }
+    if (this._dlg) { Movement.stop(this.player); this._blockArcG.clear(); this.combat.update(dt, this.player); DepthSort.update(); this._drawCombatUI(); return; }
+    const now = this.time.now;
+    const { dx, dy } = this.im.vector(); this._inputDir = { dx, dy };
+    this.pc.setBlocking(now, this.im.down('block') && !this.player.isBusy());
+    if (this.pc.isDodgeMoving(now)) { const v = this.pc.dodgeVelocity(); this.player.body.setVelocity(v.x, v.y); }
+    else if (this.pc.isBlocking()) Movement.stop(this.player);
+    else Movement.drive(this.player, dx, dy, this.im.runHeld());
+    this.combat.update(dt, this.player);
+    this._updatePlayerVisual(now);
     DepthSort.update();
+    this._drawCombatUI();
     const active = Interaction.update(this.player);
     if (active) this.prompt.setText(`${active.prompt}  (E)`).setVisible(true); else this.prompt.setVisible(false);
   }
