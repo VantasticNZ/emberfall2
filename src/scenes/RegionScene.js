@@ -151,9 +151,11 @@ export class RegionScene extends Phaser.Scene {
         x: npc.x, y: npc.y + CHAR_FOOTPRINT.offY, prompt: `Talk to ${n.name}`,
         onInteract: () => {
           npc.facing = this._faceToward(npc, this.player); npc.setState('idle');
-          if (n.quest && this.quests.status(n.quest) !== 'complete') this._startQuestDialogue(n.quest);
+          const st = n.quest ? this.quests.status(n.quest) : null;
+          if (n.quest && (st === 'available' || st === 'active')) this._startQuestDialogue(n.quest);  // only enter an OPEN quest
+          else if (st === 'complete' && n.done) this._startGreeting(n.name, n.done);
+          else if (n.greeting) this._startGreeting(n.name, n.greeting);                                // locked/no-quest -> a line
           else if (n.done) this._startGreeting(n.name, n.done);
-          else if (n.greeting) this._startGreeting(n.name, n.greeting);
         },
       });
     }
