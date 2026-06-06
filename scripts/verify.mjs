@@ -123,6 +123,27 @@ const offenders = [];
 if (offenders.length) fail(`localStorage/sessionStorage used outside the storage adapter: ${offenders.join(', ')}`);
 else ok('storage: localStorage/sessionStorage only in src/systems/storage.js');
 
+// 6) CONSISTENCY — magic numbers that bypass the standards SSOT (best-effort) ---
+// Flags a bare interaction radius literal (use INTERACTION_RADIUS, or a derived
+// expression with a reason) and bare tile-size math (use TILE). Constant-derived
+// expressions like `INTERACTION_RADIUS * 1.5` and `t * TILE` are fine.
+const magic = [];
+(function walkLint(d) {
+  for (const name of readdirSync(d)) {
+    const p = join(d, name);
+    if (statSync(p).isDirectory()) { walkLint(p); continue; }
+    if (!/\.(m?js)$/.test(name)) continue;
+    const rel = p.slice(ROOT.length + 1).split('\\').join('/');
+    if (rel === 'src/constants/standards.js' || rel === 'src/data/assets.js') continue; // the SSOT homes
+    readFileSync(p, 'utf8').split('\n').forEach((line, i) => {
+      if (/\bradius:\s*-?\d/.test(line)) magic.push(`${rel}:${i + 1}  bare interaction radius — use INTERACTION_RADIUS`);
+      if (/(?:\*\s*32|\b32\s*\*)\b/.test(line)) magic.push(`${rel}:${i + 1}  bare tile size 32 — use TILE`);
+    });
+  }
+})(srcDir);
+if (magic.length) fail('magic numbers bypassing the standards SSOT:\n' + magic.map((m) => '      ' + m).join('\n'));
+else ok('consistency: no bare interaction-radius / tile-size literals bypass the SSOT');
+
 // --- summary ------------------------------------------------------------------
 if (fails.length) {
   console.error('\nVERIFY FAILED ✗\n' + fails.map((f) => '  ✗ ' + f).join('\n') + '\n');
