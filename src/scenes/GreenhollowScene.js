@@ -99,28 +99,28 @@ export class GreenhollowScene extends Phaser.Scene {
   }
 
   _scatterDecals() {
-    const cfg = WORLD.decals; if (!cfg) return;
-    let seed = cfg.seed >>> 0;
-    const rnd = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
-    const onGrass = (px, py) => {
-      const tx = px / TILE, ty = py / TILE;
-      const p = WORLD.pond;                       // keep decals off the water
-      if (p && tx >= p.tx - 0.5 && tx < p.tx + p.w + 0.5 && ty >= p.ty - 0.5 && ty < p.ty + p.h + 0.5) return false;
-      for (const [key, rx, ry, rw, rh] of WORLD.ground.rects) {
-        if (key === 'tile_grass') continue;
-        if (tx >= rx && tx < rx + rw && ty >= ry && ty < ry + rh) return false;
-      }
-      return true;
-    };
     const W = WORLD.widthTiles * TILE, H = WORLD.heightTiles * TILE;
-    let placed = 0, tries = 0;
-    while (placed < cfg.count && tries < cfg.count * 10) {
-      tries++;
-      const px = Math.floor(rnd() * W), py = Math.floor(rnd() * H);
-      if (!onGrass(px, py)) continue;
-      this.add.image(px, py, cfg.pool[Math.floor(rnd() * cfg.pool.length)]).setOrigin(0.5, 1).setDepth(DEPTH.FLOOR + 1);
-      placed++;
-    }
+    const p = WORLD.pond;
+    const onGrass = (px, py) => {                  // keep scatter off the water
+      const tx = px / TILE, ty = py / TILE;
+      return !(p && tx >= p.tx - 0.5 && tx < p.tx + p.w + 0.5 && ty >= p.ty - 0.5 && ty < p.ty + p.h + 0.5);
+    };
+    const scatter = (cfg, originY, depth) => {
+      if (!cfg) return;
+      let seed = cfg.seed >>> 0;
+      const rnd = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
+      let placed = 0, tries = 0;
+      while (placed < cfg.count && tries < cfg.count * 12) {
+        tries++;
+        const px = Math.floor(rnd() * W), py = Math.floor(rnd() * H);
+        if (!onGrass(px, py)) continue;
+        this.add.image(px, py, cfg.pool[Math.floor(rnd() * cfg.pool.length)]).setOrigin(0.5, originY).setDepth(depth);
+        placed++;
+      }
+    };
+    scatter(WORLD.dirt, 0.5, DEPTH.FLOOR + 1);     // worn patches: flat on the ground, under plants
+    scatter(WORLD.decals, 1, DEPTH.FLOOR + 2);     // grass/flowers: bottom-anchored, over the dirt
+    scatter(WORLD.ferns, 1, DEPTH.FLOOR + 2);      // a few larger ferns, sparse
   }
 
   // ---- POND (9-sliced LPC water: grass banks + shore, not a flat blue box) ---
@@ -153,7 +153,11 @@ export class GreenhollowScene extends Phaser.Scene {
       Collision.markSolidActor(npc); this.solids.add(npc); DepthSort.track(npc, CHAR_FOOTPRINT.offY);
       Interaction.register({
         x: npc.x, y: npc.y + CHAR_FOOTPRINT.offY, prompt: `Talk to ${n.name}`,  // canonical INTERACTION_RADIUS
-        onInteract: () => { npc.facing = this._faceToward(npc, this.player); npc.setState('idle'); this._startQuestDialogue(n.quest); },
+        onInteract: () => {
+          npc.facing = this._faceToward(npc, this.player); npc.setState('idle');
+          if (n.quest) this._startQuestDialogue(n.quest);
+          else if (n.greeting) this._startGreeting(n.name, n.greeting);
+        },
       });
     }
   }
@@ -259,6 +263,23 @@ export class GreenhollowScene extends Phaser.Scene {
   }
 
   // ---- DATA-DRIVEN QUEST DIALOGUE -------------------------------------------
+  // A simple, non-quest greeting (e.g. Bram at the forge) reusing the dialogue UI.
+  _startGreeting(name, lines) {
+    const nodes = {};
+    lines.forEach((t, i) => {
+      const last = i === lines.length - 1;
+      nodes[`g${i}`] = { speaker: name, text: t,
+        options: [last ? { label: '(Wave, and head off.)', end: true } : { label: '(Listen.)', to: `g${i + 1}` }] };
+    });
+    this._activeQuest = null;
+    this._dlg = new Dialogue({ start: 'g0', nodes }, { karma: this.karma, engine: this.quests });
+    this._selOpt = 0;
+    Movement.stop(this.player);
+    this.prompt.setVisible(false);
+    this.dialogue.setVisible(true);
+    this._renderNode();
+  }
+
   _startQuestDialogue(qid) {
     const def = this.quests.defs[qid];
     if (!def || !def.dialogue) return;
