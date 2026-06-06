@@ -26,7 +26,7 @@ const tileToPx = (t) => t * TILE + TILE / 2;
 
 // Which face/expression the dialogue portrait shows per speaker (same LPC base).
 const SPEAKER_FACE = {
-  Mara: { parts: WORLD.base, expression: 'happy' },
+  Mara: { parts: WORLD.maraParts, expression: 'happy' },   // red shirt — distinct
   Bram: { parts: WORLD.base, expression: 'neutral' },
 };
 
@@ -47,6 +47,7 @@ export class GreenhollowScene extends Phaser.Scene {
     this.physics.world.setBounds(0, 0, worldW, worldH);
 
     this._buildGround(worldW, worldH);
+    this._buildPond();
     this._scatterDecals();
     this.solids = this.add.group();
     this.actors = this.add.group();
@@ -82,6 +83,8 @@ export class GreenhollowScene extends Phaser.Scene {
     const rnd = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
     const onGrass = (px, py) => {
       const tx = px / TILE, ty = py / TILE;
+      const p = WORLD.pond;                       // keep decals off the water
+      if (p && tx >= p.tx - 0.5 && tx < p.tx + p.w + 0.5 && ty >= p.ty - 0.5 && ty < p.ty + p.h + 0.5) return false;
       for (const [key, rx, ry, rw, rh] of WORLD.ground.rects) {
         if (key === 'tile_grass') continue;
         if (tx >= rx && tx < rx + rw && ty >= ry && ty < ry + rh) return false;
@@ -96,6 +99,18 @@ export class GreenhollowScene extends Phaser.Scene {
       if (!onGrass(px, py)) continue;
       this.add.image(px, py, cfg.pool[Math.floor(rnd() * cfg.pool.length)]).setOrigin(0.5, 1).setDepth(DEPTH.FLOOR + 1);
       placed++;
+    }
+  }
+
+  // ---- POND (9-sliced LPC water: grass banks + shore, not a flat blue box) ---
+  _buildPond() {
+    const p = WORLD.pond; if (!p) return;
+    for (let y = 0; y < p.h; y++) {
+      for (let x = 0; x < p.w; x++) {
+        const v = (y === 0 ? 'n' : y === p.h - 1 ? 's' : '') + (x === 0 ? 'w' : x === p.w - 1 ? 'e' : '');
+        const img = this.add.image((p.tx + x) * TILE, (p.ty + y) * TILE, `pond_${v || 'c'}`).setOrigin(0, 0);
+        DepthSort.pinFloor(img);
+      }
     }
   }
 
@@ -169,29 +184,40 @@ export class GreenhollowScene extends Phaser.Scene {
   // ---- UI -------------------------------------------------------------------
   _buildUI() {
     const W = this.scale.width, H = this.scale.height;
+    const RES = 3;          // render UI text at 3x then downscale -> crisp, not aliased
+    this._RES = RES;
+    const txt = (x, y, s, size, color, extra = {}) =>
+      this.add.text(x, y, s, { fontFamily: 'monospace', fontSize: `${size}px`, color, ...extra })
+        .setResolution(RES).setScrollFactor(0).setDepth(DEPTH.OVERLAY);
+
+    // --- HUD on a solid dark panel (readable over grass) ---
     this.hud = this.add.container(0, 0).setScrollFactor(0).setDepth(DEPTH.OVERLAY);
-    const title = this.add.text(6, 5, 'EMBERFALL 2 — Greenhollow', { fontFamily: 'monospace', fontSize: '10px', color: '#ffe9c2' }).setScrollFactor(0);
-    const help = this.add.text(6, 18, 'WASD / arrows move · Shift run · E talk / advance · ↑↓ choose · [ ] zoom', { fontFamily: 'monospace', fontSize: '8px', color: '#bfb7d0' }).setScrollFactor(0);
-    this.questHud = this.add.text(6, 30, '', { fontFamily: 'monospace', fontSize: '8px', color: '#9fe6a0' }).setScrollFactor(0);
-    this.hud.add([title, help, this.questHud]);
+    const hudPanel = this.add.rectangle(6, 6, 404, 58, 0x14121c, 0.84).setOrigin(0, 0)
+      .setStrokeStyle(2, 0xffe9c2, 0.9).setScrollFactor(0).setDepth(DEPTH.OVERLAY);
+    const title = txt(16, 12, 'EMBERFALL 2 — Greenhollow', 15, '#ffe9c2');
+    const help = txt(16, 32, 'WASD / arrows: move    Shift: run    E: talk / advance    ↑↓: choose', 10, '#cfc6e6');
+    this.questHud = txt(16, 46, '', 11, '#9fe6a0');
+    this.hud.add([hudPanel, title, help, this.questHud]);
     this._updateQuestHud();
 
-    this.prompt = this.add.text(W / 2, H - 92, '', {
-      fontFamily: 'monospace', fontSize: '10px', color: '#1c1422', backgroundColor: '#ffe9c2', padding: { x: 6, y: 3 },
-    }).setOrigin(0.5, 1).setScrollFactor(0).setDepth(DEPTH.OVERLAY).setVisible(false);
+    // --- interaction prompt ---
+    this.prompt = this.add.text(W / 2, H - 110, '', {
+      fontFamily: 'monospace', fontSize: '13px', color: '#1c1422', backgroundColor: '#ffe9c2', padding: { x: 8, y: 4 },
+    }).setOrigin(0.5, 1).setResolution(RES).setScrollFactor(0).setDepth(DEPTH.OVERLAY).setVisible(false);
 
-    // dialogue box with a portrait panel on the left
-    const boxW = 500, boxH = 132, bx = (W - boxW) / 2, by = H - boxH - 8;
-    const PS = 100, px = bx + 8, py = by + 8;
+    // --- dialogue box (portrait + name + body + crisp readable choices) ---
+    const boxW = 544, boxH = 200, bx = (W - boxW) / 2, by = H - boxH - 8;
+    const PS = 112, px = bx + 10, py = by + 10;
     this.portraitBox = { x: px, y: py, size: PS };
     this._portrait = null;
     this.dialogue = this.add.container(0, 0).setScrollFactor(0).setDepth(DEPTH.OVERLAY).setVisible(false);
-    const panel = this.add.rectangle(bx, by, boxW, boxH, 0x1c1422, 0.94).setOrigin(0, 0).setStrokeStyle(2, 0xffe9c2);
-    this.portraitFrame = this.add.rectangle(px, py, PS, PS, 0x6d7488, 1).setOrigin(0, 0).setStrokeStyle(2, 0xffe9c2);
-    this._txtX = px + PS + 14;
-    this.dlgName = this.add.text(this._txtX, by + 10, '', { fontFamily: 'monospace', fontSize: '12px', color: '#ffe9c2' });
-    this.dlgBody = this.add.text(this._txtX, by + 30, '', { fontFamily: 'monospace', fontSize: '11px', color: '#f3ecff', wordWrap: { width: boxW - (PS + 14 + 8) - 12 }, lineSpacing: 3 });
-    this.dlgHint = this.add.text(bx + boxW - 10, by + boxH - 6, 'E ▸', { fontFamily: 'monospace', fontSize: '8px', color: '#9b93b0' }).setOrigin(1, 1);
+    const panel = this.add.rectangle(bx, by, boxW, boxH, 0x14121c, 0.95).setOrigin(0, 0).setStrokeStyle(3, 0xffe9c2).setScrollFactor(0);
+    this.portraitFrame = this.add.rectangle(px, py, PS, PS, 0x2a2440, 1).setOrigin(0, 0).setStrokeStyle(2, 0xffe9c2).setScrollFactor(0);
+    this._txtX = px + PS + 16;
+    this.dlgName = txt(this._txtX, by + 12, '', 16, '#ffe9c2', { fontStyle: 'bold' });
+    this.dlgBody = txt(this._txtX, by + 36, '', 13, '#f3ecff', { wordWrap: { width: boxW - (PS + 16 + 10) - 14 }, lineSpacing: 4 });
+    this.dlgHint = this.add.text(bx + boxW - 12, by + boxH - 8, 'E ▸', { fontFamily: 'monospace', fontSize: '10px', color: '#9b93b0' })
+      .setOrigin(1, 1).setResolution(RES).setScrollFactor(0).setDepth(DEPTH.OVERLAY);
     this.dialogue.add([panel, this.portraitFrame, this.dlgName, this.dlgBody, this.dlgHint]);
     this._optTexts = [];
   }
@@ -235,9 +261,9 @@ export class GreenhollowScene extends Phaser.Scene {
     const oy = this.dlgBody.y + this.dlgBody.height + 8;
     opts.forEach((o, i) => {
       const sel = i === this._selOpt;
-      const t = this.add.text(this._txtX, oy + i * 15, `${sel ? '▸' : ' '} ${o.label}`, {
-        fontFamily: 'monospace', fontSize: '10px', color: sel ? '#ffe9c2' : '#cfc6e6',
-      }).setScrollFactor(0).setDepth(DEPTH.OVERLAY);
+      const t = this.add.text(this._txtX, oy + i * 17, `${sel ? '▸' : '  '} ${o.label}`, {
+        fontFamily: 'monospace', fontSize: '12px', color: sel ? '#ffe9c2' : '#cfc6e6',
+      }).setResolution(this._RES).setScrollFactor(0).setDepth(DEPTH.OVERLAY);
       this.dialogue.add(t);
       this._optTexts.push(t);
     });
