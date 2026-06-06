@@ -76,3 +76,26 @@ history) when a decision changes; mark the old one Superseded.
   feature; CLAUDE.md HARD RULE 9 requires live render + screenshot for visual work.
 - **Why:** a green `npm test` proves logic, never presentation.
 - **Status:** ACTIVE.
+
+## ADR-009 — Standards SSOT for tuning constants
+- **Context:** a tuned value (the interaction radius) was hardcoded in a scene
+  (`72`), the same drift risk the id-SSOT solved for strings.
+- **Decision:** project-wide tuning constants live once and are reused —
+  `src/constants/standards.js` (`INTERACTION_RADIUS`), plus the existing homes for
+  `TILE`, frame/anim, movement speed (data), camera, UI. Per-entity overrides only
+  with a stated reason, as a DERIVED expression, never a bare literal.
+  `verify.mjs` lints for bare radius/tile literals that bypass the SSOT.
+- **Why:** one knob per behaviour → consistent feel + no two-places-drift; see
+  `docs/STANDARDS.md`.
+- **Status:** ACTIVE.
+
+## ADR-010 — Session-completion checklist (no silent drops)
+- **Context:** multi-item requests risk an item being quietly re-prioritised away
+  and the session reported "done" while incomplete.
+- **Decision:** every session keeps ONE focused, finishable objective and ends with
+  a per-item ✅/❌ checklist with proof; a dropped/deferred item shows as ❌ with a
+  reason, never silently omitted; not "done" until all items are ✅ or explicitly ❌.
+  (CLAUDE.md HARD RULE 10.)
+- **Why:** completeness + honesty are verifiable, not assumed; the owner sees
+  exactly what shipped and what didn't.
+- **Status:** ACTIVE.
