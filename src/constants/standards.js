@@ -9,7 +9,7 @@
 // allowed ONLY with a stated reason, and expressed as a DERIVED value
 // (e.g. `INTERACTION_RADIUS * 1.5 /* big shrine, reachable from afar */`),
 // never a bare magic number — so the canonical value still flows through.
-export const INTERACTION_RADIUS = 72;
+export const INTERACTION_RADIUS = 96;   // ~3 tiles from the entity's base: a deliberate but comfortable talk distance — no need to clip into the NPC
 
 // Other tuning is ALSO single-sourced — it lives in its owning module (listed
 // here so there is one index of "where the knobs are"). Do not re-declare these:
