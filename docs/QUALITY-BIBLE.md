@@ -252,6 +252,17 @@ A visual session is only "provisionally done" until Van has played the FEEL item
   catastrophe + time-skip, in the first ADULT region (ASHEN MARSH, M8+). The Greenhollow slice's
   charger is a DEV TEST only (flagged in code) — it is NOT childhood canon and must not ship in
   Greenhollow. Region scenes that are childhood-era render NPCs/quests/exploration but never enemies.
+- SAFE ZONES RULE (settlements are peaceful): combat enemies do NOT spawn in VILLAGES/HUBS/TOWNS —
+  monsters belong in the WILDERNESS, DUNGEONS, and region wilds, never in a settlement. Implemented
+  as region config: `combat.safeZone:true` (a whole peaceful region — e.g. Greenhollow village; the
+  dev-test charger is dev-only, spawned by a key, not in normal play) and `combat.safe:{tx,ty,r}` (a
+  peaceful HUB inside a combat region — e.g. Mirefen in the marsh, the miners' town in the peaks: no
+  enemy aggros or wanders into it). Standing in a settlement must be safe.
+- THREAT INDICATORS / ENEMY INTUITION: on-screen threat indicators (targeting chevrons/arrows) are
+  OFF by default for a clean screen (enemy TELEGRAPHS still always show — Gate E). They are a toggle
+  in the options menu, and the always-on + enhanced version is gated behind the ENEMY INTUITION skill
+  (Rogue/Social perception branch — senses nearby threats, clarifies tells). Default play reads the
+  enemy + its telegraph; the skill/toggle adds the indicator layer.
 - SYSTEMS CONTENT: ~couple-dozen weapons, dozen+ armor, 5-10 spells/abilities, varied monsters -
   all data on the systems.
 - QUEST MARKERS: givers have a "?" but the player can't SEE markers until the lazy-guy quest
