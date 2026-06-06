@@ -2,6 +2,7 @@
 import Phaser from 'phaser';
 import { BootScene } from './scenes/BootScene.js';
 import { GreenhollowScene } from './scenes/GreenhollowScene.js';
+import { MarshScene } from './scenes/MarshScene.js';
 
 // Native render resolution; the canvas is FIT-scaled up to the window with
 // crisp pixels. Wide framing (24x13.5 tiles of 32px) so a 64px hero reads as a
@@ -31,7 +32,7 @@ const config = {
       debug: false,              // toggled live with the B key (Gate B overlay)
     },
   },
-  scene: [BootScene, GreenhollowScene],
+  scene: [BootScene, GreenhollowScene, MarshScene],
 };
 
 const game = new Phaser.Game(config);
