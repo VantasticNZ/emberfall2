@@ -1,8 +1,9 @@
 // =============================================================================
 // GREENHOLLOW — VERTICAL SLICE courtyard, DATA ONLY. A small village green on the
-// write-once systems: a grass base, a banked POND (9-sliced LPC water that blends
-// to grass — no flat blue box), whole trees + bushes + a sign, scattered decals.
-// One talkable NPC (Mara, distinct RED shirt) wired to the real M1 quest.
+// write-once systems: a grass base with a generous margin BEYOND the tree line on
+// every edge (so trees never clip the world/screen edge), a banked POND, whole
+// trees + bushes + a sign + the forge, and lived-in ground-detail scatter (varied
+// grass/flowers/clover + worn dirt patches). Mara (M1 quest) + Bram (at the forge).
 // =============================================================================
 
 // Real, distinct LPC outfits (own body/hair/clothing layers — not a hue hack).
@@ -12,46 +13,57 @@ const BRAM = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_parted_gray', 
 
 export const WORLD = {
   widthTiles: 40,
-  heightTiles: 28,
+  heightTiles: 34,   // taller than the play area -> grass MARGIN above/below the trees
 
-  // grass is a flat fill; variety comes from off-grid decals (kept off the pond).
+  // lived-in ground detail (varied grass/flowers/clover/fern), weighted so grass
+  // dominates and flowers/fern are sprinkled — not a uniform sheet, not clutter.
   decals: {
-    count: 120, seed: 20260605,
-    pool: ['decal_tuft', 'decal_tuft', 'decal_tuft', 'decal_flower_pink', 'decal_flower_white'],
+    count: 150, seed: 20260605,
+    pool: [
+      'decal_tuft', 'decal_tuft', 'decal_tuft', 'decal_grass_lush', 'decal_grass_lush', 'decal_grass_lush',
+      'decal_grass_tall', 'decal_grass_tall', 'decal_clover', 'decal_flower_pink',
+      'decal_flower_white', 'decal_flower_blue',
+    ],
   },
+  // a few larger ferns, sparse, so they read as the odd wild plant — not clutter.
+  ferns: { count: 7, seed: 4242, pool: ['decal_fern'] },
+  // soft worn-dirt patches (drawn under the plants) for trodden, lived-in ground.
+  dirt: { count: 12, seed: 13371, pool: ['decal_dirt_patch'] },
 
-  // ground: grass everywhere (no raw road/path stripes). The pond is rendered
-  // separately as a 9-slice (see scene._buildPond) so it has real banks.
   ground: { base: 'tile_grass', rects: [] },
 
-  // a banked pond in the body of the green — 9-sliced from the LPC water block.
-  pond: { tx: 7, ty: 18, w: 6, h: 4 },
+  // banked pond in the lower-left of the green.
+  pond: { tx: 6, ty: 22, w: 6, h: 4 },
 
-  // props — trees placed in the body of the green (whole, not clipped at edges);
-  // bushes + the village sign for life.
+  // props — all trees sit in the ty13-26 band (top margin ty0-12, bottom ty27-33),
+  // so every tree renders whole. The forge is Greenhollow's smithy (Bram's).
   props: [
-    { key: 'prop_tree_oak',  tx: 14, ty: 10, solid: true },
-    { key: 'prop_tree_oak',  tx: 28, ty: 11, solid: true },
-    { key: 'prop_tree_oak',  tx: 31, ty: 19, solid: true },
-    { key: 'prop_tree_pine', tx: 12, ty: 17, solid: true },
-    { key: 'prop_tree_pine', tx: 12, ty: 8,  solid: true },
-    { key: 'prop_tree_pine', tx: 34, ty: 13, solid: true },
-    { key: 'prop_bush', tx: 16, ty: 13, solid: false },
-    { key: 'prop_bush', tx: 28, ty: 15, solid: false },
-    { key: 'prop_bush', tx: 30, ty: 16, solid: false },
-    { key: 'prop_bush', tx: 17, ty: 22, solid: false },
-    { key: 'prop_sign', tx: 21, ty: 18, solid: true },
-    // the forge — Greenhollow's smithy (Bram's), a real LPC brick building.
-    { key: 'prop_forge', tx: 24, ty: 10, solid: true },
+    { key: 'prop_tree_oak',  tx: 13, ty: 13, solid: true },
+    { key: 'prop_tree_oak',  tx: 31, ty: 14, solid: true },
+    { key: 'prop_tree_oak',  tx: 34, ty: 25, solid: true },
+    { key: 'prop_tree_pine', tx: 9,  ty: 17, solid: true },
+    { key: 'prop_tree_pine', tx: 16, ty: 27, solid: true },
+    { key: 'prop_tree_pine', tx: 36, ty: 20, solid: true },
+    { key: 'prop_bush', tx: 16, ty: 15, solid: false },
+    { key: 'prop_bush', tx: 28, ty: 17, solid: false },
+    { key: 'prop_bush', tx: 32, ty: 19, solid: false },
+    { key: 'prop_bush', tx: 14, ty: 24, solid: false },
+    { key: 'prop_bush', tx: 33, ty: 22, solid: false },
+    { key: 'prop_sign', tx: 21, ty: 16, solid: true },
+    { key: 'prop_forge', tx: 24, ty: 13, solid: true },
   ],
 
-  // one talkable NPC, wired to the real M1 quest. Mara wears a distinct FOREST-
-  // green dress-shirt + feminine LPC body so she reads as clearly NOT the hero.
+  // NPCs — Mara (M1 quest) stands in the green; Bram (greeting only for now) stands
+  // AT the forge, so "Bram's down at the forge already" pays off when you walk over.
   npcs: [
-    { tx: 21, ty: 15, facing: 'down', name: 'Mara', speed: 70, expression: 'happy', parts: MARA, quest: 'M1' },
+    { tx: 19, ty: 18, facing: 'down', name: 'Mara', speed: 70, expression: 'happy', parts: MARA, quest: 'M1' },
+    { tx: 24, ty: 16, facing: 'down', name: 'Bram', speed: 70, expression: 'neutral', parts: BRAM, greeting: [
+      "There's my little terror — up early for once! The forge is hot if you've come to watch me work.",
+      "Go on now, say hello to your mother before she skins the both of us. I'll be right here.",
+    ] },
   ],
 
-  player: { tx: 18, ty: 16, facing: 'down', speed: 95, expression: 'neutral', parts: HERO },
+  player: { tx: 17, ty: 19, facing: 'down', speed: 95, expression: 'neutral', parts: HERO },
 
   base: HERO,
   maraParts: MARA,
