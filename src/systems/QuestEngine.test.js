@@ -56,6 +56,17 @@ assert.equal(eng.status('QD'), 'available');   // deed gate now met (reactivity)
 assert.equal(eng.status('QE'), 'available');   // karma gate now met (reactivity)
 pass('choice applies karma + deed; QD/QE auto-become available (long-range reactivity)');
 
+// 2b) EXACTLY-ONCE: re-choosing the same choice awards NOTHING (no farming) -----
+const mBefore = karma.get('morality');                 // 20
+const deedNBefore = karma.getDeed('qa_kind').n;        // 1
+const c2 = eng.choose('QA', 'kind');                   // re-trigger the SAME choice
+assert.equal(c2.label, 'Be kind');                     // still returns the choice...
+assert.equal(karma.get('morality'), mBefore);          // ...but NO extra karma
+assert.equal(karma.getDeed('qa_kind').n, deedNBefore); // and the deed is NOT re-recorded
+eng.choose('QA', 'kind'); eng.choose('QA', 'kind');    // hammer it
+assert.equal(karma.get('morality'), mBefore);          // still unchanged
+pass('exactly-once guard: re-choosing a quest choice never re-awards karma or re-records the deed');
+
 // 3) complete A -> unlock B, lock C ----------------------------------------
 assert.equal(eng.complete('QA'), true);
 assert.equal(eng.status('QA'), 'complete');
@@ -75,7 +86,9 @@ assert.equal(eng2.status('QC'), 'locked-out');
 assert.equal(eng2.status('QD'), 'available');  // deed-gated, deed survived the reload
 assert.equal(eng2.chosenOn('QA'), 'kind');
 assert.equal(karma2.get('morality'), 20);
-pass('save -> reload (new instances): quest states + chosen + karma/deeds all restored');
+eng2.choose('QA', 'kind');                      // re-farm attempt AFTER reload
+assert.equal(karma2.get('morality'), 20);       // the exactly-once guard persisted -> no extra karma
+pass('save -> reload (new instances): quest states + chosen + karma/deeds restored; the exactly-once guard survives reload');
 
 // 5) dialogue plumbing (data-driven; threads karma + a quest choice) -------
 const k3 = new KarmaEngine({ storage: memoryStorage() });

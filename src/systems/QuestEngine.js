@@ -32,6 +32,7 @@ export class QuestEngine {
     this.chosen = {};               // id -> chosen choice id
     this.unlocked = new Set();      // ids that have been unlocked (roots auto-added)
     this.pruned = new Set();        // ids locked-out by a fired `locks`
+    this._committed = new Set();    // `${quest}:${choice}` already applied — exactly-once guard
     this._listeners = new Set();
     // optional day/night hook: quests may gate on a phase (requires.phase). FLAGGED
     // minimal extension — the requires-pattern gains a time axis when a TimeOfDay
@@ -146,6 +147,12 @@ export class QuestEngine {
     const def = this.defs[id];
     const c = (def?.choices || []).find((x) => x.id === choiceId);
     if (!c) throw new Error(`no choice '${choiceId}' on quest '${id}'`);
+    // EXACTLY ONCE: a quest choice applies its karma/deed/unlocks a single time. Re-
+    // choosing it (e.g. re-opening a completed quest's dialogue) must NOT re-award
+    // karma or re-record deeds — a finished quest can never be farmed. Persisted.
+    const ck = `${id}:${choiceId}`;
+    if (this._committed.has(ck)) return c;
+    this._committed.add(ck);
     this.karma.commit({
       deed: c.deed, meta: { quest: id, ...(c.meta || {}) },
       morality: c.karma?.morality || 0, purity: c.karma?.purity || 0,
@@ -166,7 +173,7 @@ export class QuestEngine {
   serialize() {
     return {
       v: 1, state: this.state, step: this.step, chosen: this.chosen,
-      unlocked: [...this.unlocked], pruned: [...this.pruned],
+      unlocked: [...this.unlocked], pruned: [...this.pruned], committed: [...this._committed],
     };
   }
   hydrate(data) {
@@ -176,6 +183,7 @@ export class QuestEngine {
     this.chosen = { ...(data.chosen || {}) };
     this.unlocked = new Set(data.unlocked || []);
     this.pruned = new Set(data.pruned || []);
+    this._committed = new Set(data.committed || []);
     this.refresh();
     return true;
   }
