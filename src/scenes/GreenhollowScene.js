@@ -57,17 +57,38 @@ export class GreenhollowScene extends Phaser.Scene {
 
     Collision.wire(this, this.actors, this.solids);
 
+    this.worldW = worldW; this.worldH = worldH;
     this.cameras.main.setBounds(0, 0, worldW, worldH);
-    this.cameras.main.startFollow(this.player, true, 0.18, 0.18);
-    this.cameras.main.setRoundPixels(true);
-    this.zoomLevels = [0.7, 0.85, 1.1];
-    this.zoomIndex = 1;
-    this.cameras.main.setZoom(this.zoomLevels[this.zoomIndex]);
+    this.cameras.main.setRoundPixels(false);                 // smooth follow — no pixel-snap jitter
+    this.cameras.main.startFollow(this.player, false, 0.1, 0.1); // gentle lerp
+    this.baseZoom = 1.25;                                     // player-facing zoom; cover-zoom is the floor
+    this._applyCamera();
 
     this._dlg = null;
     this._buildInput();
     this._buildUI();
     this._buildDebug();
+    this._setupUICamera();
+    // keep the camera filling + the UI placed when the window resizes
+    this.scale.on('resize', (sz) => { this._applyCamera(); this._layoutUI(); this.uiCamera.setSize(sz.width, sz.height); });
+  }
+
+  // A dedicated UI camera at zoom 1 so the HUD/dialogue never scale or drift with
+  // the world camera's zoom (scrollFactor-0 alone is still affected by zoom). The
+  // main camera draws the world; the UI camera draws only the UI.
+  _setupUICamera() {
+    const ui = [this.hud, this.dialogue, this.prompt];
+    this.uiCamera = this.cameras.add(0, 0, this.scale.width, this.scale.height);
+    this.cameras.main.ignore(ui);
+    this.uiCamera.ignore(this.children.list.filter((o) => !ui.includes(o)));
+  }
+
+  // Zoom so the world always COVERS the viewport (no black bars beyond bounds),
+  // never below the player's chosen baseZoom. Re-run on resize.
+  _applyCamera() {
+    const W = this.scale.width, H = this.scale.height;
+    const cover = Math.max(W / this.worldW, H / this.worldH);
+    this.cameras.main.setZoom(Math.max(cover, this.baseZoom));
   }
 
   // ---- GROUND ---------------------------------------------------------------
@@ -131,7 +152,7 @@ export class GreenhollowScene extends Phaser.Scene {
         { parts: n.parts, facing: n.facing, speed: n.speed, expression: n.expression });
       Collision.markSolidActor(npc); this.solids.add(npc); DepthSort.track(npc, CHAR_FOOTPRINT.offY);
       Interaction.register({
-        x: npc.x, y: npc.y + CHAR_FOOTPRINT.offY, radius: 50, prompt: `Talk to ${n.name}`,
+        x: npc.x, y: npc.y + CHAR_FOOTPRINT.offY, radius: 72, prompt: `Talk to ${n.name}`,
         onInteract: () => { npc.facing = this._faceToward(npc, this.player); npc.setState('idle'); this._startQuestDialogue(n.quest); },
       });
     }
@@ -175,16 +196,17 @@ export class GreenhollowScene extends Phaser.Scene {
   }
 
   _stepZoom(dir) {
-    const next = Phaser.Math.Clamp(this.zoomIndex + dir, 0, this.zoomLevels.length - 1);
-    if (next === this.zoomIndex) return;
-    this.zoomIndex = next;
-    this.cameras.main.zoomTo(this.zoomLevels[next], 220, 'Sine.easeInOut');
+    this.baseZoom = Phaser.Math.Clamp(this.baseZoom + dir * 0.15, 1.0, 2.0);
+    this._applyCamera();
   }
 
   // ---- UI -------------------------------------------------------------------
   _buildUI() {
     const W = this.scale.width, H = this.scale.height;
-    const RES = 3;          // render UI text at 3x then downscale -> crisp, not aliased
+    this._builtW = W; this._builtH = H;   // the size the box coords were laid out for (see _layoutUI)
+    // UI now renders at native window resolution (RESIZE, no framebuffer upscale),
+    // so sizes are in real screen px and res 2 keeps text crisp on HiDPI.
+    const RES = 2;
     this._RES = RES;
     const txt = (x, y, s, size, color, extra = {}) =>
       this.add.text(x, y, s, { fontFamily: 'monospace', fontSize: `${size}px`, color, ...extra })
@@ -192,34 +214,42 @@ export class GreenhollowScene extends Phaser.Scene {
 
     // --- HUD on a solid dark panel (readable over grass) ---
     this.hud = this.add.container(0, 0).setScrollFactor(0).setDepth(DEPTH.OVERLAY);
-    const hudPanel = this.add.rectangle(6, 6, 404, 58, 0x14121c, 0.84).setOrigin(0, 0)
+    const hudPanel = this.add.rectangle(8, 8, 558, 84, 0x14121c, 0.84).setOrigin(0, 0)
       .setStrokeStyle(2, 0xffe9c2, 0.9).setScrollFactor(0).setDepth(DEPTH.OVERLAY);
-    const title = txt(16, 12, 'EMBERFALL 2 — Greenhollow', 15, '#ffe9c2');
-    const help = txt(16, 32, 'WASD / arrows: move    Shift: run    E: talk / advance    ↑↓: choose', 10, '#cfc6e6');
-    this.questHud = txt(16, 46, '', 11, '#9fe6a0');
+    const title = txt(20, 16, 'EMBERFALL 2 — Greenhollow', 20, '#ffe9c2');
+    const help = txt(20, 46, 'WASD / arrows: move   Shift: run   E: talk / advance   ↑↓: choose', 13, '#cfc6e6');
+    this.questHud = txt(20, 66, '', 15, '#9fe6a0');
     this.hud.add([hudPanel, title, help, this.questHud]);
     this._updateQuestHud();
 
     // --- interaction prompt ---
-    this.prompt = this.add.text(W / 2, H - 110, '', {
-      fontFamily: 'monospace', fontSize: '13px', color: '#1c1422', backgroundColor: '#ffe9c2', padding: { x: 8, y: 4 },
+    this.prompt = this.add.text(W / 2, H - 140, '', {
+      fontFamily: 'monospace', fontSize: '17px', color: '#1c1422', backgroundColor: '#ffe9c2', padding: { x: 10, y: 5 },
     }).setOrigin(0.5, 1).setResolution(RES).setScrollFactor(0).setDepth(DEPTH.OVERLAY).setVisible(false);
 
     // --- dialogue box (portrait + name + body + crisp readable choices) ---
-    const boxW = 544, boxH = 200, bx = (W - boxW) / 2, by = H - boxH - 8;
-    const PS = 112, px = bx + 10, py = by + 10;
+    const boxW = 824, boxH = 252, bx = (W - boxW) / 2, by = H - boxH - 12;
+    const PS = 168, px = bx + 14, py = by + 14;
     this.portraitBox = { x: px, y: py, size: PS };
     this._portrait = null;
     this.dialogue = this.add.container(0, 0).setScrollFactor(0).setDepth(DEPTH.OVERLAY).setVisible(false);
     const panel = this.add.rectangle(bx, by, boxW, boxH, 0x14121c, 0.95).setOrigin(0, 0).setStrokeStyle(3, 0xffe9c2).setScrollFactor(0);
     this.portraitFrame = this.add.rectangle(px, py, PS, PS, 0x2a2440, 1).setOrigin(0, 0).setStrokeStyle(2, 0xffe9c2).setScrollFactor(0);
-    this._txtX = px + PS + 16;
-    this.dlgName = txt(this._txtX, by + 12, '', 16, '#ffe9c2', { fontStyle: 'bold' });
-    this.dlgBody = txt(this._txtX, by + 36, '', 13, '#f3ecff', { wordWrap: { width: boxW - (PS + 16 + 10) - 14 }, lineSpacing: 4 });
-    this.dlgHint = this.add.text(bx + boxW - 12, by + boxH - 8, 'E ▸', { fontFamily: 'monospace', fontSize: '10px', color: '#9b93b0' })
+    this._txtX = px + PS + 20;
+    this.dlgName = txt(this._txtX, by + 16, '', 22, '#ffe9c2', { fontStyle: 'bold' });
+    this.dlgBody = txt(this._txtX, by + 48, '', 17, '#f3ecff', { wordWrap: { width: boxW - (PS + 20 + 14) - 18 }, lineSpacing: 5 });
+    this.dlgHint = this.add.text(bx + boxW - 14, by + boxH - 10, 'E ▸', { fontFamily: 'monospace', fontSize: '13px', color: '#9b93b0' })
       .setOrigin(1, 1).setResolution(RES).setScrollFactor(0).setDepth(DEPTH.OVERLAY);
     this.dialogue.add([panel, this.portraitFrame, this.dlgName, this.dlgBody, this.dlgHint]);
     this._optTexts = [];
+  }
+
+  // On resize, keep the bottom-anchored UI placed. The dialogue children were laid
+  // out for (_builtW,_builtH); offsetting the container re-centres + re-anchors them.
+  _layoutUI() {
+    const W = this.scale.width, H = this.scale.height;
+    this.dialogue.setPosition((W - this._builtW) / 2, H - this._builtH);
+    if (this.prompt) this.prompt.setPosition(W / 2, H - 110);
   }
 
   _updateQuestHud() {
@@ -258,11 +288,11 @@ export class GreenhollowScene extends Phaser.Scene {
     this._optTexts = [];
     this._selOpt = Phaser.Math.Clamp(this._selOpt, 0, Math.max(0, opts.length - 1));
     const isChoice = opts.length > 1;
-    const oy = this.dlgBody.y + this.dlgBody.height + 8;
+    const oy = this.dlgBody.y + this.dlgBody.height + 10;
     opts.forEach((o, i) => {
       const sel = i === this._selOpt;
-      const t = this.add.text(this._txtX, oy + i * 17, `${sel ? '▸' : '  '} ${o.label}`, {
-        fontFamily: 'monospace', fontSize: '12px', color: sel ? '#ffe9c2' : '#cfc6e6',
+      const t = this.add.text(this._txtX, oy + i * 23, `${sel ? '▸' : '  '} ${o.label}`, {
+        fontFamily: 'monospace', fontSize: '16px', color: sel ? '#ffe9c2' : '#cfc6e6',
       }).setResolution(this._RES).setScrollFactor(0).setDepth(DEPTH.OVERLAY);
       this.dialogue.add(t);
       this._optTexts.push(t);
@@ -296,22 +326,26 @@ export class GreenhollowScene extends Phaser.Scene {
     this._updateQuestHud();
   }
 
-  // Compose a large LPC face portrait of the speaker into the box.
+  // Compose the speaker's FULL paper-doll into the portrait box — the SAME parts
+  // the world sprite wears (head to feet), so the portrait can't diverge from the
+  // character (e.g. missing pants/shoes). Only attack-only gear layers are skipped.
   _buildPortrait(parts, expression = 'neutral') {
     if (this._portrait) { this._portrait.destroy(); this._portrait = null; }
     this.portraitFrame.setVisible(!!parts);
     if (!parts) return;
-    const FACE_SLOTS = new Set(['body', 'torso', 'head', 'brows', 'beard', 'hair']);
     const layers = [];
     for (const pk of parts) {
       const part = PARTS[pk];
-      if (!part || !FACE_SLOTS.has(part.slot)) continue;
-      for (const L of part.layers) layers.push({ ...L, slot: part.slot });
+      if (!part) continue;
+      for (const L of part.layers) {
+        if (L.states && !L.states.includes('idle')) continue;  // skip attack-only equipment
+        layers.push({ ...L });
+      }
     }
     layers.sort((a, b) => a.z - b.z);
     const idleFrame = DIR_ROW.down * ANIMS.idle.frames;
     const exprFrame = EXPR_ROW.down * EXPR_COLS + (EXPRESSIONS[expression] ?? 0);
-    const cx = 16, cy = 10, cw = 32, ch = 42;
+    const cx = 16, cy = 11, cw = 32, ch = 50;     // head-to-feet crop of the 64px frame
     const rt = this.make.renderTexture({ x: 0, y: 0, width: cw, height: ch }, false);
     for (const L of layers) {
       if (L.expressive) rt.drawFrame(`${L.tex}__expr`, exprFrame, -cx, -cy);
