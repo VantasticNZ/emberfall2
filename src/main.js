@@ -18,7 +18,9 @@ const config = {
   pixelArt: true,
   roundPixels: true,
   scale: {
-    mode: Phaser.Scale.FIT,
+    // ENVELOP fills the whole window (no black letterbox bars) — scales to cover
+    // and crops only the overflow; identical to FIT on a 16:9 window.
+    mode: Phaser.Scale.ENVELOP,
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
   physics: {
