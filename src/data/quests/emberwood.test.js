@@ -70,29 +70,28 @@ pass('M14 -> M15 -> M16; M16 grants tool_firefrost + shard_4 (4/5); unlocks M17'
 const seize = newEmber();
 play(seize.engine, seize.karma, 'M16', 'seize');
 assert.equal(seize.karma.hasDeed('god_seized'), true);
-assert.equal(seize.karma.hasDeed('god_mercy'), false);
+assert.equal(seize.karma.hasDeed('mercy_shown'), false);
 assert.ok(seize.engine.pruned.has('L-path'));             // SEIZE locks the Liberator path
 assert.ok(seize.engine.unlocked.has('T-path'));
 
 const take = newEmber();
 play(take.engine, take.karma, 'M16', 'take');
 assert.equal(take.karma.hasDeed('god_taken'), true);
-assert.equal(take.karma.hasDeed('god_mercy'), false);
+assert.equal(take.karma.hasDeed('mercy_shown'), false);
 assert.equal(take.karma.hasDeed('god_seized'), false);
 
-assert.equal(main.karma.hasDeed('god_mercy'), true);      // mercy path (main)
-assert.equal(main.karma.hasDeed('mercy_shown'), true);    // + the engine's ending-gate deed
+assert.equal(main.karma.hasDeed('mercy_shown'), true);    // mercy path records the canonical ending-gate deed
 assert.ok(!main.engine.pruned.has('L-path'));             // mercy keeps the Liberator path open
-pass('M16 split: mercy (god_mercy + mercy_shown, L open) / seize (god_seized, L LOCKED, T open) / take (god_taken)');
+pass('M16 split: mercy (mercy_shown, L open) / seize (god_seized, L LOCKED, T open) / take (god_taken)');
 
-// 3) god_mercy opens Liberator; god_seized locks it (via the karma gates) ----
+// 3) mercy_shown opens Liberator; god_seized (no mercy) locks it (karma gates) ----
 {
   // simulate the not-yet-authored M17 opposition + a pure standing
   main.karma.recordDeed('sela_opposed'); main.karma.set('purity', 40);
   assert.equal(main.karma.reachableEndings().L.reachable, true);   // pure + mercy + believed + opposed
   seize.karma.recordDeed('sela_opposed'); seize.karma.set('purity', 40);
   assert.equal(seize.karma.reachableEndings().L.reachable, false); // no mercy_shown -> never Liberator
-  pass('god_mercy opens the Liberator ending; god_seized (no mercy_shown) leaves it closed');
+  pass('mercy_shown opens the Liberator ending; god_seized (no mercy_shown) leaves it closed');
 }
 
 // 4) E1 drops the 4th Pem clue -> the SG2 hunt becomes completable -----------
@@ -149,7 +148,7 @@ const karma2 = new KarmaEngine({ storage: main.karma.storage });
 assert.equal(karma2.load(), true);
 const engine2 = new QuestEngine({ karma: karma2, storage: main.engine.storage, quests: QUESTS });
 assert.equal(engine2.loadSave(), true);
-['tool_firefrost', 'shard_4', 'god_mercy', 'mercy_shown']
+['tool_firefrost', 'shard_4', 'mercy_shown']
   .forEach((d) => assert.equal(karma2.hasDeed(d), true, `deed ${d} persisted`));
 assert.equal(engine2.status('M16'), 'complete');
 assert.equal(engine2.status('M17'), 'available');

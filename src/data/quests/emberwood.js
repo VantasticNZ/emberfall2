@@ -5,9 +5,9 @@
 // FIRE/FROST tool + Shard #4 + PERMANENT DECISION 2 (mercy / seize / take), the
 // choice that most weights the Liberator vs Tyrant endings. Then M17 (Spire stub).
 //
-// Canonical flags: tool_firefrost, shard_4 (4/5). NOTE the mercy path records
-// BOTH `god_mercy` (this quest's id) AND `mercy_shown` (the id the Karma
-// ending-gates already read) — a content-layer bridge, no engine change.
+// Canonical flags: tool_firefrost, shard_4 (4/5). The mercy path records the ONE
+// canonical deed `mercy_shown` (the id the Karma ending-gates read) — the old
+// `god_mercy` synonym was reconciled away into mercy_shown (DEEDS SSOT).
 // =============================================================================
 
 export const EMBERWOOD = [
@@ -49,7 +49,7 @@ export const EMBERWOOD = [
   // M16 — Ember Hollow (DUNGEON) [PERMANENT DECISION 2]. Earn FIRE/FROST
   // (tool_firefrost + spells), elemental puzzles + boss, claim SHARD #4
   // (shard_4), and at the shard feel the god's AGONY directly — then the
-  // permanent choice: MERCY (+P; god_mercy + mercy_shown; gates Liberator/
+  // permanent choice: MERCY (+P; mercy_shown; gates Liberator/
   // secret) / SEIZE (-P; god_seized; LOCKS Liberator, gates Tyrant) / TAKE
   // (neutral; god_taken). perm: true.
   // ---------------------------------------------------------------------------
@@ -68,7 +68,7 @@ export const EMBERWOOD = [
     ],
     choices: [
       { id: 'mercy', label: 'Show MERCY to the god-fragment', impact: 'good',
-        karma: { purity: 10 }, deed: 'god_mercy', unlocks: ['L-path'], ending: 'L',
+        karma: { purity: 10 }, deed: 'mercy_shown', unlocks: ['L-path'], ending: 'L',
         note: 'You ease its agony though it costs you strength; opens the Liberator + secret paths.' },
       { id: 'seize', label: 'SEIZE its power', impact: 'dark',
         karma: { purity: -10 }, deed: 'god_seized', locks: ['L-path'], unlocks: ['T-path'], ending: 'T',
