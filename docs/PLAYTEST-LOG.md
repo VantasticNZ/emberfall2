@@ -23,7 +23,11 @@ Verdict scale: ✅ good · ⚠ needs work · ❌ bad · ⏳ awaiting Van.
 - Does the player pass cleanly behind the forge + tall trees, and in front of low props?
 - Dialogue — does E-to-advance + ↑↓-to-choose feel snappy, not sticky?
 
-## Combat (Stage 2, not yet built) — when it exists, log:
-- Are telegraphs READABLE (you see the wind-up + can react)?
-- Do hits have impact (hit-pause / flash / shake)?
-- Do dodge/block windows feel fair (challenging-not-brutal)?
+| 2026-06-06 | Slice S2a — the FIRST fight (charger) | sword attack (Space; hitbox + cooldown + SSOT tuning); ONE CHARGER driven by the Monsters FSM (idle→telegraph→charge→recover); player HP from Inventory + enemy HP, death/respawn, charge damages player; FEEL: hit-pause + screen-shake + Kenney swing/hit/charge SFX + enemy white-flash + knockback; readable TELEGRAPH (charge-line + "!" + wind-up pulse) + cyan PUNISH-WINDOW. Verified live (FSM cycles, hit lands 12, charge hits player, shake/knockback/flash fire); 0 console errors | ⏳⏳ **VAN — this is the whole point**: does HITTING feel satisfying? is the DODGE readable (charge-line)? does the CHARGE feel dangerous? | proof/slice2-combat-telegraph + punish-hit |
+
+## Combat — Van's questions to answer by playing (Stage 2a):
+- Are telegraphs READABLE (charge-line + "!" — can you see the wind-up + dodge sideways in time)?
+- Do hits have impact (hit-pause / white-flash / screen-shake / sound — does it feel MEATY)?
+- Does the charge feel dangerous (do you respect it / want to dodge)?
+- Is the punish window (cyan) clear + landing the hit satisfying?
+- Tuning notes: too fast/slow? too much/little shake? damage numbers? (all in src/constants/standards.js COMBAT)
