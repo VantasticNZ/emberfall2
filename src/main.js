@@ -3,6 +3,7 @@ import Phaser from 'phaser';
 import { BootScene } from './scenes/BootScene.js';
 import { GreenhollowScene } from './scenes/GreenhollowScene.js';
 import { MarshScene } from './scenes/MarshScene.js';
+import { PeaksScene } from './scenes/PeaksScene.js';
 import { OptionsScene } from './scenes/OptionsScene.js';
 
 // Native render resolution; the canvas is FIT-scaled up to the window with
@@ -34,7 +35,7 @@ const config = {
     },
   },
   input: { gamepad: true },      // Xbox controller (primary device) — see src/constants/controls.js
-  scene: [BootScene, GreenhollowScene, MarshScene, OptionsScene],
+  scene: [BootScene, GreenhollowScene, MarshScene, PeaksScene, OptionsScene],
 };
 
 const game = new Phaser.Game(config);

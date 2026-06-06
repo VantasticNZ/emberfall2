@@ -59,7 +59,8 @@ export class GreenhollowScene extends RegionScene {
 
   onCreateExtra() {
     // dev navigation + debug overlay + wheel zoom
-    this.input.keyboard.addKey('M').on('down', () => { if (!this._dlg) this.scene.start('Marsh'); });
+    this.input.keyboard.addKey('M').on('down', () => { if (!this._dlg) this.scene.start('Marsh'); });   // -> Ashen Marsh (W)
+    this.input.keyboard.addKey('N').on('down', () => { if (!this._dlg) this.scene.start('Peaks'); });   // -> Sundered Peaks (N road)
     this.input.keyboard.addKey('B').on('down', () => this._toggleDebug());
     this.input.on('wheel', (_p, _o, _dx, dy) => this._stepZoom(dy > 0 ? -1 : +1));
     this._buildDebug();
