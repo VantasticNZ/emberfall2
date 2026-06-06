@@ -22,7 +22,9 @@ export const REGION_PRICES = {
 // / karma) — gated stock (e.g. dark gear only if Corrupt, blessed only if Pure,
 // property only at level). Mirrors the QuestEngine requires-pattern.
 export const SHOPS = [
-  { id: 'hodge_forge', name: "Hodge's Forge", region: 'Greenhollow', stock: [
+  // hours: a day-only shopkeeper (Hodge works the forge by day) — DAY/NIGHT
+  // example. Checked with TimeOfDay.meetsTime(shop.hours); see Economy.isOpen().
+  { id: 'hodge_forge', name: "Hodge's Forge", region: 'Greenhollow', hours: { phase: 'day' }, stock: [
     { item: 'wooden_sword' }, { item: 'steel_sword' }, { item: 'leather_jerkin' },
     { item: 'lantern_oil' }, { item: 'minor_potion' }, { item: 'iron_ore' },
     { item: 'book_repair' },

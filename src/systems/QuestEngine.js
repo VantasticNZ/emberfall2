@@ -33,8 +33,13 @@ export class QuestEngine {
     this.unlocked = new Set();      // ids that have been unlocked (roots auto-added)
     this.pruned = new Set();        // ids locked-out by a fired `locks`
     this._listeners = new Set();
+    // optional day/night hook: quests may gate on a phase (requires.phase). FLAGGED
+    // minimal extension — the requires-pattern gains a time axis when a TimeOfDay
+    // is supplied; re-check availability when the phase changes.
+    this.time = opts.time || null;
     // long-range reactivity: re-check availability when any deed is recorded
     this._off = this.karma.onDeed(() => this.refresh());
+    if (this.time && this.time.onPhaseChange) this._offTime = this.time.onPhaseChange(() => this.refresh());
     if (opts.quests) this.load(opts.quests);
   }
 
@@ -82,6 +87,8 @@ export class QuestEngine {
         if (r.max != null && v > r.max) return false;
       }
     }
+    // day/night gate (only when a TimeOfDay is wired in)
+    if ((req.phase || req.phases) && !(this.time && this.time.meetsTime(req))) return false;
     return true;
   }
   /** Could this quest be started now (ignoring whether it already is)? */

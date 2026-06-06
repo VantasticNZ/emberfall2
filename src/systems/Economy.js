@@ -49,6 +49,12 @@ export function meetsRequires(req = {}, { karma = null, level = 1 } = {}) {
 
 // --- shops -------------------------------------------------------------------
 export function shop(id) { return SHOPS.find((s) => s.id === id); }
+/** Is a shop open at the current time? (day/night `hours` gate; open if no hours.) */
+export function isOpen(shopId, time) {
+  const s = shop(shopId); if (!s) return false;
+  if (!s.hours) return true;
+  return !!(time && time.meetsTime(s.hours));
+}
 /** The item ids currently offered by a shop, after gating. */
 export function availableStock(shopId, { inv, karma } = {}) {
   const s = shop(shopId); if (!s) return [];

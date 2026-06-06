@@ -341,4 +341,26 @@ export const CAMEOS = [
         options: [ { label: '(Swap a few groaners and move on.)', choice: { quest: 'GAG1', id: 'wit' }, end: true } ] },
     } },
   },
+
+  // NIGHT1 — Things in the Dark (DAY/NIGHT example hook: a night-only encounter).
+  // Proves a quest can gate on a phase via the requires-pattern (requires.phase),
+  // with a TimeOfDay wired into the QuestEngine. Locked by day, open at night.
+  {
+    id: 'NIGHT1', title: 'Things in the Dark', region: 'Ashen Marsh', act: 2,
+    type: 'twist', tone: 'eerie', perm: false,
+    requires: { quests: ['M8'], phase: 'night' },   // ONLY available at NIGHT
+    reward: {},
+    steps: [ { id: 'dark', desc: 'Something wades the black water — only after dark.' } ],
+    choices: [
+      { id: 'face', label: 'Face the thing in the dark', impact: 'neutral',
+        karma: {}, deed: 'night_thing_met', ending: '',
+        note: 'A bog-wraith that only walks by night; gone by dawn.' },
+    ],
+    dialogue: { start: 'dark', nodes: {
+      dark: { speaker: '', text:
+        "By day the black water is just black water. But after dark, when the mist comes up, something " +
+        "wades out of it that the bog-folk will not name — and is never, ever there by morning.",
+        options: [ { label: '(Face it while the night holds.)', choice: { quest: 'NIGHT1', id: 'face' }, end: true } ] },
+    } },
+  },
 ];
