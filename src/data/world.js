@@ -46,11 +46,7 @@ export const WORLD = {
     { key: 'prop_bush',      tx: 22, ty: 17, solid: false },
     { key: 'prop_bush',      tx: 28, ty: 11, solid: false },
     { key: 'prop_bush',      tx: 14, ty: 22, solid: false },
-    {
-      key: 'prop_sign', tx: 20, ty: 16, solid: true,
-      interact: { prompt: 'Read', name: 'Signpost',
-        lines: ['GREENHOLLOW', 'Population: small. Heart: large.', 'Mind the pond. — the Hollowfolk'] },
-    },
+    { key: 'prop_sign', tx: 24, ty: 16, solid: true },
   ],
 
   // NPCs — same layered Character system as the hero; varied PARTS for variety.
@@ -59,17 +55,16 @@ export const WORLD = {
   // NPCs share the ElizaWy base outfit for this slice; each carries a different
   // EXPRESSION (happy/sad/angry) — the migration's headline. Colour/skin/hair
   // variants are more PARTS (data) once their /art/eliza folders are added.
+  // VERTICAL SLICE — STAGE 1: one talkable NPC (Mara), wired to the real M1
+  // quest dialogue via the QuestEngine. `quest` names the quest her interaction
+  // starts. (Childhood-callback colour/expression NPCs return in later stages.)
   npcs: [
-    { tx: 9, ty: 11, facing: 'down', name: 'Mara', speed: 70, expression: 'happy',
-      parts: ELIZA_BASE,
-      lines: ["Morning! Bread's nearly out the oven.", 'You grew up fast, you know that?'] },
-    { tx: 16, ty: 10, facing: 'left', name: 'Old Edda', speed: 55, expression: 'sad',
-      parts: ELIZA_BASE,
-      lines: ['The Hearthflame remembers, child.', 'Some truths are kinder left in the ash.'] },
-    { tx: 27, ty: 21, facing: 'up', name: 'Bryn', speed: 75, expression: 'angry',
-      parts: ELIZA_BASE,
-      lines: ['Heh. Mind where yer boots go.', "Tavern's shut. I drank it."] },
+    { tx: 22, ty: 16, facing: 'down', name: 'Mara', speed: 70, expression: 'happy',
+      parts: ELIZA_BASE, quest: 'M1' },
   ],
+
+  // The base outfit, re-exported so portraits can reuse it per speaker.
+  base: ELIZA_BASE,
 
   player: {
     tx: 19, ty: 18, facing: 'down', speed: 95, expression: 'neutral',
