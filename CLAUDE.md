@@ -61,5 +61,15 @@ Karma + deed-memory engine. Tests are plain Node + `node:assert` (`npm test`).
    with the screenshot, (d) explicitly hand the FEEL items (movement/camera/combat
    feel) to Van to play-judge. No placeholder/colour-box assets — omit + flag
    instead. `npm test` passing proves LOGIC only, never presentation.
+10. **SESSION COMPLETION — finish what was asked, prove each item.**
+    (a) ONE focused objective per session, scoped small enough to finish.
+    (b) For ANY multi-item request, end with a per-item CHECKLIST — every requested
+        item marked ✅ (done, with proof) or ❌ (not done, with the reason). A dropped
+        or deferred item MUST appear as ❌; never silently omit it.
+    (c) The session is NOT "done" until every requested item is ✅ or explicitly ❌
+        with a reason. Do NOT silently re-prioritise away a requested item.
+    (d) End with the DoD self-check and, for visual work, a screenshot (HARD RULE 9).
+    Standards: reuse the canonical tuning constants in `src/constants/standards.js`
+    (e.g. `INTERACTION_RADIUS`) — never re-hardcode them; see `docs/STANDARDS.md`.
 
 The owner is Van (NZ). Be concise, honest, willing to push back; no emoji.
