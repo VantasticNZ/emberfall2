@@ -114,14 +114,5 @@ export const EMBERWOOD = [
     } },
   },
 
-  // ---------------------------------------------------------------------------
-  // M17 — Sela's Design (STUB — the Spire approach; PERMANENT DECISION 3,
-  // authored with the endgame.)
-  // ---------------------------------------------------------------------------
-  {
-    id: 'M17', title: "Sela's Design", region: 'Spire approach', act: 2,
-    type: 'main', tone: 'betrayal', perm: true,
-    unlocks: [], reward: {}, choices: [],
-    steps: [ { id: 'stub', desc: "Sela's true plan; the possible betrayal; trust / oppose / go alone. (To be authored with the endgame.)" } ],
-  },
+  // (M17 'Sela's Design' onward lives in src/data/quests/spire.js — the endgame.)
 ];
