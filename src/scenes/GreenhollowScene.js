@@ -152,7 +152,7 @@ export class GreenhollowScene extends Phaser.Scene {
         { parts: n.parts, facing: n.facing, speed: n.speed, expression: n.expression });
       Collision.markSolidActor(npc); this.solids.add(npc); DepthSort.track(npc, CHAR_FOOTPRINT.offY);
       Interaction.register({
-        x: npc.x, y: npc.y + CHAR_FOOTPRINT.offY, radius: 72, prompt: `Talk to ${n.name}`,
+        x: npc.x, y: npc.y + CHAR_FOOTPRINT.offY, prompt: `Talk to ${n.name}`,  // canonical INTERACTION_RADIUS
         onInteract: () => { npc.facing = this._faceToward(npc, this.player); npc.setState('idle'); this._startQuestDialogue(n.quest); },
       });
     }

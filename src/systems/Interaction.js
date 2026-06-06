@@ -9,6 +9,8 @@
 // shows its prompt and calls tryInteract() on the key press.
 // =============================================================================
 
+import { INTERACTION_RADIUS } from '../constants/standards.js';
+
 export const Interaction = {
   _items: [],
   active: null,
@@ -19,13 +21,13 @@ export const Interaction = {
    * Register an interactable.
    * @param {object} cfg
    *   .x,.y        world anchor (the point the player approaches)
-   *   .radius      forgiving reach in px (default 30)
+   *   .radius      forgiving reach in px (default: the canonical INTERACTION_RADIUS)
    *   .prompt      short label shown when active (e.g. "Talk", "Read")
    *   .onInteract  fn() called on press
    *   .requireFacing  if true, player must roughly face it (default true)
    */
   register(cfg) {
-    this._items.push({ radius: 30, requireFacing: true, ...cfg });
+    this._items.push({ radius: INTERACTION_RADIUS, requireFacing: true, ...cfg });
   },
 
   /** Find the best candidate for this frame relative to the player. */
