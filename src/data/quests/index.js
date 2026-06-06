@@ -40,10 +40,11 @@ import { TIDEWRECK_COAST } from './tidewreck.js';
 import { TIDEWRECK_COAST_SIDE } from './tidewreck.side.js';
 import { EMBERWOOD } from './emberwood.js';
 import { EMBERWOOD_SIDE } from './emberwood.side.js';
+import { SPIRE, offeredEndings, epilogueCards } from './spire.js';
 export {
   GREENHOLLOW_CHILDHOOD, GREENHOLLOW_SIDE, ASHEN_MARSH, ASHEN_MARSH_SIDE,
   SUNDERED_PEAKS, SUNDERED_PEAKS_SIDE, TIDEWRECK_COAST, TIDEWRECK_COAST_SIDE,
-  EMBERWOOD, EMBERWOOD_SIDE,
+  EMBERWOOD, EMBERWOOD_SIDE, SPIRE, offeredEndings, epilogueCards,
 };
 export const QUESTS = [
   ...GREENHOLLOW_CHILDHOOD, ...GREENHOLLOW_SIDE,
@@ -51,6 +52,7 @@ export const QUESTS = [
   ...SUNDERED_PEAKS, ...SUNDERED_PEAKS_SIDE,
   ...TIDEWRECK_COAST, ...TIDEWRECK_COAST_SIDE,
   ...EMBERWOOD, ...EMBERWOOD_SIDE,
+  ...SPIRE,
 ];
 
 const slug = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
