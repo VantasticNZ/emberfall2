@@ -1,0 +1,434 @@
+// =============================================================================
+// RegionScene — the reusable base every region scene extends. Owns the shared
+// RENDERING (ground/water/decals/props/NPCs/player) + CAMERA + dialogue/quest UI
+// + INTERACTION + INPUT + the EnemyController-based COMBAT + the update loop.
+// A region becomes a THIN subclass that supplies `regionConfig()` (DATA: world,
+// quests, faces, theme, combat encounters) + a few optional hooks. This is the
+// template all remaining regions use. See docs/REGIONSCENE-SPEC.md.
+//
+//   subclass MUST implement: regionConfig() -> { key, title, help, quests, faces,
+//     theme, questHud, bg, world, combat, devModifiers }
+//   subclass MAY override hooks: onCreateExtra(), onDialogueConfirm(wasNodeId)->bool,
+//     onPlayerDownExtra(), playerAttackTool()
+// =============================================================================
+
+import Phaser from 'phaser';
+import { PROPS, PARTS, TILE, DIR_ROW, ANIMS, EXPRESSIONS, EXPR_COLS, EXPR_ROW, CHAR_FOOTPRINT } from '../data/assets.js';
+import { AssetLoader } from '../art/AssetLoader.js';
+import { Character } from '../systems/Character.js';
+import { Movement } from '../systems/Movement.js';
+import { Collision } from '../systems/Collision.js';
+import { DepthSort, DEPTH } from '../systems/DepthSort.js';
+import { Interaction } from '../systems/Interaction.js';
+import { Dialogue } from '../systems/Dialogue.js';
+import { QuestEngine } from '../systems/QuestEngine.js';
+import { KarmaEngine } from '../systems/Karma.js';
+import { Inventory } from '../systems/Inventory.js';
+import { PlayerCombat } from '../systems/Combat.js';
+import { InputMap } from '../systems/Input.js';
+import { EnemyController } from '../systems/EnemyController.js';
+import { ModifierRegistry } from '../systems/Modifiers.js';
+import { item } from '../data/items/index.js';
+import { memoryStorage } from '../systems/storage.js';
+import { COMBAT } from '../constants/standards.js';
+import { bindings } from '../constants/controls.js';
+
+const tileToPx = (t) => t * TILE + TILE / 2;
+export const FACE_VEC = { up: { x: 0, y: -1 }, down: { x: 0, y: 1 }, left: { x: -1, y: 0 }, right: { x: 1, y: 0 } };
+
+export class RegionScene extends Phaser.Scene {
+  // ---- subclass contract (override these) ----
+  regionConfig() { throw new Error('regionConfig() must be implemented'); }
+  onCreateExtra() {}                 // region-specific setup (extra keys, shrine, etc.)
+  onDialogueConfirm() { return false; } // intercept a dialogue advance (e.g. boss). return true if handled
+  onPlayerDownExtra() {}             // on player death (e.g. clear a boss)
+  playerAttackTool() { return null; } // a tool passed to enemy hits (e.g. the lantern)
+
+  create() {
+    this.cfg = this.regionConfig();
+    this.theme = this.cfg.theme;
+    AssetLoader.build(this);
+    DepthSort.reset();
+    Interaction.reset();
+    this.karma = new KarmaEngine({ storage: memoryStorage() });
+    this.quests = new QuestEngine({ karma: this.karma, storage: memoryStorage(), quests: this.cfg.quests });
+
+    const w = this.cfg.world;
+    this.worldW = w.widthTiles * TILE; this.worldH = w.heightTiles * TILE;
+    this.edgeMargin = 3 * TILE;
+    this.physics.world.setBounds(this.edgeMargin, this.edgeMargin, this.worldW - this.edgeMargin * 2, this.worldH - this.edgeMargin * 2);
+
+    this._buildGround();
+    this._buildWater();
+    this._scatterDecals();
+    this.solids = this.add.group();
+    this.actors = this.add.group();
+    this._buildProps();
+    this._buildNPCs();
+    this._buildPlayer();
+    Collision.wire(this, this.actors, this.solids);
+
+    this.cameras.main.setBounds(0, 0, this.worldW, this.worldH);
+    this.cameras.main.setRoundPixels(false);
+    this.cameras.main.startFollow(this.player, false, 0.1, 0.1);
+    if (this.cfg.bg) this.cameras.main.setBackgroundColor(this.cfg.bg);
+    this.baseZoom = 1.25; this._applyCamera();
+
+    this._dlg = null;
+    this._buildInput();
+    this._buildUI();
+    this._initCombat();
+    this.onCreateExtra();
+    this._setupUICamera();
+    this.scale.on('resize', (sz) => { this._applyCamera(); this._layoutUI(); this.uiCamera.setSize(sz.width, sz.height); });
+  }
+
+  _setupUICamera() {
+    const ui = [this.hud, this.dialogue, this.prompt, this.playerHpUI, this.banner].filter(Boolean);
+    this.uiCamera = this.cameras.add(0, 0, this.scale.width, this.scale.height);
+    this.cameras.main.ignore(ui);
+    this.uiCamera.ignore(this.children.list.filter((o) => !ui.includes(o)));
+  }
+  _applyCamera() {
+    const W = this.scale.width, H = this.scale.height;
+    this.cameras.main.setZoom(Math.max(Math.max(W / this.worldW, H / this.worldH), this.baseZoom));
+  }
+  _stepZoom(dir) { this.baseZoom = Phaser.Math.Clamp(this.baseZoom + dir * 0.15, 1.0, 2.0); this._applyCamera(); }
+
+  // ---- WORLD (from cfg.world) ------------------------------------------------
+  _buildGround() {
+    const g = this.cfg.world.ground;
+    const paint = (key, x, y, w, h) => { const ts = this.add.tileSprite(x, y, w, h, key).setOrigin(0, 0); if (g.tint != null) ts.setTint(g.tint); DepthSort.pinFloor(ts); return ts; };
+    paint(g.base, 0, 0, this.worldW, this.worldH);
+    for (const [key, tx, ty, w, h] of (g.rects || [])) paint(key, tx * TILE, ty * TILE, w * TILE, h * TILE);
+  }
+  _buildWater() {
+    const wt = this.cfg.world.water; this._ponds = [];
+    if (!wt) return;
+    this._ponds = wt.pools || (wt.pond ? [wt.pond] : []);
+    for (const p of this._ponds) {
+      for (let y = 0; y < p.h; y++) for (let x = 0; x < p.w; x++) {
+        const v = (y === 0 ? 'n' : y === p.h - 1 ? 's' : '') + (x === 0 ? 'w' : x === p.w - 1 ? 'e' : '');
+        const img = this.add.image((p.tx + x) * TILE, (p.ty + y) * TILE, `pond_${v || 'c'}`).setOrigin(0, 0);
+        if (wt.tint != null) img.setTint(wt.tint);
+        DepthSort.pinFloor(img);
+      }
+    }
+  }
+  _inWater(tx, ty) { return this._ponds.some((p) => tx >= p.tx - 0.5 && tx < p.tx + p.w + 0.5 && ty >= p.ty - 0.5 && ty < p.ty + p.h + 0.5); }
+  _scatterDecals() {
+    const W = this.worldW, H = this.worldH, m = 2 * TILE;
+    const ok = (px, py) => !(px < m || px > W - m || py < m || py > H - m) && !this._inWater(px / TILE, py / TILE);
+    for (const layer of (this.cfg.world.decalLayers || [])) {
+      const cfg = layer.cfg; if (!cfg) continue; let seed = cfg.seed >>> 0;
+      const rnd = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
+      let placed = 0, tries = 0;
+      while (placed < cfg.count && tries < cfg.count * 12) {
+        tries++; const px = Math.floor(rnd() * W), py = Math.floor(rnd() * H);
+        if (!ok(px, py)) continue;
+        const img = this.add.image(px, py, cfg.pool[Math.floor(rnd() * cfg.pool.length)]).setOrigin(0.5, layer.originY).setDepth(layer.depth);
+        if (layer.tint != null) img.setTint(layer.tint);
+        placed++;
+      }
+    }
+  }
+  _buildProps() {
+    const treeTint = this.cfg.world.propTreeTint;
+    for (const p of this.cfg.world.props) {
+      const d = PROPS[p.key];
+      const spr = this.physics.add.sprite(tileToPx(p.tx), tileToPx(p.ty), p.key).setOrigin(0.5, 0.5);
+      if (treeTint != null && p.key.startsWith('prop_tree')) spr.setTint(treeTint);
+      if (p.solid && d.footprint) { Collision.makeSolid(spr, d.footprint); this.solids.add(spr); }
+      else if (spr.body) { spr.body.enable = false; }
+      DepthSort.track(spr, d.footprint ? d.footprint.offY : d.height / 2);
+    }
+  }
+  _buildNPCs() {
+    for (const n of this.cfg.world.npcs) {
+      const npc = new Character(this, tileToPx(n.tx), tileToPx(n.ty), { parts: n.parts, facing: n.facing, speed: n.speed, expression: n.expression });
+      Collision.markSolidActor(npc); this.solids.add(npc); DepthSort.track(npc, CHAR_FOOTPRINT.offY);
+      Interaction.register({
+        x: npc.x, y: npc.y + CHAR_FOOTPRINT.offY, prompt: `Talk to ${n.name}`,
+        onInteract: () => {
+          npc.facing = this._faceToward(npc, this.player); npc.setState('idle');
+          if (n.quest && this.quests.status(n.quest) !== 'complete') this._startQuestDialogue(n.quest);
+          else if (n.done) this._startGreeting(n.name, n.done);
+          else if (n.greeting) this._startGreeting(n.name, n.greeting);
+        },
+      });
+    }
+  }
+  _buildPlayer() {
+    const pd = this.cfg.world.player;
+    this.player = new Character(this, tileToPx(pd.tx), tileToPx(pd.ty), { parts: pd.parts, facing: pd.facing, speed: pd.speed, expression: pd.expression });
+    this.player.equip('sword');
+    Collision.markPlayer(this.player); this.actors.add(this.player); DepthSort.track(this.player, CHAR_FOOTPRINT.offY);
+  }
+
+  // ---- INPUT (canonical control map) ----------------------------------------
+  _buildInput() {
+    this.im = new InputMap(this);
+    this.cursors = this.input.keyboard.createCursorKeys();
+    this.keys = this.input.keyboard.addKeys({ one: 'ONE', two: 'TWO', three: 'THREE' });
+    this.im.onPress('interact', () => { if (this._dlg) this._dialogueConfirm(); else if (Interaction.active) Interaction.tryInteract(); });
+    this.im.onPress('attack', () => { if (this._canAct()) this._playerAttack(); });
+    this.im.onPress('dodge', () => { if (this._canAct()) this._tryDodge(); });
+    this.im.onPress('settings', () => this._openSettings());
+    this.im.onPress('move_up', () => { if (this._dlg) this._dialogueNav(-1); });
+    this.im.onPress('move_down', () => { if (this._dlg) this._dialogueNav(+1); });
+    this.cursors.up.on('down', () => { if (this._dlg) this._dialogueNav(-1); });
+    this.cursors.down.on('down', () => { if (this._dlg) this._dialogueNav(+1); });
+    this.input.on('pointerdown', (ptr) => { if (ptr.leftButtonDown() && this._canAct()) this._playerAttack(); });
+    const pick = (i) => { if (this._dlg && i < this._dlg.options().length) { this._selOpt = i; this._dialogueConfirm(); } };
+    this.keys.one.on('down', () => pick(0));
+    this.keys.two.on('down', () => pick(1));
+    this.keys.three.on('down', () => pick(2));
+  }
+
+  // ---- UI + DIALOGUE (themed by cfg.theme) ----------------------------------
+  _buildUI() {
+    const W = this.scale.width, H = this.scale.height; this._builtW = W; this._builtH = H; this._RES = 2;
+    const T = this.theme;
+    const txt = (x, y, s, size, color, extra = {}) => this.add.text(x, y, s, { fontFamily: 'monospace', fontSize: `${size}px`, color, ...extra }).setResolution(2).setScrollFactor(0).setDepth(DEPTH.OVERLAY);
+
+    this.hud = this.add.container(0, 0).setScrollFactor(0).setDepth(DEPTH.OVERLAY);
+    const hp = this.add.rectangle(8, 8, T.hudW, T.hudH, T.hudFill, T.hudAlpha).setOrigin(0, 0).setStrokeStyle(2, T.accent, 0.9).setScrollFactor(0).setDepth(DEPTH.OVERLAY);
+    const title = txt(T.hudX, T.titleY, this.cfg.title, T.titleSize, T.titleColor);
+    const help = txt(T.hudX, T.helpY, this.cfg.help, T.helpSize, T.muted);
+    this.questHud = txt(T.hudX, T.questY, '', 15, '#9fe6a0'); this.questHud.setVisible(!!this.cfg.questHud?.show);
+    this.hud.add([hp, title, help, this.questHud]);
+    this._updateQuestHud();
+
+    this.prompt = this.add.text(W / 2, H - 140, '', { fontFamily: 'monospace', fontSize: '17px', color: T.promptFg, backgroundColor: T.promptBg, padding: { x: 10, y: 5 } })
+      .setOrigin(0.5, 1).setResolution(2).setScrollFactor(0).setDepth(DEPTH.OVERLAY).setVisible(false);
+
+    const boxW = 824, boxH = 286, bx = (W - boxW) / 2, by = H - boxH - 12; this._boxBx = bx; this._boxW = boxW;
+    const PS = 168, px = bx + 14, py = by + 14; this.portraitBox = { x: px, y: py, size: PS }; this._portrait = null;
+    this.dialogue = this.add.container(0, 0).setScrollFactor(0).setDepth(DEPTH.OVERLAY).setVisible(false);
+    const panel = this.add.rectangle(bx, by, boxW, boxH, T.dlgFill, T.dlgAlpha).setOrigin(0, 0).setStrokeStyle(3, T.accent).setScrollFactor(0);
+    this.portraitFrame = this.add.rectangle(px, py, PS, PS, T.portraitFill, 1).setOrigin(0, 0).setStrokeStyle(2, T.accent).setScrollFactor(0);
+    this._txtX = px + PS + 20;
+    this.dlgName = txt(this._txtX, by + 16, '', 22, T.nameColor, { fontStyle: 'bold' });
+    this.dlgBody = txt(this._txtX, by + 48, '', 17, T.bodyColor, { wordWrap: { width: boxW - (PS + 34) - 18 }, lineSpacing: 5 });
+    this.dlgHint = this.add.text(bx + boxW - 14, by + boxH - 10, 'E ▸', { fontFamily: 'monospace', fontSize: '13px', color: T.hintColor })
+      .setOrigin(1, 1).setResolution(2).setScrollFactor(0).setDepth(DEPTH.OVERLAY);
+    this.dialogue.add([panel, this.portraitFrame, this.dlgName, this.dlgBody, this.dlgHint]);
+    this._optTexts = [];
+  }
+  _layoutUI() {
+    const W = this.scale.width, H = this.scale.height;
+    this.dialogue.setPosition((W - this._builtW) / 2, H - this._builtH);
+    if (this.prompt) this.prompt.setPosition(W / 2, H - (this.cfg.promptYOff ?? 140));
+  }
+  _updateQuestHud() {
+    if (!this.cfg.questHud?.show) return;
+    const q = this.cfg.questHud;
+    const st = this.quests.status(q.id) || 'available';
+    const m = this.karma.get('morality');
+    this.questHud.setText(`Quest — ${q.label}: ${st.toUpperCase()}     Morality: ${m >= 0 ? '+' : ''}${m}`);
+  }
+
+  _startGreeting(name, lines) {
+    const nodes = {};
+    lines.forEach((t, i) => { const last = i === lines.length - 1; nodes[`g${i}`] = { speaker: name, text: t, options: [last ? { label: '(Step away.)', end: true } : { label: '(Listen.)', to: `g${i + 1}` }] }; });
+    this._activeQuest = null;
+    this._dlg = new Dialogue({ start: 'g0', nodes }, { karma: this.karma, engine: this.quests });
+    this._selOpt = 0; Movement.stop(this.player); this.prompt.setVisible(false); this.dialogue.setVisible(true); this._renderNode();
+  }
+  _startQuestDialogue(qid) {
+    const def = this.quests.defs[qid]; if (!def || !def.dialogue) return;
+    if (this.quests.status(qid) === 'available') this.quests.start(qid);
+    this._activeQuest = qid;
+    this._dlg = new Dialogue(def.dialogue, { karma: this.karma, engine: this.quests });
+    this._selOpt = 0; Movement.stop(this.player); this.prompt.setVisible(false); this.dialogue.setVisible(true); this._renderNode();
+    this._updateQuestHud();
+  }
+  _renderNode() {
+    const node = this._dlg.node(); if (!node) { this._closeDialogue(); return; }
+    this.dlgName.setText(node.speaker || ''); this.dlgBody.setText(node.text || '');
+    const face = this.cfg.faces[node.speaker]; this._buildPortrait(face ? face.parts : null, face ? face.expression : 'neutral');
+    this._renderOptions(this._dlg.options());
+  }
+  _renderOptions(opts) {
+    const T = this.theme;
+    this._optTexts.forEach((t) => t.destroy()); this._optTexts = [];
+    this._selOpt = Phaser.Math.Clamp(this._selOpt, 0, Math.max(0, opts.length - 1));
+    const isChoice = opts.length > 1, x = this._txtX, rowH = 28, barW = this._boxBx + this._boxW - x - 8;
+    const oy = this.dlgBody.y + this.dlgBody.height + (isChoice ? 24 : 12);
+    const add = (o) => { this.dialogue.add(o); this._optTexts.push(o); return o; };
+    if (isChoice) add(this.add.text(x, oy - 20, '─ CHOOSE ─', { fontFamily: 'monospace', fontSize: '11px', color: T.hintColor, fontStyle: 'bold' }).setResolution(2).setScrollFactor(0).setDepth(DEPTH.OVERLAY));
+    opts.forEach((o, i) => {
+      const sel = i === this._selOpt, y = oy + i * rowH;
+      if (sel) add(this.add.rectangle(x - 8, y - 3, barW, rowH - 4, T.choiceBar, 1).setOrigin(0, 0).setScrollFactor(0).setDepth(DEPTH.OVERLAY));
+      add(this.add.text(x, y, `${sel ? '▶ ' : '   '}${isChoice ? `${i + 1}. ` : ''}${o.label}`, { fontFamily: 'monospace', fontSize: '16px', color: sel ? T.choiceSelFg : T.muted, fontStyle: sel ? 'bold' : 'normal' }).setResolution(2).setScrollFactor(0).setDepth(DEPTH.OVERLAY));
+    });
+    this.dlgHint.setText(isChoice ? '↑↓ move · 1/2 or E to pick' : 'E to continue ▸');
+  }
+  _dialogueNav(d) { const o = this._dlg.options(); if (o.length < 2) return; this._selOpt = Phaser.Math.Clamp(this._selOpt + d, 0, o.length - 1); this._renderOptions(o); }
+  _dialogueConfirm() {
+    const wasNode = this._dlg.nodeId;
+    this._dlg.select(this._selOpt); this._selOpt = 0;
+    if (this.onDialogueConfirm(wasNode)) return;                 // region hook (e.g. Marsh boss)
+    if (this._dlg.done || !this._dlg.node()) this._closeDialogue(); else this._renderNode();
+    this._updateQuestHud();
+  }
+  _closeDialogue() {
+    if (this._activeQuest && this.quests.status(this._activeQuest) === 'active') this.quests.complete(this._activeQuest);
+    this.dialogue.setVisible(false); this._optTexts.forEach((t) => t.destroy()); this._optTexts = []; this._dlg = null; this._activeQuest = null;
+    this._updateQuestHud();
+  }
+  _buildPortrait(parts, expression = 'neutral') {
+    if (this._portrait) { this._portrait.destroy(); this._portrait = null; }
+    this.portraitFrame.setVisible(!!parts); if (!parts) return;
+    const layers = [];
+    for (const pk of parts) { const part = PARTS[pk]; if (!part) continue; for (const L of part.layers) { if (L.states && !L.states.includes('idle')) continue; layers.push({ ...L }); } }
+    layers.sort((a, b) => a.z - b.z);
+    const idleFrame = DIR_ROW.down * ANIMS.idle.frames, exprFrame = EXPR_ROW.down * EXPR_COLS + (EXPRESSIONS[expression] ?? 0);
+    const cx = 16, cy = 11, cw = 32, ch = 50, rt = this.make.renderTexture({ x: 0, y: 0, width: cw, height: ch }, false);
+    for (const L of layers) { if (L.expressive) rt.drawFrame(`${L.tex}__expr`, exprFrame, -cx, -cy); else rt.drawFrame(`${L.tex}__idle`, idleFrame, -cx, -cy); }
+    const { x, y, size } = this.portraitBox, scale = Math.min((size - 6) / cw, (size - 6) / ch);
+    rt.setOrigin(0.5, 0.5).setPosition(x + size / 2, y + size / 2).setScale(scale).setScrollFactor(0).setDepth(DEPTH.OVERLAY);
+    this.dialogue.add(rt); this._portrait = rt;
+  }
+  _faceToward(from, to) { const dx = to.x - from.x, dy = to.y - from.y; if (Math.abs(dx) >= Math.abs(dy)) return dx < 0 ? 'left' : 'right'; return dy < 0 ? 'up' : 'down'; }
+
+  // ---- COMBAT (EnemyController-based; shared) --------------------------------
+  _initCombat() {
+    const c = this.cfg.combat || { enabled: false };
+    this.combatUnlocked = !!c.enabled;
+    this.player.isAdult = !!c.adult; this.player.isMinor = !c.adult;
+    this.inv = new Inventory({ storage: memoryStorage() });
+    this.pc = new PlayerCombat();
+    this.mods = new ModifierRegistry(undefined, { dev: !!this.cfg.devModifiers });
+    if (this.inv.add('iron_shield')) this.inv.equip('iron_shield');
+    this._refreshShieldBlock();
+    this._hitFreeze = 0; this._atkReady = 0; this._playerFlash = 0; this._inputDir = { dx: 0, dy: 0 }; this._bossActive = false;
+    this._blockArcG = this.add.graphics().setDepth(DEPTH.OVERLAY);
+    const T = this.theme, hpY = T.hpY;
+    this.playerHpUI = this.add.container(0, 0).setScrollFactor(0).setDepth(DEPTH.OVERLAY);
+    const panel = this.add.rectangle(8, hpY, 220, 30, T.hudFill, T.hudAlpha).setOrigin(0, 0).setStrokeStyle(2, T.accent, 0.9).setScrollFactor(0);
+    this._hpBarBg = this.add.rectangle(16, hpY + 16, 160, 12, 0x3a1418, 1).setOrigin(0, 0.5).setScrollFactor(0);
+    this._hpBarFill = this.add.rectangle(16, hpY + 16, 160, 12, 0x5fcf6a, 1).setOrigin(0, 0.5).setScrollFactor(0);
+    this._hpLabel = this.add.text(182, hpY + 9, '', { fontFamily: 'monospace', fontSize: '13px', color: T.nameColor }).setResolution(2).setScrollFactor(0);
+    const hpKids = [panel, this._hpBarBg, this._hpBarFill, this._hpLabel];
+    if (c.devNote) hpKids.push(this.add.text(10, hpY + 32, c.devNote, { fontFamily: 'monospace', fontSize: '10px', color: '#e0a35a' }).setResolution(2).setScrollFactor(0));
+    this.playerHpUI.add(hpKids);
+    this.banner = this.add.text(this.scale.width / 2, 92, '', { fontFamily: 'monospace', fontSize: '15px', color: '#ffe9c2', backgroundColor: '#10171acc', padding: { x: 10, y: 5 }, align: 'center' }).setOrigin(0.5, 0).setScrollFactor(0).setDepth(DEPTH.OVERLAY).setVisible(false);
+
+    this.combat = new EnemyController(this, { solids: this.solids, onPlayerHit: (dmg, info) => this._onPlayerHit(dmg, info), onPlayerRecoil: (dmg) => this._onPlayerRecoil(dmg) });
+    for (const en of (c.enemies || [])) this.combat.spawn(en.id, { tx: en.tx, ty: en.ty });
+    this._applyBigHead();
+  }
+  _refreshShieldBlock() {
+    const sh = this.inv.equipped('shield');
+    const b = sh ? (item(sh).effects.find((e) => e.block != null)?.block ?? COMBAT.NO_SHIELD_BLOCK) : COMBAT.NO_SHIELD_BLOCK;
+    this.pc.setShieldBlock(b);
+  }
+  _canAct() { return !this._dlg && this._hitFreeze <= 0 && this.combatUnlocked; }
+  _openSettings() { if (this._dlg) return; this.scene.launch('Options', { caller: this.cfg.key, mods: this.mods, im: this.im }); this.scene.pause(); }
+  _banner(t, ms = 2600) { this.banner.setText(t).setVisible(true); this.time.delayedCall(ms, () => this.banner && this.banner.setVisible(false)); }
+
+  _playerAttack() {
+    if (!this.combat) return;
+    const now = this.time.now;
+    if (now < this._atkReady || this.player.isBusy()) return;
+    this._atkReady = now + COMBAT.ATTACK_COOLDOWN_MS;
+    this.player.action('attack'); this._sfx('sfx_swing', 0.45);
+    const out = this.combat.playerAttack(this.player, COMBAT.ATTACK_DAMAGE, { tool: this.playerAttackTool() });
+    for (const r of out) {
+      if (r.outcome === 'hit' || r.outcome === 'swarm') { this._sfx('sfx_hit', 0.7); this._hitFreeze = COMBAT.HIT_FREEZE_FRAMES; this.cameras.main.shake(110, COMBAT.SHAKE_HIT); }
+      else if (r.outcome === 'interrupted') { this._sfx('sfx_hit', 0.55); this._banner('Channel interrupted!', 1200); }
+      else if (r.outcome === 'guarding') { this._sfx('sfx_swing', 0.3); this._banner('Blocked up front — FLANK it!', 1400); }
+      else if (r.outcome === 'recoil') this._banner('It is charged — wait for the window!', 1400);
+      if (r.killed && r.e.boss) this._onBossDefeated?.();
+    }
+  }
+  _tryDodge() {
+    const now = this.time.now;
+    let { dx, dy } = this._inputDir; if (!dx && !dy) { const f = FACE_VEC[this.player.facing] || FACE_VEC.down; dx = f.x; dy = f.y; }
+    this.pc.dodge(now, dx, dy);
+  }
+  _onPlayerHit(dmg, { fromFront, dir }) {
+    const now = this.time.now, r = this.pc.takeDamage(now, dmg, { fromFront });
+    if (r.outcome === 'dodged') return;
+    if (r.outcome === 'parried') { this.pc.consumeParry(); const a = this.combat.nearest(this.player); if (a) this.combat.stagger(a); this._sfx('sfx_hit', 0.85); this._hitFreeze = COMBAT.HIT_FREEZE_FRAMES + 3; this.cameras.main.shake(160, COMBAT.SHAKE_HIT); return; }
+    const blocked = r.outcome === 'blocked';
+    this.inv.hp = Math.max(0, this.inv.hp - r.taken);
+    this._sfx(blocked ? 'sfx_hit' : 'sfx_charge_impact', blocked ? 0.5 : 0.7);
+    this._playerFlash = Math.round(COMBAT.FLASH_MS / 16); this._hitFreeze = COMBAT.HIT_FREEZE_FRAMES + (blocked ? 0 : 2);
+    this.cameras.main.shake(blocked ? 110 : 200, blocked ? COMBAT.SHAKE_HIT : COMBAT.SHAKE_CHARGE);
+    const k = blocked ? 0.4 : 1, d = dir || FACE_VEC.down;
+    this.player.body.setVelocity(d.x * COMBAT.KNOCKBACK_SPEED * k, d.y * COMBAT.KNOCKBACK_SPEED * k);
+    if (this.inv.hp <= 0) this._playerDown();
+  }
+  _onPlayerRecoil(dmg) {
+    this.inv.hp = Math.max(0, this.inv.hp - dmg);
+    this._playerFlash = Math.round(COMBAT.FLASH_MS / 16); this._hitFreeze = COMBAT.HIT_FREEZE_FRAMES;
+    this.cameras.main.shake(140, COMBAT.SHAKE_CHARGE);
+    if (this.inv.hp <= 0) this._playerDown();
+  }
+  _playerDown() {
+    this.inv.hp = this.inv.stats().maxHp;
+    const sp = this.cfg.combat.spawn; this.player.x = tileToPx(sp.tx); this.player.y = tileToPx(sp.ty); this.player.body.reset(this.player.x, this.player.y);
+    this.combat.enemies.forEach((e) => { e.awake = false; });
+    this.onPlayerDownExtra();
+    this._banner('You fall — and wake at the edge.');
+  }
+  _updatePlayerVisual(now) {
+    this._blockArcG.clear();
+    let t = null;
+    if (this.pc.isBlocking()) { t = 0x66ccff; const f = FACE_VEC[this.player.facing] || FACE_VEC.down, ang = Math.atan2(f.y, f.x); this._blockArcG.lineStyle(7, 0x9fd8ff, 0.95).beginPath().arc(this.player.x + f.x * 20, this.player.y + f.y * 20 - 6, 22, ang - 1.0, ang + 1.0).strokePath(); }
+    if (this.pc.isDodgeMoving(now)) { t = 0xeaf6ff; const prog = Math.min(1, Math.max(0, 1 - (this.pc.dodgeMoveUntil - now) / COMBAT.DODGE_DURATION_MS)), dip = Math.sin(prog * Math.PI); this.player.setScale(1 + 0.22 * dip, 1 - 0.5 * dip); }
+    else if (this.player.scaleX !== 1 || this.player.scaleY !== 1) this.player.setScale(1, 1);
+    if (this._playerFlash > 0) { t = 0xff5555; this._playerFlash--; }
+    if (t == null) this.player.list.forEach((s) => s.clearTint && s.clearTint()); else this.player.list.forEach((s) => s.setTint && s.setTint(t));
+  }
+  _drawCombatUI() {
+    const max = this.inv.stats().maxHp, hp = Math.max(0, this.inv.hp);
+    this._hpBarFill.width = 160 * (hp / max); this._hpBarFill.fillColor = hp / max > 0.3 ? 0x5fcf6a : 0xcf5f5f;
+    this._hpLabel.setText(`HP ${hp}/${max}`);
+  }
+  _sfx(key, vol = 0.6) { if (this.cache.audio.exists(key)) { const a = bindings.options.audio; this.sound.play(key, { volume: vol * a.master * a.sfx }); } }
+
+  // BIG-HEAD modifier — scale the head-region layers of every Character.
+  _applyBigHead() {
+    const s = this.mods.headScale();
+    const heads = (c) => { if (!c?._slotLayers) return; for (const slot of ['head', 'hair', 'brows', 'beard']) (c._slotLayers[slot] || []).forEach((sp) => sp.setScale(s, s).setY(s > 1 ? -10 * (s - 1) : 0)); };
+    heads(this.player);
+    this.children.list.forEach((o) => { if (o.constructor?.name === 'Character') heads(o); });
+  }
+
+  // ---- LOOP -----------------------------------------------------------------
+  update(time, delta) {
+    const dt = Math.min(delta || 16, 50) / 1000;
+    if (this._hitFreeze > 0) { this._hitFreeze--; Movement.stop(this.player); this.combat.update(dt, this.player); DepthSort.update(); this._drawCombatUI(); return; }
+    if (this._dlg) { Movement.stop(this.player); this._blockArcG.clear(); this.combat.update(dt, this.player); DepthSort.update(); this._drawCombatUI(); return; }
+    const now = this.time.now;
+    const { dx, dy } = this.im.vector(); this._inputDir = { dx, dy };
+    this.pc.setBlocking(now, this.combatUnlocked && this.im.down('block') && !this.player.isBusy());
+    if (this.pc.isDodgeMoving(now)) { const v = this.pc.dodgeVelocity(); this.player.body.setVelocity(v.x, v.y); }
+    else if (this.pc.isBlocking()) Movement.stop(this.player);
+    else Movement.drive(this.player, dx, dy, this.im.runHeld());
+    this.combat.update(dt, this.player);
+    if (this.cfg.combat?.respawn) this._respawnTick();
+    this._updatePlayerVisual(now);
+    DepthSort.update();
+    this._drawCombatUI();
+    const active = Interaction.update(this.player);
+    if (active) this.prompt.setText(`${active.prompt}  (E)`).setVisible(true); else this.prompt.setVisible(false);
+  }
+
+  // dev arenas (Greenhollow): respawn a downed encounter so the fight is replayable
+  _respawnTick() {
+    for (const e of this.combat.enemies) {
+      if (!e.alive && !e._respawning) {
+        e._respawning = true;
+        this.time.delayedCall(2200, () => {
+          this.combat.enemies = this.combat.enemies.filter((x) => x !== e);
+          const en = this.cfg.combat.enemies[0];
+          if (en) this.combat.spawn(en.id, { tx: en.tx, ty: en.ty });
+        });
+      }
+    }
+  }
+}
