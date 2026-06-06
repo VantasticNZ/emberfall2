@@ -24,10 +24,10 @@ import { GREENHOLLOW_CHILDHOOD } from '../data/quests/index.js';
 
 const tileToPx = (t) => t * TILE + TILE / 2;
 
-// Which face/expression the dialogue portrait shows per speaker (same LPC base).
+// Which face/expression the dialogue portrait shows per speaker (real LPC outfits).
 const SPEAKER_FACE = {
-  Mara: { parts: WORLD.maraParts, expression: 'happy' },   // red shirt — distinct
-  Bram: { parts: WORLD.base, expression: 'neutral' },
+  Mara: { parts: WORLD.maraParts, expression: 'happy' },    // feminine, forest shirt
+  Bram: { parts: WORLD.bramParts, expression: 'neutral' },  // bearded smith
 };
 
 export class GreenhollowScene extends Phaser.Scene {
@@ -301,7 +301,7 @@ export class GreenhollowScene extends Phaser.Scene {
     if (this._portrait) { this._portrait.destroy(); this._portrait = null; }
     this.portraitFrame.setVisible(!!parts);
     if (!parts) return;
-    const FACE_SLOTS = new Set(['body', 'torso', 'head', 'brows', 'hair']);
+    const FACE_SLOTS = new Set(['body', 'torso', 'head', 'brows', 'beard', 'hair']);
     const layers = [];
     for (const pk of parts) {
       const part = PARTS[pk];
