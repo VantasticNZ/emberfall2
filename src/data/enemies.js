@@ -1,38 +1,28 @@
 // =============================================================================
 // ENEMY SKINS — how each tested Monsters ARCHETYPE is RENDERED (data only).
-// The behaviour is the FSM (src/data/monsters/); this maps an archetype id to a
-// distinct visual: a humanoid LPC skin + scale + base tint + optional weapon.
+// The behaviour is the FSM (src/data/monsters/) — UNCHANGED; this only maps an
+// archetype id to a REAL LPC monster spritesheet (public/art/monsters/, OpenGameArt
+// CC-BY-SA/GPL — see ASSET-LEDGER) + scale + base tint. Bog-appropriate creatures.
 //
-// FLAG (no fake): the asset hunt added only HUMANOID LPC parts — there are NO
-// dedicated monster/beast sprites. So archetypes are distinguished by SKIN combo
-// + SCALE + TINT + their telegraph/behaviour language (real art, not colour-boxes).
-// A purchased monster pack (see IDEAS-BACKLOG "PAID ASSET REQUIREMENTS") would
-// replace these with true creatures.
+// `sheet` = a `mon_<key>` spritesheet (front-facing idle loop from BootScene).
+// `base`  = idle tint (0xffffff shows the creature's real colours; the telegraph
+//           language tints yellow/white/cyan over it). A couple recolour for read.
+// FLAG: where no perfect creature exists for an archetype, the closest is used +
+// noted; the humanoid `parts` path is kept for any future humanoid enemy.
 // =============================================================================
 
-const IVORY = (shirt, hair) => ['body_ivory', 'head_ivory', 'brows_chestnut', hair, shirt, 'pants_black', 'shoes_brown'];
-const FEM = (shirt, hair) => ['body_fem', 'head_fem', 'brows_chestnut', hair, shirt, 'pants_brown', 'shoes_brown_fem'];
-
 export const ENEMY_SKINS = {
-  // telegraphed rush -> dodge the line, punish recovery
-  charger: { name: 'Bog Lunger', parts: IVORY('shirt_leather', 'hair_parted_gray'), scale: 1.0, base: 0xff8a7a, weapon: 'sword' },
-  // blocks the front -> flank it
-  shielded: { name: 'Order Revenant', parts: IVORY('shirt_leather', 'hair_chestnut'), scale: 1.08, base: 0x9fb4c8, weapon: 'shield' },
-  // invulnerable while charged -> wait for the window
-  charger_electric: { name: 'Storm Crawler', parts: FEM('shirt_blue', 'hair_bob_blonde'), scale: 1.0, base: 0x7fa8ff },
-  // weak many -> AoE / spin
-  swarm: { name: 'Fen Gnats', parts: FEM('shirt_forest', 'hair_bob_blonde'), scale: 0.62, base: 0x8fe06a },
-  // slow heavy -> dodge the wind-up, punish
-  brute: { name: 'Mire Brute', parts: IVORY('shirt_leather', 'hair_parted_gray'), scale: 1.65, base: 0xc7a06a, weapon: 'sword' },
-  // projectiles -> close / block
-  ranged: { name: 'Marsh Slinger', parts: IVORY('shirt_blue', 'hair_chestnut'), scale: 0.95, base: 0xd6b86a },
-  // channels -> interrupt
-  caster: { name: 'Bog Caster', parts: FEM('shirt_forest', 'hair_parted_gray'), scale: 1.0, base: 0xc78aff },
-  // leaps -> bait, side-step, punish the landing
-  jumper: { name: 'Leap Horror', parts: FEM('shirt_leather', 'hair_bob_blonde'), scale: 0.9, base: 0x9adf8f },
+  charger: { name: 'Bog Serpent', sheet: 'snake', scale: 1.0, base: 0xffffff },               // lunges in a line
+  shielded: { name: 'Gourd Revenant', sheet: 'pumpking', scale: 1.05, base: 0xffffff },        // FLAG: closest — a hulking gourd that guards its front
+  charger_electric: { name: 'Galvanic Ooze', sheet: 'slime', scale: 1.0, base: 0x9fd0ff },     // recoloured bluish = charged
+  swarm: { name: 'Fen Bats', sheet: 'bat', scale: 0.8, base: 0xffffff },                       // flying many -> AoE
+  brute: { name: 'Mire Worm', sheet: 'big_worm', scale: 1.5, base: 0xffffff },                 // huge, slow, heavy
+  ranged: { name: 'Bog Watcher', sheet: 'eyeball', scale: 0.95, base: 0xffffff },              // floating eye -> ranged volley
+  caster: { name: 'Drowned Wisp', sheet: 'ghost', scale: 1.0, base: 0xffffff },                // spectral -> channels
+  jumper: { name: 'Leap Horror', sheet: 'bat', scale: 0.9, base: 0xffffff },                   // (not placed yet)
 };
 
-// the BOSS skin (the Drowned Guardian) — big, shrouded; the lantern strips it
+// the BOSS — a vast tentacled bog-maw (closest to the "Drowned Guardian"; FLAG)
 export const BOSS_SKINS = {
-  drowned_guardian: { name: 'The Drowned Guardian', parts: IVORY('shirt_leather', 'hair_parted_gray'), scale: 2.0, base: 0x2f5f6a, shroud: 0x14323a },
+  drowned_guardian: { name: 'The Drowned Guardian', sheet: 'man_eater_flower', scale: 1.4, base: 0x9fd6d0 },
 };

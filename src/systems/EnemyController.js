@@ -40,10 +40,20 @@ export class EnemyController {
   spawn(id, { tx, ty, hp, boss = false, name, aggro = 230 } = {}) {
     const skin = (boss ? BOSS_SKINS[id] : ENEMY_SKINS[id]) || ENEMY_SKINS.charger;
     const x = tx * TILE + TILE / 2, y = ty * TILE + TILE / 2;
-    const spr = new Character(this.scene, x, y, { parts: skin.parts, facing: 'down', speed: 0, expression: 'angry' });
+    let spr, foot;
+    if (skin.sheet) {                                   // a REAL LPC monster sprite
+      spr = this.scene.physics.add.sprite(x, y, `mon_${skin.sheet}`).setOrigin(0.5, 0.72);
+      spr.play(`mon_${skin.sheet}_idle`);
+      spr.body.setSize(26, 20, true);
+      spr.facing = 'down'; spr.setState = () => {};     // no-op so the shared behaviour code is sprite-safe
+      foot = spr.height * 0.22;
+    } else {                                            // humanoid (kept for future humanoid enemies)
+      spr = new Character(this.scene, x, y, { parts: skin.parts, facing: 'down', speed: 0, expression: 'angry' });
+      if (skin.weapon) spr.equip(skin.weapon);
+      foot = CHAR_FOOTPRINT.offY;
+    }
     spr.setScale(skin.scale, skin.scale);
-    if (skin.weapon) spr.equip(skin.weapon);
-    DepthSort.track(spr, CHAR_FOOTPRINT.offY * skin.scale);
+    DepthSort.track(spr, foot * skin.scale);
     if (this.scene.uiCamera) this.scene.uiCamera.ignore(spr);
     if (this.solids) this.scene.physics.add.collider(spr, this.solids);
     const mon = spawnMonster(id, hp != null ? { hp } : {});
@@ -271,17 +281,19 @@ export class EnemyController {
   }
   _guardSpark(e) { this.fxG.lineStyle(3, 0xffffff, 0.9).strokeCircle(e.spr.x, e.spr.y - 16 * e.scale, 14 * e.scale); }
   _drawHpBar(e) {
-    const spr = e.spr, w = 44 * e.scale, x = spr.x - w / 2, y = spr.y - 52 * e.scale;
+    const spr = e.spr, w = 44 * e.scale, x = spr.x - w / 2;
+    const top = spr.list ? 52 * e.scale : spr.displayHeight * 0.55 + 4;   // humanoid vs monster sprite
+    const y = spr.y - top;
     const frac = e.maxCount > 1 ? e.mon.count / e.maxCount : Math.max(0, e.mon.hp / e.mon.maxHp);
     this.fxG.fillStyle(0x000000, 0.55).fillRect(x - 1, y - 1, w + 2, 7);
     this.fxG.fillStyle(0x3a1418, 1).fillRect(x, y, w, 5);
     this.fxG.fillStyle(e.boss ? 0xb05ad0 : 0xe05a5a, 1).fillRect(x, y, w * frac, 5);
   }
   _flash(e) { e.flashFrames = F; }
-  _tint(e, c) { e.spr.list.forEach((s) => s.setTint && s.setTint(c)); }
+  _tint(e, c) { const s = e.spr; if (s.list) s.list.forEach((x) => x.setTint && x.setTint(c)); else s.setTint(c); }
   _die(e) {
     e.alive = false;
-    this.scene.tweens.add({ targets: e.spr.list, alpha: 0, duration: 320, onComplete: () => e.spr.destroy() });
+    this.scene.tweens.add({ targets: e.spr.list || e.spr, alpha: 0, duration: 320, onComplete: () => e.spr.destroy() });
   }
   destroyAll() { this.enemies.forEach((e) => e.spr.destroy()); this.enemies = []; this.projectiles.forEach((p) => p.dot.destroy()); this.projectiles = []; this.telegraphG.destroy(); this.fxG.destroy(); }
 }
