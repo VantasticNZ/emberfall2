@@ -123,7 +123,8 @@ export const PROPS = {
                     footprint: { w: 16, h: 8, offX: 0, offY: 58 } },
   prop_tree_pine: { src: 'art/terrain/tree_pine.png', width: 60, height: 136,
                     footprint: { w: 12, h: 8, offX: 0, offY: 64 } },
-  prop_bush:      { src: 'art/terrain/bush.png', width: 32, height: 32, footprint: null },
+  prop_bush:      { src: 'art/terrain/bush.png', width: 32, height: 32,
+                    footprint: { w: 22, h: 12, offX: 0, offY: 8 } },   // enables SOLID bushes (channel movement); non-solid placements stay passable
   prop_sign:      { src: 'art/terrain/sign.png', width: 24, height: 24,
                     footprint: { w: 14, h: 6, offX: 0, offY: 8 } },
   // The forge — a brick building assembled from the LPC house-exterior kit
