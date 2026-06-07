@@ -6,10 +6,32 @@
 ================================================================
 # GREENHOLLOW (hub)
 ================================================================
-## G1 "Fatley's Mug" (marker tutorial — the Gate-D exception)
-FATLEY (fat, lazy) wants the mug "right by me foot, can't be arsed." The ONE item-in-front quest, for
-the joke + to teach the marker system. Completing it + a Rogue/Social skill point unlocks SEEING "?"
-markers. REWARD: marker ability path, a laugh. KARMA: none.
+## G1 "Fatley's Mug" (marker tutorial — the Gate-D exception) — REDESIGNED + RESEQUENCED 2026-06-07
+FATLEY: **very fat, SITTING** in a **quiet out-of-the-way spot** (not the plaza), a **"?"** over his
+head (not "!"). He acts like he **forgot he had a quest**, **stutters + improvises one on the spot**,
+and the thing he "needs" (the mug) is **right in front of him** (too lazy to reach it). The ONE
+item-in-front quest — the Gate-D exception — the characterisation IS the gag. KARMA: none. Sample
+dialogue + the full character note: **PERSONALISATION-DESIGN.md §6.5**.
+
+- **REWARD = an UNLOCK, not a grant:** completing it does **not** force `skill_see_markers`; it **opens
+  the OPTION** to acquire the marker-observing trait (a Rogue/Social skill point — **buyable/learnable**,
+  the player still **chooses**). Fatley is the template for the "lazy-guy teaches, you buy the skill" rule.
+- **PLACEMENT:** **late CHILDHOOD** (one of the last kid-phase goals, ~M5, before M6) — **moved from**
+  the current act-2 adult-return hub. Markers become a *late discovered reward*, after the player has
+  learned to find their own way; early childhood runs **marker-free** (see GAPS-AND-DEPTH §4).
+- **BUILD/DATA NOTES (do at build time — NOT this doc-only session):**
+  - reframe `src/data/quests/greenhollow.side.js` SG1: completion records a NEW *offered* flag (e.g.
+    `marker_sight_offered`) instead of `deed:'skill_see_markers'`; a separate **acquire** step (buy/
+    learn at a skill point) grants `skill_see_markers`. **The `skill_see_markers` id stays.**
+  - move SG1 to **act 1 / late-childhood** gating (a late-childhood flag, e.g. `child_late`) instead of
+    the M7-`accept` unlock. Confirmed nothing earlier needs markers: M1–M6 are NPC-given diegetically;
+    the Pem hunt uses `pem_clue_*` (a separate "Pem marker"), not `skill_see_markers`.
+  - **`greenhollow.side.test.js` WILL need updating**: it currently asserts completion → `skill_see_markers`
+    true; under the opt-in it should assert completion → *offered*, then *acquire* → `skill_see_markers`.
+  - ⚑ ASSET/RENDER FLAGS: a sitting/heavyset Fatley pose + a "?" marker indicator (omit + flag until art
+    lands; never a placeholder).
+  - PROPOSED ids (list only, add at build): `marker_sight_offered`, `child_late`, a "?"-marker encounter
+    tag. `skill_see_markers` already exists in `src/constants/flags.js`.
 ## G2 "PEM WOZ ERE" (clue-hunt, spans the game)
 The gate graffiti starts it. Clues hidden in EVERY region (a scratched name, a rumour) -> assemble ->
 find PEM (a wanderer) -> EPIC reward (unique weapon/trinket). REWARD: epic gear. LINKS: all regions.

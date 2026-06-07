@@ -71,14 +71,32 @@ is the first thing that's *done-done* and could be shown/shipped while the rest 
   classifier. **Tags:** `[FREE NOW]` (data: an unlock flag + a shop entry + the existing modifier/skill
   machinery; the red/green tint is a small additive render on Social's existing state).
 
-## 4. ONBOARDING / FIRST 30 MIN  *(childhood)*
+## 4. ONBOARDING / FIRST 30 MIN  *(childhood)*  — MARKER-FREE EARLY (resequenced 2026-06-07)
 - **Rule:** **~10 min of soft, built-in teaching** — move / talk / interact woven *into the story*
   (Mara calls you down, Bram's at the forge, fetch the eggs), **not a tutorial wall** — then real
   kid-story, early decisions, and play; **childhood ≈ 30 minutes** total. **First combat stays gated to
   Marsh** (no combat in childhood, per the existing rule).
+- **NO QUEST-MARKERS EARLY (the resequence):** early childhood deliberately runs **WITHOUT** the "?"
+  marker sight — it's *find-your-own-way*, which fits the soft onboarding and makes the world feel
+  discovered, not signposted. The teaching is carried **entirely by named NPCs in story context**, not
+  by markers:
+  - **M1 "A Greenhollow Morning"** IS the tutorial — *wake (move)* → *find Bram at the forge (navigate
+    + interact)* → *greet around the square (talk)*. No marker needed; the story tells you where to go.
+  - **M2 Chores** (eggs / water the saplings / catch the hen) reinforces move + interact through play.
+  - M3–M5 add the early decisions. None of M1–M6 depend on markers (verified: they're NPC-given; the
+    Pem hunt uses a separate `pem_clue_*` flag, not the marker skill).
+- **Markers arrive LATE, as a DISCOVERED REWARD:** **FATLEY** (the sitting lazy-guy, met in **late
+  childhood**, ~M5) gives the made-up mug quest; completing it **opens the OPTION** to acquire marker
+  sight (a skill point — **buyable/learnable, the player chooses**; never force-granted). So the player
+  has already learned to navigate by *story + landmarks* before markers are even offered — markers
+  become a convenience you *earn + opt into*, not a crutch you start with. See
+  **PERSONALISATION-DESIGN.md §6.5** + **STORY-AND-QUESTS** (marker onboarding) + **QUESTS-SIDE-FLESH G1**.
 - **Why:** the opening 30 minutes decide whether a player stays; teaching by doing (Zelda/Ocarina
-  Kokiri-forest model) respects them and sets tone.
-- **Tags:** `[FREE NOW]` (quest/dialogue DATA + placement; the systems all exist).
+  Kokiri-forest model) respects them and sets tone. Marker-free early = the world reads *explored*, and
+  the late opt-in keeps player agency (and characterises Fatley).
+- **Tags:** `[FREE NOW]` (quest/dialogue DATA + placement; the systems all exist). *(Build note: this
+  resequences SG1 from the act-2 hub to late act-1 + makes its reward opt-in — the side-quest test will
+  need updating; see QUESTS-SIDE-FLESH G1.)*
 
 ## 5. SAVE SYSTEM  *(decided: crystals, no autosave)*
 - **Rule:** **NO autosave.** Save via **CRYSTALS** — occasionally found, mostly **earned or bought** (a

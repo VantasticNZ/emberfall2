@@ -204,6 +204,49 @@ EDG1/EDG2, GAG1, NIGHT1. New/enriched:
 
 ---
 
+## 6.5 FATLEY — the lazy-quest-guy (the marker-onboarding character, REDESIGN)
+An original comedic NPC, not a cameo of a real figure. Fatley is the diegetic teacher of the
+quest-marker system (see §quest-marker onboarding in STORY-AND-QUESTS / QUESTS-SIDE-FLESH G1) — but
+the redesign makes his *characterisation* do the teaching, and resequences him to late childhood.
+
+- **CHARACTER (posture before speech):** **very fat** and **SITTING** — the laziness reads instantly
+  from his shape + pose before he says a word. Found in a **quiet, out-of-the-way spot** (a back lane
+  / a stump by the wall — **NOT the main plaza**), so reaching him is a small act of curiosity.
+  - ⚑ ASSET/RENDER: needs a **sitting + heavyset pose** (the cast is the standing LPC rig today) and a
+    **"?" marker indicator** over his head — a "?" (not the standard "!"), signalling *"something here,
+    but not what you'd expect."* FLAG both as asset/render work; do not fake (omit the pose/"?" and
+    place him standing with no marker until the art lands, rather than a placeholder).
+- **THE COMEDY BEAT (the improvised quest):** he acts like he **didn't know he had a quest** — caught
+  out, he **stutters and visibly invents one on the spot**, and the thing he "needs" is **right in
+  front of him** (he's just too lazy to reach it). The absurdity IS the characterisation.
+  - *Sample tone (final lines at build):*
+    - *(you approach the "?" — he startles)* "Wh— oh. Oh aye. You're here for the… the **quest**.
+      Course you are. The big important— *[he scans around, panicking]* …right. **Right.** See that?
+      The, ehm— the **mug**. By me foot. Aye. It's, ah… **cursed**. Deeply. Can't touch it meself,
+      it's a whole— it's a *family* thing. You wouldn't get it. Fetch us it, would you, champion."
+    - *(you pick up the mug — it is, indeed, right there)* "…Knew you had it in you. Right, since
+      you've gone and *earned* it — folk with work to give wear a little mark, see. A **'?'**. Most
+      can't see 'em. You want the knack of it, you can **get** it now. Don't go telling 'em Fatley
+      gave you nowt. *[burps, settles back down]*"
+- **TONE GUARDRAILS:** affectionate, never cruel; he's a likeable bludger, not a target. No fat-shaming
+  punchline — the joke is the **laziness + the made-up quest**, his shape is just instant read.
+
+**REWARD = an UNLOCK, not a grant (preserve the opt-in).** Completing the mug bit does **NOT
+force-grant** marker sight. It **opens the OPTION to acquire** the "marker-observing" trait — it
+becomes **buyable / learnable** (a Rogue/Social skill point), and the player still **chooses** to take
+it. Fatley is the **template** for the established "the lazy-guy *teaches*, you still *buy* the skill —
+choice intact" rule (`docs/SYSTEMS-DESIGN-V2` see-quest-markers). The marker trait is the *door that
+opens*, not a thing pushed on you.
+
+**PLACEMENT / TIMING:** **late childhood** — one of the **last kid-phase goals** (around M5, before the
+M6 catastrophe), **not** the early onboarding beat. So markers arrive as a **late, discovered reward**
+after the player has already learned to find their own way (see the onboarding resequence in
+GAPS-AND-DEPTH §4 + STORY-AND-QUESTS). *(Build note: this resequences the current SG1 from the act-2
+adult-return hub to late act-1 childhood — see QUESTS-SIDE-FLESH G1 for the quest data + the test
+update the build will need.)*
+
+---
+
 ## 7. NZ GAG PACK (generic pastiche, **not brands** — same lane as Blow-on-the-Pie)
 - **TOGS / UNDIES:** a guy wandering town in swimwear; the **further from the water** you spot him,
   the more NPCs mutter *"…undies"* (the togs→undies escalation; **structure only**, no ad script).

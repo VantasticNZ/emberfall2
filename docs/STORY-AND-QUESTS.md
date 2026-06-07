@@ -108,12 +108,21 @@ THE ~DOZEN TWISTS: deed-memory callbacks reshape the epilogue - e.g. the kicked 
 > some are just funny/gold/epic-loot. All to QUALITY-BIBLE Gate D (NO item-in-front except the
 > lazy-guy gag). Built data-driven on the quest engine.
 
-## THE QUEST-MARKER ONBOARDING (signature, per Van)
-- Quest-givers have a "?" but the player CANNOT SEE markers at first.
-- FATLEY (the fat lazy guy, Greenhollow) gives the one "item-right-in-front-of-me" quest ("fetch
-  that mug by my foot, can't be arsed") - the deliberate Gate-D exception + a laugh.
-- Completing Fatley's quest teaches the marker system; THEN a skill-tree point unlocks SEEING the
-  "?" markers. Diegetic onboarding.
+## THE QUEST-MARKER ONBOARDING (signature, per Van) — RESEQUENCED 2026-06-07
+- Quest-givers have a "?" but the player CANNOT SEE markers at first — and **early childhood runs
+  WITHOUT markers** (find-your-own-way; the soft onboarding teaches move/talk/interact diegetically
+  via M1's wake→find-Bram→greet, not via markers). Markers are a **late, DISCOVERED reward**, not an
+  early tutorial freebie.
+- **FATLEY** (very fat, **SITTING**, in a **quiet out-of-the-way spot**, a **"?"** over his head —
+  not "!") is met in **LATE CHILDHOOD** (one of the last kid-phase goals, ~M5, before M6). He acts
+  like he forgot he had a quest, **stutters + improvises one on the spot**, and the mug he "needs" is
+  **right in front of him** (the Gate-D exception + a laugh). Character + sample dialogue:
+  **PERSONALISATION-DESIGN.md §6.5**.
+- Completing Fatley's quest **OPENS THE OPTION** to acquire the marker sight — **a skill-tree point
+  unlocks SEEING the "?" markers**; the player still **chooses** to take it (opt-in, choice intact —
+  Fatley is the "lazy-guy teaches, you buy the skill" template). The trait is the door that opens,
+  never force-granted. *(Build note: resequences the current act-2 SG1 to late act-1 — see
+  QUESTS-SIDE-FLESH G1.)*
 
 ## SIDE-QUEST CATEGORIES
 - STORY-LINKED: deepen a region's truth/characters.
