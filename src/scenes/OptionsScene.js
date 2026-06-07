@@ -32,6 +32,12 @@ export class OptionsScene extends Phaser.Scene {
   init(data) { this.caller = data.caller || null; this.mods = data.mods; this.im = data.im || null; }
 
   create() {
+    // Render ON TOP of the (paused-but-still-rendering) caller. Pausing halts a
+    // scene's update loop, NOT its render — and the Overworld is registered AFTER
+    // Options in main.js, so without this the menu draws UNDERNEATH the world and
+    // is invisible ("Esc pauses but no menu appears"). bringToTop is a no-op for
+    // callers already below Options (the discrete RegionScenes).
+    this.scene.bringToTop();
     this.sel = 0; this.top = 0; this.rebinding = null; this.confirming = false;
     this._buildRows();
     const W = this.scale.width, H = this.scale.height;
