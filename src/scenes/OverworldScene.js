@@ -35,7 +35,7 @@ import { ModifierRegistry } from '../systems/Modifiers.js';
 import { COMBAT } from '../constants/standards.js';
 import { bindings } from '../constants/controls.js';
 import { AssetLoader } from '../art/AssetLoader.js';
-import { PROPS } from '../data/assets.js';
+import { PROPS, PARTS, DIR_ROW, ANIMS, EXPRESSIONS, EXPR_COLS, EXPR_ROW } from '../data/assets.js';
 import { TERRAIN } from '../data/terrainTiles.js';
 import { GREENHOLLOW_CHILDHOOD, GREENHOLLOW_SIDE, ASHEN_MARSH } from '../data/quests/index.js';
 import { TILE, CHUNK_PX, WORLD_CHUNKS, WORLD_PX, chunkContent, groundTintAt, GREENHOLLOW, ASHEN_MARSH as MARSH_REGION, REGIONS, regionAt, inGreenhollow, inMarsh } from '../data/worldmap.js';
@@ -77,12 +77,12 @@ export class OverworldScene extends Phaser.Scene {
     this._blockArcG = this.add.graphics().setDepth(DEPTH.OVERLAY);
 
     this.cameras.main.setBounds(0, 0, WORLD_PX, WORLD_PX);
-    // FIX (HUD drift): zoom 1.0 so screen-fixed (scrollFactor 0) HUD isn't zoom-scaled
-    // about the camera midpoint (the cause of the "moving funny" HUD). Discrete uses a
-    // dedicated uiCamera at zoom 1 to keep its 1.25 world zoom; restoring that closer
-    // zoom here needs a uiCamera that ignores every streamed object — deferred until
-    // the browser tooling is back to verify it visually (flagged for Van).
-    this.cameras.main.setZoom(1.0);
+    // CLOSER 1.25 WORLD ZOOM (matches the discrete RegionScene). The HUD can't ride the
+    // main camera at >1.0 (scrollFactor-0 objects get zoom-scaled about the camera midpoint
+    // = the old "moving funny" drift), so a dedicated uiCamera at zoom 1 renders the HUD and
+    // the main camera ignores it (see _setupUICamera). _reconcileCameras keeps every STREAMED
+    // world object off the uiCamera so nothing leaks over the HUD.
+    this.cameras.main.setZoom(1.25);   // closer world zoom; the HUD rides a separate zoom-1 uiCamera (see _setupUICamera)
     this.cameras.main.startFollow(this.player, true, 0.16, 0.16);
     this.cameras.main.setDeadzone(160, 110);
 
@@ -94,10 +94,12 @@ export class OverworldScene extends Phaser.Scene {
 
     this.auto = false; this._autoT = 0; this._lastSaveMs = 0; this._lastLoadMs = 0; this._resetPerf();
     this._buildWorldHud();
-    this.add.text(8, 412, 'WASD move · SHIFT run · E talk · J attack · Space dodge · C block · O map · T quests · H hide HUD · Esc settings · F5/F9 save/load', { fontFamily: 'monospace', fontSize: '10px', color: '#9fb89a', backgroundColor: '#000a', padding: { x: 4, y: 2 } }).setScrollFactor(0).setDepth(DEPTH.OVERLAY + 10);
+    this._helpText = this.add.text(8, 412, 'WASD move · SHIFT run · E talk · J attack · Space dodge · C block · O map · T quests · H hide HUD · Esc settings · F5/F9 save/load', { fontFamily: 'monospace', fontSize: '10px', color: '#9fb89a', backgroundColor: '#000a', padding: { x: 4, y: 2 } }).setScrollFactor(0).setDepth(DEPTH.OVERLAY + 10);
 
     this._restream(true);
     this._maybeToggleRegion(true);
+    this._setupUICamera();   // isolate the HUD onto its own zoom-1 camera so the world can zoom past 1.0
+    this._reconcileCameras();
     this.perf = () => ({ fps: Math.round(this.game.loop.actualFps), avgMs: +this._avg().toFixed(2), maxMs: +this._maxMs.toFixed(2), loaded: this.chunks.size, region: this.region ? this.region.key : null, npcs: this.npcLife.movers.length, saveMs: +this._lastSaveMs.toFixed(2), loadMs: +this._lastLoadMs.toFixed(2), pos: { x: this.player.x | 0, y: this.player.y | 0 }, gold: this.inv.gold });
   }
 
@@ -150,7 +152,7 @@ export class OverworldScene extends Phaser.Scene {
 
   _loadRegions(list) {
     this._activeRegions = list.slice();
-    this._regionObjs = []; this._chestSprites = [];
+    this._regionObjs = []; this._chestSprites = []; this._npcByQuest = {};
     Interaction.reset();
     this.npcLife = new NpcLife(this);
     for (const R of list) this._buildRegion(R);
@@ -185,6 +187,7 @@ export class OverworldScene extends Phaser.Scene {
     DepthSort.track(npc, 18);
     this.npcLife.add(npc, n.schedule, n.tempo);
     this._regionObjs.push(npc);
+    if (n.quest) (this._npcByQuest || (this._npcByQuest = {}))[n.quest] = npc;   // objective-arrow target (live)
     Interaction.register({
       target: npc, targetOffY: 0, prompt: n.quest ? 'Talk (quest)' : 'Talk',
       onInteract: () => this._npcInteract(n),
@@ -429,6 +432,7 @@ export class OverworldScene extends Phaser.Scene {
   _openDlg() { this._selOpt = 0; Movement.stop(this.player); this.dlgBox.setVisible(true); this._renderNode(); }
   _renderNode() {
     const node = this._dlg && this._dlg.node(); if (!node) return this._closeDialogue();
+    this._buildPortrait(node.speaker || null);
     this.dlgName.setText(node.speaker || '—'); this.dlgBody.setText(node.text || '');
     const ctx = { inv: this.inv, karma: this.karma };
     this._optView = this._dlg.options().map((opt, idx) => ({ opt, idx, st: Social.state(opt, ctx), tag: Social.tag(opt) })).filter((v) => v.st !== 'hidden');
@@ -439,7 +443,7 @@ export class OverworldScene extends Phaser.Scene {
     const view = this._optView || []; this._optTexts.forEach((t) => t.destroy()); this._optTexts = [];
     view.forEach((v, i) => {
       const locked = v.st === 'locked', sel = i === this._selOpt && !locked;
-      const t = this.add.text(28, 372 + i * 18, `${sel ? '▶ ' : '  '}${view.length > 1 ? `${i + 1}. ` : ''}${v.tag}${v.opt.label}`, { fontFamily: 'monospace', fontSize: '13px', color: locked ? '#6b6275' : sel ? '#ffe66d' : v.tag ? '#8fd6ff' : '#cfe8d6' }).setScrollFactor(0).setDepth(DEPTH.OVERLAY + 12);
+      const t = this.add.text(this._dlgTextX, 372 + i * 18, `${sel ? '▶ ' : '  '}${view.length > 1 ? `${i + 1}. ` : ''}${v.tag}${v.opt.label}`, { fontFamily: 'monospace', fontSize: '13px', color: locked ? '#6b6275' : sel ? '#ffe66d' : v.tag ? '#8fd6ff' : '#cfe8d6' }).setScrollFactor(0).setDepth(DEPTH.OVERLAY + 12);
       this.dlgBox.add(t); this._optTexts.push(t);
     });
     this.dlgHint.setText(view.length > 1 ? '↑↓ pick · E confirm' : 'E continue ▸');
@@ -456,14 +460,40 @@ export class OverworldScene extends Phaser.Scene {
   _closeDialogue() {
     if (this._activeQuest && this.quests.status(this._activeQuest) === 'active') this.quests.complete(this._activeQuest);
     this.dlgBox.setVisible(false); this._optTexts.forEach((t) => t.destroy()); this._optTexts = []; this._dlg = null; this._activeQuest = null;
+    this._buildPortrait(null);   // clear the speaker face
   }
   _buildDialogueUI() {
     this.dlgBox = this.add.container(0, 0).setScrollFactor(0).setDepth(DEPTH.OVERLAY + 11).setVisible(false);
     const bg = this.add.rectangle(20, 300, 728, 120, 0x0c1410, 0.92).setOrigin(0, 0).setStrokeStyle(2, 0x3c5a3c).setScrollFactor(0);
-    this.dlgName = this.add.text(28, 308, '', { fontFamily: 'monospace', fontSize: '14px', color: '#9fd8a0', fontStyle: 'bold' }).setScrollFactor(0);
-    this.dlgBody = this.add.text(28, 330, '', { fontFamily: 'monospace', fontSize: '14px', color: '#e8f5e0', wordWrap: { width: 700 } }).setScrollFactor(0);
+    // PORTRAIT — the speaker's face (built per-speaker from this._faces; ported from RegionScene)
+    const PS = 96, px = 28, py = 312;
+    this.portraitBox = { x: px, y: py, size: PS }; this._portrait = null; this._portraitSpeaker = null;
+    this.portraitFrame = this.add.rectangle(px, py, PS, PS, 0x141a20, 1).setOrigin(0, 0).setStrokeStyle(2, 0x3c5a3c).setScrollFactor(0).setVisible(false);
+    const tx0 = px + PS + 16;   // text starts to the right of the portrait
+    this._dlgTextX = tx0;
+    this.dlgName = this.add.text(tx0, 308, '', { fontFamily: 'monospace', fontSize: '14px', color: '#9fd8a0', fontStyle: 'bold' }).setScrollFactor(0);
+    this.dlgBody = this.add.text(tx0, 330, '', { fontFamily: 'monospace', fontSize: '14px', color: '#e8f5e0', wordWrap: { width: 748 - tx0 - 12 } }).setScrollFactor(0);
     this.dlgHint = this.add.text(620, 308, '', { fontFamily: 'monospace', fontSize: '11px', color: '#7a9a7a' }).setScrollFactor(0);
-    this.dlgBox.add([bg, this.dlgName, this.dlgBody, this.dlgHint]); this._optTexts = [];
+    this.dlgBox.add([bg, this.portraitFrame, this.dlgName, this.dlgBody, this.dlgHint]); this._optTexts = [];
+  }
+  // Build a face RenderTexture for `name` from its registered parts (idle, down-facing,
+  // expression), scaled into the portrait box. Rebuilt only when the speaker changes.
+  _buildPortrait(name) {
+    if (name === this._portraitSpeaker) return;
+    this._portraitSpeaker = name;
+    if (this._portrait) { this._portrait.destroy(); this._portrait = null; }
+    const face = name ? this._faces[name] : null;
+    this.portraitFrame.setVisible(!!face);
+    if (!face) return;
+    const layers = [];
+    for (const pk of face.parts) { const part = PARTS[pk]; if (!part) continue; for (const L of part.layers) { if (L.states && !L.states.includes('idle')) continue; layers.push({ ...L }); } }
+    layers.sort((a, b) => a.z - b.z);
+    const idleFrame = DIR_ROW.down * ANIMS.idle.frames, exprFrame = EXPR_ROW.down * EXPR_COLS + (EXPRESSIONS[face.expression] ?? 0);
+    const cx = 16, cy = 11, cw = 32, ch = 50, rt = this.make.renderTexture({ x: 0, y: 0, width: cw, height: ch }, false);
+    for (const L of layers) { if (L.expressive) rt.drawFrame(`${L.tex}__expr`, exprFrame, -cx, -cy); else rt.drawFrame(`${L.tex}__idle`, idleFrame, -cx, -cy); }
+    const { x, y, size } = this.portraitBox, scale = Math.min((size - 6) / cw, (size - 6) / ch);
+    rt.setOrigin(0.5, 0.5).setPosition(x + size / 2, y + size / 2).setScale(scale).setScrollFactor(0).setDepth(DEPTH.OVERLAY + 11);
+    this.dlgBox.add(rt); this._portrait = rt;   // inside dlgBox → inherits its camera visibility
   }
   _buildInput() {
     this.keys = this.input.keyboard.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,SHIFT,O,C');
@@ -476,6 +506,7 @@ export class OverworldScene extends Phaser.Scene {
     this.input.keyboard.on('keydown-F9', () => this.loadGame());
     // HUD toggles (control SSOT: O map · T quests · H hide HUD · Esc settings)
     this.input.keyboard.on('keydown-O', () => { if (!this._dlg) this._fullMap.setVisible(!this._fullMap.visible); });
+    this.input.keyboard.on('keydown-T', () => { if (!this._dlg) this._trkState = (this._trkState + 2) % 3; });   // cycle tracker: full→title→off
     this.input.keyboard.on('keydown-H', () => { if (!this._dlg) { this._hudHidden = !this._hudHidden; this.hud2.setVisible(!this._hudHidden); } });
     this.input.keyboard.on('keydown-ESC', () => this._openSettings());
   }
@@ -571,6 +602,7 @@ export class OverworldScene extends Phaser.Scene {
 
     if (this.npcLife.has()) this.npcLife.update(dt, dlgOpen);
     if (this.combat) this.combat.update(dt, this.player);   // enemies behave (no-op when none spawned)
+    if (this.uiCamera) this._reconcileCameras();   // keep this frame's new streamed/combat objects off the HUD camera (before render)
     Interaction.update(this.player);
     this._updatePlayerVisual(now);
     DepthSort.update();
@@ -616,10 +648,16 @@ export class OverworldScene extends Phaser.Scene {
     this._mmDots = add(this.add.graphics().setScrollFactor(0).setDepth(OD));
     add(txt(mmx + 4, mmy + 1, 'MAP (O = overview)', 9, '#cfc6e6'));
 
-    // QUEST TRACKER (under the minimap)
+    // OBJECTIVE ARROW — a directional chevron near the player pointing at the active
+    // quest-giver (ported from RegionScene). In hud2 so H hides it with the rest.
+    this._objOn = true;
+    this._objArrow = add(this.add.graphics().setScrollFactor(0).setDepth(OD + 1));
+
+    // QUEST TRACKER (under the minimap) — T cycles detail: 2 full · 1 title · 0 off
     const ty0 = mmy + mmH + 8;
-    add(this.add.rectangle(mmx - 2, ty0, mmW + 4, 88, 0x10131c, 0.85).setOrigin(0, 0).setStrokeStyle(2, 0x7fa86a, 0.7).setScrollFactor(0).setDepth(OD));
-    add(txt(mmx + 4, ty0 + 4, 'QUESTS (T)', 11, '#9fe6a0', { fontStyle: 'bold' }));
+    this._trkState = 2;
+    this._trkPanel = add(this.add.rectangle(mmx - 2, ty0, mmW + 4, 88, 0x10131c, 0.85).setOrigin(0, 0).setStrokeStyle(2, 0x7fa86a, 0.7).setScrollFactor(0).setDepth(OD));
+    this._trkHdr = add(txt(mmx + 4, ty0 + 4, 'QUESTS (T)', 11, '#9fe6a0', { fontStyle: 'bold' }));
     this._trkBody = add(txt(mmx + 4, ty0 + 22, '', 11, '#f3ecff', { wordWrap: { width: mmW - 6 }, lineSpacing: 2 }));
 
     // FULL-MAP overlay (toggle O) — the whole world large
@@ -645,6 +683,27 @@ export class OverworldScene extends Phaser.Scene {
     }
   }
 
+  // directional chevron near the player pointing toward the active quest's NPC
+  _updateObjective() {
+    const g = this._objArrow; if (!g) return; g.clear();
+    if (!this._objOn || this._dlg) return;
+    let target = null;
+    for (const id of Object.keys(this.quests.state || {})) {
+      if (this.quests.status(id) !== 'active') continue;
+      const npc = this._npcByQuest && this._npcByQuest[id]; if (npc && npc.active !== false) { target = npc; break; }
+    }
+    if (!target) return;
+    const cam = this.cameras.main, z = cam.zoom;
+    const psx = (this.player.x - cam.worldView.x) * z, psy = (this.player.y - cam.worldView.y) * z;
+    if (Math.hypot(target.x - this.player.x, target.y - this.player.y) < 40) return;   // already there
+    const ang = Math.atan2(target.y - this.player.y, target.x - this.player.x), r = 58, t = 12;
+    const ax = psx + Math.cos(ang) * r, ay = psy + Math.sin(ang) * r;
+    const tip = [ax + Math.cos(ang) * t, ay + Math.sin(ang) * t];
+    const pa = ang + Math.PI * 0.8, pb = ang - Math.PI * 0.8;
+    g.fillStyle(0xffd23f, 0.95).fillTriangle(tip[0], tip[1], ax + Math.cos(pa) * t, ay + Math.sin(pa) * t, ax + Math.cos(pb) * t, ay + Math.sin(pb) * t);
+    g.lineStyle(1.5, 0x4a3a10, 0.9).strokeTriangle(tip[0], tip[1], ax + Math.cos(pa) * t, ay + Math.sin(pa) * t, ax + Math.cos(pb) * t, ay + Math.sin(pb) * t);
+  }
+
   _updateWorldHud() {
     if (!this.hud2 || this._hudHidden) return;
     const max = this.inv.stats().maxHp, hp = Math.max(0, this.inv.hp);
@@ -656,13 +715,43 @@ export class OverworldScene extends Phaser.Scene {
     const ks = this.karma.getStatus();
     this._sMor.setText(`Morality ${ks.morality >= 0 ? '+' : ''}${ks.morality} ${ks.moralityTier}`);
     this._sPur.setText(`Purity ${ks.purity >= 0 ? '+' : ''}${ks.purity} ${ks.purityTier}`);
-    // quest tracker: up to 2 active quests
-    const active = Object.keys(this.quests.state || {}).filter((id) => this.quests.status(id) === 'active').slice(0, 2);
-    this._trkBody.setText(active.length ? active.map((id) => `• ${this.quests.defs[id]?.title || id}`).join('\n') : '(no active quest — talk to someone with a task)');
+    // quest tracker: T cycles 2 full (title + step) · 1 title-only · 0 off
+    const show = this._trkState > 0;
+    this._trkPanel.setVisible(show); this._trkHdr.setVisible(show); this._trkBody.setVisible(show);
+    if (show) {
+      const active = Object.keys(this.quests.state || {}).filter((id) => this.quests.status(id) === 'active').slice(0, 3);
+      if (!active.length) { this._trkBody.setText('(no active quest — talk to someone with a task)'); this._trkPanel.height = 56; }
+      else {
+        const lines = [];
+        for (const id of active) {
+          const def = this.quests.defs[id];
+          lines.push(`> ${def?.title || id}`);
+          if (this._trkState === 2) { const step = (def?.steps || [])[this.quests.step?.[id]]; if (step) lines.push(`   ${step.desc}`); }
+        }
+        this._trkBody.setText(lines.join('\n')); this._trkPanel.height = 26 + lines.length * 16;
+      }
+    }
     // player dot on the minimap (+ full map if open)
     this._mmDots.clear().fillStyle(0xffe66d, 1).fillCircle(this._mm.x + this.player.x * this._mm.scale, this._mm.y + this.player.y * this._mm.scale, 3);
     if (this._fullMap.visible) this._fmDots.clear().fillStyle(0xffe66d, 1).fillCircle(this._fmBox.x + this.player.x * this._fmBox.scale, this._fmBox.y + this.player.y * this._fmBox.scale, 4);
+    this._updateObjective();
   }
+
+  // ---- UI CAMERA (HUD on its own zoom-1 camera; world on the 1.25 main camera) ----
+  // Phaser cameras render everything NOT in their ignore list. So: the main camera
+  // ignores the UI set; the uiCamera ignores every WORLD object. Because the world
+  // STREAMS (chunks + region loads + combat VFX create objects continuously), we can't
+  // enumerate the world once — _reconcileCameras re-ignores all non-UI children, and is
+  // called after every streaming/region/combat creation + once per frame as insurance.
+  _setupUICamera() {
+    this._uiList = [this.hud2, this.dlgBox, this.playerHpUI, this.banner, this._helpText].filter(Boolean);
+    this.uiCamera = this.cameras.add(0, 0, this.scale.width, this.scale.height);
+    this.uiCamera.setScroll(0, 0);
+    this.cameras.main.ignore(this._uiList);   // world camera never draws the HUD
+    this.scale.on('resize', (sz) => { if (this.uiCamera) this.uiCamera.setSize(sz.width, sz.height); });
+  }
+  _mainOnly() { const ui = this._uiList || []; return this.children.list.filter((o) => !ui.includes(o)); }
+  _reconcileCameras() { if (this.uiCamera) this.uiCamera.ignore(this._mainOnly()); }   // keep streamed world objects off the HUD camera
 
   _openSettings() {
     if (this._dlg) return;
