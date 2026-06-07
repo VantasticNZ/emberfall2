@@ -579,7 +579,7 @@ export class RegionScene extends Phaser.Scene {
     this.mods = new ModifierRegistry(undefined, { dev: !!this.cfg.devModifiers });
     if (this.inv.add('iron_shield')) this.inv.equip('iron_shield');
     this._refreshShieldBlock();
-    this._hitFreeze = 0; this._atkReady = 0; this._playerFlash = 0; this._inputDir = { dx: 0, dy: 0 }; this._bossActive = false;
+    this._hitFreeze = 0; this._atkReady = 0; this._atkBuffered = 0; this._playerFlash = 0; this._inputDir = { dx: 0, dy: 0 }; this._bossActive = false;
     this._blockArcG = this.add.graphics().setDepth(DEPTH.OVERLAY);
     const T = this.theme, hpY = T.hpY;
     this.playerHpUI = this.add.container(0, 0).setScrollFactor(0).setDepth(DEPTH.OVERLAY);
@@ -611,12 +611,20 @@ export class RegionScene extends Phaser.Scene {
   _playerAttack() {
     if (!this.combat) return;
     const now = this.time.now;
-    if (now < this._atkReady || this.player.isBusy()) return;
+    // INPUT BUFFER: a press during recovery isn't dropped — remember it briefly and
+    // fire the instant the swing is ready (flushed in update()), so combat feels crisp.
+    if (now < this._atkReady || this.player.isBusy()) { this._atkBuffered = now + COMBAT.INPUT_BUFFER_MS; return; }
+    this._atkBuffered = 0;
     this._atkReady = now + COMBAT.ATTACK_COOLDOWN_MS;
     this.player.action('attack'); this._sfx('sfx_swing', 0.45);
     const out = this.combat.playerAttack(this.player, COMBAT.ATTACK_DAMAGE, { tool: this.playerAttackTool() });
     for (const r of out) {
-      if (r.outcome === 'hit' || r.outcome === 'swarm') { this._sfx('sfx_hit', 0.7); this._hitFreeze = COMBAT.HIT_FREEZE_FRAMES; this.cameras.main.shake(110, COMBAT.SHAKE_HIT); }
+      if (r.outcome === 'hit' || r.outcome === 'swarm') {
+        this._sfx('sfx_hit', r.killed ? 0.85 : 0.7);
+        // the KILLING blow lands harder: a longer freeze + bigger shake (impact beat).
+        this._hitFreeze = Math.max(this._hitFreeze, r.killed ? COMBAT.KILL_FREEZE_FRAMES : COMBAT.HIT_FREEZE_FRAMES);
+        this.cameras.main.shake(r.killed ? 150 : 110, r.killed ? COMBAT.SHAKE_KILL : COMBAT.SHAKE_HIT);
+      }
       else if (r.outcome === 'interrupted') { this._sfx('sfx_hit', 0.55); this._banner('Channel interrupted!', 1200); }
       else if (r.outcome === 'guarding') { this._sfx('sfx_swing', 0.3); this._banner('Blocked up front — FLANK it!', 1400); }
       else if (r.outcome === 'recoil') this._banner('It is charged — wait for the window!', 1400);
@@ -692,6 +700,8 @@ export class RegionScene extends Phaser.Scene {
     if (this._hitFreeze > 0) { this._hitFreeze--; Movement.stop(this.player); this.combat.update(dt, this.player); DepthSort.update(); this._drawCombatUI(); return; }
     if (this._dlg) { Movement.stop(this.player); this._blockArcG.clear(); this.combat.update(dt, this.player); DepthSort.update(); this._drawCombatUI(); return; }
     const now = this.time.now;
+    // flush a BUFFERED attack the instant the swing is ready (crisp, no dropped input)
+    if (this._atkBuffered && now <= this._atkBuffered && now >= this._atkReady && !this.player.isBusy()) { this._atkBuffered = 0; this._playerAttack(); }
     const { dx, dy } = this.im.vector(); this._inputDir = { dx, dy };
     this.pc.setBlocking(now, this.combatUnlocked && this.im.down('block') && !this.player.isBusy());
     if (this.pc.isDodgeMoving(now)) { const v = this.pc.dodgeVelocity(); this.player.body.setVelocity(v.x, v.y); }
