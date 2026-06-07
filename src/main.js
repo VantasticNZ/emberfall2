@@ -5,6 +5,7 @@ import { GreenhollowScene } from './scenes/GreenhollowScene.js';
 import { MarshScene } from './scenes/MarshScene.js';
 import { PeaksScene } from './scenes/PeaksScene.js';
 import { OptionsScene } from './scenes/OptionsScene.js';
+import { PrototypeScene } from './scenes/PrototypeScene.js';   // ⚠ THROWAWAY world-migration Phase-0 prototype (NOT in the boot flow; start via scene.start('Prototype'))
 
 // Native render resolution; the canvas is FIT-scaled up to the window with
 // crisp pixels. Wide framing (24x13.5 tiles of 32px) so a 64px hero reads as a
@@ -35,7 +36,7 @@ const config = {
     },
   },
   input: { gamepad: true },      // Xbox controller (primary device) — see src/constants/controls.js
-  scene: [BootScene, GreenhollowScene, MarshScene, PeaksScene, OptionsScene],
+  scene: [BootScene, GreenhollowScene, MarshScene, PeaksScene, OptionsScene, PrototypeScene],
 };
 
 const game = new Phaser.Game(config);
