@@ -32,6 +32,14 @@ export const DepthSort = {
     return sprite;
   },
 
+  /**
+   * Stop y-sorting an object — REQUIRED by the streamed overworld (track on chunk
+   * load, untrack on unload) so the sorted list stays bounded to the LOADED set and
+   * never iterates recycled/destroyed sprites. (Minimal additive method; existing
+   * full-teardown scenes use reset() and are unaffected.)
+   */
+  untrack(sprite) { const i = this._ysorted.indexOf(sprite); if (i >= 0) this._ysorted.splice(i, 1); return sprite; },
+
   /** Re-depth all tracked objects. Call once per frame after movement. */
   update() {
     const list = this._ysorted;
