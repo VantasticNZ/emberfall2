@@ -8,11 +8,49 @@
 // the contract those will satisfy. Nothing here imports a real region.
 // =============================================================================
 
+import { WORLD } from './world.js';
+
 export const TILE = 32;
 export const CHUNK = 32;                       // tiles per chunk side
 export const CHUNK_PX = CHUNK * TILE;          // 1024 px
 export const WORLD_CHUNKS = 16;                // 16×16 chunks…
 export const WORLD_PX = WORLD_CHUNKS * CHUNK_PX; // …= 16384 px world
+
+// =============================================================================
+// REGIONS — settlements/areas placed at WORLD-COORD offsets (Phase 2 migration).
+// A region is a cohesive unit (buildings + cast + chests) loaded as one when the
+// player enters its bounds; the terrain/green-belt still streams per-chunk. The
+// data is the EXISTING discrete-region data, re-expressed in world-coords (offset
+// by the region origin) — same canonical ids, same cast, same quests. Greenhollow
+// sits near the CENTRE of the world (per the geography spec), ringed by green belt.
+// =============================================================================
+const GH_ORIGIN = { x: 5 * CHUNK_PX, y: 5 * CHUNK_PX };   // world px of Greenhollow tile (0,0) — central
+const gx = (tx) => GH_ORIGIN.x + tx * TILE;
+const gy = (ty) => GH_ORIGIN.y + ty * TILE;
+
+export const GREENHOLLOW = {
+  key: 'Greenhollow',
+  origin: GH_ORIGIN,
+  // world-rect bounds (+ a load margin handled by the scene)
+  bounds: { x: GH_ORIGIN.x, y: GH_ORIGIN.y, w: WORLD.widthTiles * TILE, h: WORLD.heightTiles * TILE },
+  safeZone: true,
+  player: { x: gx(WORLD.player.tx), y: gy(WORLD.player.ty) },        // world spawn inside the village
+  // buildings/props/depth-band → world-coords (keep key/solid/tint/scale; convert tx,ty→x,y)
+  props: WORLD.props.map((p) => ({ ...p, x: gx(p.tx), y: gy(p.ty) })),
+  // cast → world-coords. Schedule tiles become ABSOLUTE WORLD TILES (origin-tile +
+  // local) so NpcLife (which does `tx*TILE`) targets the right world spot UNMODIFIED.
+  npcs: WORLD.npcs.map((n) => ({
+    ...n, x: gx(n.tx), y: gy(n.ty),
+    schedule: (n.schedule || []).map((s) => ({ ...s, tx: s.tx + GH_ORIGIN.x / TILE, ty: s.ty + GH_ORIGIN.y / TILE })),
+  })),
+  chests: (WORLD.chests || []).map((c) => ({ ...c, x: gx(c.tx), y: gy(c.ty) })),
+};
+
+/** Is a world point inside Greenhollow's (safe) bounds? */
+export function inGreenhollow(x, y) {
+  const b = GREENHOLLOW.bounds;
+  return x >= b.x && x < b.x + b.w && y >= b.y && y < b.y + b.h;
+}
 
 // a tiny seeded PRNG so each chunk's content is DETERMINISTIC (stable across reloads
 // + identical for the same chunk every time it streams in — required for delta ids).
