@@ -217,46 +217,67 @@ Van's play-judgment passes it — what he's looking for is stated). Where an [OB
 check is wireable as a lint, it is flagged **(→ verify.mjs)** as a PROPOSED check to wire in
 a later code session — described here, NOT implemented now.
 
-### A. ORGANIC LAYOUT, NOT GRID
-- **Rule:** settlements CLUSTER like real towns around a centre (green / well / crossroads);
-  buildings sit at varied spacings — tight where life clusters, apart where logic demands
-  (smithy set off for heat/noise; farm at the edge with its fields). No even scatter.
-- **Why:** an evenly-spaced grid reads as "objects placed on a flat plain," the #1 tell of a
-  staging map vs a place people live.
-- **Check:** [EYE] — does the town read as *settled around a heart*, with a believable reason
-  for anything set apart? GATE: no region may read as objects on a flat plain.
-  [OBJECTIVE] proxy (→ verify.mjs): building centres are NOT all tile-grid-aligned (≥40% sit
-  off whole-tile rows/cols), AND nearest-neighbour spacing has variance (coefficient of
-  variation ≥ ~0.35) — i.e. not a uniform lattice. (Proxy only; the [EYE] read is final.)
+### A0. SPACE-FIRST, NOT PATH-FIRST  *(the root principle — refined per Van's v2 play-judgment)*
+- **Rule:** lay out **SPACES first** — a plaza, yards, lanes, a green — and let **buildings + walls
+  + fences ENCLOSE them** ("outdoor rooms"). Paths are the *negative space between enclosures*, not
+  lines drawn on a field with objects scattered around them. Design the void, then wrap it.
+- **Why:** "objects on a plain" (the v2 fail) is what you get when you place paths + props on open
+  grass. Real towns read as *enclosed spaces you move between*. This is the fix that makes everything
+  else land. Maps to Kevin Lynch's legible-place elements: **paths · edges · districts · nodes ·
+  landmarks** — design all five, not just paths.
+- **Check:** [EYE] — does every open area feel *bounded by built form* (you're in a square / a lane /
+  a yard), not standing on a lawn? GATE: no region may read as objects on a plain.
 
-### B. PATHS CURVE & WEAR
-- **Rule:** roads bend, fork, and narrow into worn desire-paths; they follow terrain, not
-  ruler lines. Width changes; they meet at junctions, not crossbars.
-- **Why:** a dead-straight road is the second-biggest "level, not place" tell.
-- **Check:** [OBJECTIVE] (→ verify.mjs): no straight path/road run longer than **8 tiles**
-  without a bend, fork, or width change (measured over the ground path-rects). [EYE]: do the
-  tracks feel *trodden* — like feet, not a ruler, made them?
+### A. ENCLOSURE, OFF-CENTRE NODE & DISTRICTS  *(was: organic layout)*
+- **Rule:** (1) **ENCLOSURE** — buildings **FRONT the streets** and **BACK onto fenced yards/
+  gardens**; sides **near-touch** to define lanes. (2) **OFF-CENTRE NODE** — the gathering heart
+  (fountain/well + benches + a notice board) **anchors but never symmetrically bisects** the map;
+  break radial symmetry everywhere. (3) **DISTRICTS** — even a small village reads as **distinct
+  zones**, each visually different: *social heart · homes-with-gardens · working smithy set apart ·
+  farm margin.* Spacing varies — tight where life clusters, apart where logic demands.
+- **Why:** enclosure + an off-centre node + readable districts are the difference between a *planned
+  lived-in place* and a symmetric diagram. Symmetry and even spacing scream "level."
+- **Check:** [EYE] — distinct districts you could name; the node is off-centre; yards are enclosed.
+  [OBJECTIVE] proxy (→ verify.mjs): building centres NOT all tile-grid-aligned (≥40% off whole-tile
+  rows/cols); nearest-neighbour spacing CoV ≥ ~0.35; the node is **not** within ~2 tiles of the map
+  centre. (Proxy only; the [EYE] read is final.)
 
-### C. DIEGETIC BOUNDARIES (proven in Greenhollow — generalise)
-- **Rule:** EVERY map edge is bounded by an in-world barrier that is a REASON — river/ford,
-  cliff, dense treeline, fence, gate, sea — never an invisible wall at flat grass. AND a hint
-  of the next area shows beyond it (marsh gloom W, peaks N, etc.) so the world reads as ONE
-  continuous place, not a room that ends.
-- **Why:** the recurring "right-side trees cut off" bug was THIS defect — the camera revealed
-  empty void past the play bound. A bounded edge fixes the class of bug and sells continuity.
-- **Check:** [OBJECTIVE] (→ verify.mjs) — the Greenhollow tree-fix is the reference: every
-  edge has boundary props; **sprite spillCount == 0** (no prop's sprite extends past
-  `[0,worldW]×[0,worldH]`); the camera never shows unbounded grass margin. [EYE]: does the
-  "beyond" read right (the next biome is hinted, not blank)?
+### B. PATH HIERARCHY (curve & wear)
+- **Rule:** **GRADED surfaces, never one uniform path type** — paved plaza/node → packed-dirt road →
+  narrow lane → worn desire-path. **Width + material signal importance.** Roads bend, fork, and
+  narrow; they meet at junctions, not crossbars; they follow the spaces, not ruler lines.
+- **Why:** a single uniform path everywhere is a flat diagram; graded width/material is how a real
+  settlement shows what matters and where feet actually go.
+- **Check:** [OBJECTIVE] (→ verify.mjs): **≥ 3 distinct path surface tiers** used; no straight run
+  longer than **8 tiles** without a bend / fork / width or material change. [EYE]: do the tracks feel
+  *trodden* — feet, not a ruler — and does the hierarchy read (you can tell the high street from a
+  back lane)?
 
-### D. FEATHERED BIOME EDGES
-- **Rule:** ground types transition organically — grass bleeds into path / dirt / sand / bog;
-  tufts / rocks / roots / leaf-litter break every seam. Use real LPC autotile/transition tiles
-  when licence-loaded; interim, the edge-scatter decal layer (built in RegionScene).
-- **Why:** a hard square biome border is a flat-box tell (Part 2.5 P-autotile, spatial scope).
-- **Check:** [EYE] — no hard square biome border anywhere; seams look feathered. [OBJECTIVE]
-  proxy (→ verify.mjs): flag any straight grass↔non-grass tile boundary longer than ~6 tiles
-  with no scatter/transition over it.
+### C. BOUNDARY DEPTH BAND + DIEGETIC TRAILHEADS  *(supersedes the v2 flat-treeline pass)*
+- **Rule:** every edge is a **BAND, not a line**: near **undergrowth / rocks** → **varied front
+  trees** → **darker trees receding** → a **silhouette hint of the next area** (marsh-gloom W,
+  foothills N, sea E…). **You can see INTO it** — the world continues. AND **DIEGETIC TRAILHEADS:**
+  where a path leaves the map it **NARROWS and CURVES into denser trees** — **never a rectangular gap
+  in a wall.** No edge stops at flat grass; no invisible wall.
+- **Why:** a flat one-deep treeline still reads as a wall at the world's end. Depth (layers receding
+  into a hinted beyond) is what makes the player *feel the world keeps going*. Rectangular gaps read
+  as doors in a fence, not roads into a forest.
+- **Check:** [OBJECTIVE] (→ verify.mjs): every edge bounded; **sprite spillCount == 0**; the boundary
+  is **≥ 2 prop-rows deep** with a tint/scale gradient (front bright/large → back dark/small); exits
+  narrow (no straight gap wider than the road + curve into trees). [EYE]: can Van **see into** the
+  beyond, and does each trailhead read as a road *leaving into* somewhere?
+
+### D. FEATHERED BIOME EDGES — via REAL transition tiles
+- **Rule:** ground types **interpenetrate** — grass laps over path / dirt / sand / soil with **real
+  LPC autotile/transition tiles** (corner-feathered), so seams are organic at the *tile* level;
+  **edge-scatter only supplements**, never substitutes. Hard square biome borders are banned.
+- **Why:** scatter-over-hard-seams was the v2 interim; real transition tiles are the actual fix and
+  the Stardew/Fable look. (Licence-first: the bluecarrot16 **[LPC] Terrains** autotile atlas is
+  AI-safe CC-BY/CC-BY-SA/GPL — ledgered.)
+- **Check:** [OBJECTIVE] (→ verify.mjs): **no straight grass↔non-grass seam longer than ~4 tiles**
+  without a transition/feather tile over it. [EYE]: seams read as organic interpenetration, not a
+  cut. *(If no clean transition set can be loaded for a region, FLAG + keep dense scatter as interim
+  — never fake tiles.)*
 
 ### E. GROUND & SCENERY VARIETY
 - **Rule:** each region shows **≥ 4 distinct ground/scenery types** AND visible CHANGE as you
