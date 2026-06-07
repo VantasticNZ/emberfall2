@@ -333,7 +333,11 @@ export class EnemyController {
       this.fxG.lineStyle(4, 0xc78aff, 0.85).strokeCircle(spr.x, spr.y - 16 * e.scale, 10 + 22 * f);
       return;
     }
-    // directional tell (charger/brute/jumper/ranged-aim): a line toward the player
+    // DIRECTIONAL aim-line + arrow (charger/brute/jumper/ranged-aim): the precise
+    // "where it'll strike" indicator — OFF by default, shown only with the ENEMY-
+    // INTUITION perk / threat-indicators toggle (it CLARIFIES the tell). The wind-up
+    // itself stays readable for everyone via the tint + scale pulse (Gate E).
+    if (!this.indicators) return;
     const a = Math.atan2(player.y - spr.y, player.x - spr.x);
     const len = e.id === 'ranged' ? 360 : (e.id === 'brute' ? 240 : 300);
     const col = e.id === 'ranged' ? 0xffd23f : 0xff5a3c;
