@@ -68,7 +68,7 @@ export class EnemyController {
       id, mon, spr, skin, boss, name: name || skin.name, base: skin.base,
       stats: this._lookupStats(id), maxCount: mon.count, homeX: x, homeY: y, aggro: boss ? 9999 : aggro,
       lastState: null, atkDir: { x: 0, y: 1 }, landX: x, landY: y, hitThisAtk: false, firedThis: false,
-      knockFrames: 0, knockVx: 0, knockVy: 0, flashFrames: 0, staggerFrames: 0, alive: true, scale: skin.scale,
+      knockFrames: 0, knockVx: 0, knockVy: 0, flashFrames: 0, popFrames: 0, staggerFrames: 0, alive: true, scale: skin.scale,
     };
     this.enemies.push(e);
     return e;
@@ -130,7 +130,9 @@ export class EnemyController {
     else if (mon.inPunishWindow()) tint = 0x66ccff;
     else if (this._attacking(mon)) tint = 0xffffff;
     if (e.flashFrames > 0) { tint = 0xffffff; e.flashFrames--; }
-    spr.setScale(e.scale * (mon.isTelegraphing() && !mon.isInvulnerable() ? 1.08 : 1));
+    // HIT-POP: a brief squash-punch on a landed hit so the strike reads as LANDING.
+    const pop = e.popFrames > 0 ? (1 + (COMBAT.HIT_POP_SCALE - 1) * (e.popFrames-- / 6)) : 1;
+    spr.setScale(e.scale * pop * (mon.isTelegraphing() && !mon.isInvulnerable() ? 1.08 : 1));
     this._tint(e, tint);
     if (!spr.list) this._faceAnim(e);                  // monster sprite: turn its sheet to the facing row
   }
@@ -329,11 +331,26 @@ export class EnemyController {
     this.fxG.fillStyle(0x000000, 0.5).fillTriangle(spr.x - 9, y - 1, spr.x + 9, y - 1, spr.x, y + 11);
     this.fxG.fillStyle(col, 0.95).fillTriangle(spr.x - 7, y, spr.x + 7, y, spr.x, y + 9);
   }
-  _flash(e) { e.flashFrames = F; }
+  _flash(e) { e.flashFrames = F; e.popFrames = 6; }   // white flash + a squash-punch
   _tint(e, c) { const s = e.spr; if (s.list) s.list.forEach((x) => x.setTint && x.setTint(c)); else s.setTint(c); }
+  // DEATH POP — a satisfying beat: a death cue, an expanding shock ring + debris
+  // specks, a white pop, then the fade. (FLAG: a dedicated sfx_death CC0 cue would
+  // beat reusing sfx_hit; the FX are pooled-cheap graphics, destroyed on complete.)
   _die(e) {
     e.alive = false;
-    this.scene.tweens.add({ targets: e.spr.list || e.spr, alpha: 0, duration: 320, onComplete: () => e.spr.destroy() });
+    const spr = e.spr, x = spr.x, y = spr.y - 14 * e.scale, s = e.scale;
+    if (this.scene._sfx) this.scene._sfx('sfx_hit', 0.9);
+    const ring = this.scene.add.graphics().setDepth(DEPTH.OVERLAY - 5);
+    if (this.scene.uiCamera) this.scene.uiCamera.ignore(ring);
+    this.scene.tweens.addCounter({ from: 0, to: 1, duration: 240, onUpdate: (tw) => { const f = tw.getValue(); ring.clear(); ring.lineStyle(3 * (1 - f) + 1, 0xfff2c4, 0.85 * (1 - f)); ring.strokeCircle(x, y, 6 + 34 * s * f); }, onComplete: () => ring.destroy() });
+    for (let i = 0; i < 6; i++) {
+      const a = (i / 6) * Math.PI * 2 + 0.3, d = (18 + (i % 3) * 8) * s;
+      const p = this.scene.add.rectangle(x, y, 3, 3, 0xe8d8b0).setDepth(DEPTH.OVERLAY - 5);
+      if (this.scene.uiCamera) this.scene.uiCamera.ignore(p);
+      this.scene.tweens.add({ targets: p, x: x + Math.cos(a) * d, y: y + Math.sin(a) * d + 6, alpha: 0, scale: 0.4, duration: 300, ease: 'Quad.easeOut', onComplete: () => p.destroy() });
+    }
+    if (spr.list) spr.list.forEach((l) => l.setTintFill && l.setTintFill(0xffffff));
+    this.scene.tweens.add({ targets: spr.list || spr, alpha: 0, duration: 300, delay: 60, onComplete: () => spr.destroy() });
   }
   destroyAll() { this.enemies.forEach((e) => e.spr.destroy()); this.enemies = []; this.projectiles.forEach((p) => p.dot.destroy()); this.projectiles = []; this.telegraphG.destroy(); this.fxG.destroy(); }
 }
