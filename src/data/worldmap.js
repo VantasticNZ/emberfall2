@@ -44,6 +44,12 @@ export const GREENHOLLOW = {
     schedule: (n.schedule || []).map((s) => ({ ...s, tx: s.tx + GH_ORIGIN.x / TILE, ty: s.ty + GH_ORIGIN.y / TILE })),
   })),
   chests: (WORLD.chests || []).map((c) => ({ ...c, x: gx(c.tx), y: gy(c.ty) })),
+  // Phase-3 ART (restore discrete-v3 gold standard on the overworld; RESIDENT atlas):
+  widthTiles: WORLD.widthTiles, heightTiles: WORLD.heightTiles,
+  originTile: { x: GH_ORIGIN.x / TILE, y: GH_ORIGIN.y / TILE },
+  terrain: WORLD.terrain,                       // autotile patches (gravel plaza/road/dirt lanes/soil) — local tiles
+  decalLayers: [WORLD.dirt, WORLD.decals, WORLD.ferns],   // lived-in scatter (dirt patches, tufts/flowers, ferns)
+  pond: WORLD.pond,                             // the SW brook (banked pool) — local tiles
 };
 
 /** Is a world point inside Greenhollow's (safe) bounds? */
@@ -66,25 +72,34 @@ const PROP_KINDS = ['prop_tree_oak', 'prop_tree_pine', 'prop_bush'];
  * Returns world-coord positions. `id`s are STABLE per chunk so SaveManager deltas
  * (picked orbs) match on reload.
  */
+const DECAL_KINDS = ['decal_clover', 'decal_flower_pink', 'decal_flower_white', 'decal_flower_blue', 'decal_tuft', 'decal_grass_lush'];
+// chunk-distance from Greenhollow's bounds (0 = adjacent/over the village) — drives
+// the green-belt treeline density RAMP so the depth-band BLEEDS outward (dense at the
+// village edge → thinning into open belt), not a hard wall.
+function distToGreenhollowChunks(cx, cy) {
+  const b = GREENHOLLOW.bounds;
+  const c0x = Math.floor(b.x / CHUNK_PX), c1x = Math.floor((b.x + b.w) / CHUNK_PX);
+  const c0y = Math.floor(b.y / CHUNK_PX), c1y = Math.floor((b.y + b.h) / CHUNK_PX);
+  const dx = cx < c0x ? c0x - cx : cx > c1x ? cx - c1x : 0;
+  const dy = cy < c0y ? c0y - cy : cy > c1y ? cy - c1y : 0;
+  return Math.max(dx, dy);
+}
+
 export function chunkContent(cx, cy) {
   const rnd = rngFor(cx, cy);
   const ox = cx * CHUNK_PX, oy = cy * CHUNK_PX;
-  // a gentle biome tint by position (continuity read; real per-tile terrain comes with regions)
-  const tint = (() => {
-    const u = cx / WORLD_CHUNKS, v = cy / WORLD_CHUNKS;
-    const r = 150 + 60 * u, g = 170 + 50 * v, b = 140 + 40 * (1 - u);
-    return (Math.min(255, r) << 16) | (Math.min(255, g) << 8) | Math.min(255, b);
-  })();
+  // GREEN-BELT treeline that BLEEDS from the village: densest in the ring hugging
+  // Greenhollow, thinning with distance (a continuous treeline, not a wall).
+  const d = distToGreenhollowChunks(cx, cy);
+  const ramp = d <= 0 ? 0 : Math.max(0.35, 1 - (d - 1) * 0.22);   // d1 dense → far sparse
   const props = [];
-  const count = 6 + Math.floor(rnd() * 8);     // 6–13 real props per chunk
+  const count = Math.round((10 + rnd() * 10) * ramp);
   for (let i = 0; i < count; i++) {
     props.push({ key: PROP_KINDS[(rnd() * PROP_KINDS.length) | 0], x: ox + rnd() * CHUNK_PX, y: oy + rnd() * CHUNK_PX });
   }
-  // test PICKUP orbs (the delta-round-trip proof) — 0–2 per chunk, stable ids
-  const pickups = [];
-  const pn = (rnd() < 0.5) ? 1 : (rnd() < 0.5 ? 2 : 0);
-  for (let i = 0; i < pn; i++) {
-    pickups.push({ id: `orb_${cx}_${cy}_${i}`, x: ox + 200 + rnd() * (CHUNK_PX - 400), y: oy + 200 + rnd() * (CHUNK_PX - 400) });
-  }
-  return { tint, props, pickups };
+  // lived-in BELT flowers/tufts (FLOOR-pinned ground dressing — a gentle scatter)
+  const decals = [];
+  const dn = 4 + Math.floor(rnd() * 6);
+  for (let i = 0; i < dn; i++) decals.push({ key: DECAL_KINDS[(rnd() * DECAL_KINDS.length) | 0], x: ox + rnd() * CHUNK_PX, y: oy + rnd() * CHUNK_PX });
+  return { props, decals };
 }
