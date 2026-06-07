@@ -61,7 +61,20 @@ export const WORLD = {
     { tx: 24, ty: 16, facing: 'down', name: 'Bram', speed: 70, expression: 'neutral', parts: BRAM, greeting: [
       "There's my little terror — up early for once! The forge is hot if you've come to watch me work.",
       "Go on now, say hello to your mother before she skins the both of us. I'll be right here.",
-    ] },
+    ],
+      // SOCIAL DEMO: a smith's shop — the price moves with your CHARISMA, and a
+      // [Persuade] check can haggle a discount (pass/fail by CHA).
+      social: { start: 'shop', nodes: {
+        shop: { speaker: 'Bram', text: "Grown now, and after steel. A good steel sword runs {price:steel_sword}g — and I price by the cut of a person, mind.",
+          options: [
+            { label: 'Buy the steel sword ({price:steel_sword}g)', set: 'buy:steel_sword', to: 'bought' },
+            { label: 'Haggle him down', check: { type: 'persuade', dc: 6, onPass: 'haggled', onFail: 'refused', onPassDeed: 'haggled_bram' } },
+            { label: '(Maybe later.)', end: true },
+          ] },
+        bought: { speaker: 'Bram', text: 'Mind the edge — it bites truer than your tongue.', options: [{ label: '(Take it.)', end: true }] },
+        haggled: { speaker: 'Bram', text: "...Hah. Silver tongue on you. Fine — a few coins off, just this once.", options: [{ label: '(Pocket the saving.)', end: true }] },
+        refused: { speaker: 'Bram', text: 'Nice try. The price is the price — earn a name first.', options: [{ label: '(Let it stand.)', end: true }] },
+      } } },
   ],
 
   player: { tx: 17, ty: 19, facing: 'down', speed: 95, expression: 'neutral', parts: HERO },

@@ -47,6 +47,17 @@ export const PEAKS = {
   npcs: [
     { tx: 18, ty: 18, facing: 'down', name: 'Miner', speed: 60, expression: 'neutral', parts: MINER, quest: 'M11',
       greeting: ['The way up’s sheer — you’ll want the route, and the town’s say-so.'],
+      // SOCIAL DEMO: TRUST — the secret-pass option appears ONLY once your deeds have
+      // earned the miners' trust (e.g. standing with them). Betrayers never see it.
+      social: { start: 'talk', nodes: {
+        talk: { speaker: 'Miner', text: "Aye, you again. What is it, lowlander?",
+          options: [
+            { label: '(Just passing.)', end: true },
+            { label: 'Ask after the hidden pass', check: { type: 'trust', dc: 2, deeds: ['lean_workers'] }, to: 'secret' },  // trust-gated
+          ] },
+        secret: { speaker: 'Miner', text: "...You've done right by us, so here's a thing the owner doesn't know: a hidden crag-pass that saves a day's climb. Trust earns what coin can't.",
+          options: [{ label: '(Remember the pass.)', deed: 'miner_secret_pass', end: true }] },
+      } },
       done: ['Stand with us and the crags are yours. Cinder Keep’s up the north path.'] },
     { tx: 24, ty: 17, facing: 'down', name: 'Mike Hunt', speed: 60, expression: 'neutral', parts: HUNT, quest: 'SP3',
       greeting: ['*counts coin* The mine runs on MY terms, lowlander. Settle the town first.'] },

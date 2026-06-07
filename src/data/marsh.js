@@ -57,7 +57,18 @@ export const MARSH = {
       done: ['Mind the black water, outsider. Hagga waits — and her truth waits with her.'] },
     { tx: 30, ty: 26, facing: 'up', name: 'Hagga', speed: 60, expression: 'neutral', parts: HAGGA, greeting: [
       "Across the black water, they said, and across you came. Good. The Sunken Shrine first — then the truth.",
-    ] },
+    ],
+      // SOCIAL DEMO: DECEPTION — Hagga withholds something. Without INSIGHT you take
+      // her word; WITH it, an [Insight] option appears revealing what she hides.
+      social: { start: 'talk', nodes: {
+        talk: { speaker: 'Hagga', text: "There's nothing more for you here, child. The shrine took the last of what I had to give. Go on.",
+          options: [
+            { label: '(Take her at her word.)', end: true },
+            { label: 'Hold her gaze', check: { type: 'insight' }, to: 'reveal' },   // only shown WITH Insight
+          ] },
+        reveal: { speaker: 'Hagga', text: "*the flicker behind her eyes betrays her* — she's lying. She knows far more of the Hearthflame than she's said, and it frightens her badly. She is protecting you from it.",
+          options: [{ label: '(Note what she hides.)', deed: 'hagga_hidden_truth', end: true }] },
+      } } },
   ],
 
   // REAL combat encounters — the first ADULT combat region (placement rule). Each
