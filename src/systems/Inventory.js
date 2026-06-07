@@ -29,6 +29,9 @@ export class Inventory {
     this.equipment = {};    // slot -> item id
     this.skills = {};       // skill name -> level
     this.skillPoints = 0;
+    // RPG attributes (SYSTEMS-DESIGN-V2). CHA gates dialogue options + shop prices
+    // (social system). Default 5 (mid). Raised via level-ups / the character sheet.
+    this.attrs = { str: 5, dex: 5, con: 5, int: 5, wis: 5, cha: 5, ...(opts.attrs || {}) };
     this.foodMeter = 50;    // 0..foodMax; ~middle = 'normal'
     this.bodyState = 'normal';
     this.property = {};     // id -> { rent }
@@ -76,6 +79,10 @@ export class Inventory {
   }
   heal(n) { this.hp = Math.min(this.stats().maxHp, this.hp + Math.round(n)); return this.hp; }
 
+  // ---- attributes -----------------------------------------------------------
+  attr(name) { return this.attrs[name] ?? 0; }
+  setAttr(name, v) { this.attrs[name] = v; return v; }
+
   // ---- skills ---------------------------------------------------------------
   learnSkill(name, levels = 1) { this.skills[name] = (this.skills[name] || 0) + levels; return this.skills[name]; }
   hasSkill(name) { return !!this.skills[name]; }
@@ -86,7 +93,7 @@ export class Inventory {
     return {
       v: 1, gold: this.gold, level: this.level, hp: this.hp, items: this.items,
       equipment: this.equipment, skills: this.skills, skillPoints: this.skillPoints,
-      foodMeter: this.foodMeter, bodyState: this.bodyState, property: this.property,
+      attrs: this.attrs, foodMeter: this.foodMeter, bodyState: this.bodyState, property: this.property,
     };
   }
   hydrate(d) {
@@ -98,6 +105,7 @@ export class Inventory {
     this.equipment = d.equipment || {};
     this.skills = d.skills || {};
     this.skillPoints = d.skillPoints || 0;
+    this.attrs = { str: 5, dex: 5, con: 5, int: 5, wis: 5, cha: 5, ...(d.attrs || {}) };
     this.foodMeter = d.foodMeter ?? 50;
     this.bodyState = d.bodyState || 'normal';
     this.property = d.property || {};
