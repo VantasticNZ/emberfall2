@@ -170,11 +170,19 @@ The cardinal failure of big maps: **vast + empty + lumpy density.** This pillar 
 that keeps the world **densely, variedly, purposefully filled.**
 
 ### 2.1 WORLD LAYOUT (one believable landmass — reconcile with WORLD-MAP.md)
+- **Committed geography intent:** **Greenhollow sits near the CENTRE of the world**, ringed by its own
+  **green belt** — forest, fields, farms, mostly-green pastoral surrounds (the safe, gentle home
+  ground). The other regions **radiate OUTWARD** from that centre; the Spire stands on the far-N
+  horizon (visible from almost everywhere — the vista pull, TRAVERSAL §2).
+- **The space BETWEEN settlements is TRAVERSABLE WILDS**, not empty filler — ranging **easy → tricky**:
+  false turns, dead-ends, forks, natural obstacles, environmental puzzles. The wilds are content, not
+  corridor (this is where the density floor + reward-for-looking earn their keep, §2.2).
+- **The world is a WEB, not a LINE — MANY routes to many places.** No single forced corridor between
+  regions; multiple viable paths, shortcuts, and back-ways. (Made an explicit gate in §2.4 + §2.5.)
 - The five regions + the Spire are arranged as ONE contiguous landmass radiating from the
   **Greenhollow Vale** hub (per WORLD-MAP): **Ashen Marsh (W)**, **Sundered Peaks (N)**, **Tidewreck
-  Coast (E)**, **Emberwood (S)**, and the **Hollow Spire** on the far-N horizon (visible from almost
-  everywhere — the vista pull, TRAVERSAL §2). Roads **bleed** biome→biome (forest thins to marsh,
-  grass rises to foothills).
+  Coast (E)**, **Emberwood (S)**, and the **Hollow Spire** (far N). Roads + wilds **bleed** biome→biome
+  (forest thins to marsh, grass rises to foothills).
 - **Where things sit:** each region's **settlements/landmarks/set-pieces** (the Sunken Shrine, Cinder
   Keep, the underwater Drowned Vault, Ember Hollow, the Spire) are placed at world-coords; the
   **critical path** (M1→M20) threads through them, with **optional areas** hung off the path (side-
@@ -211,6 +219,51 @@ that keeps the world **densely, variedly, purposefully filled.**
   (with a vista/mood reason); **untagged** empty stretches over D tiles FAIL the lint.
 - **BIOME COHERENCE** [EYE + OBJECTIVE]: no hard biome border (Gate D); the seam reads as a believable
   bleed; scale/density don't lurch (Level B, Pillar 3).
+- **WEB-NOT-LINE** [OBJECTIVE → verify.mjs]: between any two adjacent regions there are **≥2 viable
+  routes** (the route graph is not a single corridor); the WORLD's traversal graph has **no forced
+  single chokepoint** except where a gate (§2.5) deliberately makes one. [EYE]: it feels like a place
+  you can *wander*, with choices, not a track you're pushed down.
+
+### 2.5 PROGRESSION GATING — "fully explorable, but only when ready" (a design LAW)
+The whole map is designed to be **eventually reachable**, but access is **PACED** so you arrive when
+the player + the story are ready. This is Zelda-style **see-it-early, reach-it-later** at world scale —
+and it is a LAW, not a nicety. Cross-ref TRAVERSAL-EXPLORATION (tool-gated nooks, shortcuts-that-
+unlock, layered secrets), applied to the whole world.
+
+- **The four gate TYPES** (a gated area uses one or more):
+  1. **STORY / QUEST state** — an area opens when a quest beat clears it (a bridge raised, a foe routed,
+     a faction won). 2. **ITEMS** — a key, a pass, a lantern, bombs. 3. **ABILITIES** — the Metroidvania
+     **tool-gates**: hookshot/grapple (chasms), dash (long gaps), firefrost (melt/freeze), etc. 4. **TIME**
+     — night-only or specific-day/calendar access (a tide, a festival, a moon).
+  2. A few areas may stay **permanently hard / secret** (deep optional challenge or lore) — deliberate,
+     and flagged as such so they don't read as a bug.
+- **The patterns these enable** (design intent, Zelda DNA): **see-but-can't-reach** teases (a vista, a
+  walled nook, an island) that you **REMEMBER and RETURN to** once you have the key; **bombable-wall**-
+  style "come back with the tool" loops; healthy **back-and-forth**; **puzzle-it-out** access; and
+  **side-quests that route you all over the map** (the world taught through play, not a checklist).
+- **THE GATING GATES** ([OBJECTIVE]/[EYE] — soft-lock safety is non-negotiable):
+  - **CLEAR EVENTUAL KEY** [OBJECTIVE → verify.mjs]: **every** gated area declares, in data, the exact
+    key that opens it (quest id / item id / ability id / time-condition). **No area may be reachable-
+    in-principle yet have no obtainable key** → that's a **soft-lock**; the lint **FAILS** on any gated
+    area with a missing or unobtainable key, or a key locked behind itself (circular gate).
+  - **TEASE → PAYOFF** [OBJECTIVE + EYE]: every **see-but-can't-reach** tease is tagged in data with the
+    gate that later opens it; the lint flags a tease with **no remembered payoff** (a tease that never
+    becomes reachable). [EYE]: the return moment lands ("*that's* what the hookshot was for").
+  - **MULTIPLE VIABLE ROUTES** [OBJECTIVE]: see WEB-NOT-LINE (§2.4) — gating paces discovery without
+    collapsing the world to one corridor; a gate narrows *one* route, never the *only* route (unless a
+    deliberate, flagged story chokepoint).
+  - **NO ACCIDENTAL EARLY ACCESS** [EYE]: an area meant for later shouldn't be trivially reachable
+    early in a way that breaks pacing/difficulty (Van play-judges; the streamer + collision enforce
+    the intended gate, not an invisible wall that reads as broken).
+
+### 2.6 ECOLOGY (design intent — reserve the principle, DETAIL LATER)
+*(Note for a later content-design pass — not designed here.)*
+- **Region-appropriate MONSTERS:** different regions are populated by different threats (marsh things,
+  peak things, coast things) so place reads through its inhabitants, not just its tiles. (Ties to the
+  EnemyController per-area ownership in the §1.4 matrix.)
+- **PETS by source:** some pets are found **wild** (region-specific), some only in **villages / shops**,
+  some only via **specific quests** (cross-ref PETS-DESIGN). Reserve the principle; detail the roster,
+  habitats, and acquisition routes in a dedicated later pass.
 
 ================================================================
 ## PILLAR 3 — HOW TO VERIFY IT LANDS (the three-level cohesion ladder)
@@ -250,11 +303,20 @@ Van's verification ladder — three levels, each with its own gates, tied to **H
 > Every migration/area session: **self-check A** (objective + proof), **hand B (seams) and C (whole)
 > to Van** to play-judge — the same shape as Part 2.5 / 2.6, under HARD RULE 9.
 
+### LEVEL D (forward-reference, QUEUED CAPSTONE — do NOT design here)
+Once the world structure is built, a future **GRAND COHERENCE REVIEW** will check the **whole game** —
+map + quests + stories + time/calendar + abilities + items — **individually, against each other,
+physically (in-world), and as a timeline.** Noted here only as a **queued capstone gate** above the
+A/B/C ladder; to be specced in its own session when the world exists.
+
 ---
 
 ## PROPOSED SSOT IDS (LIST ONLY — do NOT add to `src/constants/` this session)
 - world structure: `area_<name>` ids, `chunk` coords (data, not SSOT ids), `seam_<a>_<b>` tags,
   `waystone_<name>` (fast-travel points), `deliberate_lull` (the tagged-empty marker).
+- gating (§2.5): a per-area `gate` descriptor `{ type: 'story'|'item'|'ability'|'time', key: <id> }`
+  reusing EXISTING quest/item/ability ids (never a synonym); `tease_<name>` tags (see-but-can't-reach
+  → its opening gate); `route_<a>_<b>` edges for the web-not-line graph; `permanent_secret` marker.
 - save: a `world` save block (player world-x/y, current area / interior id, per-chunk delta map) —
   bump `SAVE_VERSION` (Save-Versioning rule).
 - the **WorldMap** data file (`src/data/worldmap.js` — areas + adjacency + edge-bleed + POIs) and an
