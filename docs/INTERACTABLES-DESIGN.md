@@ -199,3 +199,111 @@ free falls short + a licence/anti-AI check (Mana Seed banned). Art each object n
 > Cross-ref: the **Part 2.6 Spatial / World-Cohesion DoD** (Gate K above) and the binding ASSET
 > POLICY there. This doc is the canonical home for the interactable system spec (peer to Monsters /
 > Quests); it stays out of `SYSTEMS-DESIGN-V2.md` to keep that doc's scope clean.
+
+================================================================
+# ADDENDUM (2026-06-07): searchable containers · economy wiring · reactive-world hooks
+================================================================
+> AUDIT (what ALREADY exists — do NOT re-spec): **Economy.js** (regional buy/sell, CHA-adjusted
+> haggle, shop hours + gated stock, jobs, **property + passive rent**, food/body life-sim, death) +
+> **Social.js** (CHA price mults, **trust derived over the deed-memory** — not a new axis — skill-check
+> resolver, Fallout-bracket option gating) + **items** (food / material+trinket = "junk" / gold /
+> property) + the **chest pattern in code** (`GreenhollowScene._buildChests`: open → loot → an
+> `_opened` Set that **empties** it: "cleared it earlier"). The three captures below **EXTEND** those —
+> they are placement/wiring + one new interactable subtype, **not** new engines.
+
+## 9. SEARCHABLE CONTAINERS (new interactable SUBTYPE — generalises the chest)
+Drawers, cupboards, wardrobes, barrels, crates, sacks, **chests-inside-houses** you OPEN/SEARCH for
+food / junk / gold / quest items. It is the existing chest pattern (open → `dropLoot(table)` → a
+`searched` flag that empties it) lifted into a **reusable, data-driven object** placeable anywhere.
+
+- **DATA shape** (peer to the §1 interactable, a distinct `via: 'search'`):
+  ```
+  { key:'prop_cupboard', tx, ty, solid:true,
+    via:   'search',
+    id:    'mara_pantry',            // unique -> the SEARCHED flag (deed-memory; empties once)
+    loot:  { table:'pantry', rolls:1 },   // a weighted loot table (reuses dropLoot)
+    locked:null,                     // null | a tool/key/deed id (a locked cupboard -> needs the key)
+    onSearch:[ /* optional: deed/flag/quest hooks, e.g. set 'pantry_raided' */ ] }
+  ```
+- **BEHAVIOUR:** press to search → if `locked` and the key/tool/deed is absent, refuse with a prompt
+  ("It's locked."); else roll `loot` once, grant to inventory (respect carry-full), record the
+  `searched` flag so it's **empty on return** ("You've already searched this."). Identical lifecycle to
+  the chest, just authored as scatter furniture.
+- **QUEST TIES (the point):** a container's `onSearch` can set a deed/flag or advance a quest — e.g. a
+  **pantry raid** (search Mara's cupboard for the missing preserves → `pantry_raided` → quest step), a
+  clue in a drawer, a stolen heirloom in a chest. **Stealing** from an owned container can record a
+  **negative deed** (Karma) + be witnessed (ties Social/reputation, §11).
+- **REUSE (mostly [FREE NOW]):** `Interaction.register` (exists) · the chest's `_opened`-Set/searched-
+  flag (exists, generalise to deed-memory so it persists in the save) · `dropLoot(table, inv)` (the §3
+  helper) · loot tables = DATA (`src/data/loot.js`). The mechanic is free.
+- ⚑ **ASSET / ANIM / DEPTH-SORT (flag — don't fake):** an **open/search animation** (a drawer sliding,
+  a cupboard door, a barrel lid, a lifted-lid chest) is an **asset need** — if no open-state art exists,
+  ship a **state read** instead (a subtle tint / a small "searched" overlay / the lid sprite swap) and
+  **flag the anim**, never a fake. Containers are **props with a footprint** → they use the existing
+  **depth-sort footprint base** (no new sorting). Solid containers block + sort like any prop.
+
+## 10. WORLD-ECONOMY WIRING (REMINDER — the systems EXIST; this is build-wiring, not engine)
+Economy + Social + property/rent are **built + tested**. What's missing is **world PLACEMENT +
+interaction wiring** across regions — a build task, flagged here so it isn't mistaken for new engine:
+- **Shops:** place shopkeeper NPCs / counters (Pem's store, Saltbreak market, the smith) and wire the
+  buy/sell UI to `Economy.buy/sell` with the shop's region pricing + hours (all exist). **[FREE NOW]**
+  (placement + a buy/sell panel; reuse the dialogue/HUD shells).
+- **Haggle:** a dialogue path that runs a **Social CHA/insight check** to nudge the price (the CHA
+  multiplier + `Social.resolve` already exist) — wire an option, don't build a system. **[FREE NOW].**
+- **Buy/rent a house:** `Economy.buyProperty` + `collectRent` exist — wire a "for sale" sign/agent
+  interactable + rent collection on **day-pass** (TimeOfDay). **[FREE NOW]** (wiring) → the *owned-house-
+  as-base* extension is §11.
+- **Breakables drop coins:** the §2 break/smash objects already grant via `dropLoot` — author **coin
+  loot tables** so smashing a crate/pot/barrel yields gold/junk (the economy's low-end faucet). Depends
+  on the breakable system shipping (captured §2, [ENGINE-light]); the coin-drop itself is **[FREE NOW]**
+  data once it does. Cross-ref **ECONOMY-BALANCE** for faucet/sink rates so container + breakable loot
+  doesn't inflate gold.
+
+## 11. REACTIVE-WORLD HOOKS (reuse Karma deed-memory + Social.trust — design intent)
+The world should **visibly remember** how you've treated it. All of these read EXISTING state
+(`Karma` deeds + `Social.trust`) — no new memory system; the split is what's free vs engine:
+- **Reputation-reactive GREETINGS / dialogue** [FREE NOW]: NPC greeting + option set varies by
+  `trust`/deeds (Dialogue + Social already gate by deed/check) — author greeting variants keyed to a
+  trust tier. The world *talks* differently.
+- **Reputation-reactive PRICES** [FREE NOW]: already wired (CHA + trust → buy/sell mults). Just surface
+  it ("the smith cuts you a deal" / "no discounts for *you*").
+- **NOTICE / BOUNTY BOARD hub** [FREE NOW]: a board interactable that **surfaces EXISTING side-quests**
+  (query the QuestEngine for `available` quests in-region + bounties) → accept from the board. UI + data
+  over the built quest system; a great discoverability hub. (Ties the §2.5-style "side-quests route you
+  all over the map.")
+- **Reputation-gated DOORS / access** [FREE NOW]: an Interaction gated by a deed/trust tier (a guard
+  waves you through once trusted, a faction door opens) — a gated interaction, not a new system.
+- **A helped / harmed PLACE looks different later** [FREE NOW *mechanic* · ⚑ASSET]: RegionScene can
+  already render props/decals by flag — a rebuilt vs ruined building, banners vs boards-up, a thriving
+  vs emptied square, swapped by a town-state deed. The **logic is free**; the **art is an asset need**
+  (rubble/rebuilt/decor variants) → **flag, don't fake** (omit the variant + note it if no art).
+- **Reactive CROWDS / NPC presence** [partly ENGINE]: swapping a few NPC **states/positions** by a
+  town-state flag is [FREE NOW] (NpcLife data); **spawning/despawning population** to show a town
+  thrive/empty is **[ENGINE]** (a population/density system) — flag, don't over-promise.
+- **Owned house as a customisable BASE / STORAGE** [FREE NOW *storage* · ENGINE *decor*]: the owned
+  property gains a **persistent searchable container** (§9, player-owned, never empties — a stash that
+  saves) = **[FREE NOW]**; a **wardrobe/equipment stash** = [FREE NOW] data; **free-form furniture
+  PLACEMENT / decoration** (move/place objects) = **[ENGINE]** (an editor/placement mode) — reserve,
+  detail later. A few **preset upgrades** (a bed = save point, a chest = storage, a trophy wall by
+  deeds) is the [FREE NOW] middle path.
+
+## 12. PROPOSED SSOT IDS (LIST ONLY — additions for §9–§11; do NOT add this session)
+- **interactable subtype:** `via:'search'` (data value, not an SSOT const).
+- **containers (per-placement searched flags / deeds):** `searched_<id>` (e.g. `searched_mara_pantry`),
+  or a generic searched-set in the save; quest hooks reuse EXISTING quest/deed ids (e.g. `pantry_raided`,
+  `heirloom_taken`) — **never invent a synonym** for an existing deed.
+- **loot tables (DATA, `src/data/loot.js`):** `loot_pantry`, `loot_drawer`, `loot_barrel`,
+  `loot_crate_coins` — weighted; reuse existing item ids (food/material/`gold`).
+- **reactive-world (reuse, don't duplicate):** town-state flags `town_<region>_helped` / `_harmed`
+  (deed-memory) drive prop/greeting variants; `board_<region>` (a notice-board interactable id);
+  `house_owned_<id>` already implied by `inv.property`. Trust tiers are DERIVED from `Social.trust`, not
+  stored.
+- **stealing:** reuse the existing Karma negative-deed ids (e.g. a `theft`/`stole_*` deed) — confirm the
+  canonical id with `src/constants/` at build; **do not mint a new synonym**.
+
+> Cross-ref: **ECONOMY-BALANCE.md** (faucet/sink rates so container + breakable + reactive-price loot
+> stays balanced), **Social.js** (trust/CHA — the reactive-price + greeting + haggle source),
+> **Karma** (the deed-memory every reactive hook reads), and **§9's** dependence on the §2/§3
+> breakable + `dropLoot` plumbing. Build order: searchable containers slot in with the §6 interactable
+> build (after the regions/engines are stable); economy wiring + reactive hooks ride the per-region
+> content passes.
