@@ -139,7 +139,9 @@ export class RegionScene extends Phaser.Scene {
     for (const p of this.cfg.world.props) {
       const d = PROPS[p.key];
       const spr = this.physics.add.sprite(tileToPx(p.tx), tileToPx(p.ty), p.key).setOrigin(0.5, 0.5);
-      if (treeTint != null && p.key.startsWith('prop_tree')) spr.setTint(treeTint);
+      if (p.tint != null) spr.setTint(p.tint);                                      // per-prop tint (cottage variety)
+      else if (treeTint != null && p.key.startsWith('prop_tree')) spr.setTint(treeTint);
+      this._props = this._props || {}; if (p.id) this._props[p.id] = spr;           // named props (e.g. a chest)
       if (p.solid && d.footprint) { Collision.makeSolid(spr, d.footprint); this.solids.add(spr); }
       else if (spr.body) { spr.body.enable = false; }
       DepthSort.track(spr, d.footprint ? d.footprint.offY : d.height / 2);
