@@ -357,6 +357,119 @@ of the Part 2.5 Presentation & Feel DoD, under HARD RULE 9. The [OBJECTIVE] gate
 B-straight-run, C-spill/edge-bound, D-seam, E-variety, J-secret-count) — listed here, not built
 this session.
 
+----------------------------------------------------------------
+## PART 2.6 — SETTLEMENT DESIGN: THE FOUR PILLARS (all scales: hamlet → city)
+----------------------------------------------------------------
+The gates A0–K above are the *cohesion* bar. THIS is the *settlement* rule-set — how a town or
+city is composed at any scale. Each rule: **rule · why · check** ([OBJECTIVE] w/ a measurable
+threshold + a proposed **→ verify.mjs** lint where wireable, or [EYE] w/ what Van judges) ·
+build-cost tag **[FREE NOW]** vs **[ENGINE FEATURE]** · scale tag **[hamlet]/[town]/[city]/[all]**.
+Greenhollow (v3) is the reference HAMLET. Cross-ref **docs/TRAVERSAL-EXPLORATION-DESIGN.md** for
+moving *between* and *through* places, and city VERTICALITY.
+
+### PILLAR 1 — SPATIAL STRUCTURE  *(folds in gates A0/A/B/C — keep those; this generalises)*
+- **ENCLOSED ROOMS, NOT ONE OPEN FIELD** [all] [FREE NOW] — a settlement is a *sequence of
+  enclosed spaces*, never one area seen all at once. *Why:* the root of "place vs plain" (gate A0).
+  *Check:* [EYE] every space feels bounded by built form. [OBJECTIVE] (→verify.mjs): no single
+  open ground region exceeds ~25% of the settlement's walkable area.
+- **DISTRICTS WALLED DIEGETICALLY** [all] [FREE NOW] — separate places are divided by *in-world*
+  barriers (fence, hedge, low wall, water, level change, dense planting). *Why:* **barriers exist
+  to CREATE places, not just to block.** *Check:* [EYE] each district has a readable edge.
+  [OBJECTIVE] proxy: ≥1 diegetic divider between each named district pair.
+- **ROUTE HIERARCHY** [all] [FREE NOW] — graded surfaces/widths (plaza → road → lane → worn track)
+  so importance + footfall read at a glance. *Why:* uniform paths = a diagram. *Check:* = gate B
+  ([OBJECTIVE]: ≥3 surface tiers).
+- **REVEALS / CONCEALMENT** [town]/[city] strong, [hamlet] light [FREE NOW] — you **cannot see the
+  whole settlement at once**; buildings, walls, planting and bends hide what's round the corner, so
+  moving through is *discovery*. *Why:* hidden-then-revealed space is the core pleasure of a place.
+  *Check:* [EYE] you turn a corner and something new opens up. [OBJECTIVE] proxy: no single camera
+  view (at play zoom) frames > ~60% of a town/city's buildings.
+- **LANDMARKS** [all] [FREE NOW] — orienting landmarks (well, great tree, spire, lighthouse) you
+  navigate by **without the HUD map** (= gate I). *Check:* [EYE] Van crosses it by landmark alone.
+- **DESIRE-PATHS** [all] [FREE NOW] — worn shortcuts where people actually walk, not only laid
+  roads. *Check:* [EYE] at least one "feet, not a planner" cut; [OBJECTIVE]: ≥1 sub-tier worn path.
+- *(ENCLOSURE + OFF-CENTRE NODE + districts — see gate A; keep, folded here.)*
+
+### PILLAR 2 — LIFE & MOVEMENT  *(the BIGGEST current gap — mostly [ENGINE FEATURE] + data)*
+- **NPC ROUTINES** [all] [ENGINE FEATURE: a schedule + pathing system] — NPCs follow daily
+  schedules on the TimeOfDay phases (work by day, home at night, market in the morning). *Why:*
+  schedules sell "lived-in" more than any art. *Engine note:* needs waypoint pathing + a per-NPC
+  schedule table + phase-driven goals; RegionScene/Character today only do scripted facing.
+  *Check:* [EYE] the town's population *moves with the day*. [OBJECTIVE]: ≥N scheduled NPCs relocate
+  on `onPhaseChange`. Cross-ref GAPS-AND-DEPTH §8.
+- **CHORES, NOT IDLE** [all] [ENGINE FEATURE: chore-anim loops] — NPCs visibly DOING things
+  (sweeping, hauling, hammering, tending), not standing in clumps. *Why:* idle clumps read as a
+  diorama. *Check:* [EYE] most NPCs are *busy*. *Engine note:* a small looped-action anim + anchor.
+- **ANIMALS / WILDLIFE / PETS** [all] [ENGINE FEATURE: ambient critter movers + art] — dogs, cats,
+  chickens, birds crossing, livestock penned. *Why:* motion at the edges = a living place.
+  Ties to **PETS-DESIGN**. *Check:* [EYE] ambient creatures present. *(art: flag — see asset policy.)*
+- **AMBIENT MOTION** [all] [partly ENGINE FEATURE] — chimney smoke, laundry on lines, flowing
+  water, swaying foliage, lantern flicker. *Why:* a still town is a photo; motion is life. *Check:*
+  [EYE] ≥3 sources of ambient motion. *Engine note:* particle/tween emitters (smoke/flicker) are a
+  small additive; swaying foliage is a shader/tween pass (flag).
+- **SOUND POCKETS** [all] [ENGINE FEATURE: positional audio states] — market din vs quiet lane vs
+  birdsong at the edge. *Why:* spatial audio is half of "place." Ties to the audio-system spec
+  (GAPS-AND-DEPTH §6). *Check:* [EYE] the soundscape changes as you move.
+- **WORLD CHANGES OVER TIME** [all] [FREE NOW data] — the time-skip transformation + small ongoing
+  changes (cross-ref GAPS-AND-DEPTH §9). *Check:* = that doc's gates.
+
+### PILLAR 3 — VARIETY & STORYTELLING
+- **WEALTH GRADIENT** [town]/[city]; [hamlet]=modest only [FREE NOW] — a settlement spans **rich →
+  poor**: mansions / a fancy quarter → modest homes → run-down shacks / slums. *Why:* the
+  **contrast** is what makes a place feel real and, at city scale, BIG. *Check:* [EYE] you can point
+  to the rich part and the poor part. [OBJECTIVE] (→verify.mjs): ≥3 building "tiers" (size/state)
+  present in a town/city.
+- **BUILDINGS HINT AT OCCUPANTS** [all] [FREE NOW] — each building's size/state/props say who
+  lives/works there (smith's anvil + soot, healer's herbs, drunk's bottles). *Why:* environmental
+  character without a word. *Check:* [EYE] you can guess the occupant from outside.
+- **EDGE VARIETY** [all] [FREE NOW] — boundaries VARY (cliff, river, sea, dense wood, farmland, town
+  wall) — **never the same treeline everywhere** — and each hints the biome beyond (= gate C depth
+  band + gate H). *Why:* repeated edges read as a tileset, not a world. *Check:* [EYE] + [OBJECTIVE]:
+  ≥2 distinct edge types per region.
+- **WEAR + AGE** [all] [FREE NOW] — cracks, repairs, patches, overgrowth, weathering; nothing
+  pristine-uniform; age tells history. *Why:* uniformity = a kit; wear = a past. *Check:* [EYE] no
+  two same-type buildings look factory-identical (vary tint/props/state).
+- **A SECRET OR TWO** [all] [FREE NOW] — off the beaten path in every settlement (= gate J + the
+  traversal doc). *Check:* = gate J (≥3 region-wide; ≥1 in each settlement).
+
+### PILLAR 4 — SCALE (define each tier explicitly)
+- **HAMLET** [hamlet] [FREE NOW] — ONE node, a handful of homes, a farm/working edge, **modest
+  only**. *(Greenhollow v3 is the reference.)*
+- **TOWN** [town] [FREE NOW] — **2–3 distinct districts**, a market/square, services (inn, shop,
+  smith, temple), a **mix of wealth**. *Check:* [EYE] districts you could name + the full services.
+- **CITY** [city] [mostly FREE NOW; verticality = ENGINE] — **defensive walls + gates**, multiple
+  **QUARTERS** of distinct character, an explicit **rich-quarter vs slums/lower-town** split, a
+  **market crush**, civic landmarks. *Check:* [EYE] it reads BIG + stratified; [OBJECTIVE]: ≥3
+  quarters, a wall+gate, ≥3 wealth tiers.
+- **VERTICALITY** [city] [ENGINE FEATURE: elevation] — upper-town / lower-town, stairs, bridges,
+  terraces; **scale expressed in HEIGHT, not just footprint.** *Engine note:* needs walkable
+  elevation + multi-level occlusion (= gate F "NEEDS ENGINE"; cross-ref the traversal doc). *Check:*
+  [EYE] the city has *levels*.
+- **DENSITY GRADIENT** [all] [FREE NOW] — built density + footfall + detail **rise toward the
+  centre**, thin toward the edges. *Why:* a flat density reads as wallpaper. *Check:* [EYE] the core
+  is busy, the margins quiet; [OBJECTIVE] proxy: prop/building density per zone decreases outward.
+
+### HOW TO BUILD A SETTLEMENT (the checklist a region session runs)
+1. **Pick the scale** (hamlet / town / city) → set the district + wealth + verticality ambition.
+2. **Place the node(s)** off-centre (well/square/crossroads).
+3. **Carve districts** with **diegetic barriers** (fence/hedge/wall/water/level).
+4. **Lay the route hierarchy** (plaza → road → lane → desire-path).
+5. **Set the wealth gradient** (rich quarter → modest → poor) + make buildings hint at occupants.
+6. **Bound the edges with VARIETY** (different barrier per edge; hint the biome beyond — gate C).
+7. **Seed life** (routines/chores/animals/ambient motion — Pillar 2) **+ secrets** (gate J).
+8. **Self-check the gates** (A0–K + these four pillars): [OBJECTIVE] with proof, [EYE] to Van.
+
+> PROPOSED SSOT ids (LIST ONLY — not added): per-NPC `schedule` tables + `chore` anim tags; a
+> `district` tag on world data; building-tier tags (`tier_rich/modest/poor`). Added at build time.
+
+### BUILD-ORDER (shared with docs/TRAVERSAL-EXPLORATION-DESIGN.md — captures don't block regions)
+(1) this capture; (2) a small Greenhollow nudge — big-head modifier **defaults OFF** (bug),
+**depth-sort fix** for the prop-occlusion clip (bug), **divider hedges/fences** between districts,
+a little hand-placed life [FREE NOW]; (3) **NPC-LIFE as a REUSABLE system** (schedules + chore loops
++ ambient animals — built once, inherited by every region); (4) cut/lift interactable bushes;
+(5) traversal mechanics per the engine-prereqs; (6) take **Ashen Marsh** to the full bar = the first
+proof the whole rule-set travels. Heavy engine items (jump/height/water) = their own scoped sessions.
+
 ================================================================
 ## PART 3 — THE VERIFICATION STANDARD (how "done" is proven)
 ================================================================
