@@ -20,6 +20,8 @@ import { ENEMY_SKINS, BOSS_SKINS } from '../data/enemies.js';
 
 const FACE = { up: { x: 0, y: -1 }, down: { x: 0, y: 1 }, left: { x: -1, y: 0 }, right: { x: 1, y: 0 } };
 const F = Math.round(COMBAT.FLASH_MS / 16);
+// a tiny seeded PRNG for per-enemy roam jitter (deterministic; no Math.random).
+function mulberry32(a) { return function () { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
 
 export class EnemyController {
   // opts.onPlayerHit(dmg, { fromFront, dir }) -> the scene resolves dodge/block/parry
@@ -69,7 +71,14 @@ export class EnemyController {
       stats: this._lookupStats(id), maxCount: mon.count, homeX: x, homeY: y, aggro: boss ? 9999 : aggro,
       lastState: null, atkDir: { x: 0, y: 1 }, landX: x, landY: y, hitThisAtk: false, firedThis: false,
       knockFrames: 0, knockVx: 0, knockVy: 0, flashFrames: 0, popFrames: 0, staggerFrames: 0, alive: true, scale: skin.scale,
+      guardTurn: 0,
+      // ROAMING (pre-aggro patrol). Bosses (always-aggro) never roam. Seeded per enemy
+      // for per-agent jitter (no clockwork). roamVar = a persistent ±20% speed wobble.
+      roam: !boss, roamTarget: null, roamTimer: 0, roamPause: 0,
+      rng: mulberry32(((this.enemies.length + 1) * 0x9E3779B1) >>> 0),
+      roamVar: 0,
     };
+    e.roamVar = 0.8 + e.rng() * 0.4;   // persistent per-enemy roam-speed wobble (±20%)
     this.enemies.push(e);
     return e;
   }
@@ -105,11 +114,17 @@ export class EnemyController {
       if (!spr.list) this._faceAnim(e);
       return;
     }
-    // AGGRO: a placed enemy only wakes when the player comes near (discrete encounter)
+    // DE-AGGRO: if the player gets well clear, drop back to a calm pre-aggro patrol.
+    if (e.awake && !e.boss && Math.hypot(spr.x - player.x, spr.y - player.y) > e.aggro * 2) {
+      e.awake = false; mon.state = mon.fsm.start; mon.elapsed = 0; e.lastState = null;
+    }
+    // AGGRO: a placed enemy only wakes when the player comes near (discrete encounter);
+    // while asleep it gently ROAMS near home instead of standing static (furniture).
     if (!e.awake) {
       if (Math.hypot(spr.x - player.x, spr.y - player.y) > e.aggro) {
         mon.state = mon.fsm.start; mon.elapsed = 0; e.lastState = null;
-        spr.body.setVelocity(0, 0); spr.setState('idle'); spr.setScale(e.scale); this._tint(e, e.base);
+        spr.setScale(e.scale); this._tint(e, e.base);
+        if (e.roam) this._roam(e); else { spr.body.setVelocity(0, 0); spr.setState('idle'); }
         return;
       }
       e.awake = true;
@@ -162,8 +177,11 @@ export class EnemyController {
     const mon = e.mon, spr = e.spr, stats = e.stats;
     const toP = Math.atan2(player.y - spr.y, player.x - spr.x);
     const dist = Math.hypot(player.x - spr.x, player.y - spr.y);
-    // FACING: face the charge/leap direction while attacking, else face the player
+    // FACING: face the charge/leap direction while attacking, else face the player —
+    // BUT a GUARDING enemy re-faces only every GUARD_TURN_FRAMES (its shield is heavy),
+    // so circling it fast gets you behind the guard = the FLANK window (Gate-E counter).
     if (mon.flag('rushing') || mon.flag('slamming') || mon.flag('leaping')) spr.facing = this._vecFace(e.atkDir.x, e.atkDir.y);
+    else if (mon.isGuarding()) { if ((e.guardTurn = (e.guardTurn || 0) - 1) <= 0) { spr.facing = this._face(spr, player); e.guardTurn = COMBAT.GUARD_TURN_FRAMES; } }
     else spr.facing = this._face(spr, player);
 
     if (mon.flag('rushing')) {                       // charger rush
@@ -187,8 +205,8 @@ export class EnemyController {
       this._contact(e, player, Math.max(2, Math.round(COMBAT.CHARGE_DAMAGE * 0.25)), 30);
     } else if (mon.isTelegraphing() || mon.isInvulnerable() || mon.flag('discharging')) {
       spr.body.setVelocity(0, 0); spr.setState('idle');     // wind-up / charged / discharge: planted
-    } else if (mon.isGuarding()) {                   // shielded: advance slowly behind the shield
-      spr.body.setVelocity(Math.cos(toP) * stats.speed * 8, Math.sin(toP) * stats.speed * 8); spr.setState('walk');
+    } else if (mon.isGuarding()) {                   // shielded: advance behind the shield (CLOSES IN — threat)
+      spr.body.setVelocity(Math.cos(toP) * stats.speed * COMBAT.GUARD_ADVANCE_MULT, Math.sin(toP) * stats.speed * COMBAT.GUARD_ADVANCE_MULT); spr.setState('walk');
     } else if (mon.inPunishWindow()) {               // vulnerable opening: a quick jab then planted
       if (e.id === 'shielded' && !e.hitThisAtk && dist < 44) { e.hitThisAtk = true; this._contact(e, player, e.stats.dmg, 44); }
       spr.body.setVelocity(0, 0); spr.setState('idle');
@@ -202,10 +220,29 @@ export class EnemyController {
     }
   }
 
+  // ROAM: a gentle pre-aggro patrol near home — pick a point, amble to it, sometimes
+  // pause, re-pick. Seeded per enemy (e.rng) for staggered, varied, non-clockwork
+  // motion. Stays within ROAM_RADIUS of home (its encounter zone); collision + the
+  // safe-hub push keep it in bounds. Aggro/chase is unchanged (this only runs asleep).
+  _roam(e) {
+    const spr = e.spr;
+    if (!e.roamTarget || --e.roamTimer <= 0 || Math.hypot(spr.x - e.roamTarget.x, spr.y - e.roamTarget.y) < 8) {
+      const ang = e.rng() * Math.PI * 2, rad = COMBAT.ROAM_RADIUS_PX * (0.3 + e.rng() * 0.7);
+      e.roamTarget = { x: e.homeX + Math.cos(ang) * rad, y: e.homeY + Math.sin(ang) * rad };
+      e.roamTimer = Math.round(70 + e.rng() * 140);                       // varied re-pick interval
+      e.roamPause = e.rng() < 0.4 ? Math.round(40 + e.rng() * 70) : 0;    // sometimes stand a beat
+    }
+    if (e.roamPause > 0) { e.roamPause--; spr.body.setVelocity(0, 0); spr.setState('idle'); if (!spr.list) this._faceAnim(e); return; }
+    const dx = e.roamTarget.x - spr.x, dy = e.roamTarget.y - spr.y, d = Math.hypot(dx, dy) || 1;
+    const spd = Math.max(8, e.stats.speed * COMBAT.ROAM_SPEED_MULT * e.roamVar);
+    spr.body.setVelocity((dx / d) * spd, (dy / d) * spd);
+    spr.facing = this._vecFace(dx, dy); spr.setState('walk');
+    if (!spr.list) this._faceAnim(e);
+  }
   _face(from, to) { const dx = to.x - from.x, dy = to.y - from.y; if (Math.abs(dx) >= Math.abs(dy)) return dx < 0 ? 'left' : 'right'; return dy < 0 ? 'up' : 'down'; }
   _lookupStats(id) {
     // small inline table mirroring src/data/monsters stats (speed/dmg) for movement feel
-    const T = { charger: { speed: 4, dmg: 8 }, shielded: { speed: 2, dmg: 6 }, ranged: { speed: 2, dmg: 7 }, swarm: { speed: 3, dmg: 3 }, brute: { speed: 1, dmg: 16 }, caster: { speed: 2, dmg: 14 }, charger_electric: { speed: 3, dmg: 12 }, jumper: { speed: 5, dmg: 9 }, drowned_guardian: { speed: 2, dmg: 14 } };
+    const T = { charger: { speed: 4, dmg: 8 }, shielded: { speed: 2, dmg: 6 }, ranged: { speed: 2, dmg: 7 }, swarm: { speed: 3, dmg: 3 }, brute: { speed: 1, dmg: 16 }, caster: { speed: 2, dmg: 14 }, charger_electric: { speed: 3, dmg: 12 }, jumper: { speed: 5, dmg: 9 }, drowned_guardian: { speed: 3, dmg: 16 } };  // boss tuning: speed 2->3, dmg 14->16 (the Drowned Guardian; matches src/data/monsters)
     return T[id] || { speed: 3, dmg: 8 };
   }
 

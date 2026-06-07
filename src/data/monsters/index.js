@@ -144,7 +144,7 @@ export const ARCHETYPES = {
 export const BOSSES = {
   drowned_guardian: {
     name: 'The Drowned Guardian', region: 'Ashen Marsh',
-    stats: { hp: 120, dmg: 14, speed: 2 },
+    stats: { hp: 120, dmg: 16, speed: 3 },   // [boss tuning] dmg 14->16, speed 2->3: closes in + hits harder (with the slow re-face, flanking stays viable)
     trick: { tool: TOOLS.tool_lantern, desc: "Lantern-light strips its shroud so your blows land." },
     twistDesc: 'At half health it tears off the last of the shroud and rampages.',
     phases: [
