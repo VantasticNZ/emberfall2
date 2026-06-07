@@ -24,20 +24,24 @@ export const COMBAT = Object.freeze({
   CHARGE_DAMAGE: 14,        // the charge hit on the player
   CHARGE_SPEED: 300,        // px/s during the rush
   APPROACH_SPEED: 52,       // px/s while closing in (idle)
-  KNOCKBACK_SPEED: 240,     // px/s knockback on the enemy when hit
-  KNOCKBACK_FRAMES: 8,
-  HIT_FREEZE_FRAMES: 4,     // hit-pause (frames frozen on a landed hit)
-  SHAKE_HIT: 0.006,         // screen-shake on a sword hit
+  KNOCKBACK_SPEED: 285,     // px/s knockback on the enemy when hit  [juice pass: 240->285, reads more]
+  KNOCKBACK_FRAMES: 9,      //   [240->285 + 8->9: the strike shoves]
+  HIT_FREEZE_FRAMES: 5,     // hit-pause (frames frozen on a landed hit)  [juice: 4->5]
+  KILL_FREEZE_FRAMES: 9,    // the KILLING blow freezes harder (a beat of impact)  [NEW]
+  SHAKE_HIT: 0.008,         // screen-shake on a sword hit  [juice: 0.006->0.008]
+  SHAKE_KILL: 0.013,        // bigger shake on the killing blow  [NEW]
   SHAKE_CHARGE: 0.014,      // bigger shake on charge impact
-  FLASH_MS: 90,             // white/red flash duration on hit
+  FLASH_MS: 100,            // white/red flash duration on hit  [juice: 90->100]
+  HIT_POP_SCALE: 1.16,      // enemy squash-punch scale on a landed hit (reads as a flinch)  [NEW]
+  INPUT_BUFFER_MS: 140,     // buffer an attack press made during recovery, so it isn't dropped  [NEW]
 
   // — ABILITIES. FEEL-TUNE PENDING: Van tunes every timing/distance/amount; these
   //   are sane defaults only. The LOGIC is unit-tested. —
   // DODGE-ROLL (defensive, i-frames — beats the charger):
-  DODGE_DISTANCE: 96,       // px of the roll burst                          [feel-tune]
-  DODGE_DURATION_MS: 170,   // how long the burst moves                      [feel-tune]
-  DODGE_IFRAME_MS: 230,     // invulnerability window (>= duration = safe)   [feel-tune]
-  DODGE_COOLDOWN_MS: 620,   // between rolls                                 [feel-tune]
+  DODGE_DISTANCE: 110,      // px of the roll burst — reads as a real ESCAPE  [juice: 96->110]
+  DODGE_DURATION_MS: 180,   // how long the burst moves                       [juice: 170->180]
+  DODGE_IFRAME_MS: 265,     // invulnerability window (> duration = safe roll) [juice: 230->265]
+  DODGE_COOLDOWN_MS: 600,   // between rolls                                  [juice: 620->600]
   // DASH (traversal — SEPARATE from the dodge-roll; a later skill unlock, longer, NO i-frames):
   DASH_DISTANCE: 220,       // crosses gaps/chasms                           [feel-tune]
   DASH_DURATION_MS: 260,    //                                               [feel-tune]
