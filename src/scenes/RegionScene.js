@@ -227,7 +227,7 @@ export class RegionScene extends Phaser.Scene {
       if (n.schedule) {
         // a SCHEDULED npc walks its routine -> a MOVABLE actor so it separates from
         // buildings/dividers (collider(actors,solids)) yet still blocks/talks.
-        npc.body.setImmovable(false); this.actors.add(npc); this.npcLife.add(npc, n.schedule);
+        npc.body.setImmovable(false); this.actors.add(npc); this.npcLife.add(npc, n.schedule, n.tempo);
       } else {
         Collision.markSolidActor(npc); this.solids.add(npc);                     // static: a fixed obstacle (back-compat)
       }
