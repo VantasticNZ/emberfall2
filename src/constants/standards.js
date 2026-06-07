@@ -34,6 +34,14 @@ export const COMBAT = Object.freeze({
   FLASH_MS: 100,            // white/red flash duration on hit  [juice: 90->100]
   HIT_POP_SCALE: 1.16,      // enemy squash-punch scale on a landed hit (reads as a flinch)  [NEW]
   INPUT_BUFFER_MS: 140,     // buffer an attack press made during recovery, so it isn't dropped  [NEW]
+  // SHIELDED / BOSS guard tuning — a guard that CLOSES IN (threat) but re-faces SLOWLY
+  // (so flanking it is viable). Was a hardcoded *8 advance + instant re-face.
+  GUARD_ADVANCE_MULT: 13,   // shielded/boss advance speed = stats.speed × this (8->13: it pressures you)  [NEW]
+  GUARD_TURN_FRAMES: 22,    // a guarding enemy only re-faces every N frames → FLANK window (was every frame)  [NEW]
+  // ROAMING — a pre-aggro enemy gently PATROLS near its home instead of standing static
+  // (reuses NpcLife-style per-agent jitter: staggered, varied speed/path, no clockwork).
+  ROAM_RADIUS_PX: 80,       // wander within this of the home spot (stays in its encounter zone)  [NEW]
+  ROAM_SPEED_MULT: 6,       // roam speed = stats.speed × this (a slow amble, not a chase)  [NEW]
 
   // — ABILITIES. FEEL-TUNE PENDING: Van tunes every timing/distance/amount; these
   //   are sane defaults only. The LOGIC is unit-tested. —
