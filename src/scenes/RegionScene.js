@@ -28,6 +28,7 @@ import { Inventory } from '../systems/Inventory.js';
 import { PlayerCombat } from '../systems/Combat.js';
 import { InputMap } from '../systems/Input.js';
 import { EnemyController } from '../systems/EnemyController.js';
+import { TimeOfDay } from '../systems/TimeOfDay.js';
 import { ModifierRegistry } from '../systems/Modifiers.js';
 import { buyPrice } from '../systems/Economy.js';
 import { item } from '../data/items/index.js';
@@ -54,6 +55,7 @@ export class RegionScene extends Phaser.Scene {
     Interaction.reset();
     this.karma = new KarmaEngine({ storage: memoryStorage() });
     this.quests = new QuestEngine({ karma: this.karma, storage: memoryStorage(), quests: this.cfg.quests });
+    this.tod = new TimeOfDay({ storage: memoryStorage() });   // day/night clock (HUD time + phase gates)
 
     const w = this.cfg.world;
     this.worldW = w.widthTiles * TILE; this.worldH = w.heightTiles * TILE;
@@ -81,13 +83,14 @@ export class RegionScene extends Phaser.Scene {
     this._buildInput();
     this._buildUI();
     this._initCombat();
+    this._buildHud();
     this.onCreateExtra();
     this._setupUICamera();
     this.scale.on('resize', (sz) => { this._applyCamera(); this._layoutUI(); this.uiCamera.setSize(sz.width, sz.height); });
   }
 
   _setupUICamera() {
-    const ui = [this.hud, this.dialogue, this.prompt, this.playerHpUI, this.banner].filter(Boolean);
+    const ui = [this.hud, this.hud2, this.dialogue, this.prompt, this.playerHpUI, this.banner].filter(Boolean);
     this.uiCamera = this.cameras.add(0, 0, this.scale.width, this.scale.height);
     this.cameras.main.ignore(ui);
     this.uiCamera.ignore(this.children.list.filter((o) => !ui.includes(o)));
@@ -166,6 +169,8 @@ export class RegionScene extends Phaser.Scene {
     for (const n of this.cfg.world.npcs) {
       const npc = new Character(this, tileToPx(n.tx), tileToPx(n.ty), { parts: n.parts, facing: n.facing, speed: n.speed, expression: n.expression });
       Collision.markSolidActor(npc); this.solids.add(npc); DepthSort.track(npc, CHAR_FOOTPRINT.offY);
+      this._npcByQuest = this._npcByQuest || {}; if (n.quest) this._npcByQuest[n.quest] = npc;   // objective-indicator target
+      this._poi = this._poi || []; this._poi.push({ x: npc.x, y: npc.y, kind: 'npc' });           // minimap point of interest
       Interaction.register({
         x: npc.x, y: npc.y + CHAR_FOOTPRINT.offY, prompt: `Talk to ${n.name}`,
         onInteract: () => {
@@ -248,6 +253,157 @@ export class RegionScene extends Phaser.Scene {
     const st = this.quests.status(q.id) || 'available';
     const m = this.karma.get('morality');
     this.questHud.setText(`Quest — ${q.label}: ${st.toUpperCase()}     Morality: ${m >= 0 ? '+' : ''}${m}`);
+  }
+
+  // ============================ HUD =========================================
+  // A shared, diegetic HUD wired to the REAL systems: stats (HP/MP/gold/karma/
+  // time), a minimap + full map, a quest tracker, and an objective marker. All
+  // toggles come from the canonical control map (remappable). MP is RESERVED
+  // (no mana system yet) — shown greyed, never a fabricated value.
+  _buildHud() {
+    const T = this.theme, W = this.scale.width, OD = DEPTH.OVERLAY;
+    const txt = (x, y, s, size, color, extra = {}) => this.add.text(x, y, s, { fontFamily: 'monospace', fontSize: `${size}px`, color, ...extra }).setResolution(2).setScrollFactor(0).setDepth(OD);
+    this.hud2 = this.add.container(0, 0).setScrollFactor(0).setDepth(OD);
+    this._hudState = { tracker: 2, map: false, objective: true, hidden: false };   // tracker: 2 full · 1 title · 0 off
+    const add = (o) => { this.hud2.add(o); return o; };
+    this.questHud.setVisible(false);                          // superseded by the tracker
+    if (this.playerHpUI) this.playerHpUI.setVisible(false);   // HP now lives in the stats panel
+
+    // ---- STATS panel (top-left, under the title bar) ----
+    const sx = 8, sy = 96, sw = 244, sh = 130;
+    add(this.add.rectangle(sx, sy, sw, sh, T.hudFill, T.hudAlpha).setOrigin(0, 0).setStrokeStyle(2, T.accent, 0.9).setScrollFactor(0).setDepth(OD));
+    add(txt(sx + 10, sy + 7, 'HP', 12, T.muted));
+    this._sHpFillBg = add(this.add.rectangle(sx + 42, sy + 14, 152, 11, 0x3a1418, 1).setOrigin(0, 0.5).setScrollFactor(0).setDepth(OD));
+    this._sHpFill = add(this.add.rectangle(sx + 42, sy + 14, 152, 11, 0x5fcf6a, 1).setOrigin(0, 0.5).setScrollFactor(0).setDepth(OD));
+    this._sHpTxt = add(txt(sx + 200, sy + 8, '', 11, '#f3ecff'));
+    add(txt(sx + 10, sy + 28, 'MP', 12, '#6b6275'));
+    add(this.add.rectangle(sx + 42, sy + 35, 152, 11, 0x1c2230, 1).setOrigin(0, 0.5).setScrollFactor(0).setDepth(OD));
+    add(txt(sx + 48, sy + 30, 'reserved (no mana system yet)', 9, '#6b6275'));
+    this._sGold = add(txt(sx + 10, sy + 50, '', 13, '#ffe08a'));
+    this._sTime = add(txt(sx + 120, sy + 50, '', 13, '#bcd6ff'));
+    this._sMor = add(txt(sx + 10, sy + 74, '', 12, '#9fe6a0'));
+    this._sPur = add(txt(sx + 10, sy + 94, '', 12, '#c7b6ff'));
+    add(txt(sx + 10, sy + 113, 'O map  T quests  Y marker  H hide HUD', 9, T.muted));
+
+    // ---- MINIMAP (top-right) ----
+    const mmW = 168, mmH = Math.round(mmW * this.worldH / this.worldW), mmx = W - mmW - 10, mmy = 10;
+    this._mm = { x: mmx, y: mmy, w: mmW, h: mmH, scale: mmW / this.worldW };
+    add(this.add.rectangle(mmx - 2, mmy - 2, mmW + 4, mmH + 4, 0x10141c, 0.85).setOrigin(0, 0).setStrokeStyle(2, T.accent, 0.9).setScrollFactor(0).setDepth(OD));
+    this._mmG = add(this.add.graphics().setScrollFactor(0).setDepth(OD));
+    this._renderMapInto(this._mmG, this._mm);
+    this._mmDots = add(this.add.graphics().setScrollFactor(0).setDepth(OD));
+    add(txt(mmx + 4, mmy + 1, 'MAP', 9, '#cfc6e6'));
+
+    // ---- QUEST TRACKER (under the minimap) ----
+    const ty0 = mmy + mmH + 8;
+    this._trkPanel = add(this.add.rectangle(mmx - 2, ty0, mmW + 4, 92, T.hudFill, T.hudAlpha).setOrigin(0, 0).setStrokeStyle(2, T.accent, 0.7).setScrollFactor(0).setDepth(OD));
+    this._trkHdr = add(txt(mmx + 4, ty0 + 4, 'QUESTS  (T)', 11, '#9fe6a0', { fontStyle: 'bold' }));
+    this._trkBody = add(txt(mmx + 4, ty0 + 22, '', 12, '#f3ecff', { wordWrap: { width: mmW - 6 }, lineSpacing: 3 }));
+    this._trkXY = { x: mmx, y: ty0 };
+
+    // ---- OBJECTIVE marker (directional arrow near the player) ----
+    this._objArrow = add(this.add.graphics().setScrollFactor(0).setDepth(OD));
+
+    // ---- FULL MAP overlay (toggle) ----
+    this._buildFullMap();
+
+    // ---- toggles from the canonical control map (remappable) ----
+    const onKey = (action, fn) => { const k = bindings.keyboard[action]; if (k) this.input.keyboard.addKey(k).on('down', () => { if (!this._dlg) fn(); }); };
+    onKey('toggle_hud', () => { this._hudState.hidden = !this._hudState.hidden; this.hud2.setVisible(!this._hudState.hidden); this.hud.setVisible(!this._hudState.hidden); });
+    onKey('toggle_tracker', () => { this._hudState.tracker = (this._hudState.tracker + 2) % 3; });
+    onKey('toggle_objective', () => { this._hudState.objective = !this._hudState.objective; });
+    onKey('toggle_map', () => { this._hudState.map = !this._hudState.map; this._fullMap.setVisible(this._hudState.map); });
+  }
+
+  // draw the world (ground + water + buildings/trees) into a graphics, scaled to a box
+  _renderMapInto(g, box) {
+    const s = box.scale, ox = box.x, oy = box.y;
+    const fill = (wx, wy, ww, wh, c, a = 1) => { g.fillStyle(c, a); g.fillRect(ox + wx * s, oy + wy * s, Math.max(1, ww * s), Math.max(1, wh * s)); };
+    const C = { grass: 0x4a7a3a, path: 0xc2a062, dirt: 0x8a6a44, garden: 0x3f8a4a, water: 0x3a6ea0, bldg: 0xb0a08c, tree: 0x2f5a2a };
+    fill(0, 0, this.worldW, this.worldH, C.grass);
+    for (const [key, tx, ty, w, h] of (this.cfg.world.ground.rects || [])) {
+      const c = /path/.test(key) ? C.path : /dirt/.test(key) ? C.dirt : /garden/.test(key) ? C.garden : C.grass;
+      fill(tx * TILE, ty * TILE, w * TILE, h * TILE, c);
+    }
+    for (const p of (this._ponds || [])) fill(p.tx * TILE, p.ty * TILE, p.w * TILE, p.h * TILE, C.water);
+    for (const pr of (this.cfg.world.props || [])) {
+      const cx = pr.tx * TILE + TILE / 2, cy = pr.ty * TILE + TILE / 2;
+      if (/house|forge|fountain/.test(pr.key)) { const d = PROPS[pr.key], bw = d.width * 0.7, bh = d.height * 0.42; fill(cx - bw / 2, cy - bh / 2, bw, bh, C.bldg); }
+      else if (/tree/.test(pr.key)) { g.fillStyle(C.tree, 1); g.fillCircle(ox + cx * s, oy + cy * s, Math.max(1.2, 9 * s)); }
+    }
+  }
+  _buildFullMap() {
+    const W = this.scale.width, H = this.scale.height, OD = DEPTH.OVERLAY + 2, T = this.theme;
+    this._fullMap = this.add.container(0, 0).setScrollFactor(0).setDepth(OD).setVisible(false);
+    this.hud2.add(this._fullMap);
+    const bw = Math.min(720, W - 90), bh = Math.round(bw * this.worldH / this.worldW), bx = (W - bw) / 2, by = (H - bh) / 2 - 6;
+    const a = (o) => { this._fullMap.add(o); return o; };
+    a(this.add.rectangle(0, 0, W, H, 0x05070b, 0.74).setOrigin(0, 0).setScrollFactor(0));
+    a(this.add.rectangle(bx - 3, by - 3, bw + 6, bh + 6, 0x10141c, 0.97).setOrigin(0, 0).setStrokeStyle(3, T.accent).setScrollFactor(0));
+    const fg = a(this.add.graphics().setScrollFactor(0));
+    this._fbox = { x: bx, y: by, w: bw, scale: bw / this.worldW };
+    this._renderMapInto(fg, this._fbox);
+    this._fullMapDot = a(this.add.graphics().setScrollFactor(0));
+    a(this.add.text(bx, by - 28, `${(this.cfg.title || '').replace('EMBERFALL 2 — ', '')} — Map`, { fontFamily: 'monospace', fontSize: '18px', color: '#ffe9c2', fontStyle: 'bold' }).setResolution(2).setScrollFactor(0));
+    a(this.add.text(bx, by + bh + 8, 'you (white)   quest-givers (gold)   buildings   woods   water        O to close', { fontFamily: 'monospace', fontSize: '12px', color: '#cfc6e6' }).setResolution(2).setScrollFactor(0));
+  }
+
+  _updateHud() {
+    if (!this.hud2 || this._hudState.hidden) return;
+    const max = this.inv.stats().maxHp, hp = Math.max(0, this.inv.hp);
+    this._sHpFill.width = 152 * Math.max(0, hp / max); this._sHpFill.fillColor = hp / max > 0.3 ? 0x5fcf6a : 0xcf5f5f;
+    this._sHpTxt.setText(`${hp}/${max}`);
+    this._sGold.setText(`Gold ${this.inv.gold}`);
+    const ph = this.tod.phase(), word = ph[0].toUpperCase() + ph.slice(1);
+    this._sTime.setText(`Time ${word} D${this.tod.dayCount() + 1}`);
+    const ks = this.karma.getStatus();
+    this._sMor.setText(`Morality ${ks.morality >= 0 ? '+' : ''}${ks.morality}  ${ks.moralityTier}`);
+    this._sPur.setText(`Purity ${ks.purity >= 0 ? '+' : ''}${ks.purity}  ${ks.purityTier}`);
+    this._updateTracker();
+    this._updateMinimap();
+    this._updateObjective();
+  }
+  _updateTracker() {
+    const st = this._hudState.tracker, show = st > 0;
+    this._trkPanel.setVisible(show); this._trkHdr.setVisible(show); this._trkBody.setVisible(show);
+    if (!show) return;
+    const active = this.quests.byState('active');
+    if (!active.length) { this._trkBody.setText('(no active quest — talk to someone with a task)'); this._trkPanel.height = 56; return; }
+    const lines = [];
+    for (const id of active.slice(0, 3)) {
+      const def = this.quests.defs[id], title = def?.title || id;
+      lines.push(`> ${title}`);
+      if (st === 2) { const step = (def?.steps || [])[this.quests.step[id]]; if (step) lines.push(`   ${step.desc}`); }
+    }
+    this._trkBody.setText(lines.join('\n'));
+    this._trkPanel.height = 26 + lines.length * 16;
+  }
+  _updateMinimap() {
+    const m = this._mm, g = this._mmDots; g.clear();
+    for (const p of (this._poi || [])) { g.fillStyle(0xffd23f, 1); g.fillCircle(m.x + p.x * m.scale, m.y + p.y * m.scale, 2); }
+    const pxx = m.x + this.player.x * m.scale, pyy = m.y + this.player.y * m.scale;
+    g.fillStyle(0xffffff, 1); g.fillCircle(pxx, pyy, 3); g.lineStyle(1, 0x10141c, 1); g.strokeCircle(pxx, pyy, 3);
+    if (this._hudState.map && this._fbox) {
+      const f = this._fbox, fg = this._fullMapDot; fg.clear();
+      for (const p of (this._poi || [])) { fg.fillStyle(0xffd23f, 1); fg.fillCircle(f.x + p.x * f.scale, f.y + p.y * f.scale, 3); }
+      fg.fillStyle(0xffffff, 1); fg.fillCircle(f.x + this.player.x * f.scale, f.y + this.player.y * f.scale, 5);
+    }
+  }
+  _updateObjective() {
+    const g = this._objArrow; g.clear();
+    if (!this._hudState.objective) return;
+    let target = null;
+    for (const id of this.quests.byState('active')) { const npc = this._npcByQuest && this._npcByQuest[id]; if (npc) { target = npc; break; } }
+    if (!target) return;
+    const cam = this.cameras.main, z = cam.zoom;
+    const psx = (this.player.x - cam.worldView.x) * z, psy = (this.player.y - cam.worldView.y) * z;
+    const ang = Math.atan2(target.y - this.player.y, target.x - this.player.x), r = 58, t = 12;
+    if (Math.hypot(target.x - this.player.x, target.y - this.player.y) < 40) return;   // already there
+    const ax = psx + Math.cos(ang) * r, ay = psy + Math.sin(ang) * r;
+    const tip = [ax + Math.cos(ang) * t, ay + Math.sin(ang) * t];
+    const pa = ang + Math.PI * 0.8, pb = ang - Math.PI * 0.8;
+    g.fillStyle(0xffd23f, 0.95).fillTriangle(tip[0], tip[1], ax + Math.cos(pa) * t, ay + Math.sin(pa) * t, ax + Math.cos(pb) * t, ay + Math.sin(pb) * t);
+    g.lineStyle(1.5, 0x4a3a10, 0.9).strokeTriangle(tip[0], tip[1], ax + Math.cos(pa) * t, ay + Math.sin(pa) * t, ax + Math.cos(pb) * t, ay + Math.sin(pb) * t);
   }
 
   // dialogue ctx threads the social layer (CHA/skills/trust) + karma + quests.
@@ -462,6 +618,8 @@ export class RegionScene extends Phaser.Scene {
   // ---- LOOP -----------------------------------------------------------------
   update(time, delta) {
     const dt = Math.min(delta || 16, 50) / 1000;
+    this.tod.advanceRealSeconds(dt);   // advance the day/night clock
+    this._updateHud();                 // refresh stats / tracker / objective / minimap
     // THREAT INDICATORS: off by default (clean screen); on via the options toggle,
     // or always-on + enhanced with the ENEMY INTUITION skill (perception/instinct).
     const intuition = !!(this.inv && this.inv.hasSkill('enemy_intuition'));
