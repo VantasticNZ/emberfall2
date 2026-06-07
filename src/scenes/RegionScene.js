@@ -63,6 +63,7 @@ export class RegionScene extends Phaser.Scene {
     this._buildGround();
     this._buildWater();
     this._scatterDecals();
+    this._edgeScatter();
     this.solids = this.add.group();
     this.actors = this.add.group();
     this._buildProps();
@@ -132,6 +133,20 @@ export class RegionScene extends Phaser.Scene {
         if (layer.tint != null) img.setTint(layer.tint);
         placed++;
       }
+    }
+  }
+  // EDGE-SCATTER: tufts/ferns straddling every grass↔path/dirt seam so no biome
+  // border is a hard straight line (we have no licence-loaded LPC transition tiles).
+  _edgeScatter() {
+    const es = this.cfg.world.edgeScatter; if (!es) return;
+    let seed = es.seed >>> 0; const rnd = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
+    const place = (px, py) => this.add.image(px, py, es.pool[Math.floor(rnd() * es.pool.length)]).setOrigin(0.5, 1).setDepth(DEPTH.FLOOR + 2);
+    for (const [key, tx, ty, w, h] of (this.cfg.world.ground.rects || [])) {
+      if (!/path|dirt/.test(key)) continue;
+      const seam = [];
+      for (let i = 0; i < w; i++) { seam.push([tx + i, ty], [tx + i, ty + h]); }     // top + bottom edges
+      for (let j = 0; j < h; j++) { seam.push([tx, ty + j], [tx + w, ty + j]); }      // left + right edges
+      for (const [ex, ey] of seam) { if (rnd() > es.prob) continue; place(ex * TILE + (rnd() * 18 - 4), ey * TILE + (rnd() * 12 - 2)); }
     }
   }
   _buildProps() {
