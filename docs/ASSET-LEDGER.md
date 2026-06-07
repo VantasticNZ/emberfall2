@@ -19,6 +19,7 @@ public/art/kenney/  | Kenney (kenney.nl)                                        
 public/art/lpc/     | sanderfrenken Universal-LPC-Spritesheet                       | CC-BY-SA-3.0 / OGA-BY-3.0 / GPL-3.0 | yes | character (legacy, superseded by eliza)
 public/audio/       | Kenney RPG Audio (kenney.nl)                                  | CC0-1.0                           | yes | sfx (swing/hit/charge-impact)
 public/art/monsters/| [LPC] Monsters — CharlesGabriel, bagzie, bluecarrot16 (OpenGameArt) | CC-BY-SA-3.0 / GPL-3.0       | yes | enemy creatures (snake/bat/worm/eyeball/ghost/slime/pumpking/man-eater)
+public/art/structures/| ElizaWy LPC (github.com/ElizaWy/LPC) structure + objects     | OGA-BY-3.0                        | yes | buildings + village props (houses/fountain/chest/barrel/fence)
 ```
 
 > Share-alike note: CC-BY-SA / GPL assets are copyleft — a commercial ship keeps

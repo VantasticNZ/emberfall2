@@ -130,6 +130,22 @@ export const PROPS = {
   // (Sharm, CC-BY-SA/OGA-BY). Solid at the base; y-sorts like a tall prop.
   prop_forge:     { src: 'art/terrain/forge.png', width: 96, height: 128,
                     footprint: { w: 84, h: 18, offX: 0, offY: 54 } },
+
+  // REAL LPC buildings + village props (ElizaWy LPC structure/objects, OGA-BY).
+  // Distinct complete houses; solid at the base, y-sort like tall props.
+  prop_house_a:   { src: 'art/structures/house_brick_a.png', width: 256, height: 224,   // a notable house / manor
+                    footprint: { w: 190, h: 24, offX: 0, offY: 96 } },
+  prop_house_b:   { src: 'art/structures/house_brick_b.png', width: 192, height: 192,   // a brick cottage
+                    footprint: { w: 140, h: 22, offX: 0, offY: 80 } },
+  prop_house_paneled: { src: 'art/structures/house_paneled.png', width: 160, height: 160, // paneled house (tavern/shop)
+                    footprint: { w: 120, h: 20, offX: 0, offY: 62 } },
+  prop_fountain:  { src: 'art/structures/fountain.png', width: 64, height: 96,          // the village well/fountain
+                    footprint: { w: 46, h: 16, offX: 0, offY: 34 } },
+  prop_barrel:    { src: 'art/structures/barrel.png', width: 32, height: 32,            // scenery
+                    footprint: { w: 22, h: 10, offX: 0, offY: 10 } },
+  prop_fence:     { src: 'art/structures/fence_h.png', width: 32, height: 32,           // a tileable fence segment
+                    footprint: { w: 32, h: 8, offX: 0, offY: 10 } },
+  prop_chest:     { src: 'art/structures/chest.png', width: 32, height: 32, footprint: null }, // a findable chest (interactable)
 };
 
 export const DECALS = {
