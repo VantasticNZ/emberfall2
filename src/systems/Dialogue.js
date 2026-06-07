@@ -50,6 +50,17 @@ export class Dialogue {
     if (opt.deed && this.ctx.karma) this.ctx.karma.recordDeed(opt.deed, opt.meta || {});
     if (opt.choice && this.ctx.engine) this.ctx.engine.choose(opt.choice.quest, opt.choice.id);
     if (opt.set && this.ctx.onSet) this.ctx.onSet(opt.set);
+    // SOCIAL CHECK (attempt): a CHA/persuade/etc option with onPass/onFail routes by
+    // the resolved result + records the outcome deed. (Gated insight/trust options are
+    // only ever shown when they pass, so they take the normal `to`.) See Social.js.
+    if (opt.check && (opt.check.onPass || opt.check.onFail) && this.ctx.social) {
+      const pass = this.ctx.social.resolve(opt.check, this.ctx);
+      const od = pass ? opt.check.onPassDeed : opt.check.onFailDeed;
+      if (od && this.ctx.karma) this.ctx.karma.recordDeed(od);
+      const target = pass ? (opt.check.onPass || opt.to) : (opt.check.onFail || opt.to);
+      if (opt.end || !target) { this.done = true; this.nodeId = null; return null; }
+      this.nodeId = target; this._route(); return this.node();
+    }
     if (opt.end || !opt.to) { this.done = true; this.nodeId = null; return null; }
     this.nodeId = opt.to;
     this._route(); // the target may be a reactive router

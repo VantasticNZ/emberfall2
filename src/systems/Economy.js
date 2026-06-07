@@ -16,15 +16,16 @@
 
 import { item } from '../data/items/index.js';
 import { REGION_PRICES, SHOPS, JOBS, BALANCE, BODY_STATES } from '../data/economy.js';
+import { chaBuyMult, chaSellMult } from './Social.js';
 
-// --- regional pricing --------------------------------------------------------
-export function buyPrice(itemId, region) {
+// --- regional pricing (CHARISMA-adjusted; cha 5 = neutral 1.0, so no rewrite) -
+export function buyPrice(itemId, region, cha = 5) {
   const m = REGION_PRICES[region]?.buy ?? 1;
-  return Math.max(0, Math.round(item(itemId).value * m));
+  return Math.max(0, Math.round(item(itemId).value * m * chaBuyMult(cha)));
 }
-export function sellPrice(itemId, region) {
+export function sellPrice(itemId, region, cha = 5) {
   const m = REGION_PRICES[region]?.sell ?? 0.5;
-  return Math.max(0, Math.round(item(itemId).value * m));
+  return Math.max(0, Math.round(item(itemId).value * m * chaSellMult(cha)));
 }
 
 // --- gating (mirrors the QuestEngine requires-pattern: level/deeds/karma) -----
@@ -66,7 +67,7 @@ export function buy(inv, karma, shopId, itemId) {
   if (!entry) return { ok: false, reason: 'not stocked' };
   if (!meetsRequires(entry.requires, { karma, level: inv.level })) return { ok: false, reason: 'locked' };
   if (item(itemId).type === 'property') return buyProperty(inv, karma, shopId, itemId);
-  const price = buyPrice(itemId, s.region);
+  const price = buyPrice(itemId, s.region, inv.attr ? inv.attr('cha') : 5);   // CHA discount
   if (inv.gold < price) return { ok: false, reason: 'too poor', price };
   if (!inv.add(itemId)) return { ok: false, reason: 'carry full', price };
   inv.addGold(-price);
@@ -75,7 +76,7 @@ export function buy(inv, karma, shopId, itemId) {
 export function sell(inv, shopIdOrRegion, itemId) {
   const region = shop(shopIdOrRegion)?.region || shopIdOrRegion;
   if (!inv.has(itemId)) return { ok: false, reason: 'none' };
-  const price = sellPrice(itemId, region);
+  const price = sellPrice(itemId, region, inv.attr ? inv.attr('cha') : 5);     // CHA markup
   inv.remove(itemId); inv.addGold(price);
   return { ok: true, price };
 }
