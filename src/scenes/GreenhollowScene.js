@@ -49,7 +49,8 @@ export class GreenhollowScene extends RegionScene {
       devModifiers: true,        // dev: big-head etc. ON (toggle in the options menu)
       world: {
         widthTiles: WORLD.widthTiles, heightTiles: WORLD.heightTiles,
-        ground: { base: WORLD.ground.base, rects: WORLD.ground.rects },
+        terrain: WORLD.terrain,                        // real autotile feathered ground (v3)
+        ground: { base: 'tile_grass', rects: [] },     // fallback (unused while terrain is set)
         water: { pond: WORLD.pond },
         decalLayers: [
           { cfg: WORLD.dirt, originY: 0.5, depth: DEPTH.FLOOR + 1 },
