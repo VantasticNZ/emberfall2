@@ -31,6 +31,7 @@ import { Dialogue } from '../systems/Dialogue.js';
 import { Social } from '../systems/Social.js';
 import { EnemyController } from '../systems/EnemyController.js';
 import { PlayerCombat } from '../systems/Combat.js';
+import { ModifierRegistry } from '../systems/Modifiers.js';
 import { COMBAT } from '../constants/standards.js';
 import { bindings } from '../constants/controls.js';
 import { AssetLoader } from '../art/AssetLoader.js';
@@ -68,6 +69,7 @@ export class OverworldScene extends Phaser.Scene {
 
     this.player = new Character(this, start.x, start.y, { parts: HERO, facing: 'down', speed: 150 });
     this.player.isAdult = true; this.player.isMinor = false;
+    this.player.equip('sword');   // FIX: the player swings a visible sword (discrete RegionScene does this; Overworld didn't → "no sword")
     this.add.existing(this.player); DepthSort.track(this.player, 18);
     this.physics.add.collider(this.player, this.solids);
     this.combat = new EnemyController(this, { solids: this.solids, onPlayerHit: (dmg, info) => this._onPlayerHit(dmg, info), onPlayerRecoil: (dmg) => this._onPlayerRecoil(dmg) });
@@ -75,18 +77,24 @@ export class OverworldScene extends Phaser.Scene {
     this._blockArcG = this.add.graphics().setDepth(DEPTH.OVERLAY);
 
     this.cameras.main.setBounds(0, 0, WORLD_PX, WORLD_PX);
-    this.cameras.main.setZoom(1.25);
+    // FIX (HUD drift): zoom 1.0 so screen-fixed (scrollFactor 0) HUD isn't zoom-scaled
+    // about the camera midpoint (the cause of the "moving funny" HUD). Discrete uses a
+    // dedicated uiCamera at zoom 1 to keep its 1.25 world zoom; restoring that closer
+    // zoom here needs a uiCamera that ignores every streamed object — deferred until
+    // the browser tooling is back to verify it visually (flagged for Van).
+    this.cameras.main.setZoom(1.0);
     this.cameras.main.startFollow(this.player, true, 0.16, 0.16);
-    this.cameras.main.setDeadzone(180, 120);
+    this.cameras.main.setDeadzone(160, 110);
 
-    this.region = null;           // the loaded settlement (Greenhollow), or null
+    this.region = null;           // PRIMARY region (player's current), or null = belt
+    this._activeRegions = [];     // ALL loaded regions near the player (both-regions border loader)
     this._dlg = null; this._selOpt = 0; this._activeQuest = null;
     this._buildDialogueUI();
     this._buildInput();
 
     this.auto = false; this._autoT = 0; this._lastSaveMs = 0; this._lastLoadMs = 0; this._resetPerf();
-    this.hud = this.add.text(8, 8, '', { fontFamily: 'monospace', fontSize: '13px', color: '#d6f5cf', backgroundColor: '#000a', padding: { x: 6, y: 4 } }).setScrollFactor(0).setDepth(DEPTH.OVERLAY + 10);
-    this.add.text(8, 408, 'WASD/arrows move · SHIFT run · E talk/interact · J attack · Space dodge · C block · F5 save · F9 load', { fontFamily: 'monospace', fontSize: '11px', color: '#9fb89a', backgroundColor: '#000a', padding: { x: 4, y: 2 } }).setScrollFactor(0).setDepth(DEPTH.OVERLAY + 10);
+    this._buildWorldHud();
+    this.add.text(8, 412, 'WASD move · SHIFT run · E talk · J attack · Space dodge · C block · O map · T quests · H hide HUD · Esc settings · F5/F9 save/load', { fontFamily: 'monospace', fontSize: '10px', color: '#9fb89a', backgroundColor: '#000a', padding: { x: 4, y: 2 } }).setScrollFactor(0).setDepth(DEPTH.OVERLAY + 10);
 
     this._restream(true);
     this._maybeToggleRegion(true);
@@ -104,6 +112,7 @@ export class OverworldScene extends Phaser.Scene {
     if (this.inv.add('iron_shield')) this.inv.equip('iron_shield');
     this.player_isAdult = true;
     this.pc = new PlayerCombat();
+    this.mods = new ModifierRegistry(undefined, { dev: false });   // for the Options menu (audio/modifier toggles)
     this.npcLife = new NpcLife(this);
     // combat runtime state (live only in a non-safe region; Greenhollow is safe)
     this.combat = null; this._bossActive = false; this.boss = null;
@@ -121,34 +130,39 @@ export class OverworldScene extends Phaser.Scene {
   // ===========================================================================
   // REGION (settlement) load/unload — a cohesive unit by world-coord proximity
   // ===========================================================================
-  // pick the region by DISTANCE to its bounding box (0 if inside → inside always wins;
-  // nearest wins in the thin green/bog belt). Within 1 chunk = load-ahead margin.
+  // BOTH-REGIONS-NEAR-BORDER LOADER (border-pop fix): load EVERY region within the
+  // load margin (not one-at-a-time), so near a border BOTH region interiors render —
+  // you no longer see into the next region's empty footprint. `this.region` = the
+  // PRIMARY region (the one the player is inside, or null in the belt) for safe-zone /
+  // combat / interaction decisions; `_activeRegions` = the full loaded set (visuals +
+  // NPCs + combat). On any change to that set, rebuild (cheap; only at border crossings).
   _maybeToggleRegion(immediate = false) {
-    let target = null, best = CHUNK_PX;
-    for (const R of REGIONS) {
+    const inRange = REGIONS.filter((R) => {
       const b = R.bounds;
       const cx = Math.max(b.x, Math.min(this.player.x, b.x + b.w)), cy = Math.max(b.y, Math.min(this.player.y, b.y + b.h));
-      const d = Math.hypot(this.player.x - cx, this.player.y - cy);
-      if (d < best) { best = d; target = R; }
-    }
-    if (target === this.region) return;
-    if (this.region) this._unloadRegion();
-    if (target) this._loadRegion(target);
-    // re-stream loaded chunks so belt-scatter suppression matches the new loaded region
-    // (the just-unloaded region's footprint refills with belt; the new one's clears).
-    this._wipe(); this._restream(true);
+      return Math.hypot(this.player.x - cx, this.player.y - cy) < CHUNK_PX;
+    });
+    const cur = this._activeRegions || [];
+    const same = inRange.length === cur.length && inRange.every((R) => cur.includes(R));
+    if (!same) { this._unloadAllRegions(); this._loadRegions(inRange); this._wipe(); this._restream(true); }
+    this.region = regionAt(this.player.x, this.player.y);   // primary (or null = belt) — refresh each call
   }
 
-  _loadRegion(R) {
-    this.region = R;
+  _loadRegions(list) {
+    this._activeRegions = list.slice();
     this._regionObjs = []; this._chestSprites = [];
     Interaction.reset();
-    // GROUND ART (RESIDENT): Greenhollow = autotiled feathered terrain + brook; Marsh =
-    // bog pools (the bog ground tint comes from the per-chunk groundTintAt seam).
+    this.npcLife = new NpcLife(this);
+    for (const R of list) this._buildRegion(R);
+    this.npcLife.setPhase(this.tod.phase());
+    this.region = regionAt(this.player.x, this.player.y);
+  }
+
+  // build ONE region's content into the SHARED state (objs / npcLife / combat).
+  _buildRegion(R) {
     if (R.terrain) this._buildRegionTerrain(R);
     this._buildRegionWater(R);
     this._buildRegionDecals(R);
-    // buildings/props/depth-band/trees (RESIDENT real art; world-coords)
     for (const p of R.props) {
       const d = PROPS[p.key]; if (!d) continue;
       const spr = this.physics.add.sprite(p.x, p.y, p.key).setOrigin(0.5, 0.5);
@@ -158,13 +172,10 @@ export class OverworldScene extends Phaser.Scene {
       DepthSort.track(spr, d.footprint ? d.footprint.offY + d.footprint.h / 2 : (d.height || 32) / 2);
       this._regionObjs.push(spr);
     }
-    // CAST — Character + NpcLife schedule + Interaction (talk while they roam)
-    this.npcLife = new NpcLife(this);
     for (const n of R.npcs) this._buildRegionNpc(n);
-    this.npcLife.setPhase(this.tod.phase());
     for (const c of (R.chests || [])) this._buildRegionChest(c);
-    // COMBAT — a non-safe region (Marsh) spawns its enemies (skipping killed deltas) +
-    // its no-aggro hub + its shrine/boss trigger. Greenhollow (safeZone) spawns none.
+    // COMBAT — a non-safe region (Marsh) spawns its enemies + hub; a safe region
+    // (Greenhollow) spawns none. With both loaded, only Marsh enemies exist (in Marsh).
     if (R.combat && R.combat.enabled && !R.safeZone) this._buildRegionCombat(R);
   }
 
@@ -196,14 +207,14 @@ export class OverworldScene extends Phaser.Scene {
     });
   }
 
-  _unloadRegion() {
+  _unloadAllRegions() {
     for (const o of (this._regionObjs || [])) { DepthSort.untrack(o); if (o.body) this.solids.remove(o); o.destroy(); }
     this._regionObjs = []; this._chestSprites = [];
     if (this.combat) this.combat.destroyAll();   // despawn enemies (killed state persists in save deltas)
     this._bossActive = false; this.boss = null;
     this.npcLife = new NpcLife(this);   // schedule STATE re-derives from TimeOfDay+deeds on reload; quest/karma/inv persist in the systems
     Interaction.reset();
-    this.region = null;
+    this.region = null; this._activeRegions = [];
   }
 
   // ---- PHASE-3 v3 ART (ported from RegionScene; RESIDENT lpc_terrain atlas) ----
@@ -291,9 +302,10 @@ export class OverworldScene extends Phaser.Scene {
   }
   // M9 "Raise the Lantern" at the guardian beat → the real boss fight (lantern strips shroud)
   playerAttackTool() { return this._bossActive ? 'tool_lantern' : null; }
+  _combatRegion() { return (this.region?.combat ? this.region : (this._activeRegions || []).find((r) => r.combat)) || null; }
   _startBossFight() {
     this._closeDialogue(); Movement.stop(this.player); this._bossActive = true;
-    const bs = this.region.combat.bossSpawn;
+    const bs = this._combatRegion().combat.bossSpawn;
     this.boss = this.combat.spawn('drowned_guardian', { boss: true, tx: bs.tx, ty: bs.ty });
     this.player.x = bs.tx * TILE + TILE / 2; this.player.y = (bs.ty + 4) * TILE + TILE / 2; this.player.body.reset(this.player.x, this.player.y);
     this._banner('THE DROWNED GUARDIAN — your lantern strips its shroud, then strike. At half HP it rampages.', 4500);
@@ -317,7 +329,7 @@ export class OverworldScene extends Phaser.Scene {
   }
   _canAct() { return !this._dlg && this._hitFreeze <= 0 && !!this.combat; }
   _playerAttack() {
-    if (!this.combat || !this.region || this.region.safeZone) return;
+    if (!this.combat || this.region?.safeZone) return;   // attack allowed in the belt + combat regions; blocked in a safe region
     const now = this.time.now;
     if (now < this._atkReady || this.player.isBusy()) { this._atkBuffered = now + COMBAT.INPUT_BUFFER_MS; return; }
     this._atkBuffered = 0; this._atkReady = now + COMBAT.ATTACK_COOLDOWN_MS;
@@ -362,7 +374,7 @@ export class OverworldScene extends Phaser.Scene {
   }
   _playerDown() {
     this.inv.hp = this.inv.stats().maxHp;
-    const sp = this.region.combat.spawn; this.player.x = sp.x; this.player.y = sp.y; this.player.body.reset(sp.x, sp.y);
+    const cr = this._combatRegion(); const sp = cr ? cr.combat.spawn : { x: this.player.x, y: this.player.y }; this.player.x = sp.x; this.player.y = sp.y; this.player.body.reset(sp.x, sp.y);
     this.combat.enemies.forEach((e) => { e.awake = false; });
     this._bossActive = false; this.boss = null;
     this._banner('You fall — and wake at the edge.');
@@ -377,9 +389,10 @@ export class OverworldScene extends Phaser.Scene {
     if (t == null) this.player.list.forEach((s) => s.clearTint && s.clearTint()); else this.player.list.forEach((s) => s.setTint && s.setTint(t));
   }
   _drawCombatUI() {
-    if (!this.playerHpUI) return;
-    const live = !!(this.region && this.region.combat && !this.region.safeZone);
-    this.playerHpUI.setVisible(live); if (!live) return;
+    // HP now lives in the WORLD HUD stats panel (_updateWorldHud); the separate combat
+    // HP bar stays hidden. Kept as a stub so combat code paths that call it don't break.
+    if (this.playerHpUI && this.playerHpUI.visible) this.playerHpUI.setVisible(false);
+    if (true) return;
     const max = this.inv.stats().maxHp, hp = Math.max(0, this.inv.hp);
     this._hpBarFill.width = 160 * (hp / max); this._hpBarFill.fillColor = hp / max > 0.3 ? 0x5fcf6a : 0xcf5f5f;
     this._hpLabel.setText(`HP ${hp}/${max}`);
@@ -461,7 +474,10 @@ export class OverworldScene extends Phaser.Scene {
     this.input.keyboard.on('keydown-SPACE', () => { if (this._canAct()) this._tryDodge(); });                              // dodge-roll
     this.input.keyboard.on('keydown-F5', () => this.saveGame());
     this.input.keyboard.on('keydown-F9', () => this.loadGame());
-    this.input.keyboard.on('keydown-O', () => { this.auto = !this.auto; this._autoT = 0; });
+    // HUD toggles (control SSOT: O map · T quests · H hide HUD · Esc settings)
+    this.input.keyboard.on('keydown-O', () => { if (!this._dlg) this._fullMap.setVisible(!this._fullMap.visible); });
+    this.input.keyboard.on('keydown-H', () => { if (!this._dlg) { this._hudHidden = !this._hudHidden; this.hud2.setVisible(!this._hudHidden); } });
+    this.input.keyboard.on('keydown-ESC', () => this._openSettings());
   }
 
   // ---- per-chunk terrain/green-belt streaming (Phase 1; unchanged) -----------
@@ -488,7 +504,7 @@ export class OverworldScene extends Phaser.Scene {
     // suppress belt scatter ONLY under the CURRENTLY-LOADED region (it draws its own);
     // an un-loaded region's footprint keeps belt scatter so the border isn't bare grass.
     const r = regionAt(ox + CHUNK_PX / 2, oy + CHUNK_PX / 2);
-    const overRegion = r && r === this.region;
+    const overRegion = r && (this._activeRegions || []).includes(r);   // suppress under ANY loaded region (both near a border)
     let pi = 0;
     if (!overRegion) for (const p of data.props) {
       let spr = c.props[pi++]; if (!spr) { spr = this.add.sprite(0, 0, p.key).setOrigin(0.5, 0.85); c.props.push(spr); }
@@ -521,7 +537,7 @@ export class OverworldScene extends Phaser.Scene {
     if (!this.save.load()) { this._lastLoadMs = performance.now() - t; return false; }
     const p = this.save.getPosition();
     this.player.x = p.x; this.player.y = p.y; this.player.body.reset(p.x, p.y);
-    if (this.region) this._unloadRegion();
+    this._unloadAllRegions();
     this._wipe(); this._lastChunk = null; this._restream(true); this._maybeToggleRegion(true);
     this.cameras.main.centerOn(p.x, p.y);
     this._lastLoadMs = performance.now() - t; return true;
@@ -531,7 +547,7 @@ export class OverworldScene extends Phaser.Scene {
     const dt = Math.min(delta / 1000, 0.05), now = this.time.now;
     const dlgOpen = !!this._dlg;
     const k = this.keys, run = k.SHIFT.isDown;
-    const combatLive = !!(this.region && this.region.combat && !this.region.safeZone);
+    const combatLive = !!this._combatRegion();
 
     if (this._hitFreeze > 0) { this._hitFreeze--; Movement.stop(this.player); }   // hit-pause (juice)
     else if (dlgOpen) { Movement.stop(this.player); }
@@ -562,15 +578,95 @@ export class OverworldScene extends Phaser.Scene {
 
     this._ring[this._ri] = delta; this._ri = (this._ri + 1) % this._ring.length;
     if (delta > this._maxMs) this._maxMs = delta;
-    if ((time | 0) % 6 === 0) this._drawHud();
+    this._updateWorldHud();
   }
 
-  _drawHud() {
-    const p = this.perf(), act = Interaction.active;
-    this.hud.setText([
-      `OVERWORLD   FPS ${p.fps}   avg ${p.avgMs}ms  max ${p.maxMs}ms   region ${p.region || '(green belt)'}`,
-      `chunks ${p.loaded}/${WORLD_CHUNKS * WORLD_CHUNKS}   NPCs ${p.npcs}   gold ${p.gold}   ${act ? '[E] ' + act.prompt : ''}`,
-      `pos ${p.pos.x},${p.pos.y}   save ${p.saveMs}ms load ${p.loadMs}ms   (F5/F9)   ${this.auto ? 'AUTO' : ''}`,
-    ].join('\n'));
+  // ---- WORLD HUD (ported from RegionScene; pinned by zoom-1.0 + scrollFactor 0) ----
+  // Stats panel (HP/MP/gold/morality/purity/time) + a WORLD-COORD minimap (regions +
+  // player world-pos) + a quest tracker. ⚠ Visual layout UNVERIFIED (browser down).
+  _buildWorldHud() {
+    const OD = DEPTH.OVERLAY + 10, W = this.scale.width;
+    const txt = (x, y, s, size, color, extra = {}) => this.add.text(x, y, s, { fontFamily: 'monospace', fontSize: `${size}px`, color, ...extra }).setResolution(2).setScrollFactor(0).setDepth(OD);
+    this.hud2 = this.add.container(0, 0).setScrollFactor(0).setDepth(OD);
+    this._hudHidden = false;
+    const add = (o) => { this.hud2.add(o); return o; };
+    if (this.playerHpUI) this.playerHpUI.setVisible(false);   // HP lives in the stats panel now
+
+    // STATS panel (top-left)
+    const sx = 8, sy = 8, sw = 244, sh = 130;
+    add(this.add.rectangle(sx, sy, sw, sh, 0x10131c, 0.85).setOrigin(0, 0).setStrokeStyle(2, 0x7fa86a, 0.9).setScrollFactor(0).setDepth(OD));
+    add(txt(sx + 10, sy + 7, 'HP', 12, '#9aa3b5'));
+    this._sHpBg = add(this.add.rectangle(sx + 42, sy + 14, 152, 11, 0x3a1418, 1).setOrigin(0, 0.5).setScrollFactor(0).setDepth(OD));
+    this._sHpFill = add(this.add.rectangle(sx + 42, sy + 14, 152, 11, 0x5fcf6a, 1).setOrigin(0, 0.5).setScrollFactor(0).setDepth(OD));
+    this._sHpTxt = add(txt(sx + 200, sy + 8, '', 11, '#f3ecff'));
+    add(txt(sx + 10, sy + 28, 'MP', 12, '#6b6275'));
+    add(this.add.rectangle(sx + 42, sy + 35, 152, 11, 0x1c2230, 1).setOrigin(0, 0.5).setScrollFactor(0).setDepth(OD));
+    add(txt(sx + 48, sy + 30, 'reserved (no mana system yet)', 9, '#6b6275'));
+    this._sGold = add(txt(sx + 10, sy + 50, '', 13, '#ffe08a'));
+    this._sTime = add(txt(sx + 120, sy + 50, '', 13, '#bcd6ff'));
+    this._sMor = add(txt(sx + 10, sy + 74, '', 12, '#9fe6a0'));
+    this._sPur = add(txt(sx + 10, sy + 94, '', 12, '#c7b6ff'));
+
+    // MINIMAP (top-right) — the WHOLE WORLD, scaled; regions marked + player dot
+    const mmW = 168, mmH = Math.round(mmW * WORLD_PX / WORLD_PX), mmx = W - mmW - 10, mmy = 10;
+    this._mm = { x: mmx, y: mmy, w: mmW, h: mmH, scale: mmW / WORLD_PX };
+    add(this.add.rectangle(mmx - 2, mmy - 2, mmW + 4, mmH + 4, 0x10141c, 0.85).setOrigin(0, 0).setStrokeStyle(2, 0x7fa86a, 0.9).setScrollFactor(0).setDepth(OD));
+    this._mmG = add(this.add.graphics().setScrollFactor(0).setDepth(OD));
+    this._renderWorldMapInto(this._mmG, this._mm);
+    this._mmDots = add(this.add.graphics().setScrollFactor(0).setDepth(OD));
+    add(txt(mmx + 4, mmy + 1, 'MAP (O = overview)', 9, '#cfc6e6'));
+
+    // QUEST TRACKER (under the minimap)
+    const ty0 = mmy + mmH + 8;
+    add(this.add.rectangle(mmx - 2, ty0, mmW + 4, 88, 0x10131c, 0.85).setOrigin(0, 0).setStrokeStyle(2, 0x7fa86a, 0.7).setScrollFactor(0).setDepth(OD));
+    add(txt(mmx + 4, ty0 + 4, 'QUESTS (T)', 11, '#9fe6a0', { fontStyle: 'bold' }));
+    this._trkBody = add(txt(mmx + 4, ty0 + 22, '', 11, '#f3ecff', { wordWrap: { width: mmW - 6 }, lineSpacing: 2 }));
+
+    // FULL-MAP overlay (toggle O) — the whole world large
+    this._fullMap = add(this.add.container(0, 0).setScrollFactor(0).setDepth(OD + 2).setVisible(false));
+    const fw = Math.min(W - 80, 640), fh = Math.round(fw * 1), fx = (W - fw) / 2, fy = (this.scale.height - fh) / 2;
+    const fg = this.add.graphics().setScrollFactor(0);
+    this._fullMap.add(this.add.rectangle(0, 0, W, this.scale.height, 0x05070b, 0.74).setOrigin(0, 0).setScrollFactor(0));
+    this._fullMap.add(this.add.rectangle(fx - 4, fy - 4, fw + 8, fh + 8, 0x10141c, 0.96).setOrigin(0, 0).setStrokeStyle(2, 0x7fa86a).setScrollFactor(0));
+    this._renderWorldMapInto(fg, { x: fx, y: fy, w: fw, h: fh, scale: fw / WORLD_PX });
+    this._fullMap.add(fg);
+    this._fmDots = this.add.graphics().setScrollFactor(0); this._fullMap.add(this._fmDots);
+    this._fmBox = { x: fx, y: fy, w: fw, h: fh, scale: fw / WORLD_PX };
+    this._fullMap.add(this.add.text(fx, fy - 22, 'WORLD MAP (O to close)', { fontFamily: 'monospace', fontSize: '14px', color: '#ffe9c2', fontStyle: 'bold' }).setScrollFactor(0));
+  }
+
+  // draw the WORLD (belt + each region's footprint) into a graphics, scaled to a box
+  _renderWorldMapInto(g, box) {
+    const s = box.scale, ox = box.x, oy = box.y;
+    g.fillStyle(0x3f5a34, 1).fillRect(ox, oy, WORLD_PX * s, WORLD_PX * s);   // belt/grass base
+    for (const R of REGIONS) {
+      const c = R.bogTint ? 0x6b724e : 0x4a7a3a;   // Marsh bog vs Greenhollow green
+      g.fillStyle(c, 1).fillRect(ox + R.bounds.x * s, oy + R.bounds.y * s, Math.max(2, R.bounds.w * s), Math.max(2, R.bounds.h * s));
+    }
+  }
+
+  _updateWorldHud() {
+    if (!this.hud2 || this._hudHidden) return;
+    const max = this.inv.stats().maxHp, hp = Math.max(0, this.inv.hp);
+    this._sHpFill.width = 152 * Math.max(0, hp / max); this._sHpFill.fillColor = hp / max > 0.3 ? 0x5fcf6a : 0xcf5f5f;
+    this._sHpTxt.setText(`${hp}/${max}`);
+    this._sGold.setText(`Gold ${this.inv.gold}`);
+    const ph = this.tod.phase(), word = ph[0].toUpperCase() + ph.slice(1);
+    this._sTime.setText(`${word} D${this.tod.dayCount() + 1}`);
+    const ks = this.karma.getStatus();
+    this._sMor.setText(`Morality ${ks.morality >= 0 ? '+' : ''}${ks.morality} ${ks.moralityTier}`);
+    this._sPur.setText(`Purity ${ks.purity >= 0 ? '+' : ''}${ks.purity} ${ks.purityTier}`);
+    // quest tracker: up to 2 active quests
+    const active = Object.keys(this.quests.state || {}).filter((id) => this.quests.status(id) === 'active').slice(0, 2);
+    this._trkBody.setText(active.length ? active.map((id) => `• ${this.quests.defs[id]?.title || id}`).join('\n') : '(no active quest — talk to someone with a task)');
+    // player dot on the minimap (+ full map if open)
+    this._mmDots.clear().fillStyle(0xffe66d, 1).fillCircle(this._mm.x + this.player.x * this._mm.scale, this._mm.y + this.player.y * this._mm.scale, 3);
+    if (this._fullMap.visible) this._fmDots.clear().fillStyle(0xffe66d, 1).fillCircle(this._fmBox.x + this.player.x * this._fmBox.scale, this._fmBox.y + this.player.y * this._fmBox.scale, 4);
+  }
+
+  _openSettings() {
+    if (this._dlg) return;
+    this.scene.launch('Options', { caller: 'Overworld', mods: this.mods, im: null });
+    this.scene.pause();
   }
 }
