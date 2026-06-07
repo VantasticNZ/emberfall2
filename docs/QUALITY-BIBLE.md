@@ -400,6 +400,14 @@ moving *between* and *through* places, and city VERTICALITY.
 - **CHORES, NOT IDLE** [all] [ENGINE FEATURE: chore-anim loops] — NPCs visibly DOING things
   (sweeping, hauling, hammering, tending), not standing in clumps. *Why:* idle clumps read as a
   diorama. *Check:* [EYE] most NPCs are *busy*. *Engine note:* a small looped-action anim + anchor.
+- **CROWDS ARE NOISY, NOT UNIFORM** [all] [FREE NOW] — **every SHARED NPC action needs per-agent
+  jitter in timing, speed, and path.** On a phase change, departures STAGGER (a per-NPC delay);
+  each NPC has a persistent speed multiplier + a slightly offset target (paths differ); facing EASES
+  (turns desync); chore loops run out of phase; an optional `tempo` trait (brisk/ambler/dawdler)
+  scales it so variation reads as PERSONALITY. *Why:* synchronised motion (a unison pivot/march) is
+  the "creepy clockwork" tell that instantly breaks "these are people." *Check:* [EYE] **NPCs never
+  pivot or move in visible unison** — a crowd transition fans out. (Built in `NpcLife`; seeded per
+  NPC so it's deterministic. Tuning: `standards.js NPC_LIFE`.)
 - **ANIMALS / WILDLIFE / PETS** [all] [ENGINE FEATURE: ambient critter movers + art] — dogs, cats,
   chickens, birds crossing, livestock penned. *Why:* motion at the edges = a living place.
   Ties to **PETS-DESIGN**. *Check:* [EYE] ambient creatures present. *(art: flag — see asset policy.)*
