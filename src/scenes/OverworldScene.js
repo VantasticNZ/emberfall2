@@ -83,7 +83,7 @@ export class OverworldScene extends Phaser.Scene {
 
     this.auto = false; this._autoT = 0; this._lastSaveMs = 0; this._lastLoadMs = 0; this._resetPerf();
     this.hud = this.add.text(8, 8, '', { fontFamily: 'monospace', fontSize: '13px', color: '#d6f5cf', backgroundColor: '#000a', padding: { x: 6, y: 4 } }).setScrollFactor(0).setDepth(DEPTH.OVERLAY + 10);
-    this.add.text(8, 408, 'OVERWORLD (Phase 2). WASD/arrows · SHIFT run · E talk/interact · F5 save · F9 load · O auto-run', { fontFamily: 'monospace', fontSize: '11px', color: '#9fb89a', backgroundColor: '#000a', padding: { x: 4, y: 2 } }).setScrollFactor(0).setDepth(DEPTH.OVERLAY + 10);
+    this.add.text(8, 408, 'WASD/arrows move · SHIFT run · E talk/interact · J attack · Space dodge · C block · F5 save · F9 load', { fontFamily: 'monospace', fontSize: '11px', color: '#9fb89a', backgroundColor: '#000a', padding: { x: 4, y: 2 } }).setScrollFactor(0).setDepth(DEPTH.OVERLAY + 10);
 
     this._restream(true);
     this._maybeToggleRegion(true);

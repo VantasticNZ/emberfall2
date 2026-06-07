@@ -38,6 +38,11 @@ export class BootScene extends Phaser.Scene {
         this.anims.create({ key, frames: this.anims.generateFrameNumbers(`mon_${m.key}`, { frames }), frameRate: 6, repeat: -1 });
       }
     }
-    this.scene.start('Greenhollow');
+    // Boot into the SEAMLESS OVERWORLD (world-migration): a fresh, normal session
+    // starts IN the one continuous world — you walk out of Greenhollow westward through
+    // the green belt into Ashen Marsh with no wall, no console command. The discrete
+    // GreenhollowScene/MarshScene/PeaksScene stay registered as a FALLBACK (reachable
+    // via scene.start in dev); HUD/dialogue polish on the overworld is the next pass.
+    this.scene.start('Overworld');
   }
 }
