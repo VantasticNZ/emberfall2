@@ -64,3 +64,41 @@ IDENTICALLY to now.
 Both scenes byte-for-byte behaviourally identical to the pre-refactor build; the two
 scenes' bodies shrink to config + hooks; `npm run verify` green; 0 console errors;
 screenshots of both playing.
+
+---
+
+## NPC LIFE — schedules + chores + ambient (added 2026-06-07; src/systems/NpcLife.js)
+Part 2.6 Pillar 2, built once in RegionScene, inherited by every region as DATA.
+
+**Schedules** — give a world NPC an optional `schedule` (rows of `[phase, tx, ty, activity]`):
+```js
+const sched = (rows) => rows.map(([phase, tx, ty, d]) => ({ phase, tx, ty, do: d || 'idle' }));
+// ...
+{ tx, ty, name, parts, quest, /* ... */,
+  schedule: sched([
+    ['dawn', 20, 16, 'chat'],
+    ['day',  22, 17, 'tend'],     // a quest-giver's DAY spot == its old static spot (stay reachable)
+    ['dusk', 23, 19, 'idle'],
+    ['night',24, 21, 'sleep'],
+  ]) }
+```
+- `phase` ∈ `dawn|day|dusk|night` (TimeOfDay). A phase not listed keeps the previous target.
+- `do` (activity, looped at the spot): `idle | sweep | tend | chat | hammer | sleep`.
+- An NPC **without** a `schedule` stays a static immovable obstacle (back-compat).
+- Authoring rules: keep `do` spots on CLEAR ground (not inside a building footprint or behind a
+  divider) — movement is a simple seek + a light unstick nudge, **not** navmesh. A quest-giver's
+  day spot should be reachable so its quest never strands. Movement respects collision (scheduled
+  NPCs are movable actors that separate from buildings/dividers).
+
+**Ambient** — `cfg.world.ambient = { birds: true, critters: [{ key, count, area }] }`:
+- `birds` adds a light silhouette-crossing FX (motion, no sprite).
+- `critters` is a DATA slot for wildlife/pets — it spawns ONLY if `key`'s texture exists, so with
+  no animal art loaded the hook is inert + FLAGGED (never a faked sprite).
+
+**Integration guarantees:** moving NPCs depth-sort by footprint BASE; their Interaction follows
+their live position (`target` on the interactable) so you can talk mid-routine; a moving NPC
+freezes while a dialogue is open; the minimap/objective markers read live positions.
+
+**FLAGS (future):** dedicated chore animations (sweep/hammer use existing idle/attack frames);
+real obstacle pathing (navmesh) for cross-divider routes; the smooth dusk/dawn world-tint lerp
+(so night reads dark) — Part 2.6 Pillar 2 / GAPS-AND-DEPTH §8; animal/pet sprites for `critters`.
