@@ -21,6 +21,7 @@ import { Collision } from '../systems/Collision.js';
 import { DepthSort, DEPTH } from '../systems/DepthSort.js';
 import { Interaction } from '../systems/Interaction.js';
 import { Dialogue } from '../systems/Dialogue.js';
+import { Social } from '../systems/Social.js';
 import { QuestEngine } from '../systems/QuestEngine.js';
 import { KarmaEngine } from '../systems/Karma.js';
 import { Inventory } from '../systems/Inventory.js';
@@ -28,6 +29,7 @@ import { PlayerCombat } from '../systems/Combat.js';
 import { InputMap } from '../systems/Input.js';
 import { EnemyController } from '../systems/EnemyController.js';
 import { ModifierRegistry } from '../systems/Modifiers.js';
+import { buyPrice } from '../systems/Economy.js';
 import { item } from '../data/items/index.js';
 import { memoryStorage } from '../systems/storage.js';
 import { COMBAT } from '../constants/standards.js';
@@ -153,6 +155,7 @@ export class RegionScene extends Phaser.Scene {
           npc.facing = this._faceToward(npc, this.player); npc.setState('idle');
           const st = n.quest ? this.quests.status(n.quest) : null;
           if (n.quest && (st === 'available' || st === 'active')) this._startQuestDialogue(n.quest);  // only enter an OPEN quest
+          else if (n.social) this._startDialogue(n.social, n.name);                                    // social demo (shop / charisma / insight / trust)
           else if (st === 'complete' && n.done) this._startGreeting(n.name, n.done);
           else if (n.greeting) this._startGreeting(n.name, n.greeting);                                // locked/no-quest -> a line
           else if (n.done) this._startGreeting(n.name, n.done);
@@ -181,7 +184,7 @@ export class RegionScene extends Phaser.Scene {
     this.cursors.up.on('down', () => { if (this._dlg) this._dialogueNav(-1); });
     this.cursors.down.on('down', () => { if (this._dlg) this._dialogueNav(+1); });
     this.input.on('pointerdown', (ptr) => { if (ptr.leftButtonDown() && this._canAct()) this._playerAttack(); });
-    const pick = (i) => { if (this._dlg && i < this._dlg.options().length) { this._selOpt = i; this._dialogueConfirm(); } };
+    const pick = (i) => { if (this._dlg && this._optView && i < this._optView.length && this._optView[i].st !== 'locked') { this._selOpt = i; this._dialogueConfirm(); } };
     this.keys.one.on('down', () => pick(0));
     this.keys.two.on('down', () => pick(1));
     this.keys.three.on('down', () => pick(2));
@@ -230,47 +233,83 @@ export class RegionScene extends Phaser.Scene {
     this.questHud.setText(`Quest — ${q.label}: ${st.toUpperCase()}     Morality: ${m >= 0 ? '+' : ''}${m}`);
   }
 
+  // dialogue ctx threads the social layer (CHA/skills/trust) + karma + quests.
+  // `set` strings: "buy:itemId" does a CHA-priced purchase; anything else = a deed.
+  _dlgCtx() {
+    return { karma: this.karma, engine: this.quests, inv: this.inv, social: Social, onSet: (s) => {
+      if (typeof s === 'string' && s.startsWith('buy:')) { const id = s.slice(4); const p = buyPrice(id, this.cfg.key, this.inv.attr('cha')); if (this.inv.gold >= p && this.inv.add(id)) this.inv.addGold(-p); }
+      else this.karma.recordDeed(s);
+    } };
+  }
+  // text/label templating: {price:itemId} -> the CHA-adjusted buy price (Economy)
+  _template(str) { return !str ? str : String(str).replace(/\{price:(\w+)\}/g, (_, id) => String(buyPrice(id, this.cfg.key, this.inv.attr('cha')))); }
+
   _startGreeting(name, lines) {
     const nodes = {};
     lines.forEach((t, i) => { const last = i === lines.length - 1; nodes[`g${i}`] = { speaker: name, text: t, options: [last ? { label: '(Step away.)', end: true } : { label: '(Listen.)', to: `g${i + 1}` }] }; });
     this._activeQuest = null;
-    this._dlg = new Dialogue({ start: 'g0', nodes }, { karma: this.karma, engine: this.quests });
+    this._dlg = new Dialogue({ start: 'g0', nodes }, this._dlgCtx());
+    this._selOpt = 0; Movement.stop(this.player); this.prompt.setVisible(false); this.dialogue.setVisible(true); this._renderNode();
+  }
+  /** Start an arbitrary dialogue graph on an NPC (social demos, shops, etc.). */
+  _startDialogue(graph, speakerName) {
+    this._activeQuest = null;
+    this._dlg = new Dialogue(graph, this._dlgCtx());
     this._selOpt = 0; Movement.stop(this.player); this.prompt.setVisible(false); this.dialogue.setVisible(true); this._renderNode();
   }
   _startQuestDialogue(qid) {
     const def = this.quests.defs[qid]; if (!def || !def.dialogue) return;
     if (this.quests.status(qid) === 'available') this.quests.start(qid);
     this._activeQuest = qid;
-    this._dlg = new Dialogue(def.dialogue, { karma: this.karma, engine: this.quests });
+    this._dlg = new Dialogue(def.dialogue, this._dlgCtx());
     this._selOpt = 0; Movement.stop(this.player); this.prompt.setVisible(false); this.dialogue.setVisible(true); this._renderNode();
     this._updateQuestHud();
   }
   _renderNode() {
     const node = this._dlg.node(); if (!node) { this._closeDialogue(); return; }
-    this.dlgName.setText(node.speaker || ''); this.dlgBody.setText(node.text || '');
+    this.dlgName.setText(node.speaker || ''); this.dlgBody.setText(this._template(node.text) || '');
     const face = this.cfg.faces[node.speaker]; this._buildPortrait(face ? face.parts : null, face ? face.expression : 'neutral');
-    this._renderOptions(this._dlg.options());
+    this._buildOptView();
+    this._renderOptions();
   }
-  _renderOptions(opts) {
-    const T = this.theme;
+  // social option view: drop HIDDEN (insight/trust you don't qualify for), tag the
+  // rest ([Charisma 7], [Insight]…), mark LOCKED (a check you can see but not pick).
+  _buildOptView() {
+    const ctx = { inv: this.inv, karma: this.karma };
+    this._optView = this._dlg.options().map((opt, idx) => ({ opt, idx, st: Social.state(opt, ctx), tag: Social.tag(opt) })).filter((v) => v.st !== 'hidden');
+    if (!this._optView.length) { this._selOpt = 0; return; }
+    this._selOpt = Phaser.Math.Clamp(this._selOpt, 0, this._optView.length - 1);
+    if (this._optView[this._selOpt].st === 'locked') { const f = this._optView.findIndex((v) => v.st !== 'locked'); if (f >= 0) this._selOpt = f; }
+  }
+  _renderOptions() {
+    const T = this.theme, view = this._optView || [];
     this._optTexts.forEach((t) => t.destroy()); this._optTexts = [];
-    this._selOpt = Phaser.Math.Clamp(this._selOpt, 0, Math.max(0, opts.length - 1));
-    const isChoice = opts.length > 1, x = this._txtX, rowH = 28, barW = this._boxBx + this._boxW - x - 8;
+    const isChoice = view.length > 1, x = this._txtX, rowH = 28, barW = this._boxBx + this._boxW - x - 8;
     const oy = this.dlgBody.y + this.dlgBody.height + (isChoice ? 24 : 12);
     const add = (o) => { this.dialogue.add(o); this._optTexts.push(o); return o; };
     if (isChoice) add(this.add.text(x, oy - 20, '─ CHOOSE ─', { fontFamily: 'monospace', fontSize: '11px', color: T.hintColor, fontStyle: 'bold' }).setResolution(2).setScrollFactor(0).setDepth(DEPTH.OVERLAY));
-    opts.forEach((o, i) => {
-      const sel = i === this._selOpt, y = oy + i * rowH;
+    view.forEach((v, i) => {
+      const locked = v.st === 'locked', sel = i === this._selOpt && !locked, y = oy + i * rowH;
       if (sel) add(this.add.rectangle(x - 8, y - 3, barW, rowH - 4, T.choiceBar, 1).setOrigin(0, 0).setScrollFactor(0).setDepth(DEPTH.OVERLAY));
-      add(this.add.text(x, y, `${sel ? '▶ ' : '   '}${isChoice ? `${i + 1}. ` : ''}${o.label}`, { fontFamily: 'monospace', fontSize: '16px', color: sel ? T.choiceSelFg : T.muted, fontStyle: sel ? 'bold' : 'normal' }).setResolution(2).setScrollFactor(0).setDepth(DEPTH.OVERLAY));
+      const color = sel ? T.choiceSelFg : locked ? '#6b6275' : (v.tag ? '#8fd6ff' : T.muted);   // checks pop cyan; locked greyed
+      add(this.add.text(x, y, `${sel ? '▶ ' : '   '}${isChoice ? `${i + 1}. ` : ''}${v.tag}${this._template(v.opt.label)}`, { fontFamily: 'monospace', fontSize: '16px', color, fontStyle: sel ? 'bold' : 'normal' }).setResolution(2).setScrollFactor(0).setDepth(DEPTH.OVERLAY));
     });
     this.dlgHint.setText(isChoice ? '↑↓ move · 1/2 or E to pick' : 'E to continue ▸');
   }
-  _dialogueNav(d) { const o = this._dlg.options(); if (o.length < 2) return; this._selOpt = Phaser.Math.Clamp(this._selOpt + d, 0, o.length - 1); this._renderOptions(o); }
+  _dialogueNav(d) {
+    const view = this._optView || []; if (view.length < 2) return;
+    let i = this._selOpt;
+    do { i = Phaser.Math.Clamp(i + d, 0, view.length - 1); } while (view[i] && view[i].st === 'locked' && i > 0 && i < view.length - 1);
+    if (view[i] && view[i].st !== 'locked') this._selOpt = i;
+    this._renderOptions();
+  }
   _dialogueConfirm() {
+    const view = this._optView || [], v = view[this._selOpt];
+    if (v && v.st === 'locked') return;                         // can't pick a failed check
+    const realIdx = v ? v.idx : this._selOpt;
     const wasNode = this._dlg.nodeId;
-    this._dlg.select(this._selOpt); this._selOpt = 0;
-    if (this.onDialogueConfirm(wasNode)) return;                 // region hook (e.g. Marsh boss)
+    this._dlg.select(realIdx); this._selOpt = 0;
+    if (this.onDialogueConfirm(wasNode)) return;                // region hook (e.g. Marsh boss)
     if (this._dlg.done || !this._dlg.node()) this._closeDialogue(); else this._renderNode();
     this._updateQuestHud();
   }

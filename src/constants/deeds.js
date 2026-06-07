@@ -27,4 +27,6 @@ export const DEEDS = ids(
   'stone_taken', 'stranger_rescued', 'stranger_used', 'sunken_dead_looted', 'tavern_songs', 'tide_cave_loot',
   'time_skip', 'told_adult', 'vault_betrayal', 'veil_equal', 'veil_need', 'veil_triage',
   'wanderer_met', 'weapon_wooden_sword', 'weeping_tree', 'wreck_wraith_slain',
+  // social-system demo deeds (CHA haggle / Insight reveal / Trust-gated option)
+  'haggled_bram', 'hagga_hidden_truth', 'miner_secret_pass',
 );
