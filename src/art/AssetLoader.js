@@ -39,6 +39,9 @@ export const AssetLoader = {
     for (const [key, t] of Object.entries(TILES)) scene.load.image(key, t.src);
     for (const [key, p] of Object.entries(PROPS)) scene.load.image(key, p.src);
     for (const [key, d] of Object.entries(DECALS)) scene.load.image(key, d.src);
+    // the [LPC] Terrains autotile atlas (bluecarrot16 et al., CC-BY/CC-BY-SA/GPL) —
+    // 32px corner-transition tiles for feathered biome edges (src/data/terrainTiles.js).
+    scene.load.spritesheet('lpc_terrain', 'art/terrain/lpc_terrain.png', { frameWidth: 32, frameHeight: 32 });
   },
 
   // Phase 2 (scene.create): register every layer's animation set.
