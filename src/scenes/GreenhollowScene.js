@@ -46,7 +46,7 @@ export class GreenhollowScene extends RegionScene {
       questHud: { show: true, id: 'M1', label: 'A Greenhollow Morning' },
       theme: GREEN_THEME,
       promptYOff: 110,
-      devModifiers: true,        // dev: big-head etc. ON (toggle in the options menu)
+      devModifiers: false,       // novelty modifiers (big-head etc.) OFF by default — earned/toggled in the options menu (earned-modifiers design)
       world: {
         widthTiles: WORLD.widthTiles, heightTiles: WORLD.heightTiles,
         terrain: WORLD.terrain,                        // real autotile feathered ground (v3)
@@ -73,6 +73,7 @@ export class GreenhollowScene extends RegionScene {
     // so they're playable in the village (they gate behind M7 in the full chain).
     for (const id of ['SG1', 'SG2', 'SG3', 'SG4']) { this.quests.unlocked.add(id); if (this.quests.state[id]) this.quests.state[id] = 'available'; }
     this._buildChests();
+    this._buildAmbientLife();
     // dev navigation + debug overlay + wheel zoom
     this.input.keyboard.addKey('M').on('down', () => { if (!this._dlg) this.scene.start('Marsh'); });   // -> Ashen Marsh (W)
     this.input.keyboard.addKey('N').on('down', () => { if (!this._dlg) this.scene.start('Peaks'); });   // -> Sundered Peaks (N road)
@@ -81,6 +82,23 @@ export class GreenhollowScene extends RegionScene {
     this.input.keyboard.addKey('ZERO').on('down', () => { if (!this._dlg && this.combat.live.length === 0) this.combat.spawn('charger', { tx: 9, ty: 36 }); });
     this.input.on('wheel', (_p, _o, _dx, dy) => this._stepZoom(dy > 0 ? -1 : +1));
     this._buildDebug();
+  }
+
+  // A TASTE OF LIFE (hand-placed preview of Pillar 2 — NOT the routines system).
+  // Chimney SMOKE drifting from a few homes (an FX, not a fake sprite). FLAG: animal
+  // sprites (chicken/dog/cat) are NOT licence-loaded — omitted, wanted for the real
+  // NPC-life pass; doing smoke only here per the no-fake rule.
+  _buildAmbientLife() {
+    const T = 32, chimneys = [[20, 6], [35, 21], [13, 26]];   // ~chimney tops of the chapel / a cottage / the homestead
+    for (const [tx, ty] of chimneys) {
+      const x = tx * T, y = ty * T;
+      this.time.addEvent({ delay: 900, loop: true, callback: () => {
+        if (this._dlg) return;
+        const puff = this.add.circle(x, y, 5, 0xcacfd2, 0.3).setDepth(90000);
+        if (this.uiCamera) this.uiCamera.ignore(puff);   // world FX only — never on the HUD camera
+        this.tweens.add({ targets: puff, y: y - 48, x: x + 12, alpha: 0, scale: 2.4, duration: 2700, ease: 'Sine.easeOut', onComplete: () => puff.destroy() });
+      } });
+    }
   }
 
   // SECRETS — findable chests reward exploration (a hollow off the wood path, behind
