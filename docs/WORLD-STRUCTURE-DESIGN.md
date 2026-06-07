@@ -259,6 +259,46 @@ So the **water + elevation features are the tool-gates** — see-it-early-reach-
 and contour crossing a border with no break is the world-scale version of Gate C/D (feathered edges,
 depth bands). A river or ridge that *continues* across a seam is the strongest "one place" cue.
 
+### 2.1b TERRAIN-CHANNELLED ROUTES (the world is NOT an open field — model correction)
+**Explicit correction to any "open walkable field" reading:** the seamless world is **explorable at
+leisure but TERRAIN-CHANNELLED**, NOT an open expanse you cross in any direction. It is **not Zelda:
+Breath-of-the-Wild / Hyrule-field** — it is **Link to the Past / Link's Awakening / Adventure Time**:
+**terrain — trees, cliffs, water, rock walls, ledges, fences, ravines — carves the space into ROUTES**,
+and the player **flows along paths, not across open ground**.
+
+- **ROUTES THAT FORK:** between and within regions, movement is shaped by terrain into **defined paths
+  that branch** — at junctions you get **a couple of real direction choices** (this way to the bog,
+  that way up the foothills), not a blank field. The wilds READ as a network of lanes, gullies, and
+  clearings strung together, not a meadow.
+- **TEMPTING BLOCKED SPURS:** routes sprout **dead-end spurs you can see but not yet take** — a ledge
+  too high, a chasm, a boarded path, water you can't cross — that a later tool opens (the see-it-early/
+  reach-it-later tease — this is the §2.5 gating law made *physical*, and the WEB-NOT-LINE §2.4 graph
+  made of actual terrain).
+- **GEOGRAPHY-AS-PUZZLE / obstacle course:** the terrain itself is the challenge — **winding turns,
+  narrow channels, switchback climbs, little mazes**, and (where the engine allows) **verticality**
+  (cliffs / tiers / ledges / stairs). *Verticality + walkable elevation = [ENGINE FEATURE]* — cross-ref
+  **TRAVERSAL-EXPLORATION** (jump/ledge/elevation) + QUALITY-BIBLE Part 2.6 Pillar 4 VERTICALITY +
+  Gate F "needs engine"; **cosmetic relief is [FREE NOW], true height is engine** — do not over-promise.
+- **NO LARGE OPEN WALKABLE EXPANSES** — the anti-pattern this corrects. Open ground is allowed only as
+  a *composed* clearing/vista (a `deliberate_lull`, §2.4), never as default empty traversable field.
+
+**Reconciles with (does NOT duplicate):** §2.1 "traversable wilds (forks/dead-ends/obstacles)" — this
+SHARPENS it from "wilds have features" to "**terrain channels all movement into routes**"; §2.4
+WEB-NOT-LINE (the ≥2-routes graph is built FROM this terrain); §2.5 gating (blocked spurs ARE the
+tool/story gates, physical); the density floor (§2.2/§2.4) fills the routes + clearings. The
+**contextual-monsters / logical-NPC-placement (no NPCs idling by monsters)** + **themed-biome cohesion**
+rules are already covered — Part 2.6 Pillar 2 (LIFE & MOVEMENT) + the ecology note (§2.6) + Gate D
+(feathered biomes); this section adds ONLY the channelling + the no-open-field gate, not those.
+
+> ⚑ **CURRENT-STATE VIOLATION (apply-note, fix at build):** the overworld's between-region space is
+> **OPEN PLACEHOLDER scatter** that BREAKS this rule. The **green belt** (`worldmap.js chunkContent`)
+> is a random tree/decal scatter over open grass — a walkable field, not channelled routes; and the
+> **Greenhollow→Marsh "route"** is just open belt with no defined path. **To fix:** re-author the belt
+> as **carved ROUTES** — a defined Greenhollow→Marsh path (a lane/gully channelled by treelines, water,
+> and rock) that **forks** (a couple of choices) with **tempting blocked spurs**, not open scatter. This
+> is the next world-build target after the migration phases; flagged here so the placeholder isn't
+> mistaken for the intended design.
+
 ### 2.2 DENSITY / PACING (always something within a short walk)
 - **Content-per-area floor:** every authored area meets a **point-of-interest density floor** — within
   a short walk you always find *something* (a secret, a vista, an NPC, a landmark, a set-piece, an
@@ -292,6 +332,17 @@ depth bands). A river or ridge that *continues* across a seam is the strongest "
   routes** (the route graph is not a single corridor); the WORLD's traversal graph has **no forced
   single chokepoint** except where a gate (§2.5) deliberately makes one. [EYE]: it feels like a place
   you can *wander*, with choices, not a track you're pushed down.
+- **CHANNELLED-NOT-OPEN** [OBJECTIVE → verify.mjs] *(NEW — §2.1b)*: **no open traversable area exceeds
+  N tiles in any dimension without a terrain feature channelling it** (trees/cliff/water/rock/ledge/
+  fence) — i.e. no large open walkable expanse; any larger clear area must be a tagged `deliberate_lull`
+  (a composed clearing/vista). The wilds resolve into **routes that FORK** (≥1 junction with ≥2 onward
+  choices per stretch between landmarks). [EYE]: *"do I FLOW along routes, or wander an open field?"* —
+  must read as routes. (N TBD in tuning; smaller than the area-size unit, so a region can't be one
+  open meadow.)
+- **DENSITY FLOOR, per SECTOR** [OBJECTIVE + EYE] *(sharpens the §2.2 POI floor)*: not just per-area —
+  **every screen-sized SECTOR has something to see / collect / investigate** (a feature, POI, vista,
+  interactable, secret, or environmental-story beat); **no empty *useless* terrain**. [EYE]: *"is any
+  sector boring or empty?"* — none may be (untagged-lull sectors FAIL).
 
 ### 2.5 PROGRESSION GATING — "fully explorable, but only when ready" (a design LAW)
 The whole map is designed to be **eventually reachable**, but access is **PACED** so you arrive when

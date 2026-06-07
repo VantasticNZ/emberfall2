@@ -287,6 +287,21 @@ a later code session — described here, NOT implemented now.
 - **Check:** [OBJECTIVE] (→ verify.mjs): distinct ground tile-types used ≥ 4; scenery prop
   kinds ≥ ~6. [EYE]: does the change feel *intentional* (zones that read different), not noise?
 
+### E2. TERRAIN-CHANNELLED TRAVERSAL  *(the world is NOT an open field — see WORLD-STRUCTURE §2.1b)*
+- **Rule:** traversal is **shaped by terrain into ROUTES that fork**, never a large open walkable
+  expanse. Like **Link to the Past / Link's Awakening / Adventure Time** (not BotW Hyrule-field):
+  trees/cliffs/water/rock/ledges/fences **carve** the space; the player **flows along paths**, with
+  **a couple of real direction choices** at junctions and **tempting blocked spurs** for later tools.
+- **Why:** open ground reads as empty/cheap and kills the explore-by-route feel; channelling makes
+  geography the obstacle course + the Metroidvania board (§2.5 gating made physical).
+- **Check:** **[OBJECTIVE → verify.mjs]** no open traversable area exceeds **N tiles** without a
+  channelling feature (else it must be a tagged `deliberate_lull`); ≥1 forking junction per stretch
+  between landmarks. **[EYE]:** *"do I FLOW along routes, or wander a field?"* — must read as routes.
+- **Also (anti-empty):** every **screen-sized sector** has something to see/collect/investigate — **no
+  empty useless terrain**. [EYE]: *"is any sector boring/empty?"* — none may be. (The full density +
+  web-not-line gates live in WORLD-STRUCTURE §2.4; this is the per-area echo. Verticality/elevation
+  = Gate F + Pillar 4 = **[ENGINE FEATURE]**, cross-ref TRAVERSAL — don't over-promise true height.)
+
 ### F. ELEVATION & RELIEF  *(capture honestly — partly an ENGINE question)*
 - **Rule:** regions are not one flat plane — hills, ridges, valleys, slopes where the region's
   identity wants them (Sundered Peaks especially).
