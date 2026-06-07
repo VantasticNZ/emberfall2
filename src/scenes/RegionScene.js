@@ -29,6 +29,7 @@ import { Inventory } from '../systems/Inventory.js';
 import { PlayerCombat } from '../systems/Combat.js';
 import { InputMap } from '../systems/Input.js';
 import { EnemyController } from '../systems/EnemyController.js';
+import { NpcLife } from '../systems/NpcLife.js';
 import { TimeOfDay } from '../systems/TimeOfDay.js';
 import { ModifierRegistry } from '../systems/Modifiers.js';
 import { buyPrice } from '../systems/Economy.js';
@@ -86,6 +87,10 @@ export class RegionScene extends Phaser.Scene {
     this._buildUI();
     this._initCombat();
     this._buildHud();
+    // NPC LIFE: drive scheduled NPCs by the day/night phase (start them where they
+    // belong now, then retarget on every phase change).
+    if (this.npcLife.has()) { this.npcLife.setPhase(this.tod.phase()); this.tod.onPhaseChange((p) => this.npcLife.setPhase(p)); }
+    this._buildAmbient();
     this.onCreateExtra();
     this._setupUICamera();
     this.scale.on('resize', (sz) => { this._applyCamera(); this._layoutUI(); this.uiCamera.setSize(sz.width, sz.height); });
@@ -196,14 +201,41 @@ export class RegionScene extends Phaser.Scene {
       DepthSort.track(spr, d.footprint ? d.footprint.offY + d.footprint.h / 2 : d.height / 2);
     }
   }
+  // AMBIENT LIFE hook (Part 2.6 Pillar 2) — reusable per region via cfg.world.ambient.
+  // `critters` is a DATA slot for wildlife/pets: it spawns ONLY if the texture exists
+  // (no animal sprites are licence-loaded yet → the hook is inert + FLAGGED, never a
+  // faked sprite). `birds` adds a light silhouette-crossing FX (motion, not a sprite).
+  _buildAmbient() {
+    const a = this.cfg.world && this.cfg.world.ambient; if (!a) return;
+    for (const c of (a.critters || [])) { if (!this.textures.exists(c.key)) continue; /* spawn wandering critters when art lands */ }
+    if (a.birds) this.time.addEvent({ delay: 4200, loop: true, callback: () => this._spawnBird() });
+  }
+  _spawnBird() {
+    if (this._dlg || !this.cameras.main) return;
+    const vw = this.cameras.main.worldView, ltr = Math.random() < 0.5;
+    const x0 = ltr ? vw.x - 30 : vw.right + 30, x1 = ltr ? vw.right + 30 : vw.x - 30, y = vw.y + 24 + Math.random() * 70;
+    const g = this.add.graphics().setDepth(DEPTH.OVERLAY - 200);
+    g.lineStyle(2, 0x2c3038, 0.7); g.beginPath(); g.moveTo(-6, 0); g.lineTo(0, -3); g.lineTo(6, 0); g.strokePath();
+    g.setPosition(x0, y);
+    if (this.uiCamera) this.uiCamera.ignore(g);
+    this.tweens.add({ targets: g, x: x1, y: y + 26, duration: 5200, ease: 'Sine.easeInOut', onComplete: () => g.destroy() });
+  }
   _buildNPCs() {
+    this.npcLife = new NpcLife(this);
     for (const n of this.cfg.world.npcs) {
       const npc = new Character(this, tileToPx(n.tx), tileToPx(n.ty), { parts: n.parts, facing: n.facing, speed: n.speed, expression: n.expression });
-      Collision.markSolidActor(npc); this.solids.add(npc); DepthSort.track(npc, CHAR_FOOTPRINT.offY + CHAR_FOOTPRINT.h / 2);
-      this._npcByQuest = this._npcByQuest || {}; if (n.quest) this._npcByQuest[n.quest] = npc;   // objective-indicator target
-      this._poi = this._poi || []; this._poi.push({ x: npc.x, y: npc.y, kind: 'npc' });           // minimap point of interest
+      if (n.schedule) {
+        // a SCHEDULED npc walks its routine -> a MOVABLE actor so it separates from
+        // buildings/dividers (collider(actors,solids)) yet still blocks/talks.
+        npc.body.setImmovable(false); this.actors.add(npc); this.npcLife.add(npc, n.schedule);
+      } else {
+        Collision.markSolidActor(npc); this.solids.add(npc);                     // static: a fixed obstacle (back-compat)
+      }
+      DepthSort.track(npc, CHAR_FOOTPRINT.offY + CHAR_FOOTPRINT.h / 2);
+      this._npcByQuest = this._npcByQuest || {}; if (n.quest) this._npcByQuest[n.quest] = npc;   // objective-indicator target (live)
+      this._poi = this._poi || []; this._poi.push({ npc, kind: 'npc' });                          // minimap point of interest (live)
       Interaction.register({
-        x: npc.x, y: npc.y + CHAR_FOOTPRINT.offY, prompt: `Talk to ${n.name}`,
+        target: npc, targetOffY: CHAR_FOOTPRINT.offY, prompt: `Talk to ${n.name}`,   // follows a moving npc
         onInteract: () => {
           npc.facing = this._faceToward(npc, this.player); npc.setState('idle');
           const st = n.quest ? this.quests.status(n.quest) : null;
@@ -411,12 +443,12 @@ export class RegionScene extends Phaser.Scene {
   }
   _updateMinimap() {
     const m = this._mm, g = this._mmDots; g.clear();
-    for (const p of (this._poi || [])) { g.fillStyle(0xffd23f, 1); g.fillCircle(m.x + p.x * m.scale, m.y + p.y * m.scale, 2); }
+    for (const p of (this._poi || [])) { const x = p.npc ? p.npc.x : p.x, y = p.npc ? p.npc.y : p.y; g.fillStyle(0xffd23f, 1); g.fillCircle(m.x + x * m.scale, m.y + y * m.scale, 2); }
     const pxx = m.x + this.player.x * m.scale, pyy = m.y + this.player.y * m.scale;
     g.fillStyle(0xffffff, 1); g.fillCircle(pxx, pyy, 3); g.lineStyle(1, 0x10141c, 1); g.strokeCircle(pxx, pyy, 3);
     if (this._hudState.map && this._fbox) {
       const f = this._fbox, fg = this._fullMapDot; fg.clear();
-      for (const p of (this._poi || [])) { fg.fillStyle(0xffd23f, 1); fg.fillCircle(f.x + p.x * f.scale, f.y + p.y * f.scale, 3); }
+      for (const p of (this._poi || [])) { const x = p.npc ? p.npc.x : p.x, y = p.npc ? p.npc.y : p.y; fg.fillStyle(0xffd23f, 1); fg.fillCircle(f.x + x * f.scale, f.y + y * f.scale, 3); }
       fg.fillStyle(0xffffff, 1); fg.fillCircle(f.x + this.player.x * f.scale, f.y + this.player.y * f.scale, 5);
     }
   }
@@ -651,6 +683,7 @@ export class RegionScene extends Phaser.Scene {
     const dt = Math.min(delta || 16, 50) / 1000;
     this.tod.advanceRealSeconds(dt);   // advance the day/night clock
     this._updateHud();                 // refresh stats / tracker / objective / minimap
+    this.npcLife.update(dt, !!this._dlg);   // scheduled NPCs walk routines / do chores (frozen while a dialogue is open)
     // THREAT INDICATORS: off by default (clean screen); on via the options toggle,
     // or always-on + enhanced with the ENEMY INTUITION skill (perception/instinct).
     const intuition = !!(this.inv && this.inv.hasSkill('enemy_intuition'));
