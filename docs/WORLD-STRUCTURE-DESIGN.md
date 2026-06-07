@@ -190,6 +190,75 @@ that keeps the world **densely, variedly, purposefully filled.**
 - **Reconcile with WORLD-MAP:** the WorldMap data is the single source for area rects + adjacency +
   edge-bleed; this doc commits to realising WORLD-MAP's adjacency literally in world-coords.
 
+### 2.1a NATURAL SYSTEMS — hydrology + elevation (ONE continuous landmass, not bolted-on)
+The regions only read as one place if **water and elevation flow continuously THROUGH the seams**, not
+as scenery dropped per-region. The skeleton (consistent with WORLD-MAP's compass + region identities):
+
+```
+ ELEVATION + WATER (compass; ~ = water, ^ = high ground, v = low)
+                 [HOLLOW SPIRE]  ^^^^  (far N — the highest point; snow/ice cap)
+                 [SUNDERED PEAKS] ^^^   (N high — snowmelt + springs = the HEADWATERS)
+                        | streams converge ↓ (elevation falls S into the vale)
+  [ASHEN MARSH] ~~~ [GREENHOLLOW VALE] === river → === [TIDEWRECK COAST] ~~~OCEAN
+   (W, LOW wet basin)   (centre, the brook/    (river gathers, runs E, downhill)  (E, sea level)
+        ^ seepage          river crosses it)
+        |
+                 [EMBERWOOD] ^^ (S — rises again to a VOLCANIC massif; the only other high ground)
+```
+
+- **THE WATERSHED (peaks → vale → coast — the spine of continuity):** snowmelt + springs in the
+  **Sundered Peaks (N, highest)** form **headwater STREAMS** → they descend the foothills and feed the
+  **Greenhollow brook** (already canon in the meadow) which widens into a **river** crossing the vale →
+  the river runs **E, downhill, to a delta/river-mouth at Tidewreck** where fresh water meets the
+  **OCEAN** (canon). One river system stitches three regions; you can trace it on the map end-to-end.
+- **ASHEN MARSH (W) = the LOW WET BASIN:** the land dips W of the vale, so water pools — a slow
+  distributary/seepage off the vale's river + rain catchment makes the **bog / black water** (canon).
+  The marsh is *low ground*, which is *why* it's wet (reads as cause, not decoration).
+- **EMBERWOOD (S) = a VOLCANIC massif under the wood** (the only other high ground): elevation rises
+  again to the S. Its water is **separate + warm** — volcanic meltwater = **steaming springs / a
+  sulfur tarn**, thematically opposed to the cold northern system (fire vs the cold water).
+- **Minor variety, believably placed:** **cliffs** at the Coast (sea cliffs, canon) + the "**Sundered**"
+  Peaks (riven clefts/chasms — the name earns it); **valleys/passes** through the Peaks; **lakes/tarns**
+  where the river widens (a vale lake) and a cold **tarn** in the high passes; **wetland** fringes where
+  the river meets the marsh basin. All follow from the elevation skeleton, not sprinkled at random.
+
+**RECONCILIATION with WORLD-MAP + region identities (every flag resolved):**
+- ✅ **Ocean = Tidewreck**, **bog/wetland = Ashen Marsh**, **mountains/cliffs = Sundered Peaks**,
+  **green belt = Greenhollow** — all match WORLD-MAP exactly; the watershed only *connects* them.
+- ⚑ **VOLCANO vs Emberwood's "wood" (the one real tension — RESOLVED, confirm with Van):** WORLD-MAP
+  calls Emberwood "*an unnatural WOOD where fire + frost war = the dying god's fever*" — it does **not**
+  say volcano. Resolution that ADDS without contradicting: the **volcano is Emberwood's fire ENGINE** —
+  a volcanic heart/massif the unnatural wood clings to; the **fire half** of the fire-frost war
+  literally **emanates from it**, and the **Ember Hollow dungeon sits in/under it**. Crucially it stays
+  lore-consistent: the volcano is the **physical vessel of the god's fever** (WORLD-MAP: "*the god's
+  suffering IS the land's sickness*"), not mundane geology — so it deepens the existing theme rather
+  than replacing the "wood + fire/frost" identity. The wood remains the surface read; the volcano is
+  its heart. **No WORLD-MAP edit needed unless Van wants the volcano named there.**
+- ✅ **Brook continuity:** keeps Greenhollow's canon brook (meadow) — the river system *includes* it,
+  doesn't relocate it; the brook is the vale stretch of the peaks→coast river.
+
+**[FREE NOW] vs [ENGINE FEATURE] — do NOT promise engine-terrain as free** (cross-ref TRAVERSAL-
+EXPLORATION engine items + the §2.5 gating law):
+
+| Feature | Tag | Note |
+|---|---|---|
+| River/stream **courses**, lakes, tarns, wetland, ocean edge, the volcano **cone + lava-glow**, cliffs/valleys as a painted **elevation READ** (depth bands, Part 2.6 Gate C) | **[FREE NOW]** | Painted terrain + autotile + decals + collision. The *look* of one continuous watershed/landmass is free. |
+| **Rivers-you-FOLLOW** as a guided route (the river leads you somewhere) | **[FREE NOW]-ish** | Free if it's just a painted path you walk beside; the guiding is layout/quest design. |
+| **WATER-CROSSING** (swim / wade / ford / raft / boat) | **[ENGINE FEATURE]** | Today water = a collision blocker or decorative pond. A traversal-water system is engine work → TRAVERSAL. |
+| **CLIMBABLE volcano / real VERTICALITY** (ascend ledges, scale the massif/peaks) | **[ENGINE FEATURE]** | Needs the Peaks CLIMB/GRAPPLE tool + a verticality model → TRAVERSAL. Elevation as a *visual* is free; *climbing* it is not. |
+| **LAVA / ICE as hazard-gates** (burn-gate, freeze a flow to cross, melt ice) | **[ENGINE FEATURE]** | The Emberwood FIRE/FROST tool interaction → TRAVERSAL + §2.5 gating. |
+| **TIDE-timed** water level (Coast tide caves) | **[ENGINE FEATURE]** | Time-gated water (WORLD-MAP's Coast gimmick) → §2.5 TIME gate. |
+
+**Gating tie-in (§2.5 + the tools) — the geography IS the Metroidvania:** **LANTERN** (Marsh) reveals
+dark water-paths; **CLIMB/GRAPPLE** (Peaks) scales the volcano + river-gorge ledges + high passes;
+**HOOKSHOT** (Coast) crosses **water gaps / chasms** (rivers, the marsh's far reaches); **FIRE/FROST**
+(Emberwood) manages **lava + ice** (freeze a river/flow to cross, burn a thicket) → opens the Spire.
+So the **water + elevation features are the tool-gates** — see-it-early-reach-it-later at world scale.
+
+**Part 2.6 cohesion:** the watershed + elevation gradient ARE the seam-believability (Level B) — water
+and contour crossing a border with no break is the world-scale version of Gate C/D (feathered edges,
+depth bands). A river or ridge that *continues* across a seam is the strongest "one place" cue.
+
 ### 2.2 DENSITY / PACING (always something within a short walk)
 - **Content-per-area floor:** every authored area meets a **point-of-interest density floor** — within
   a short walk you always find *something* (a secret, a vista, an NPC, a landmark, a set-piece, an
