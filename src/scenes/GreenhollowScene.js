@@ -8,8 +8,13 @@
 
 import { RegionScene } from './RegionScene.js';
 import { WORLD } from '../data/world.js';
-import { GREENHOLLOW_CHILDHOOD } from '../data/quests/index.js';
-import { DEPTH } from '../systems/DepthSort.js';
+import { GREENHOLLOW_CHILDHOOD, GREENHOLLOW_SIDE } from '../data/quests/index.js';
+import { Interaction } from '../systems/Interaction.js';
+import { DepthSort, DEPTH } from '../systems/DepthSort.js';
+import { TILE } from '../data/assets.js';
+
+const tileToPx = (t) => t * TILE + TILE / 2;
+const FACE = (name, parts, expression = 'neutral') => ({ [name]: { parts, expression } });
 
 const GREEN_THEME = {
   accent: 0xffe9c2,
@@ -31,8 +36,13 @@ export class GreenhollowScene extends RegionScene {
       key: 'Greenhollow',
       title: 'EMBERFALL 2 — Greenhollow',
       help: 'WASD move  Shift run  J attack  Space dodge-roll  C block  E talk  Esc settings',
-      quests: GREENHOLLOW_CHILDHOOD,
-      faces: { Mara: { parts: WORLD.maraParts, expression: 'happy' }, Bram: { parts: WORLD.bramParts, expression: 'neutral' } },
+      quests: [...GREENHOLLOW_CHILDHOOD, ...GREENHOLLOW_SIDE],
+      faces: {
+        ...FACE('Mara', WORLD.maraParts, 'happy'), ...FACE('Bram', WORLD.bramParts),
+        ...FACE('Hodge', WORLD.hodgeParts), ...FACE('Tam', WORLD.tamParts, 'happy'),
+        ...FACE('Phil McCracken', WORLD.philParts), ...FACE('Fatley', WORLD.fatleyParts),
+        ...FACE('Pem', WORLD.pemParts, 'happy'),
+      },
       questHud: { show: true, id: 'M1', label: 'A Greenhollow Morning' },
       theme: GREEN_THEME,
       promptYOff: 110,
@@ -52,20 +62,40 @@ export class GreenhollowScene extends RegionScene {
       // SAFE VILLAGE (no monsters in settlements — see QUALITY-BIBLE). The childhood
       // act has no combat anyway; combat begins in the wilds (Marsh/Peaks). A dev can
       // press 0 to spawn a test charger for feel-testing — see onCreateExtra.
-      combat: { enabled: true, adult: true, spawn: { tx: 17, ty: 19 }, safeZone: true,
+      combat: { enabled: true, adult: true, spawn: { tx: 26, ty: 25 }, safeZone: true,
         devNote: '[SAFE VILLAGE] press 0 = spawn a dev-test charger (dev only)' },
     };
   }
 
   onCreateExtra() {
+    // DEMO seed: make the hub return-side quests (Fatley's mug etc.) available now
+    // so they're playable in the village (they gate behind M7 in the full chain).
+    for (const id of ['SG1', 'SG2', 'SG3', 'SG4']) { this.quests.unlocked.add(id); if (this.quests.state[id]) this.quests.state[id] = 'available'; }
+    this._buildChests();
     // dev navigation + debug overlay + wheel zoom
     this.input.keyboard.addKey('M').on('down', () => { if (!this._dlg) this.scene.start('Marsh'); });   // -> Ashen Marsh (W)
     this.input.keyboard.addKey('N').on('down', () => { if (!this._dlg) this.scene.start('Peaks'); });   // -> Sundered Peaks (N road)
     this.input.keyboard.addKey('B').on('down', () => this._toggleDebug());
-    // DEV ONLY: spawn a test charger to feel-test combat in the (otherwise safe) village
-    this.input.keyboard.addKey('ZERO').on('down', () => { if (!this._dlg && this.combat.live.length === 0) this.combat.spawn('charger', { tx: 22, ty: 28 }); });
+    // DEV ONLY: spawn a test charger in the south meadow to feel-test combat
+    this.input.keyboard.addKey('ZERO').on('down', () => { if (!this._dlg && this.combat.live.length === 0) this.combat.spawn('charger', { tx: 9, ty: 36 }); });
     this.input.on('wheel', (_p, _o, _dx, dy) => this._stepZoom(dy > 0 ? -1 : +1));
     this._buildDebug();
+  }
+
+  // SECRETS — findable chests reward exploration (a hollow off the wood path, behind
+  // the manor, behind the tavern). Open once -> gold + a line.
+  _buildChests() {
+    this._opened = new Set();
+    for (const c of (WORLD.chests || [])) {
+      const x = tileToPx(c.tx), y = tileToPx(c.ty);
+      const spr = this.add.sprite(x, y, 'prop_chest').setOrigin(0.5, 0.72);
+      DepthSort.track(spr, 8);
+      Interaction.register({ x, y: y + 6, prompt: 'Open the chest', onInteract: () => {
+        if (this._opened.has(c.id)) return this._startGreeting('', ['The chest is empty now — you cleared it earlier.']);
+        this._opened.add(c.id); this.inv.addGold(c.gold);
+        this._startGreeting('', [`${c.line}  (You now have ${this.inv.gold}g.)`]);
+      } });
+    }
   }
 
   _buildDebug() {
