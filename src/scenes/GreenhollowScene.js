@@ -51,6 +51,7 @@ export class GreenhollowScene extends RegionScene {
         widthTiles: WORLD.widthTiles, heightTiles: WORLD.heightTiles,
         terrain: WORLD.terrain,                        // real autotile feathered ground (v3)
         ground: { base: 'tile_grass', rects: [] },     // fallback (unused while terrain is set)
+        ambient: { birds: true, critters: [] },        // ambient-life hook (birds FX; FLAG: no animal sprites loaded → critters slot inert)
         water: { pond: WORLD.pond },
         decalLayers: [
           { cfg: WORLD.dirt, originY: 0.5, depth: DEPTH.FLOOR + 1 },

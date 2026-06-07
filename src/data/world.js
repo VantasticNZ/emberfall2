@@ -22,6 +22,10 @@ const W = 52, H = 40;
 const fenceRun = (tx, ty, n) => Array.from({ length: n }, (_, i) => ({ key: 'prop_fence', tx: tx + i, ty, solid: true }));
 // a planted HEDGE (solid bushes) — a diegetic district divider; `vert` runs it down.
 const hedge = (tx, ty, n, vert = false) => Array.from({ length: n }, (_, i) => ({ key: 'prop_bush', tx: tx + (vert ? 0 : i), ty: ty + (vert ? i : 0), solid: true }));
+// a daily SCHEDULE: [phase, tx, ty, activity] rows -> NpcLife data. Quest-givers'
+// DAY spot == their old static spot (so quests stay reachable), with dawn/dusk/night
+// variation; night spots sit OUTSIDE buildings (in front), so seek-paths stay clear.
+const sched = (rows) => rows.map(([phase, tx, ty, d]) => ({ phase, tx, ty, do: d || 'idle' }));
 
 // BOUNDARY DEPTH BAND — 3 rows deep per edge with a scale/tint gradient (front big &
 // bright → back small & dark = receding silhouette) + undergrowth bushes; gaps at the
@@ -147,7 +151,8 @@ export const WORLD = {
   // THE CAST — in their districts; M1–M4 + hub side quests + the social system.
   npcs: [
     { tx: 22, ty: 17, facing: 'down', name: 'Mara', speed: 70, expression: 'happy', parts: MARA, quest: 'M1',
-      done: ['Off you go then — and mind Old Edda, she\'s in a mood this morning.'] },
+      done: ['Off you go then — and mind Old Edda, she\'s in a mood this morning.'],
+      schedule: sched([['dawn', 20, 16, 'chat'], ['day', 22, 17, 'tend'], ['dusk', 24, 19, 'idle'], ['night', 24, 21, 'sleep']]) },
     { tx: 11, ty: 26, facing: 'down', name: 'Bram', speed: 70, expression: 'neutral', parts: BRAM, greeting: [
       "There's my little terror — up early for once! The forge is hot if you've come to watch me work.",
     ],
@@ -161,17 +166,23 @@ export const WORLD = {
         bought: { speaker: 'Bram', text: 'Mind the edge — it bites truer than your tongue.', options: [{ label: '(Take it.)', end: true }] },
         haggled: { speaker: 'Bram', text: "...Hah. Silver tongue on you. Fine — a few coins off, just this once.", options: [{ label: '(Pocket the saving.)', end: true }] },
         refused: { speaker: 'Bram', text: 'Nice try. The price is the price — earn a name first.', options: [{ label: '(Let it stand.)', end: true }] },
-      } } },
+      } },
+      schedule: sched([['dawn', 12, 25, 'idle'], ['day', 11, 26, 'hammer'], ['dusk', 13, 23, 'chat'], ['night', 15, 24, 'sleep']]) },
     { tx: 9, ty: 23, facing: 'right', name: 'Hodge', speed: 70, expression: 'neutral', parts: HODGE, quest: 'SG3',
-      greeting: ['The forge runs hot all day. Come back when you\'ve hands for real work.'] },
+      greeting: ['The forge runs hot all day. Come back when you\'ve hands for real work.'],
+      schedule: sched([['dawn', 9, 23, 'idle'], ['day', 9, 23, 'hammer'], ['dusk', 11, 22, 'chat'], ['night', 8, 26, 'sleep']]) },
     { tx: 25, ty: 18, facing: 'down', name: 'Tam', speed: 70, expression: 'happy', parts: TAM, quest: 'M2',
-      greeting: ['Race you to the old cave! ...if your ma ever lets you off chores.'] },
+      greeting: ['Race you to the old cave! ...if your ma ever lets you off chores.'],
+      schedule: sched([['dawn', 22, 16, 'idle'], ['day', 25, 18, 'chat'], ['dusk', 28, 21, 'idle'], ['night', 28, 22, 'sleep']]) },
     { tx: 15, ty: 16, facing: 'down', name: 'Phil McCracken', speed: 70, expression: 'neutral', parts: PHIL, quest: 'M3',
-      greeting: ['Coin\'s coin, friend. Mind you don\'t lose any.'] },
+      greeting: ['Coin\'s coin, friend. Mind you don\'t lose any.'],
+      schedule: sched([['dawn', 15, 16, 'tend'], ['day', 15, 16, 'tend'], ['dusk', 17, 18, 'chat'], ['night', 16, 18, 'sleep']]) },
     { tx: 30, ty: 18, facing: 'up', name: 'Fatley', speed: 70, expression: 'neutral', parts: FATLEY, quest: 'SG1',
-      greeting: ['*hic* Oi. You. ...nah, later. Me back\'s gone.'] },
+      greeting: ['*hic* Oi. You. ...nah, later. Me back\'s gone.'],
+      schedule: sched([['dawn', 30, 18, 'idle'], ['day', 30, 18, 'chat'], ['dusk', 30, 18, 'chat'], ['night', 29, 18, 'idle']]) },   // the drunk never leaves the tavern
     { tx: 26, ty: 11, facing: 'down', name: 'Pem', speed: 70, expression: 'happy', parts: PEM, quest: 'SG2',
-      greeting: ['*grins* You didn\'t see me. PEM WOZ ERE, though. Always.'] },
+      greeting: ['*grins* You didn\'t see me. PEM WOZ ERE, though. Always.'],
+      schedule: sched([['dawn', 26, 11, 'idle'], ['day', 26, 11, 'idle'], ['dusk', 24, 13, 'chat'], ['night', 27, 10, 'idle']]) },
   ],
 
   player: { tx: 22, ty: 19, facing: 'up', speed: 95, expression: 'neutral', parts: HERO },
