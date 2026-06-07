@@ -20,6 +20,8 @@ const PEM = ['body_fem', 'head_fem', 'brows_chestnut', 'hair_bob_blonde', 'shirt
 
 const W = 52, H = 40;
 const fenceRun = (tx, ty, n) => Array.from({ length: n }, (_, i) => ({ key: 'prop_fence', tx: tx + i, ty, solid: true }));
+// a planted HEDGE (solid bushes) — a diegetic district divider; `vert` runs it down.
+const hedge = (tx, ty, n, vert = false) => Array.from({ length: n }, (_, i) => ({ key: 'prop_bush', tx: tx + (vert ? 0 : i), ty: ty + (vert ? i : 0), solid: true }));
 
 // BOUNDARY DEPTH BAND — 3 rows deep per edge with a scale/tint gradient (front big &
 // bright → back small & dark = receding silhouette) + undergrowth bushes; gaps at the
@@ -96,6 +98,15 @@ export const WORLD = {
     // ---- the SMITHY district (set apart, W — heat + noise) ----
     { key: 'prop_forge', tx: 10, ty: 24, solid: true },
     { key: 'prop_barrel', tx: 8, ty: 26, solid: true }, { key: 'prop_barrel', tx: 13, ty: 25, solid: true },
+
+    // ---- DISTRICT DIVIDERS (Pillar 1: barriers create places) — short hedges in the
+    //      OPEN GRASS between districts, breaking the long E/W sightlines so plaza /
+    //      homes / smithy read as separate places. Placed clear of every lane + NPC +
+    //      quest route (re-verified walkable live). FLAG: a dedicated hedge sprite would
+    //      beat reusing bushes. ----
+    ...hedge(31, 24, 5, true),   // plaza/center ↔ HOMES district (E), below the homes lane
+    ...hedge(16, 23, 4, true),   // plaza/center ↔ SMITHY yard (W), clear of the smithy lane
+    ...hedge(35, 31, 3),         // homes ↔ farm margin (a low planting break, SE)
 
     // ---- the HOMES district (SE), cottages fronting the curved lane, BACKING onto fenced yards ----
     { key: 'prop_house_b', tx: 34, ty: 24, solid: true },                       // cottage (red brick)
