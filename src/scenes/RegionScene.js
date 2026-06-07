@@ -14,6 +14,7 @@
 
 import Phaser from 'phaser';
 import { PROPS, PARTS, TILE, DIR_ROW, ANIMS, EXPRESSIONS, EXPR_COLS, EXPR_ROW, CHAR_FOOTPRINT } from '../data/assets.js';
+import { TERRAIN } from '../data/terrainTiles.js';
 import { AssetLoader } from '../art/AssetLoader.js';
 import { Character } from '../systems/Character.js';
 import { Movement } from '../systems/Movement.js';
@@ -75,7 +76,8 @@ export class RegionScene extends Phaser.Scene {
 
     this.cameras.main.setBounds(0, 0, this.worldW, this.worldH);
     this.cameras.main.setRoundPixels(false);
-    this.cameras.main.startFollow(this.player, false, 0.1, 0.1);
+    this.cameras.main.startFollow(this.player, false, 0.12, 0.12);
+    this.cameras.main.setDeadzone(220, 150);   // soft deadzone: move toward an edge + the boundary depth-band reads
     if (this.cfg.bg) this.cameras.main.setBackgroundColor(this.cfg.bg);
     this.baseZoom = 1.25; this._applyCamera();
 
@@ -103,10 +105,36 @@ export class RegionScene extends Phaser.Scene {
 
   // ---- WORLD (from cfg.world) ------------------------------------------------
   _buildGround() {
+    if (this.cfg.world.terrain) return this._buildGroundAutotiled(this.cfg.world.terrain);
     const g = this.cfg.world.ground;
     const paint = (key, x, y, w, h) => { const ts = this.add.tileSprite(x, y, w, h, key).setOrigin(0, 0); if (g.tint != null) ts.setTint(g.tint); DepthSort.pinFloor(ts); return ts; };
     paint(g.base, 0, 0, this.worldW, this.worldH);
     for (const [key, tx, ty, w, h] of (g.rects || [])) paint(key, tx * TILE, ty * TILE, w * TILE, h * TILE);
+  }
+  // Feathered biome edges via the [LPC] Terrains corner-autotile atlas: a tiled grass
+  // BASE + a transparent RenderTexture holding only the per-cell transition tiles, so
+  // each overlay (gravel plaza / dirt road / soil field …) interpenetrates the grass.
+  _buildGroundAutotiled(t) {
+    const W = this.cfg.world.widthTiles, H = this.cfg.world.heightTiles;
+    const base = this.add.tileSprite(0, 0, this.worldW, this.worldH, 'lpc_terrain', TERRAIN.grass).setOrigin(0, 0);
+    DepthSort.pinFloor(base);
+    const rt = this.add.renderTexture(0, 0, this.worldW, this.worldH).setOrigin(0, 0);
+    DepthSort.pinFloor(rt);
+    for (const patch of (t.patches || [])) {
+      const set = TERRAIN.sets[patch.set]; if (!set) continue;
+      const corner = Array.from({ length: H + 1 }, () => new Uint8Array(W + 1));
+      for (const [tx, ty, w, h] of (patch.rects || [])) {
+        for (let cy = ty; cy <= ty + h; cy++) for (let cx = tx; cx <= tx + w; cx++) {
+          if (cy >= 0 && cy <= H && cx >= 0 && cx <= W) corner[cy][cx] = 1;
+        }
+      }
+      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+        const key = `${corner[y][x]}${corner[y][x + 1]}${corner[y + 1][x]}${corner[y + 1][x + 1]}`;
+        if (key === '0000') continue;
+        const frame = key === '1111' ? set.full : set.edges[key];
+        if (frame != null) rt.drawFrame('lpc_terrain', frame, x * TILE, y * TILE);
+      }
+    }
   }
   _buildWater() {
     const wt = this.cfg.world.water; this._ponds = [];
@@ -157,7 +185,8 @@ export class RegionScene extends Phaser.Scene {
     for (const p of this.cfg.world.props) {
       const d = PROPS[p.key];
       const spr = this.physics.add.sprite(tileToPx(p.tx), tileToPx(p.ty), p.key).setOrigin(0.5, 0.5);
-      if (p.tint != null) spr.setTint(p.tint);                                      // per-prop tint (cottage variety)
+      if (p.scale != null) spr.setScale(p.scale);                                   // depth-band gradient (front big → back small)
+      if (p.tint != null) spr.setTint(p.tint);                                      // per-prop tint (cottage variety / receding-dark)
       else if (treeTint != null && p.key.startsWith('prop_tree')) spr.setTint(treeTint);
       this._props = this._props || {}; if (p.id) this._props[p.id] = spr;           // named props (e.g. a chest)
       if (p.solid && d.footprint) { Collision.makeSolid(spr, d.footprint); this.solids.add(spr); }
