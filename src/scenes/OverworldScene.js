@@ -33,6 +33,7 @@ import { EnemyController } from '../systems/EnemyController.js';
 import { PlayerCombat } from '../systems/Combat.js';
 import { COMBAT } from '../constants/standards.js';
 import { bindings } from '../constants/controls.js';
+import { AssetLoader } from '../art/AssetLoader.js';
 import { PROPS } from '../data/assets.js';
 import { TERRAIN } from '../data/terrainTiles.js';
 import { GREENHOLLOW_CHILDHOOD, GREENHOLLOW_SIDE, ASHEN_MARSH } from '../data/quests/index.js';
@@ -49,6 +50,8 @@ export class OverworldScene extends Phaser.Scene {
 
   create() {
     DepthSort.reset(); Interaction.reset();
+    AssetLoader.build(this);   // register the per-facing walk/idle anims (same path RegionScene uses) —
+                               // WITHOUT this, Characters can't turn (stuck on spritesheet frame 0 = facing up)
     this.cameras.main.setBackgroundColor('#243a2a');
     this.physics.world.setBounds(0, 0, WORLD_PX, WORLD_PX);
 
