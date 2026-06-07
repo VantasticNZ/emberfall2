@@ -18,6 +18,11 @@ export const ACTIONS = Object.freeze([
   'cycle_prev', 'cycle_next', // cycle the active item
   'menu',       // game menu (inventory/character/map/quests)
   'settings',   // the options/settings menu
+  // HUD toggles (the dedicated HUD pass) — remappable like any action.
+  'toggle_map',        // open/close the full-map overview
+  'toggle_tracker',    // show/hide the quest tracker (and cycle its detail)
+  'toggle_objective',  // show/hide the objective direction indicator
+  'toggle_hud',        // hide/show the whole HUD (clean screenshot view)
 ]);
 
 // Human labels for the rebinding UI.
@@ -26,6 +31,7 @@ export const ACTION_LABELS = Object.freeze({
   run: 'Run', interact: 'Interact / Talk', attack: 'Attack', dodge: 'Dodge-roll', use: 'Use / Throw',
   aim: 'Aim (later)', block: 'Block / Parry', cycle_prev: 'Prev Item', cycle_next: 'Next Item',
   menu: 'Game Menu', settings: 'Settings',
+  toggle_map: 'Map (overview)', toggle_tracker: 'Quest Tracker', toggle_objective: 'Objective Marker', toggle_hud: 'Hide HUD',
 });
 
 // Default KEYBOARD bindings (Phaser key names). Left-click also attacks; right-
@@ -35,6 +41,8 @@ export const DEFAULT_KEYBOARD = Object.freeze({
   run: 'SHIFT', interact: 'E', attack: 'J', dodge: 'SPACE', use: 'Q',
   aim: 'R', block: 'C', cycle_prev: 'OPEN_BRACKET', cycle_next: 'CLOSED_BRACKET',
   menu: 'TAB', settings: 'ESC',
+  // HUD toggles ('M' is the dev region-jump in Greenhollow, so the map uses 'O').
+  toggle_map: 'O', toggle_tracker: 'T', toggle_objective: 'Y', toggle_hud: 'H',
 });
 
 // Default XBOX gamepad bindings (Phaser standard Xbox button indices).
