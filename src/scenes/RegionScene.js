@@ -191,13 +191,15 @@ export class RegionScene extends Phaser.Scene {
       this._props = this._props || {}; if (p.id) this._props[p.id] = spr;           // named props (e.g. a chest)
       if (p.solid && d.footprint) { Collision.makeSolid(spr, d.footprint); this.solids.add(spr); }
       else if (spr.body) { spr.body.enable = false; }
-      DepthSort.track(spr, d.footprint ? d.footprint.offY : d.height / 2);
+      // sort by the footprint BASE (feet line), not its centre — so a character at a
+      // building's ground line occludes correctly (DepthSort's documented intent).
+      DepthSort.track(spr, d.footprint ? d.footprint.offY + d.footprint.h / 2 : d.height / 2);
     }
   }
   _buildNPCs() {
     for (const n of this.cfg.world.npcs) {
       const npc = new Character(this, tileToPx(n.tx), tileToPx(n.ty), { parts: n.parts, facing: n.facing, speed: n.speed, expression: n.expression });
-      Collision.markSolidActor(npc); this.solids.add(npc); DepthSort.track(npc, CHAR_FOOTPRINT.offY);
+      Collision.markSolidActor(npc); this.solids.add(npc); DepthSort.track(npc, CHAR_FOOTPRINT.offY + CHAR_FOOTPRINT.h / 2);
       this._npcByQuest = this._npcByQuest || {}; if (n.quest) this._npcByQuest[n.quest] = npc;   // objective-indicator target
       this._poi = this._poi || []; this._poi.push({ x: npc.x, y: npc.y, kind: 'npc' });           // minimap point of interest
       Interaction.register({
@@ -218,7 +220,7 @@ export class RegionScene extends Phaser.Scene {
     const pd = this.cfg.world.player;
     this.player = new Character(this, tileToPx(pd.tx), tileToPx(pd.ty), { parts: pd.parts, facing: pd.facing, speed: pd.speed, expression: pd.expression });
     this.player.equip('sword');
-    Collision.markPlayer(this.player); this.actors.add(this.player); DepthSort.track(this.player, CHAR_FOOTPRINT.offY);
+    Collision.markPlayer(this.player); this.actors.add(this.player); DepthSort.track(this.player, CHAR_FOOTPRINT.offY + CHAR_FOOTPRINT.h / 2);
   }
 
   // ---- INPUT (canonical control map) ----------------------------------------
