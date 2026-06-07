@@ -30,6 +30,7 @@ import { Interaction } from '../systems/Interaction.js';
 import { Dialogue } from '../systems/Dialogue.js';
 import { Social } from '../systems/Social.js';
 import { PROPS } from '../data/assets.js';
+import { TERRAIN } from '../data/terrainTiles.js';
 import { GREENHOLLOW_CHILDHOOD, GREENHOLLOW_SIDE } from '../data/quests/index.js';
 import { TILE, CHUNK_PX, WORLD_CHUNKS, WORLD_PX, chunkContent, GREENHOLLOW, inGreenhollow } from '../data/worldmap.js';
 
@@ -112,6 +113,11 @@ export class OverworldScene extends Phaser.Scene {
     const R = GREENHOLLOW; this.region = R;
     this._regionObjs = []; this._chestSprites = [];
     Interaction.reset();
+    // PHASE-3 ART (gold-standard v3 restored, RESIDENT atlas): autotiled feathered
+    // terrain + the brook + lived-in decals — UNDER the props (ground layer).
+    this._buildRegionTerrain(R);
+    this._buildRegionWater(R);
+    this._buildRegionDecals(R);
     // buildings/props/depth-band (RESIDENT real art; world-coords)
     for (const p of R.props) {
       const d = PROPS[p.key]; if (!d) continue;
@@ -164,6 +170,64 @@ export class OverworldScene extends Phaser.Scene {
     this.npcLife = new NpcLife(this);   // schedule STATE re-derives from TimeOfDay+deeds on reload; quest/karma/inv persist in the systems
     Interaction.reset();
     this.region = null;
+  }
+
+  // ---- PHASE-3 v3 ART (ported from RegionScene; RESIDENT lpc_terrain atlas) ----
+  // Autotiled FEATHERED terrain: a RenderTexture over the village holding only the
+  // per-cell corner-transition tiles, so each overlay (gravel plaza / dirt road /
+  // soil field) interpenetrates the per-chunk grass base — kills the flat tint-step.
+  _buildRegionTerrain(R) {
+    if (!R.terrain) return;
+    const W = R.widthTiles, H = R.heightTiles;
+    const rt = this.add.renderTexture(R.origin.x, R.origin.y, W * TILE, H * TILE).setOrigin(0, 0).setDepth(DEPTH.FLOOR + 1);
+    for (const patch of (R.terrain.patches || [])) {
+      const set = TERRAIN.sets[patch.set]; if (!set) continue;
+      const corner = Array.from({ length: H + 1 }, () => new Uint8Array(W + 1));
+      for (const [tx, ty, w, h] of (patch.rects || [])) {
+        for (let cy = ty; cy <= ty + h; cy++) for (let cx = tx; cx <= tx + w; cx++) {
+          if (cy >= 0 && cy <= H && cx >= 0 && cx <= W) corner[cy][cx] = 1;
+        }
+      }
+      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+        const key = `${corner[y][x]}${corner[y][x + 1]}${corner[y + 1][x]}${corner[y + 1][x + 1]}`;
+        if (key === '0000') continue;
+        const frame = key === '1111' ? set.full : set.edges[key];
+        if (frame != null) rt.drawFrame('lpc_terrain', frame, x * TILE, y * TILE);
+      }
+    }
+    this._regionObjs.push(rt);
+  }
+  // the brook (banked pool) — pond corner/edge tiles, world-coords
+  _buildRegionWater(R) {
+    if (!R.pond) return;
+    const p = R.pond;
+    for (let y = 0; y < p.h; y++) for (let x = 0; x < p.w; x++) {
+      const v = (y === 0 ? 'n' : y === p.h - 1 ? 's' : '') + (x === 0 ? 'w' : x === p.w - 1 ? 'e' : '');
+      const img = this.add.image(R.origin.x + (p.tx + x) * TILE, R.origin.y + (p.ty + y) * TILE, `pond_${v || 'c'}`).setOrigin(0, 0).setDepth(DEPTH.FLOOR + 1);
+      this._regionObjs.push(img);
+    }
+  }
+  // lived-in DECALS — tufts/grass/clover/flowers/ferns/dirt scattered over the village
+  // (seeded, edge-avoided, pond-avoided), FLOOR-pinned so they never occlude actors.
+  _buildRegionDecals(R) {
+    const W = R.widthTiles * TILE, H = R.heightTiles * TILE, m = 2 * TILE, p = R.pond;
+    const inPond = (lx, ly) => p && lx >= (p.tx - 0.5) * TILE && lx < (p.tx + p.w + 0.5) * TILE && ly >= (p.ty - 0.5) * TILE && ly < (p.ty + p.h + 0.5) * TILE;
+    const layers = [
+      { cfg: R.decalLayers[0], originY: 0.5, depth: DEPTH.FLOOR + 2 },   // dirt patches
+      { cfg: R.decalLayers[1], originY: 1, depth: DEPTH.FLOOR + 3 },     // tufts / grass / flowers / clover
+      { cfg: R.decalLayers[2], originY: 1, depth: DEPTH.FLOOR + 3 },     // ferns
+    ];
+    for (const layer of layers) {
+      const cfg = layer.cfg; if (!cfg) continue; let seed = cfg.seed >>> 0;
+      const rnd = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
+      let placed = 0, tries = 0;
+      while (placed < cfg.count && tries < cfg.count * 12) {
+        tries++; const lx = Math.floor(rnd() * W), ly = Math.floor(rnd() * H);
+        if (lx < m || lx > W - m || ly < m || ly > H - m || inPond(lx, ly)) continue;
+        const img = this.add.image(R.origin.x + lx, R.origin.y + ly, cfg.pool[Math.floor(rnd() * cfg.pool.length)]).setOrigin(0.5, layer.originY).setDepth(layer.depth);
+        placed++; this._regionObjs.push(img);
+      }
+    }
   }
 
   // ---- interaction → dialogue branch (mirror the discrete-scene logic) --------
@@ -256,9 +320,9 @@ export class OverworldScene extends Phaser.Scene {
   _spawn({ k, cx, cy }) {
     const data = chunkContent(cx, cy), ox = cx * CHUNK_PX, oy = cy * CHUNK_PX;
     let c = this.pool.pop();
-    if (!c) c = { ground: this.add.tileSprite(0, 0, CHUNK_PX, CHUNK_PX, 'tile_grass').setOrigin(0, 0), props: [], cx, cy };
+    if (!c) c = { ground: this.add.tileSprite(0, 0, CHUNK_PX, CHUNK_PX, 'tile_grass').setOrigin(0, 0), props: [], decals: [], cx, cy };
     c.cx = cx; c.cy = cy;
-    c.ground.setPosition(ox, oy).setVisible(true).setActive(true).setTint(data.tint).setDepth(DEPTH.FLOOR);
+    c.ground.setPosition(ox, oy).setVisible(true).setActive(true).clearTint().setDepth(DEPTH.FLOOR);   // uniform grass (no per-chunk tint-step)
     // suppress green-belt scatter UNDER the settlement (the region draws its own)
     const overRegion = inGreenhollow(ox + CHUNK_PX / 2, oy + CHUNK_PX / 2);
     let pi = 0;
@@ -269,10 +333,18 @@ export class OverworldScene extends Phaser.Scene {
       DepthSort.track(spr, d.footprint ? d.footprint.offY + d.footprint.h / 2 : (d.height || 32) * 0.15);
     }
     for (; pi < c.props.length; pi++) { c.props[pi].setVisible(false).setActive(false); DepthSort.untrack(c.props[pi]); }
+    // belt DECALS — FLOOR-pinned ground dressing (flowers/tufts), never occlude actors
+    let di = 0;
+    if (!overRegion) for (const dc of (data.decals || [])) {
+      let img = c.decals[di++]; if (!img) { img = this.add.image(0, 0, dc.key).setOrigin(0.5, 1).setDepth(DEPTH.FLOOR + 2); c.decals.push(img); }
+      img.setTexture(dc.key).setPosition(dc.x, dc.y).setVisible(true).setActive(true);
+    }
+    for (; di < c.decals.length; di++) c.decals[di].setVisible(false).setActive(false);
     this.chunks.set(k, c);
   }
   _release(k, c) {
     for (const spr of c.props) { spr.setVisible(false).setActive(false); DepthSort.untrack(spr); }
+    for (const img of (c.decals || [])) img.setVisible(false).setActive(false);
     c.ground.setVisible(false).setActive(false);
     this.chunks.delete(k); this.pool.push(c);
   }
