@@ -183,6 +183,9 @@ region on the RegionScene template.
 2. **Natural / immersive map principles:** diegetic boundaries (no hard map edges — fence
    the world with cliffs/water/dense wood/buildings), winding traversal not open fields,
    varied ground by zone, sub-areas that read distinct, secrets that reward exploration.
+   These are now NAMED, CHECKABLE GATES — see **QUALITY-BIBLE Part 2.6 — Spatial /
+   World-Cohesion DoD** (gates A–J, each tagged [OBJECTIVE]/[EYE]); every region build is
+   judged against it under HARD RULE 9.
 3. **HUD build** (a dedicated pass): quest-log UI, ending-screen UI, a region/world map +
    minimap, a clean diegetic HUD. Currently minimal.
 4. **Then replicate regions** to the bar, region-by-region.

@@ -204,6 +204,130 @@ proof required" and hand them to Van explicitly:
 A visual session is only "provisionally done" until Van has played the FEEL items.
 
 ================================================================
+## PART 2.6 — SPATIAL / WORLD-COHESION DoD (the "Fable-grade place" gates)
+================================================================
+Peer to Part 2.5, under HARD RULE 9. This turns "make every region feel like a real,
+continuous, lived-in place" from a vibe into NAMED, CHECKABLE GATES, so Marsh / Peaks /
+Coast / Emberwood / Spire are built to ONE explicit bar — not re-litigated from feel each
+time. Greenhollow Vale is the reference build for these gates.
+
+Each gate is: **rule** · **why** · **check**, and every check is tagged **[OBJECTIVE]** (a
+script or screenshot verifies it — a measurable threshold is stated) or **[EYE]** (only
+Van's play-judgment passes it — what he's looking for is stated). Where an [OBJECTIVE]
+check is wireable as a lint, it is flagged **(→ verify.mjs)** as a PROPOSED check to wire in
+a later code session — described here, NOT implemented now.
+
+### A. ORGANIC LAYOUT, NOT GRID
+- **Rule:** settlements CLUSTER like real towns around a centre (green / well / crossroads);
+  buildings sit at varied spacings — tight where life clusters, apart where logic demands
+  (smithy set off for heat/noise; farm at the edge with its fields). No even scatter.
+- **Why:** an evenly-spaced grid reads as "objects placed on a flat plain," the #1 tell of a
+  staging map vs a place people live.
+- **Check:** [EYE] — does the town read as *settled around a heart*, with a believable reason
+  for anything set apart? GATE: no region may read as objects on a flat plain.
+  [OBJECTIVE] proxy (→ verify.mjs): building centres are NOT all tile-grid-aligned (≥40% sit
+  off whole-tile rows/cols), AND nearest-neighbour spacing has variance (coefficient of
+  variation ≥ ~0.35) — i.e. not a uniform lattice. (Proxy only; the [EYE] read is final.)
+
+### B. PATHS CURVE & WEAR
+- **Rule:** roads bend, fork, and narrow into worn desire-paths; they follow terrain, not
+  ruler lines. Width changes; they meet at junctions, not crossbars.
+- **Why:** a dead-straight road is the second-biggest "level, not place" tell.
+- **Check:** [OBJECTIVE] (→ verify.mjs): no straight path/road run longer than **8 tiles**
+  without a bend, fork, or width change (measured over the ground path-rects). [EYE]: do the
+  tracks feel *trodden* — like feet, not a ruler, made them?
+
+### C. DIEGETIC BOUNDARIES (proven in Greenhollow — generalise)
+- **Rule:** EVERY map edge is bounded by an in-world barrier that is a REASON — river/ford,
+  cliff, dense treeline, fence, gate, sea — never an invisible wall at flat grass. AND a hint
+  of the next area shows beyond it (marsh gloom W, peaks N, etc.) so the world reads as ONE
+  continuous place, not a room that ends.
+- **Why:** the recurring "right-side trees cut off" bug was THIS defect — the camera revealed
+  empty void past the play bound. A bounded edge fixes the class of bug and sells continuity.
+- **Check:** [OBJECTIVE] (→ verify.mjs) — the Greenhollow tree-fix is the reference: every
+  edge has boundary props; **sprite spillCount == 0** (no prop's sprite extends past
+  `[0,worldW]×[0,worldH]`); the camera never shows unbounded grass margin. [EYE]: does the
+  "beyond" read right (the next biome is hinted, not blank)?
+
+### D. FEATHERED BIOME EDGES
+- **Rule:** ground types transition organically — grass bleeds into path / dirt / sand / bog;
+  tufts / rocks / roots / leaf-litter break every seam. Use real LPC autotile/transition tiles
+  when licence-loaded; interim, the edge-scatter decal layer (built in RegionScene).
+- **Why:** a hard square biome border is a flat-box tell (Part 2.5 P-autotile, spatial scope).
+- **Check:** [EYE] — no hard square biome border anywhere; seams look feathered. [OBJECTIVE]
+  proxy (→ verify.mjs): flag any straight grass↔non-grass tile boundary longer than ~6 tiles
+  with no scatter/transition over it.
+
+### E. GROUND & SCENERY VARIETY
+- **Rule:** each region shows **≥ 4 distinct ground/scenery types** AND visible CHANGE as you
+  cross it (the eye always has a new thing to read); density VARIES — busy core vs quiet lane
+  vs open margin.
+- **Why:** a region that's visually uniform end-to-end is boring to traverse and reads as cheap.
+- **Check:** [OBJECTIVE] (→ verify.mjs): distinct ground tile-types used ≥ 4; scenery prop
+  kinds ≥ ~6. [EYE]: does the change feel *intentional* (zones that read different), not noise?
+
+### F. ELEVATION & RELIEF  *(capture honestly — partly an ENGINE question)*
+- **Rule:** regions are not one flat plane — hills, ridges, valleys, slopes where the region's
+  identity wants them (Sundered Peaks especially).
+- **Why:** flatness flattens identity; the Peaks must feel high and broken, not a green field
+  with grey tints.
+- **Check:** [EYE] for the look. Mark each elevation feature as one of:
+  - **"cosmetic relief (free now)"** — arrange existing tiles + props (cliff-edge tiles as
+    backdrops, raised treelines, layered overlap) to *imply* height. Achievable on the current
+    RegionScene with no engine change.
+  - **"NEEDS ENGINE FEATURE first"** — anything requiring **walkable elevation, multi-level
+    occlusion / depth-sort across height, or true verticality**. RegionScene today is a single
+    flat ground plane with footprint-based y-sort; real elevation needs: a height/layer concept,
+    per-layer collision, and depth-sort that accounts for height. **FLAGGED build task** — do
+    NOT over-promise the renderer can do this; cosmetic relief first, engine verticality later.
+
+### G. CAVES & INTERIORS as real explorable space
+- **Rule:** a cave-mouth / door leads SOMEWHERE (an interior space), not a sign that says "cave."
+- **Why:** "boarded cave = a sign" is a current Greenhollow placeholder; dungeons are core.
+- **Check:** [EYE] for "it's a real place inside." FLAGS (build tasks): a **real cave-mouth
+  sprite** is still wanted (currently a sign); and an **interior scene + transition** (enter/exit,
+  a RegionScene interior variant or scene-swap) is an **engine prerequisite** — FLAGGED, not
+  assumed to exist.
+
+### H. SIGNATURE REGIONAL SET-PIECES
+- **Rule:** each region earns **≥ 1 identity landmark/feature the others don't have** — e.g. the
+  Tidewreck **underwater base/section** (the hookshot tool already exists), the **burning/freezing
+  heart** of Emberwood, the **Spire** itself, the Sunken Shrine, Cinder Keep.
+- **Why:** without a signature, regions blur into "another field with tinted trees."
+- **Check:** [EYE] — is there one thing here you'll remember the region by? FLAGS: some set-pieces
+  (e.g. an **underwater layer** for the Coast) may be **engine prerequisites** (a swim/under-water
+  mode + visual layer) — FLAG as a build task if the look needs more than tiles+props.
+
+### I. LANDMARKS & LEGIBILITY
+- **Rule:** each region has clear landmarks to orient by — you can navigate it from memory
+  WITHOUT the HUD map. The space is readable: distinct silhouettes, sightlines to the goal.
+- **Why:** a place you can hold in your head is a place; a maze of samey tiles is not.
+- **Check:** [EYE] — can Van cross the region and find his way by landmarks alone?
+
+### J. SECRETS REWARD EXPLORATION
+- **Rule:** off-path discoveries reward looking around — the **3 Greenhollow chests** are the
+  reference. Every region seeds **≥ 3** stated secrets (a tucked cache, a hidden path/clearing,
+  an easter-egg corner).
+- **Why:** exploration without payoff trains players to stop exploring.
+- **Check:** [OBJECTIVE] (→ verify.mjs): secrets count ≥ 3 per region (from the region's
+  `chests`/secrets data). [EYE]: is each one actually *worth finding* (a real reward + a smile)?
+
+### ASSET POLICY (binding rule for every spatial build)
+Build to this bar with **WHAT WE HAVE** and **WHAT'S FREE** (OGA / LPC / CC0) **FIRST**. Only
+spend money once the game is **working and feels right** AND free genuinely falls short for a
+**specific** need — and only after a **licence + anti-AI-clause check** (Mana Seed stays BANNED).
+No build session reaches for a purchase prematurely; a missing asset is OMITTED + FLAGGED, never
+faked. (Cross-ref `docs/ASSET-SOURCING-TIERS.md` if/when it exists.)
+
+### PROCESS HOOK
+Every region "gold-standard" session MUST self-check this Part 2.6 — the **[OBJECTIVE]** gates
+with proof + screenshots, and hand the **[EYE]** gates to Van to play-judge — exactly the shape
+of the Part 2.5 Presentation & Feel DoD, under HARD RULE 9. The [OBJECTIVE] gates marked
+**(→ verify.mjs)** are to be wired as automated checks in a LATER code session (A-proxy,
+B-straight-run, C-spill/edge-bound, D-seam, E-variety, J-secret-count) — listed here, not built
+this session.
+
+================================================================
 ## PART 3 — THE VERIFICATION STANDARD (how "done" is proven)
 ================================================================
 - NOTHING is "done" until: (a) it passes its relevant gates by the gates' OWN test methods, and
