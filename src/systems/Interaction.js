@@ -36,7 +36,11 @@ export const Interaction = {
     const facing = FACE_VEC[player.facing] || FACE_VEC.down;
 
     for (const it of this._items) {
-      const dx = it.x - player.x, dy = it.y - player.y;
+      // a moving interactable (e.g. a scheduled NPC) tracks its sprite live, so you
+      // can still walk up + talk while it goes about its routine.
+      const ix = it.target ? it.target.x : it.x;
+      const iy = it.target ? it.target.y + (it.targetOffY || 0) : it.y;
+      const dx = ix - player.x, dy = iy - player.y;
       const dist = Math.hypot(dx, dy);
       if (dist > it.radius) continue;
 
