@@ -49,6 +49,18 @@ export const COMBAT = Object.freeze({
   PARRY_STUN_MS: 900,       // enemy stagger after a successful parry         [feel-tune]
 });
 
+// NPC LIFE — per-agent jitter that keeps a crowd from moving in "creepy clockwork"
+// lockstep (Part 2.6 Pillar 2: believable crowds are NOISY, not uniform). Seeded
+// per NPC so it's stable within a session (no nondeterminism). Tune the feel here.
+export const NPC_LIFE = Object.freeze({
+  STAGGER_MIN_S: 0.3,    // a phase-change retarget fires after a per-NPC delay in [min,max]
+  STAGGER_MAX_S: 2.5,    //   so departures FAN OUT, never a unison march
+  SPEED_VAR: 0.18,       // persistent per-NPC speed multiplier = 1 ± this (~±18%)
+  TARGET_JITTER_PX: 12,  // seek a slightly different point near the target tile (paths differ)
+  TURN_COOLDOWN_S: 0.45, // min time between facing changes (eased turn; no synced pivots)
+  CHORE_VAR: 0.45,       // per-NPC ± on chore/idle loop periods (animations not in phase)
+});
+
 // Other tuning is ALSO single-sourced — it lives in its owning module (listed
 // here so there is one index of "where the knobs are"). Do not re-declare these:
 //   TILE (32 px), CHAR_FOOTPRINT, FRAME/DIR_ROW/ANIMS  -> src/data/assets.js
