@@ -312,6 +312,15 @@ a later code session — described here, NOT implemented now.
 - **Check:** [OBJECTIVE] (→ verify.mjs): secrets count ≥ 3 per region (from the region's
   `chests`/secrets data). [EYE]: is each one actually *worth finding* (a real reward + a smile)?
 
+### K. INTERACTABLE PLAYGROUND  *(proposed — see docs/INTERACTABLES-DESIGN.md)*
+- **Rule:** each region uses **≥ 3 interactable kinds** (cut/lift/throw/break/smash/push/bomb/
+  tool-gated) and **≥ 1 secret is gated behind a breakable/cuttable/bombable** (counts toward
+  Gate J). **Why:** an inert map is a museum; reacting objects make exploring feel alive.
+- **Check:** [OBJECTIVE] (→ verify.mjs): from the region's interactable DATA, distinct interaction
+  kinds ≥ 3 + at least one breakable-gated secret. [EYE]: do the interactions have JUICE (cut/
+  shatter FX + sfx, readable "this is breakable" silhouette, a rewarding reveal)? Full spec + the
+  honest FREE-NOW vs NEEDS-ENGINE split is in **docs/INTERACTABLES-DESIGN.md**.
+
 ### ASSET POLICY (binding rule for every spatial build)
 Build to this bar with **WHAT WE HAVE** and **WHAT'S FREE** (OGA / LPC / CC0) **FIRST**. Only
 spend money once the game is **working and feels right** AND free genuinely falls short for a
