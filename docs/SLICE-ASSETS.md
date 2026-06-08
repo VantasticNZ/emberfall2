@@ -7,6 +7,42 @@
 > CC-BY — no anti-AI, no non-commercial), to be **ledgered per-asset at import**. **Sourcing +
 > proposal only — no import/build/ledger change this session.** Import is the next step, per-asset.
 
+## ★ IMPORT STATUS (2026-06-08) — fetched/vetted/imported autonomously
+The autonomous fetch+vet+import ran. Result:
+
+| Asset | Status | Where | Licence (evidence) |
+|---|---|---|---|
+| **Kenney UI/feedback SFX** (4: confirm/select/deny/pickup) | ✅ **IMPORTED** | `public/audio/ui/` (`ui_confirm/ui_select/ui_deny/pickup.wav` + LICENSE) | **CC0** (bundled `LICENSE.txt` quotes CC0) — fetched via the Kenney GitHub mirror (Calinou) |
+| **Wind ambient loop** (Peaks) | ✅ **IMPORTED** | `public/audio/ambient/wind_ambient.ogg` | **CC0** (SketchMan3, OGA) — direct file fetch |
+| **Birds-and-wind ambient** (Greenhollow) | ✅ **IMPORTED** | `public/audio/ambient/birds_ambient.ogg` | **CC0** (Spring Spring, OGA) — direct file fetch |
+| **Stone-town exterior set** | ⚠ **STAGED, not public-baked** | `asset-library/2d/buildings/allacrost-stone/` (+ CREDITS) | **CC-BY-SA 3.0** (Roots/Jetrel, OGA) — fetched + vetted; **C4 caveat** (below) |
+| **Mood-music beds** (2: pastoral GH + wind-drone Peaks) | ⛔ **MANUAL — Van** | itch.io download is gated (no direct link) | CC0 (Tallbeard / Not Jam) |
+
+**Ledger:** the imported audio is covered — added `public/audio/ambient/` (OGA CC0) + broadened the
+`public/audio/` row to Kenney RPG + Interface (CC0). Verify licence gate GREEN (167 files / 8 entries).
+
+**⚠ STONE-TOWN — staged, NOT imported to `public/` (honest conformance call):** the OGA file is a
+genuine **stone** set (stone walls + grey slate roofs + stone-arch wooden doors, 32px, CC-BY-SA) —
+but it is *"LPC-compatible, not pure-LPC"* (a slightly more rendered hand + warm-tan stone). Baking
+it next to the ElizaWy LPC hero/terrain risks a **C4 style-cohesion clash**. Per the principle
+("off-style used badly is worse than fewer good"), it is **STAGED + licence-vetted** and the bake to
+`public/` is **deferred to the wire-time C4 trial**: cool-tint for the cold Peaks; if it still
+clashes, fall back to the **in-repo eliza-structure stone kit** (Jagged Stone Walls + Stone Pillar —
+pure ElizaWy, cohesion-safe). Not rejected, not faked — held at staging until proven cohesive.
+
+**⛔ MANUAL-DOWNLOAD LIST FOR VAN (music — itch.io is interaction-gated):**
+1. **Tallbeard Music Loop Bundle** — <https://tallbeard.itch.io/music-loop-bundle> → click **Download**
+   → pick **one gentle pastoral/folk loop** (Greenhollow) + **one sparse ambient/drone loop** (Sundered
+   Peaks) → drop the 2 `.ogg`/`.wav` in **`asset-library/_import-vet/music/`** (or tell me the filenames)
+   → I'll vet (CC0), convert if needed, bake to `public/audio/music/` + ledger + wire.
+2. *(Alt)* **Not Jam Music Pack** — <https://not-jam.itch.io/not-jam-music-pack> (CC0) — same flow if Tallbeard's don't fit.
+*(The slice is NOT blocked on music — the imported wind/birds ambient gives Peaks/Greenhollow a real
+soundscape start; the music beds layer on top when downloaded.)*
+
+**Nothing rejected outright.** No ffmpeg in-env → SFX imported as `.wav` (Phaser-valid); ambient already `.ogg`.
+
+---
+
 **In-repo check first (what we already have, so we don't re-source):** Peaks stone town currently
 uses **brick-house stand-ins**; `eliza-structure` has stone *kit* pieces (Jagged Stone Walls,
 Stone Pillar, Stone Windows) + 3 assembled exteriors (Brick House A/B, Paneled House A) but **no

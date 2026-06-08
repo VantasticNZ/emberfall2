@@ -1,0 +1,11 @@
+Stone Home Exterior Tileset
+Source: https://opengameart.org/content/stone-home-exterior-tileset
+Author: Roots (Tyler Olsen), with Jetrel (Richard Kettering).
+  Windows: Hyptosis + Zabin. Signs: Reemax. Flower boxes: C.Nilsson.
+Licence: CC-BY-SA 3.0  (no anti-AI / no non-commercial clause)
+File: stone_home_exterior.png (512x512, 32px grid; stone walls + slate roofs + stone-arch wooden doors + windows + props)
+STATUS: STAGED + licence-vetted. NOT baked to public/ yet.
+  FLAG (QUALITY-SPEC C4): "LPC-compatible, not pure-LPC" — a slightly more rendered hand + warm-tan stone.
+  At wire-time: trial in-scene vs the ElizaWy LPC hero/terrain; cool-tint the stone for the COLD Peaks;
+  if it clashes (C4 fail), fall back to the in-repo eliza-structure stone kit (Jagged Stone Walls + Stone Pillar),
+  which is pure-ElizaWy and cohesion-safe. Bake only the USED crops to public/art + add an ASSET-LEDGER row then.
