@@ -10,7 +10,48 @@
 
 ---
 
-## 1. RESOLUTION + GRID (the non-negotiable base)
+## 0. THE GROWTH PRINCIPLE — flexible across contexts, cohesive within
+**The pipeline must ACCEPT future assets of different size / resolution / style / quality
+(so we can upgrade or add art later), but any single VISUAL CONTEXT — a region / biome /
+screen — must stay COHESIVE: one resolution + one style family + one scale.**
+
+> Flexibility ACROSS contexts; uniformity WITHIN one. This is what lets us swap to
+> better/different art later without a patchwork look — and it is *why* the deliberately
+> "out-of-place character" gag reads as **intentional**: a mismatch is legible as a joke
+> only because the default is strict. A region is the cohesion boundary; the world may
+> hold several tiers, never a single screen.
+
+So the spec below is **TIERED, not a single fixed standard.** The current LPC-32 numbers
+are **Tier T0 — the baseline tier**, stated explicitly *as a tier*, with defined empty
+slots for future tiers. Adding a tier is **config (a new row), not a rewrite**; every
+cohesion check (§4) verifies *within the region's declared tier*, not against one global
+hardcoded number.
+
+### 0.1 TIER REGISTRY (each context declares one)
+A **tier** = `{ tileSize, frameSize, family, paletteRef }`. A **region declares its tier**
+(`region.tier`); the cohesion gates then check every asset in that region matches it.
+
+| Tier | tileSize | charFrame | family / palette | status | used by |
+|---|---|---|---|---|---|
+| **T0 — LPC-32** (BASELINE) | **32 px** | 64 px | LPC (ElizaWy + terrain-v7), LPC palette | **ACTIVE** (the whole world today) | all regions |
+| *T1 — LPC-64* (reserved) | 64 px | 128 px | LPC-HD / hand-upscale | *slot — undefined* | future high-res pass |
+| *T2 — alt-style* (reserved) | (decl.) | (decl.) | a deliberate other family | *slot — undefined* | a themed zone / dream / the out-of-place gag |
+| *Tn …* | … | … | … | *add a row* | … |
+
+**Rule T — one tier per context:** `region.tier` defaults to **T0**. Mixing tiers *within*
+one region/screen = FAIL (that's the patchwork look). Mixing tiers *across* regions = OK
+(that's the growth path). A single intentionally-mismatched actor is allowed **only** when
+explicitly tagged `outOfPlace:true` (the gag) — the gate reports it as deliberate, not drift.
+
+### 0.2 What "a tier" parametrises (so nothing is hardcoded to 32)
+Everything measured below is expressed **relative to the tier's `tileSize` (T)**, not the
+literal 32. At T0, T = 32 px. The scale ratios (§2) are **dimensionless** and hold at any T.
+Code that hardcodes `32` instead of reading the tier's T is listed in §7 (soften when a
+non-T0 tier is actually added — *not before*; no speculative refactor).
+
+---
+
+## 1. RESOLUTION + GRID — Tier T0 (the active baseline, stated AS a tier)
 | Item | Value | Pass/fail | Gate? |
 |---|---|---|---|
 | Terrain tile | **32 × 32 px**, tiled 1:1, never upscaled | every map tile is 32px-grid-aligned | ✅ gateable |
@@ -21,10 +62,17 @@
 | **Visible "screen"** | at 1.25 zoom ≈ **19.2 × 10.8 tiles** (≈ 207 tiles) | the design unit for density below | — |
 | Pixel rendering | pixelArt ON, never smoothed | no anti-aliased/blurred art | ✅ gateable |
 
-**Rule R1 — ONE grid, ONE family:** every on-map asset is LPC 32px-grid terrain or a 64px
-LPC character/enemy. **ZERO** mixed-resolution (the 16×16 `kenney/` tiles are BANNED from
-maps), **ZERO** off-family palette (no painterly, no AI-smoothed, no non-LPC hue). Pass/fail:
-all referenced art ∈ LPC family + on-grid. → **verify candidate** (lint referenced art dims).
+> *The table above lists Tier **T0** values (T = 32 px). A future tier restates the same
+> rows at its own T — the structure is identical, only the numbers change.*
+
+**Rule R1 — ONE grid, ONE family, PER CONTEXT:** every on-map asset **in a given region**
+is that **region's tier**: terrain on the tier's T-px grid, characters at the tier's frame
+size, in the tier's palette family. At T0: 32px LPC terrain / 64px LPC actors. **ZERO**
+mixed-resolution *within a region* (the 16×16 `kenney/` tiles are BANNED from any T0 map),
+**ZERO** off-family palette within a region. **Across regions, tiers MAY differ.** Pass/fail:
+every referenced asset in region R ∈ `R.tier` (grid + family). The lone exception is an
+actor tagged `outOfPlace:true` (the deliberate gag). → **verify candidate** (lint referenced
+art dims/family against `R.tier`, not a global constant).
 
 ---
 
@@ -40,9 +88,12 @@ Derived from actual file dims (`ASSET-MANIFEST.md`). In **tile units** (1 tile =
 | **Building** | 160–224 px | **5–7** | 5–8×~3 | paneled 160, brick_b 192, brick_a 256×224 |
 
 **Rule R2 — scale ratio ≈ `character : tree : building = 1 : 2.7 : 4.2`** (visible height).
-Matches LPC/LttP convention (hero ~1.5 tiles, trees ~3–4, buildings ~4–7). Pass/fail: no
-on-map asset falls outside its class band (e.g. a "house" < 4 tiles tall, or a "tree" < 3,
-or a boulder taller than a building → FAIL). → **verify candidate** (prop-height band lint).
+The ratios are **dimensionless** — expressed in TILE units (× T), so they hold at **any
+tier's resolution**, not just 32px. (At T0, 1.5 tiles = 48px; at a 64px tier, 1.5 tiles =
+96px — same ratio, same look.) Matches LPC/LttP convention (hero ~1.5 tiles, trees ~3–4,
+buildings ~4–7). Pass/fail: no on-map asset falls outside its class band **in tile units**
+(a "house" < 4 tiles, a "tree" < 3, a boulder taller than a building → FAIL) — measured
+against the region's T, never an absolute px. → **verify candidate** (prop-height-in-tiles band lint).
 
 ---
 
@@ -69,8 +120,12 @@ The existing density **FLOOR** (QUALITY-BIBLE / verify gate 9) = *"every ~24-til
 
 ---
 
-## 4. COHESION — the explicit definitions (each checkable)
-The four things that made the first Peaks read *wrong*, now defined as pass/fail:
+## 4. COHESION — the explicit definitions (each checkable, WITHIN-CONTEXT)
+The four things that made the first Peaks read *wrong*, now defined as pass/fail. **Every
+cohesion check below is evaluated WITHIN a region against that region's declared `tier`
+(§0)** — never against one global hardcoded number. Two regions on different tiers each pass
+on their own terms; a single region mixing tiers FAILS. (So these gates survive a future
+tier addition unchanged — they ask "is this region internally consistent?", not "is it 32px?".)
 
 **C1 — A CLIFF is ONE continuous autotiled face (zero gaps showing through).**
 - Every cliff cell belongs to a contiguous run (≥2) using the **cliff AUTOTILE set**
@@ -95,9 +150,11 @@ The four things that made the first Peaks read *wrong*, now defined as pass/fail
   tiles present across the shared edge. → **verify candidate** (extend seam-coherence gate
   from coords-only to "transition tiles present").
 
-**C4 — RESOLUTION + PALETTE unity (no clashing mixes).**
-- One 32px grid, one 64px character standard, one LPC palette family across the whole map.
-  No painterly/AI-smooth/off-res asset (R1). Pass/fail = R1. → **verify candidate.**
+**C4 — RESOLUTION + PALETTE unity PER CONTEXT (no clashing mixes within a region).**
+- One grid, one character frame standard, one palette family **per region — its tier's**
+  (T0: 32px/64px/LPC). No painterly/AI-smooth/off-tier asset inside that region (R1). A
+  different region may legitimately be a different tier. Pass/fail = R1 (tier-scoped). The
+  sole within-region exception is an `outOfPlace:true` actor (the gag). → **verify candidate.**
 
 **C5 — SCALE consistency (R2):** no off-scale asset on the map. → verify candidate.
 
@@ -130,7 +187,40 @@ A region passes the QUALITY-SPEC when, at 1.25 zoom on a normal screen:
 > **Build implication:** the next Peaks-fix session (per `PEAKS-ART-CANDIDATES.md`) should
 > wire **C2** (rock ground set, not tint) + **C1** (cliff autotiler) first — they are the two
 > defects this spec was written to catch. The new gates (R1/R2/R3a/C2/C3) should be wired into
-> `verify.mjs` as each region is built, exactly like the 6 [OBJECTIVE] gates were.
+> `verify.mjs` as each region is built, exactly like the 6 [OBJECTIVE] gates were. **Each gate
+> reads the region's `tier`** (§0) — so when a non-T0 tier is added, the gates already work.
+
+---
+
+## 7. HARDCODED-32 LOCATIONS — soften ONLY when a non-T0 tier is actually added
+The system is **already mostly tier-parametric**: nearly everything derives from the `TILE`
+(32) and `FRAME` (64) constants, so a region's geometry scales if `TILE` changes. The blockers
+to a *second, different-size* tier are (a) **`TILE` is GLOBAL, not per-context** and duplicated
+in two files, and (b) a handful of **literal `32`s** that bypass the constant. **DO NOT refactor
+these now** (no speculative engineering for assets we don't have) — this is the *located*
+constraint list, to soften the day a non-32 tier lands.
+
+| # | Location | What's pinned | Soften to |
+|---|---|---|---|
+| 1 | `src/data/assets.js:20-21` | `TILE = 32`, `FRAME = 64` — the **single global** tile/frame size (SSOT). | a **tier registry**; regions select a tier → its T/frame. |
+| 2 | `src/data/worldmap.js:15-17` | **DUPLICATE** `TILE=32`, `CHUNK=32`, `CHUNK_PX` (not imported from assets.js). | one SSOT for `TILE`; dedupe the copy first. |
+| 3 | `src/art/AssetLoader.js:44` | `lpc_terrain` loaded with literal `frameWidth: 32, frameHeight: 32`. | read the atlas's tile size from its tier, not `32`. |
+| 4 | `src/data/terrainTiles.js:5` (`"cols": 32`) + `scripts/build_terrain_autotile.mjs:28` (`cols: 32`) | the autotile atlas grid (32 cols / 32px) is baked into the generator + output. | parametrise the generator on the atlas's tile size/cols per tier. |
+| 5 | `src/scenes/OverworldScene.js` (chunk ground `tileSprite(…, 'tile_grass')` ~587; terrain RT `drawFrame('lpc_terrain', …, x*TILE, …)` ~299) | the streamer uses **one** `TILE`, **one** `'tile_grass'`, **one** `'lpc_terrain'` atlas for the whole world. | per-region tile size + per-tier ground atlas/key. |
+| 6 | `src/systems/SaveManager.js:29` | `_CHUNK_PX = 1024` hardcoded (`= CHUNK×TILE`); chunk-delta keys assume the 32-grid. | derive from the active tier's chunk px (or keep world-space keys tier-independent). |
+| 7 | `src/scenes/GreenhollowScene.js:93` (`const T = 32`) · `src/scenes/AssetSpikeScene.js:21` (`TILE=32, CHUNK=32`) | local 32s in the **discrete fallback** + a **throwaway spike** (not the live world). | low priority — fix if those paths ever take a non-T0 tier. |
+
+*Per-asset PROPS dims (`assets.js` width/height in px) are already per-asset, and footprint
+collision is px-based — both are resolution-agnostic, so they need no change for a new tier
+(a higher-res prop simply ships bigger dims). Monster/character sheets already carry per-sheet
+`fw` (64/128) in `BootScene`/`AssetLoader` — already flexible.*
+
+**Bottom line:** growth-ready = **(i)** add the §0 tier registry + a `region.tier` field,
+**(ii)** dedupe `TILE` to one SSOT, **(iii)** make the 5 atlas/loader/streamer spots read the
+tier's tile size instead of literal `32`. Items (i)–(iii) are a *small* future change because
+the geometry already flows from constants — the literals above are the only leaks.
+
+---
 
 *Cross-links: ASSET-MANIFEST.md (the measured assets) · STYLE-GUIDE.md (⚑ update its
 scale/zoom per §1) · QUALITY-BIBLE Part 2.6 (Gate I — this quantifies it) · WORLD-BLUEPRINT.md
