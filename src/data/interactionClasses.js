@@ -17,7 +17,7 @@ export const IX_CLASS = {
   // (placed solid:false) AND solid hedge/undergrowth (placed solid:true). The CLASS
   // makes it CUTTABLE in BOTH roles (the "cut works in GH not Peaks" fix); its
   // solid/walk-through stays the placement's small-vs-big choice (see `solidByPlacement`).
-  prop_bush: { solidByPlacement: true, cuttable: true, throwable: false, loot: 'loot_bush' },
+  prop_bush: { solid: false, cuttable: true, throwable: false, loot: 'loot_bush' },
 
   // --- TREES — solid TRUNK (walk behind the canopy, via solidBox), not cuttable --
   prop_tree_oak: { solid: true, cuttable: false },
@@ -51,10 +51,13 @@ export const IX_CLASS = {
 export const DEFAULT_CLASS = { solid: true };
 export function ixClass(key) { return IX_CLASS[key] || DEFAULT_CLASS; }
 
-/** Is a placement solid? The CLASS decides, except `solidByPlacement` assets (bush)
- *  which honour the placement's small-vs-big `solid` flag. */
+/** Is a placement solid? An EXPLICIT placement `solid` flag WINS — this is how the same asset
+ *  serves as both blocking mass AND decorative cover (the Peaks/foothill scatter is placed
+ *  `solid:false` = walk-among-it; a hedge bush is `solid:true`). When a placement gives NO flag,
+ *  the CLASS default applies (so a bare prop is never accidentally walk-through). The class still
+ *  drives the VERBS (cut/push/search) uniformly — that's the consistency that matters; solid-vs-
+ *  decorative is a legitimate placement intent, not the per-region inconsistency Van flagged. */
 export function isSolid(key, placementSolid) {
-  const c = ixClass(key);
-  if (c.solidByPlacement) return placementSolid === true;
-  return c.solid === true;
+  if (placementSolid !== undefined) return placementSolid === true;
+  return ixClass(key).solid === true;
 }
