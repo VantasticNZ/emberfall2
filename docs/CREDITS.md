@@ -64,6 +64,14 @@
 - **Spring Spring** — "Birds and Wind — Ambient" (the Greenhollow birdsong). **CC0**. <https://opengameart.org/users/spring-spring> *(verify handle)*
   - bird recordings within it by **isaiah658**, **syncopika**, **pauliuw** (OGA, CC0).
 
+## MUSIC — per-region loop beds
+*(public/audio/music/)*
+- **nihilocrat** — "Peasant Theme" (`peasantry.ogg`) — the Greenhollow / belt pastoral bed. **CC0**.
+  <https://opengameart.org/content/peasant-theme> · <https://opengameart.org/users/nihilocrat>
+- **Brandon Morris — "Brandon75689" / "Haeldb"** — "Cave Theme" (`cave themeb4.ogg`) — the Sundered
+  Peaks stark/cold bed. **CC0 + OGA-BY 3.0** (dual-licensed; used here under **CC0**).
+  <https://opengameart.org/content/cave-theme> · <https://opengameart.org/users/brandon75689>
+
 ## LEGACY (in repo, NOT shipped on the map — kept for history)
 - **sanderfrenken** — Universal-LPC-Spritesheet generator (`public/art/lpc/`, superseded by ElizaWy).
   **CC-BY-SA 3.0 / OGA-BY 3.0 / GPL 3.0**. <https://github.com/sanderfrenken/Universal-LPC-Spritesheet-Character-Generator>

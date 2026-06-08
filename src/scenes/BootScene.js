@@ -32,6 +32,8 @@ export class BootScene extends Phaser.Scene {
     this.load.audio('sfx_deny', 'audio/ui/ui_deny.wav');
     this.load.audio('amb_birds', 'audio/ambient/birds_ambient.ogg');   // Greenhollow / foothill
     this.load.audio('amb_wind', 'audio/ambient/wind_ambient.ogg');     // Sundered Peaks
+    this.load.audio('mus_green', 'audio/music/green.ogg');             // GH/belt music bed — "Peasant Theme" (nihilocrat, CC0)
+    this.load.audio('mus_peaks', 'audio/music/peaks.ogg');             // Peaks music bed — "Cave Theme" (Brandon Morris, CC0)
     for (const m of MONSTER_SHEETS) this.load.spritesheet(`mon_${m.key}`, `art/monsters/${m.key}.png`, { frameWidth: m.fw, frameHeight: m.fw });
   }
 

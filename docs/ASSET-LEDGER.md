@@ -36,6 +36,7 @@ public/art/kenney/  | Kenney (kenney.nl)                                        
 public/art/lpc/     | sanderfrenken Universal-LPC-Spritesheet                       | CC-BY-SA-3.0 / OGA-BY-3.0 / GPL-3.0 | yes | character (legacy, superseded by eliza)
 public/audio/ambient/ | OpenGameArt CC0 ambient — "wind woosh loop" (SketchMan3) + "Birds and Wind — Ambient" (Spring Spring; birds by isaiah658/syncopika/pauliuw) | CC0-1.0 | yes | ambient loops (Peaks wind · Greenhollow birdsong)
 public/audio/       | Kenney RPG Audio + Kenney Interface Sounds (kenney.nl)        | CC0-1.0                           | yes | sfx (combat swing/hit/charge + UI confirm/select/deny/pickup)
+public/audio/music/ | OpenGameArt CC0 region music beds — "Peasant Theme" (nihilocrat, Greenhollow/belt) + "Cave Theme" (Brandon Morris "Brandon75689", Sundered Peaks; dual CC0/OGA-BY → used under CC0) | CC0-1.0 | yes | music (per-region loop beds)
 public/art/monsters/| [LPC] Monsters — CharlesGabriel, bagzie, bluecarrot16 (OpenGameArt) | CC-BY-SA-3.0 / GPL-3.0       | yes | enemy creatures (snake/bat/worm/eyeball/ghost/slime/pumpking/man-eater)
 public/art/structures/| ElizaWy LPC (github.com/ElizaWy/LPC) structure + objects     | OGA-BY-3.0                        | yes | buildings + village props (houses/fountain/chest/barrel/fence)
 ```

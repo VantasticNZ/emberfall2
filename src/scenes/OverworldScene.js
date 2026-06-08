@@ -153,6 +153,7 @@ export class OverworldScene extends Phaser.Scene {
     if (!same) { this._unloadAllRegions(); this._loadRegions(inRange); this._wipe(); this._restream(true); }
     this.region = regionAt(this.player.x, this.player.y);   // primary (or null = belt) — refresh each call
     this._setAmbient(this.region?.mountain ? 'amb_wind' : 'amb_birds');   // region soundscape (wind in the Peaks, birds in the green)
+    this._setMusic(this._musicForRegion(this.region));                    // region music bed (crossfade), layered over ambient
   }
 
   _loadRegions(list) {
@@ -580,6 +581,30 @@ export class OverworldScene extends Phaser.Scene {
     const a = bindings.options.audio;
     this._amb = this.sound.add(key, { loop: true, volume: 0.5 * a.master * a.music });
     this._amb.play();
+  }
+  // REGION MUSIC bed — a looped track per region, CROSSFADED on region change, LAYERED OVER the
+  // ambient (separate sound object), gated by the MUSIC volume slider (separate from SFX, which is
+  // always-present). Region→mood mapping per EXCELLENCE-FRAMEWORK: green=warm/pastoral, Peaks=stark/
+  // cold, Marsh=eerie. No-ops gracefully if the track file isn't loaded (then no music, ambient+SFX
+  // carry the soundscape) — so the system is safe before the CC0 beds land.
+  _musicForRegion(R) {
+    if (!R) return 'mus_green';                                   // the belt/foothill = the green pastoral
+    if (R.mountain) return 'mus_peaks';
+    if (R.key === 'AshenMarsh' || R.marsh) return 'mus_marsh';
+    return 'mus_green';
+  }
+  _setMusic(key) {
+    if (this._musKey === key) return; this._musKey = key;
+    const a = bindings.options.audio;
+    if (this._mus) {                                             // crossfade the OLD out, then free it
+      const old = this._mus; this._mus = null;
+      this.tweens.add({ targets: old, volume: 0, duration: 800, onComplete: () => { try { old.stop(); old.destroy(); } catch (_) {} } });
+    }
+    if (!key || !this.cache.audio.exists(key)) return;          // dormant until the bed is loaded — no error
+    const target = 0.55 * a.master * a.music;
+    this._mus = this.sound.add(key, { loop: true, volume: 0 });
+    this._mus.play();
+    this.tweens.add({ targets: this._mus, volume: target, duration: 1000 });   // fade the NEW in
   }
   // 2D ITEM-GET flourish (the tool/overhead-pickup FALLBACK — no rigged held layer): a glow + the
   // named item floats up above a point, scales up, fades. Pairs with a banner + a confirm sting.
