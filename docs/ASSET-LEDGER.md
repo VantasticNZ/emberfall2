@@ -9,6 +9,23 @@ the wider licence-vetted library (3D/audio) is in [ASSET-LIBRARY.md](ASSET-LIBRA
 **AI-safe** = licence has NO anti-AI / no-genAI clause (CC0 / OGA-BY / CC-BY[-SA] /
 GPL all qualify; Mana Seed does NOT — see ART-LICENSE-NOTE).
 
+## ATTRIBUTION + SUPPORT POLICY (mandatory for every USED asset)
+**No asset is "used" (committed under `public/` or baked into the game) until ALL of these are
+recorded — for a credits screen AND a koha/payment to the creators:**
+1. **Artist/creator name(s)** — the human(s) who made it (hard requirement; even CC0).
+2. **Source URL** — the canonical OGA content page / GitHub repo it came from.
+3. **Licence** — and the exact attribution string that licence requires (CC-BY/CC-BY-SA/GPL
+   require credit; CC0 does not, but we credit anyway).
+4. **Support / contact link** — where one exists: a Patreon / Ko-fi / donate page, else the
+   creator's **OpenGameArt profile** (`opengameart.org/users/<handle>` — the canonical contact),
+   so a future **koha (gift/payment) to the creator is possible**. If genuinely none can be
+   found, record that honestly ("CC0, no attribution required; no support link found").
+
+The machine-read `ledger` code-block below stays the **5-column gate map** (`prefix | source |
+licence | ai_safe | category`); the **AUTHORITATIVE per-creator attribution + support links**
+live in **[CREDITS.md](CREDITS.md)** — the human-readable "thanks + how to support these
+creators" doc, ready for an in-game credits screen. Every prefix here MUST have a CREDITS.md entry.
+
 The block below is the source of truth for the verify gate. Format, one row per line:
 `prefix | source | licence | ai_safe | category`
 
