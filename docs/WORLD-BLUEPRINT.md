@@ -72,7 +72,7 @@ in §1 below are now the LIVE post-recentre values** (the original A-layout numb
 | **Greenhollow Vale** (hub) | x288–340 / y288–328 | 52×40 | **CENTRE** (314,308) | **BUILT** | W→Belt→Marsh · N→foothills→Peaks · E→river-road→Coast · S→ashen-road→Emberwood |
 | **West Belt route** | x278–288 / y293–327 | 10×34 | between GH & Marsh | **BUILT** (Ph5/5b) | E↔GH W-trailhead · W↔Marsh E-edge |
 | **Ashen Marsh** | x238–278 / y293–327 | 40×34 | W | **BUILT** | E↔Belt · N/S mire gated (later tools) |
-| **Sundered Peaks** | x278–353 / y206–278 | 75×72 | N | RESERVED | S↔GH foothills (y278–288) · N↔Spire ascent (gated) |
+| **Sundered Peaks** | x288–348 / y218–278 (in the reserved x278–353/y206–278 block) | 60×60 | N | **BUILT** (2026-06-08) | S↔Foothill route (y278–288)↔GH.N · N↔Spire ascent (reserved, gated) |
 | **Hollow Spire** | x303–338 / y152–202 | 35×50 | far-N | RESERVED | S↔Peaks (gated, all-tools) |
 | **Tidewreck Coast** | x388–473 / y278–343 | 85×65 | E | RESERVED | W↔river-road↔GH · E→ocean (world edge ~x540) |
 | **Emberwood** | x288–363 / y363–433 | 75×70 | S | RESERVED | N↔ashen-road↔GH |
@@ -278,8 +278,13 @@ placeholders — flag + omit per HARD RULE 9). Sequence the hunts to lead each r
 
 1. **DONE:** Greenhollow (gold) + Ashen Marsh + West Belt (Phase 5 route; **Phase 5b =
    legibility + west-only exit** in flight).
-2. **Sundered Peaks (N)** — next region + the GH↔Peaks foothill seam. (Art ~80% ready;
-   source snow/stone-town first.) Re-verify Level A (Peaks) + B (foothill seam).
+2. **Sundered Peaks (N)** — ✅ **BUILT 2026-06-08** into x288–348/y218–278 (60×60) + the
+   `FOOTHILL_ROUTE` (x303–333/y278–288) bridging GH.N. Cliff/rock art extracted from the
+   licence-safe eliza-terrain sheets; rockfall gate (shard_1) + Cinder Keep grapple/shard_2
+   grant; green→stone seam; 6 mountain combat archetypes; town hub. Level A + B re-verified
+   LIVE (all 12 verify gates GREEN). ⚑ STILL TO SOURCE (omitted, not faked): snow-cap tiles,
+   a terraced-stone-town building set, a stone GROUND tile. ⚑ DEFERRED: the M12 Keep-Sentinel
+   boss in the Overworld boss flow.
 3. **Tidewreck Coast (E)** — + the river-road/gorge seam. **Art hunt first** (shore/dock/wreck).
 4. **Emberwood (S)** — + the ashen-road/chasm seam. **Art hunt first** (lava/frost/volcano).
 5. **Hollow Spire (far-N)** — + the gated ascent. **Art hunt first** (spire/altar). Then the
