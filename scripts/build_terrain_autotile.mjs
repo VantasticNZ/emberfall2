@@ -7,7 +7,9 @@ const tsx = fs.readFileSync('asset-library/2d/tiles/lpc-terrains/terrain-v7.tsx'
 const names = [...tsx.matchAll(/<terrain name="([^"]+)" tile="(\d+)"/g)].map((m) => m[1]);
 const idx = (n) => names.indexOf(n);
 const GRASS = idx('Grass');
-const OVERLAYS = { dirt: idx('Dirt_Tan'), road: idx('Dirt_Brown'), soil: idx('Soil'), gravel: idx('Gravel_1'), sand: idx('Sand') };
+const OVERLAYS = { dirt: idx('Dirt_Tan'), road: idx('Dirt_Brown'), soil: idx('Soil'), gravel: idx('Gravel_1'), sand: idx('Sand'),
+  // mountain/biome ground sets (Sundered Peaks + future regions) — already in the shipped atlas
+  rock: idx('Rock_Gray'), snow: idx('Snow_1'), stone: idx('Stone_Tan'), ash: idx('Earth_Cracked'), lava: idx('Lava') };
 // all <tile id="N" terrain="tl,tr,bl,br"/>
 const tiles = [...tsx.matchAll(/<tile id="(\d+)" terrain="([^"]*)"\/>/g)].map((m) => ({ id: +m[1], c: m[2].split(',') }));
 // for overlay k: tiles whose corners are all in {"", k}; key = which corners are k (tl,tr,bl,br)

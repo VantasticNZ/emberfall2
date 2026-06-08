@@ -116,6 +116,11 @@ export const TILES = {
   pond_nw: { src: 'art/terrain/pond_nw.png' }, pond_n: { src: 'art/terrain/pond_n.png' }, pond_ne: { src: 'art/terrain/pond_ne.png' },
   pond_w:  { src: 'art/terrain/pond_w.png' },  pond_c: { src: 'art/terrain/pond_c.png' },  pond_e:  { src: 'art/terrain/pond_e.png' },
   pond_sw: { src: 'art/terrain/pond_sw.png' }, pond_s: { src: 'art/terrain/pond_s.png' }, pond_se: { src: 'art/terrain/pond_se.png' },
+  // CLIFF autotile tiles (ElizaWy cliff_summer crops, OGA-BY) — a continuous rock FACE
+  // (tiles seamlessly) + the rock-lip TOP edge; rendered as a cliff RenderTexture so cliff
+  // masses read as ONE continuous face (QUALITY-SPEC C1), not scattered props.
+  cliff_wall: { src: 'art/terrain/cliff_wall.png' },
+  cliff_top:  { src: 'art/terrain/cliff_top.png' },
 };
 
 export const PROPS = {

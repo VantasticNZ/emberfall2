@@ -14,7 +14,7 @@ The block below is the source of truth for the verify gate. Format, one row per 
 
 ```ledger
 public/art/eliza/   | ElizaWy LPC (github.com/ElizaWy/LPC)                          | OGA-BY-3.0                        | yes | character
-public/art/terrain/ | ElizaWy LPC terrain (incl. cliff/rock crops from eliza-terrain: cliff_face, rock_crag/boulder/small — Sundered Peaks) + Sharm LPC house + [LPC] Terrains autotile atlas (bluecarrot16, Sharm, Daneeklu, Jetrel, Zabin, Hyptosis, C.Nilsson, Buko, et al.) | OGA-BY-3.0 / CC-BY-3.0 / CC-BY-SA-3.0 / GPL-3.0 | yes | terrain+building+transition-tiles+cliff/rock
+public/art/terrain/ | ElizaWy LPC terrain (incl. cliff/rock crops from eliza-terrain: cliff_face, cliff_wall, cliff_top, rock_crag/boulder/small — Sundered Peaks) + Sharm LPC house + [LPC] Terrains autotile atlas (bluecarrot16, Sharm, Daneeklu, Jetrel, Zabin, Hyptosis, C.Nilsson, Buko, et al.) | OGA-BY-3.0 / CC-BY-3.0 / CC-BY-SA-3.0 / GPL-3.0 | yes | terrain+building+transition-tiles+cliff/rock
 public/art/kenney/  | Kenney (kenney.nl)                                            | CC0-1.0                           | yes | tiles (legacy, unreferenced)
 public/art/lpc/     | sanderfrenken Universal-LPC-Spritesheet                       | CC-BY-SA-3.0 / OGA-BY-3.0 / GPL-3.0 | yes | character (legacy, superseded by eliza)
 public/audio/       | Kenney RPG Audio (kenney.nl)                                  | CC0-1.0                           | yes | sfx (swing/hit/charge-impact)
