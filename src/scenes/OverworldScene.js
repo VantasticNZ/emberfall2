@@ -27,6 +27,7 @@ import { TimeOfDay } from '../systems/TimeOfDay.js';
 import { Inventory } from '../systems/Inventory.js';
 import { NpcLife } from '../systems/NpcLife.js';
 import { Interaction } from '../systems/Interaction.js';
+import { searchContainer, cutObject, pushBlock, grantLoot } from '../systems/Interactables.js';
 import { Dialogue } from '../systems/Dialogue.js';
 import { Social } from '../systems/Social.js';
 import { EnemyController } from '../systems/EnemyController.js';
@@ -200,6 +201,7 @@ export class OverworldScene extends Phaser.Scene {
     }
     for (const n of R.npcs) this._buildRegionNpc(n);
     for (const c of (R.chests || [])) this._buildRegionChest(c);
+    for (const o of (R.interactables || [])) this._buildInteractable(o);   // cut / push / search (INTERACTABLES-DESIGN)
     // COMBAT — a non-safe region (Marsh/Peaks) spawns its enemies + hub; a safe region
     // (Greenhollow/Belt/Foothill) spawns none. With several loaded, only the combat
     // region's enemies exist (in their own bounds).
@@ -305,6 +307,77 @@ export class OverworldScene extends Phaser.Scene {
         this._startGreeting('', [c.line]);
       },
     });
+  }
+
+  // --- INTERACTABLES (cut / push / search) — DATA-driven, reuses Interactables.js + the
+  //     chest permanence (save.recordOpened/isOpened chunk-delta). All press-E for now.
+  _grantLootFeedback(granted, x, y) {
+    if (!granted || !granted.length) { this._banner('Nothing of use.', 1000); return; }
+    const parts = granted.filter((g) => !g.full).map((g) => g.gold != null ? `${g.gold}g` : `${g.n}× ${g.item}`);
+    this._sfx('sfx_pickup', 0.8); this._itemGetFx(x, y - 4);
+    if (parts.length) this._banner('Found: ' + parts.join(', '), 1400);
+    if (granted.some((g) => g.full)) this._banner('Your pack is full!', 1400);
+  }
+
+  _solidAt(wx, wy, exclude) {
+    for (const o of this.solids.getChildren()) {
+      const b = o.body; if (!b || b.physicsType !== 1 || o === exclude) continue;
+      if (wx >= b.center.x - b.halfWidth && wx <= b.center.x + b.halfWidth && wy >= b.center.y - b.halfHeight && wy <= b.center.y + b.halfHeight) return true;
+    }
+    return false;
+  }
+
+  _buildInteractable(o) {
+    const d = PROPS[o.key]; if (!d) return;
+    const sc = o.scale || 1, b = solidBox(o.key, d);
+    const spr = this.add.sprite(o.x, o.y, o.key).setOrigin(0.5, 0.5);
+    if (o.scale) spr.setScale(o.scale);
+    if (o.tint != null) spr.setTint(o.tint);
+    let rect = null;
+    if (o.solid) {
+      rect = this.add.rectangle(o.x + b.offX * sc, o.y + b.offY * sc, Math.max(8, b.w * sc), Math.max(8, b.h * sc), 0x000000, 0).setVisible(false);
+      this.physics.add.existing(rect, true); this.solids.add(rect); this._regionObjs.push(rect);
+      spr.setData('solidKey', o.key);
+    }
+    DepthSort.track(spr, (b.offY + b.h / 2) * sc);
+    this._regionObjs.push(spr);
+
+    const [cx, cy] = cidOf(o.x, o.y), memKey = `ix_${o.id}`;
+    const mem = { has: (k) => this.save.isOpened(cx, cy, k), record: (k) => this.save.recordOpened(cx, cy, k) };
+    const ctx = () => ({ inv: this.inv, rng: Math.random, mem, key: memKey,
+      hasDeed: (id) => this.karma.hasDeed(id), recordDeed: (id) => this.karma.recordDeed(id) });
+
+    if (o.via === 'search') {
+      if (this.save.isOpened(cx, cy, memKey)) spr.setTint(0x8f8f8f);   // already-searched state read
+      Interaction.register({ x: o.x, y: o.y + 6, prompt: o.prompt || 'Search', onInteract: () => {
+        const res = searchContainer(o, ctx());
+        if (res.already) { this._banner("You've already searched this.", 1200); return; }
+        if (res.locked) { this._banner("It's locked.", 1200); this._sfx('sfx_deny', 0.5); return; }
+        this._grantLootFeedback(res.granted, o.x, o.y); spr.setTint(0x8f8f8f);
+      } });
+    } else if (o.via === 'cut' || o.via === 'break') {
+      if (o.permanent && this.save.isOpened(cx, cy, memKey)) { spr.setVisible(false).setActive(false); DepthSort.untrack(spr); if (rect) { rect.body.enable = false; this.solids.remove(rect); } return; }
+      Interaction.register({ x: o.x, y: o.y + 6, prompt: o.prompt || (o.via === 'cut' ? 'Cut' : 'Break'), onInteract: () => {
+        const res = cutObject(o, ctx());
+        if (res.already) return;
+        this._sfx('sfx_hit', 0.5); this._grantLootFeedback(res.granted, o.x, o.y);
+        if (o.permanent) { spr.setVisible(false).setActive(false); DepthSort.untrack(spr); if (rect) { rect.body.enable = false; this.solids.remove(rect); } }
+        else { spr.setVisible(false); this.time.delayedCall(o.respawnMs || 12000, () => spr.active && spr.setVisible(true)); }
+      } });
+    } else if (o.via === 'push') {
+      const T = TILE; o._tx = Math.round(o.x / T); o._ty = Math.round(o.y / T);
+      Interaction.register({ x: o.x, y: o.y, prompt: o.prompt || 'Push', onInteract: () => {
+        const f = FACE_VEC[this.player.facing] || FACE_VEC.down, dir = { dx: Math.sign(f.x), dy: Math.sign(f.y) };
+        const isSolid = (tx, ty) => this._solidAt(tx * T + T / 2, ty * T + T / 2, rect);
+        const moved = pushBlock({ tx: o._tx, ty: o._ty }, dir, isSolid);
+        if (!moved) { this._sfx('sfx_deny', 0.4); return; }
+        o._tx = moved.tx; o._ty = moved.ty;
+        const nx = moved.tx * T + T / 2, ny = moved.ty * T + T / 2;
+        this.tweens.add({ targets: spr, x: nx, y: ny, duration: 150 });
+        if (rect) { rect.x = nx + b.offX * sc; rect.y = ny + b.offY * sc; if (rect.body.updateFromGameObject) rect.body.updateFromGameObject(); else rect.body.position.set(rect.x - rect.width / 2, rect.y - rect.height / 2); }
+        this._sfx('sfx_hit', 0.4);
+      } });
+    }
   }
 
   _unloadAllRegions() {

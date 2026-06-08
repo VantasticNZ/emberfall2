@@ -343,6 +343,15 @@ export const SUNDERED_PEAKS = {
   chests: [
     { id: 'peaks_quarry_cache', x: pkx(49) + TILE / 2, y: pky(34) + TILE / 2, gold: 45, line: 'A quarryman\'s lockbox wedged in the scree — forty-five gold.' },
   ],
+  // INTERACTABLES (cut / push / search) — the playground layer (INTERACTABLES-DESIGN).
+  // Placed in the open town plaza (clear of the keep-road corridor + buildings).
+  interactables: [
+    { via: 'search', key: 'prop_barrel', x: pkx(24) + TILE / 2, y: pky(40) + TILE / 2, id: 'peaks_barrel_w', loot: 'loot_barrel', solid: true, prompt: 'Search the barrel' },
+    { via: 'search', key: 'prop_barrel', x: pkx(36) + TILE / 2, y: pky(40) + TILE / 2, id: 'peaks_barrel_e', loot: 'loot_barrel', solid: true, prompt: 'Search the barrel' },
+    { via: 'cut', key: 'prop_bush', x: pkx(25) + TILE / 2, y: pky(43) + TILE / 2, id: 'peaks_bush_w', loot: 'loot_bush', prompt: 'Cut the bush' },
+    { via: 'cut', key: 'prop_bush', x: pkx(35) + TILE / 2, y: pky(43) + TILE / 2, id: 'peaks_bush_e', loot: 'loot_bush', prompt: 'Cut the bush' },
+    { via: 'push', key: 'prop_rock_small', x: pkx(24) + TILE / 2, y: pky(36) + TILE / 2, id: 'peaks_block', solid: true, prompt: 'Push the stone' },
+  ],
   combat: {
     enabled: true,
     enemies: [
