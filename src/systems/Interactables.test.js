@@ -7,7 +7,7 @@
 // =============================================================================
 
 import assert from 'node:assert/strict';
-import { rollLoot, grantLoot, searchContainer, cutObject, pushBlock } from './Interactables.js';
+import { rollLoot, grantLoot, searchContainer, cutObject, pushBlock, enterGate } from './Interactables.js';
 import { LOOT } from '../data/loot.js';
 import { Inventory } from './Inventory.js';
 import { SaveManager } from './SaveManager.js';
@@ -123,6 +123,28 @@ const lcg = (seed) => () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294
   assert.deepEqual(west, { tx: 3, ty: 3 });
   assert.equal(pushBlock(block, { dx: 0, dy: 0 }, isSolid), null, 'no-dir push is a no-op');
   pass('pushBlock: slides one tile if clear, blocked by a solid, no-op on zero dir');
+}
+
+// 7) ENTER-GATE — the M4 boarded cave: locked by tool_lantern, grants cave_lore ONCE on first entry
+{
+  const owned = {}, deeds = {};
+  const mem = { has: (k) => !!owned[k], record: (k) => { owned[k] = 1; } };
+  const def = { via: 'gate', id: 'm4_boarded_cave', locked: 'tool_lantern', grantsDeeds: ['cave_lore'] };
+  const key = 'ix_m4_boarded_cave';
+  const ctx = (hasLantern) => ({ mem, key, hasDeed: (d) => hasLantern && d === 'tool_lantern', recordDeed: (d) => { deeds[d] = 1; } });
+
+  const sealed = enterGate(def, ctx(false));
+  assert.equal(sealed.locked, 'tool_lantern', 'boarded shut without the lantern (the tease)');
+  assert.equal(mem.has(key), false, 'no entry recorded while sealed');
+  assert.equal(deeds.cave_lore, undefined, 'no cave_lore without the lantern');
+
+  const open1 = enterGate(def, ctx(true));
+  assert.equal(open1.entered, true); assert.equal(open1.first, true, 'first entry with the lantern');
+  assert.equal(deeds.cave_lore, 1, 'cave_lore (ending-A seed) recorded on first entry');
+
+  const open2 = enterGate(def, ctx(true));
+  assert.equal(open2.entered, true); assert.equal(open2.first, false, 'subsequent entries are not "first"');
+  pass('enterGate (M4 cave): sealed without tool_lantern, grants cave_lore ONCE with it');
 }
 
 console.log(`Interactables.test: ${n} checks passed`);

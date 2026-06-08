@@ -27,7 +27,7 @@ import { TimeOfDay } from '../systems/TimeOfDay.js';
 import { Inventory } from '../systems/Inventory.js';
 import { NpcLife } from '../systems/NpcLife.js';
 import { Interaction } from '../systems/Interaction.js';
-import { searchContainer, cutObject, pushBlock, grantLoot } from '../systems/Interactables.js';
+import { searchContainer, cutObject, pushBlock, grantLoot, enterGate } from '../systems/Interactables.js';
 import { Dialogue } from '../systems/Dialogue.js';
 import { Social } from '../systems/Social.js';
 import { EnemyController } from '../systems/EnemyController.js';
@@ -364,6 +364,14 @@ export class OverworldScene extends Phaser.Scene {
         this._sfx('sfx_hit', 0.5); this._grantLootFeedback(res.granted, o.x, o.y);
         if (o.permanent) { spr.setVisible(false).setActive(false); DepthSort.untrack(spr); if (rect) { rect.body.enable = false; this.solids.remove(rect); } }
         else { spr.setVisible(false); this.time.delayedCall(o.respawnMs || 12000, () => spr.active && spr.setVisible(true)); }
+      } });
+    } else if (o.via === 'gate') {
+      // a TOOL/DEED-gated access point — the boarded M4 cave (tool_lantern). Sealed = the tease.
+      Interaction.register({ x: o.x, y: o.y + 6, prompt: o.prompt || 'Examine', onInteract: () => {
+        const r = enterGate(o, ctx());
+        if (r.locked) { this._sfx('sfx_deny', 0.5); this._startGreeting('', [o.lockedLine || 'It is sealed — you need a way in.']); return; }
+        if (r.first) { this._sfx('sfx_pickup', 0.6); this._itemGetFx(o.x, o.y - 4, 'ow_orb', 0xa6e3ff); }
+        if (o.lines) this._startGreeting(o.speaker || '', o.lines);
       } });
     } else if (o.via === 'push') {
       const T = TILE; o._tx = Math.round(o.x / T); o._ty = Math.round(o.y / T);

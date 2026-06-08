@@ -62,6 +62,18 @@ export function cutObject(def, ctx) {
   return { granted, reveal: def.reveal || null };
 }
 
+/** A TOOL/DEED-GATED access point (the boarded M4 cave → tool_lantern; a faction door, etc.).
+ *  `def.locked` = the required deed id (e.g. 'tool_lantern'); `def.grantsDeeds` = deeds recorded
+ *  on FIRST entry (e.g. ['cave_lore'] — the ending-A seed). Returns {locked} when the key is
+ *  absent (the see-but-can't-reach tease), else {entered, first} (first=true only once). */
+export function enterGate(def, ctx) {
+  if (def.locked && !(ctx.hasDeed && ctx.hasDeed(def.locked))) return { locked: def.locked };
+  const first = !ctx.mem.has(ctx.key);
+  ctx.mem.record(ctx.key);
+  if (first && ctx.recordDeed && def.grantsDeeds) for (const d of def.grantsDeeds) ctx.recordDeed(d);
+  return { entered: true, first };
+}
+
 /** PUSH a block one tile in `dir` ({dx,dy}) iff the next tile is clear.
  *  `isSolid(tx,ty)` reports a blocked tile (a wall/solid/another block). Returns the
  *  new tile {tx,ty} on success, or null when blocked. Caller moves the sprite. */
