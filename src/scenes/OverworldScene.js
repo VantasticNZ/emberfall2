@@ -35,7 +35,7 @@ import { ModifierRegistry } from '../systems/Modifiers.js';
 import { COMBAT } from '../constants/standards.js';
 import { bindings } from '../constants/controls.js';
 import { AssetLoader } from '../art/AssetLoader.js';
-import { PROPS, PARTS, DIR_ROW, ANIMS, EXPRESSIONS, EXPR_COLS, EXPR_ROW } from '../data/assets.js';
+import { PROPS, PARTS, DIR_ROW, ANIMS, EXPRESSIONS, EXPR_COLS, EXPR_ROW, solidBox } from '../data/assets.js';
 import { TERRAIN } from '../data/terrainTiles.js';
 import { GREENHOLLOW_CHILDHOOD, GREENHOLLOW_SIDE, ASHEN_MARSH, SUNDERED_PEAKS as PEAKS_QUESTS, SUNDERED_PEAKS_SIDE } from '../data/quests/index.js';
 import { TILE, CHUNK_PX, WORLD_CHUNKS, WORLD_PX, chunkContent, groundTintAt, GREENHOLLOW, ASHEN_MARSH as MARSH_REGION, REGIONS, regionAt, inGreenhollow, inMarsh } from '../data/worldmap.js';
@@ -181,15 +181,16 @@ export class OverworldScene extends Phaser.Scene {
       if (p.scale != null) spr.setScale(p.scale);
       if (p.flip) spr.setFlipX(true);
       if (p.tint != null) spr.setTint(p.tint);
-      // SOLID props get a STATIC collider RECT at the footprint base (the cliff-wall pattern that
-      // PROVABLY blocks). A dynamic body added to the STATIC `solids` group did NOT enter the
-      // static collision tree → the player walked through houses/boulders (the reported bug).
-      if (p.solid && d.footprint) {
-        const fp = d.footprint, sc = (p.scale != null ? p.scale : 1);
-        const rect = this.add.rectangle(p.x + fp.offX * sc, p.y + fp.offY * sc, Math.max(8, fp.w * sc), Math.max(8, fp.h * sc), 0x000000, 0).setVisible(false);
+      // SOLID props get a STATIC collider RECT derived by THE ONE RULE (solidBox) — consistent
+      // for every house/rock/tree, no per-object tuning. Static body (the cliff-wall pattern that
+      // provably blocks; a dynamic body in the STATIC solids group never enters the collision tree).
+      const sc = (p.scale != null ? p.scale : 1);
+      const b = solidBox(p.key, d);
+      if (p.solid) {
+        const rect = this.add.rectangle(p.x + b.offX * sc, p.y + b.offY * sc, Math.max(8, b.w * sc), Math.max(8, b.h * sc), 0x000000, 0).setVisible(false);
         this.physics.add.existing(rect, true); this.solids.add(rect); this._regionObjs.push(rect);
       }
-      DepthSort.track(spr, d.footprint ? d.footprint.offY + d.footprint.h / 2 : (d.height || 32) / 2);
+      DepthSort.track(spr, (b.offY + b.h / 2) * sc);   // y-sort by the solid base (same rule)
       this._regionObjs.push(spr);
     }
     for (const n of R.npcs) this._buildRegionNpc(n);

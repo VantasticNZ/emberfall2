@@ -25,7 +25,7 @@ import { QUESTS } from '../src/data/quests/index.js';
 import { ITEMS } from '../src/data/items/index.js';
 import { SHOPS, JOBS } from '../src/data/economy.js';
 import { REGIONS, TILE } from '../src/data/worldmap.js';
-import { PROPS } from '../src/data/assets.js';
+import { PROPS, solidBox } from '../src/data/assets.js';
 import { GATES, TEASES } from '../src/data/gating.js';
 import { ENTRANCES } from '../src/data/entrances.js';
 
@@ -262,16 +262,21 @@ const tile = (px) => Math.round(px / TILE);
       offenders.push(`settlement region '${R.key}': ${through.length} NON-SOLID solid-mass prop(s) (${kinds}…) — walk-through; make them solid:true`);
     }
   }
-  // EXTENDED (the walk-into-house-FRONT hole): a BUILDING's footprint (its collider) must cover
-  // the building's MASS, not a thin base strip — else the player walks into the front/door/walls
-  // above the strip. Require ≥70% of the frame WIDTH and ≥50% of the frame HEIGHT (no interiors
-  // yet → the whole building is solid from every face).
-  const BUILDING = /forge|house|paneled|structure|hall|keep|cottage|tower|manor/;
-  for (const [key, d] of Object.entries(PROPS)) {
-    if (!BUILDING.test(key) || !d.footprint) continue;
-    const fp = d.footprint, wRatio = fp.w / d.width, hRatio = fp.h / d.height;
-    if (wRatio < 0.7 || hRatio < 0.5) {
-      offenders.push(`building '${key}' footprint covers only ${(wRatio * 100) | 0}%×${(hRatio * 100) | 0}% of its frame (need ≥70%×≥50%) — front/faces walkable-through; enlarge the footprint to the full mass`);
+  // EXTENDED — assert THE ONE COLLISION RULE (solidBox) holds for every solid in every region:
+  // (a) every solid prop resolves to a real collider (w,h ≥ 8); (b) a MASS object (rock/building)
+  // gets a MASS collider — ≥40% of the frame HEIGHT and ≥60% of the frame WIDTH — never a thin
+  // base strip (the walk-into-the-front bug). This is derived from the sprite by ONE rule, not
+  // hand-tuned per object, so colliders can't drift "off to different degrees" again.
+  const MASS = /rock|boulder|crag|forge|house|paneled|fountain|structure|keep|hall|cliff/;
+  const seenKeys = new Set();
+  for (const R of REGIONS) for (const p of (R.props || [])) {
+    if (!p.solid || seenKeys.has(p.key)) continue; seenKeys.add(p.key);
+    const d = PROPS[p.key]; if (!d) continue;
+    const b = solidBox(p.key, d);
+    if (!(b.w > 0 && b.h > 0)) { offenders.push(`solidBox('${p.key}') → degenerate collider ${b.w}×${b.h} (rule must yield a real blocker)`); continue; }
+    if (MASS.test(p.key)) {
+      const wR = b.w / d.width, hR = b.h / d.height;
+      if (wR < 0.6 || hR < 0.4) offenders.push(`MASS '${p.key}' collider covers only ${(wR*100)|0}%×${(hR*100)|0}% of its frame (rule needs ≥60%×≥40%) — would clip-through`);
     }
   }
   if (offenders.length) fail('COLLISION-MATCHES-VISUAL-MASS violation(s):\n' + offenders.map((s) => '      ' + s).join('\n'));

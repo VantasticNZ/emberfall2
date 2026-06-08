@@ -168,6 +168,34 @@ export const PROPS = {
                      footprint: { w: 24, h: 10, offX: 0, offY: 8 } },
 };
 
+// =============================================================================
+// THE ONE COLLISION RULE — derive a solid object's collider from its sprite by CLASS
+// (NO per-instance hand-tuning; this replaces the per-building footprint guessing that
+// left "houses off to different degrees"). Returns the collider box relative to the
+// sprite CENTRE { w, h, offX, offY } in UNSCALED frame px (the scene ×s the sprite scale).
+// The box's SOUTH edge sits at the sprite's visual BOTTOM, so you stop AT the front of the
+// mass (no clip-through) from EVERY direction, and the base blocks all four faces.
+//   • CANOPY (trees)            → solid TRUNK only (you walk behind the canopy, y-sorted).
+//   • MASS (rocks, buildings)   → ~full width × the lower ~55% of the sprite (block the
+//                                 visual mass; walk behind the top — roof/peak — y-sorted).
+//   • SMALL (barrel/chest/bush/sign/fence/…) → the manifest base footprint.
+// =============================================================================
+const _CANOPY = /tree/;
+const _MASS = /rock|boulder|crag|forge|house|paneled|fountain|structure|keep|hall|cliff/;
+export function solidBox(key, d) {
+  const W = d.width, H = d.height;
+  if (_CANOPY.test(key)) {                                   // trunk base band
+    const h = Math.max(8, Math.round(H * 0.10));
+    return { w: Math.max(10, Math.round(W * 0.26)), h, offX: 0, offY: Math.round(H / 2 - h / 2) };
+  }
+  if (_MASS.test(key)) {                                     // block the visual mass (lower ~55%)
+    const h = Math.round(H * 0.55);
+    return { w: Math.round(W * 0.9), h, offX: 0, offY: Math.round(H / 2 - h / 2) };
+  }
+  const fp = d.footprint || { w: Math.round(W * 0.7), h: Math.max(8, Math.round(H * 0.3)), offX: 0, offY: Math.round(H * 0.2) };
+  return { w: fp.w, h: fp.h, offX: fp.offX || 0, offY: fp.offY || 0 };
+}
+
 export const DECALS = {
   decal_tuft:         { src: 'art/terrain/decal_tuft.png' },
   decal_flower_pink:  { src: 'art/terrain/decal_flower_pink.png' },
