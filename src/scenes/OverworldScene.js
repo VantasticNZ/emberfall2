@@ -541,6 +541,34 @@ export class OverworldScene extends Phaser.Scene {
     }
     return false;
   }
+  // Does the player's feet-box (centred at cx,cy) overlap any SOLID static rect? (the dodge sweep test)
+  _feetBoxBlocked(cx, cy, bw, bh) {
+    const L = cx - bw / 2, R = cx + bw / 2, T = cy - bh / 2, B = cy + bh / 2;
+    for (const o of this.solids.getChildren()) {
+      const b = o.body; if (!b || b.physicsType !== 1 || !b.enable) continue;
+      if (Math.abs(b.center.x - cx) > 80 && Math.abs(b.center.y - cy) > 80) continue;   // cheap near-filter
+      if (L < b.center.x + b.halfWidth && R > b.center.x - b.halfWidth && T < b.center.y + b.halfHeight && B > b.center.y - b.halfHeight) return true;
+    }
+    return false;
+  }
+  // SWEPT dodge velocity — cast the feet-box along this frame's intended displacement in ≤4px steps
+  // (smaller than the thinnest base-band) and clamp to the first solid contact so a fast burst can't
+  // tunnel a thin collider. On contact, ends the dodge so it doesn't keep pushing.
+  _sweptDodgeVel(vx, vy, dt) {
+    const sp = Math.hypot(vx, vy); if (sp < 0.01) return { x: vx, y: vy };
+    const b = this.player.body, cx = b.center.x, cy = b.center.y, bw = b.width, bh = b.height;
+    const dist = sp * dt, ux = vx / sp, uy = vy / sp, STEP = 4;
+    let safe = 0;
+    for (let d = STEP; d <= dist + STEP; d += STEP) {
+      const m = Math.min(d, dist);
+      if (this._feetBoxBlocked(cx + ux * m, cy + uy * m, bw, bh)) break;
+      safe = m;
+    }
+    if (safe >= dist - 0.01) return { x: vx, y: vy };   // path clear → full dodge
+    this.pc.dodgeMoveUntil = 0;                          // blocked → stop the dodge pushing further
+    const f = dt > 0 ? safe / dt : 0;                    // move only the safe distance this frame
+    return { x: ux * f, y: uy * f };
+  }
   _playerAttack() {
     const now = this.time.now;
     if (now < this._atkReady || this.player.isBusy()) { this._atkBuffered = now + COMBAT.INPUT_BUFFER_MS; return; }
@@ -845,13 +873,12 @@ export class OverworldScene extends Phaser.Scene {
       this._inputDir = { dx, dy };
       this.pc.setBlocking(now, combatLive && k.C.isDown && !this.player.isBusy());
       if (this.pc.isDodgeMoving(now)) {
-        // DODGE move — but CANCEL the push into a solid the body is already against, else the fast
-        // 611px/s burst re-applies its velocity every frame and CREEPS THROUGH a static collider
-        // (the dash-over-a-rock bug). With this, the dash respects every solid from ALL directions.
-        const v = this.pc.dodgeVelocity(), b = this.player.body.blocked;
-        const vx = ((v.x < 0 && b.left) || (v.x > 0 && b.right)) ? 0 : v.x;
-        const vy = ((v.y < 0 && b.up) || (v.y > 0 && b.down)) ? 0 : v.y;
-        this.player.body.setVelocity(vx, vy);
+        // DODGE move — SWEPT anti-tunnel: cast the feet-box along the intended path this frame in
+        // small steps; if a solid is in the way, clamp the velocity so the body stops just before it
+        // + END the dodge. A 611px/s burst can NO LONGER skip a thin base-band collider in one frame
+        // (the dash-over-a-rock bug, which was real — NOT a 4fps artifact), from ANY direction.
+        const v = this.pc.dodgeVelocity(), sv = this._sweptDodgeVel(v.x, v.y, dt);
+        this.player.body.setVelocity(sv.x, sv.y);
       }
       else if (this.pc.isBlocking()) Movement.stop(this.player);
       else if (dx || dy) Movement.drive(this.player, dx, dy, run); else Movement.stop(this.player);
