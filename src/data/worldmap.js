@@ -14,8 +14,8 @@ import { MARSH } from './marsh.js';
 export const TILE = 32;
 export const CHUNK = 32;                       // tiles per chunk side
 export const CHUNK_PX = CHUNK * TILE;          // 1024 px
-export const WORLD_CHUNKS = 16;                // 16×16 chunks…
-export const WORLD_PX = WORLD_CHUNKS * CHUNK_PX; // …= 16384 px world
+export const WORLD_CHUNKS = 20;                // 20×20 chunks (WORLD-BLUEPRINT decision B: enlarged 16→20…
+export const WORLD_PX = WORLD_CHUNKS * CHUNK_PX; // …= 20480 px / 640 tiles, so regions radiate SYMMETRICALLY from a centred hub)
 
 // =============================================================================
 // REGIONS — settlements/areas placed at WORLD-COORD offsets (Phase 2 migration).
@@ -23,9 +23,15 @@ export const WORLD_PX = WORLD_CHUNKS * CHUNK_PX; // …= 16384 px world
 // player enters its bounds; the terrain/green-belt still streams per-chunk. The
 // data is the EXISTING discrete-region data, re-expressed in world-coords (offset
 // by the region origin) — same canonical ids, same cast, same quests. Greenhollow
-// sits near the CENTRE of the world (per the geography spec), ringed by green belt.
+// sits at the CENTRE of the world (WORLD-BLUEPRINT decision B), ringed by green belt,
+// so the other regions radiate out symmetrically (no NW bias).
 // =============================================================================
-const GH_ORIGIN = { x: 5 * CHUNK_PX, y: 5 * CHUNK_PX };   // world px of Greenhollow tile (0,0) — central
+// WORLD-BLUEPRINT decision B (re-centre): Greenhollow at chunk (9,9) = tile (288,288) of
+// the 20×20 world → its centre ~(314,308) ≈ world centre (320,320), so Marsh(W)/Peaks(N)/
+// Coast(E)/Emberwood(S)/Spire(far-N) radiate with even room. Was chunk (5,5) (NW-biased).
+// Everything below (Marsh, Belt) is RELATIVE to this origin, so they shift as one coherent
+// move. The +4-chunk (+4096px) shift is migrated for old saves (SaveManager v2→v3).
+const GH_ORIGIN = { x: 9 * CHUNK_PX, y: 9 * CHUNK_PX };   // world px of Greenhollow tile (0,0) — CENTRED
 const gx = (tx) => GH_ORIGIN.x + tx * TILE;
 const gy = (ty) => GH_ORIGIN.y + ty * TILE;
 

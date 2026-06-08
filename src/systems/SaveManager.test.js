@@ -7,7 +7,7 @@
 // =============================================================================
 
 import assert from 'node:assert/strict';
-import { SaveManager, SAVE_VERSION } from './SaveManager.js';
+import { SaveManager, SAVE_VERSION, RECENTRE_V3_SHIFT_PX, RECENTRE_V3_SHIFT_CHUNKS } from './SaveManager.js';
 import { memoryStorage } from './storage.js';
 
 let n = 0;
@@ -95,6 +95,28 @@ const pass = (m) => { n++; console.log('  ✓ ' + m); };
   assert.equal(sm.hasSave(), false);
   assert.deepEqual(sm.getPosition(), { x: 0, y: 0 });
   pass('corrupt save is survived (no throw); clear() wipes the slot');
+}
+
+// 6) RE-CENTRE MIGRATION (v2 → v3): pre-recentre world coords shift by +4 chunks ----
+{
+  const store = memoryStorage();
+  // a real v2 (pre-recentre) overworld save: position + a chunk delta in OLD coords
+  const v2 = JSON.stringify({
+    v: 2, pos: { x: 5824, y: 5728 }, area: 'overworld', timeFrac: 0.1,
+    chunks: { '5,5': { opened: { chest_wood: 1 }, killed: {}, picked: {}, flags: {} } },
+    systems: { econ: { gold: 40 } },
+  });
+  store.write('emberfall:world:slot1', v2);
+  const sm = new SaveManager({ storage: store });
+  assert.doesNotThrow(() => sm.load());
+  assert.equal(sm.state.v, SAVE_VERSION);                                   // bumped to v3
+  // position shifted by the re-centre amount (+4096 px both axes) → relocated, not lost
+  assert.deepEqual(sm.getPosition(), { x: 5824 + RECENTRE_V3_SHIFT_PX, y: 5728 + RECENTRE_V3_SHIFT_PX });
+  // chunk delta key remapped (5,5 → 9,9) so the opened chest stays with its (now-moved) content
+  assert.equal(sm.isOpened(5 + RECENTRE_V3_SHIFT_CHUNKS, 5 + RECENTRE_V3_SHIFT_CHUNKS, 'chest_wood'), true);
+  assert.equal(sm.isOpened(5, 5, 'chest_wood'), false);                     // not left at the OLD chunk
+  assert.deepEqual(sm.state.systems.econ, { gold: 40 });                    // coord-independent state untouched
+  pass('v2→v3 re-centre migration shifts world position + chunk deltas by +4 chunks (playthrough preserved)');
 }
 
 console.log(`\nALL ${n} CHECKS PASSED ✅`);

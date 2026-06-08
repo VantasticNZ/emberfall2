@@ -18,7 +18,16 @@
 
 import { defaultStorage } from './storage.js';
 
-export const SAVE_VERSION = 2;   // v1 = legacy per-system saves (no world block); v2 = unified world save
+export const SAVE_VERSION = 3;   // v1 = legacy per-system saves; v2 = unified world save; v3 = world RE-CENTRED (Blueprint decision B)
+
+// WORLD-BLUEPRINT decision B re-centred Greenhollow from chunk (5,5) → (9,9): a uniform
+// +4-chunk shift on both axes. A v2 (pre-recentre) save's world position + chunk-delta keys
+// are in the OLD coords, so v2→v3 migration shifts them by exactly this — the playthrough is
+// preserved (a save is sacred), just relocated to the new world-coords. Must match worldmap's
+// GH_ORIGIN move; if the re-centre ever changes, this constant changes with it.
+export const RECENTRE_V3_SHIFT_CHUNKS = 4;            // (9 − 5) chunks
+const _CHUNK_PX = 1024;                               // = CHUNK(32) × TILE(32); SaveManager stays decoupled from worldmap
+export const RECENTRE_V3_SHIFT_PX = RECENTRE_V3_SHIFT_CHUNKS * _CHUNK_PX;   // 4096 px
 
 export class SaveManager {
   constructor({ slot = 'slot1', storage = defaultStorage() } = {}) {
@@ -84,7 +93,8 @@ export class SaveManager {
   // ---- migration (forward-only; never throws, never loses data) --------------
   hydrate(raw) {
     let s = (raw && typeof raw === 'object') ? raw : {};
-    if (!s.v || s.v < 2) s = this._migrateToV2(s);            // legacy → v2
+    if (!s.v || s.v < 2) s = this._migrateToV2(s);            // legacy → v2 (no overworld coords to shift)
+    else if (s.v === 2) s = this._migrateV2ToV3(s);          // pre-recentre overworld save → shift coords
     const base = this._empty();
     return {
       v: SAVE_VERSION,
@@ -100,5 +110,19 @@ export class SaveManager {
     // a pre-v2 blob had no world block — preserve a position if one existed under
     // any old key, default the rest. Old per-system saves keep their own keys.
     return { ...this._empty(), pos: s.pos || s.position || this._empty().pos, timeFrac: s.timeFrac || 0 };
+  }
+  // v2 → v3: the world re-centred (+4 chunks). Shift the saved world position + remap every
+  // per-chunk DELTA key (cx,cy → cx+4,cy+4) so opened/killed/picked stay with their content.
+  // Coordinate-independent state (systems: karma/quests/inv/time) is untouched. No data lost.
+  _migrateV2ToV3(s) {
+    const pos = s.pos
+      ? { x: (+s.pos.x || 0) + RECENTRE_V3_SHIFT_PX, y: (+s.pos.y || 0) + RECENTRE_V3_SHIFT_PX }
+      : this._empty().pos;
+    const chunks = {};
+    for (const [k, v] of Object.entries(s.chunks || {})) {
+      const [cx, cy] = k.split(',').map(Number);
+      chunks[`${cx + RECENTRE_V3_SHIFT_CHUNKS},${cy + RECENTRE_V3_SHIFT_CHUNKS}`] = v;
+    }
+    return { ...s, v: 3, pos, chunks };
   }
 }
