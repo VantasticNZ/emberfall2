@@ -17,7 +17,8 @@ public/art/eliza/   | ElizaWy LPC (github.com/ElizaWy/LPC)                      
 public/art/terrain/ | ElizaWy LPC terrain (incl. cliff/rock crops from eliza-terrain: cliff_face, cliff_wall, cliff_top, rock_crag/boulder/small — Sundered Peaks) + Sharm LPC house + [LPC] Terrains autotile atlas (bluecarrot16, Sharm, Daneeklu, Jetrel, Zabin, Hyptosis, C.Nilsson, Buko, et al.) | OGA-BY-3.0 / CC-BY-3.0 / CC-BY-SA-3.0 / GPL-3.0 | yes | terrain+building+transition-tiles+cliff/rock
 public/art/kenney/  | Kenney (kenney.nl)                                            | CC0-1.0                           | yes | tiles (legacy, unreferenced)
 public/art/lpc/     | sanderfrenken Universal-LPC-Spritesheet                       | CC-BY-SA-3.0 / OGA-BY-3.0 / GPL-3.0 | yes | character (legacy, superseded by eliza)
-public/audio/       | Kenney RPG Audio (kenney.nl)                                  | CC0-1.0                           | yes | sfx (swing/hit/charge-impact)
+public/audio/ambient/ | OpenGameArt CC0 ambient — "wind woosh loop" (SketchMan3) + "Birds and Wind — Ambient" (Spring Spring; birds by isaiah658/syncopika/pauliuw) | CC0-1.0 | yes | ambient loops (Peaks wind · Greenhollow birdsong)
+public/audio/       | Kenney RPG Audio + Kenney Interface Sounds (kenney.nl)        | CC0-1.0                           | yes | sfx (combat swing/hit/charge + UI confirm/select/deny/pickup)
 public/art/monsters/| [LPC] Monsters — CharlesGabriel, bagzie, bluecarrot16 (OpenGameArt) | CC-BY-SA-3.0 / GPL-3.0       | yes | enemy creatures (snake/bat/worm/eyeball/ghost/slime/pumpking/man-eater)
 public/art/structures/| ElizaWy LPC (github.com/ElizaWy/LPC) structure + objects     | OGA-BY-3.0                        | yes | buildings + village props (houses/fountain/chest/barrel/fence)
 ```
