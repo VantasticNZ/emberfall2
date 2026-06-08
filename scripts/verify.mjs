@@ -143,6 +143,7 @@ const magic = [];
     if (!/\.(m?js)$/.test(name)) continue;
     const rel = p.slice(ROOT.length + 1).split('\\').join('/');
     if (rel === 'src/constants/standards.js' || rel === 'src/data/assets.js') continue; // the SSOT homes
+    if (rel.includes('/fitcheck/')) continue;   // Tiled-map fixtures are literal-px map DATA (a .tmj), not game code
     readFileSync(p, 'utf8').split('\n').forEach((line, i) => {
       if (/\bradius:\s*-?\d/.test(line)) magic.push(`${rel}:${i + 1}  bare interaction radius — use INTERACTION_RADIUS`);
       if (/(?:\*\s*32|\b32\s*\*)\b/.test(line)) magic.push(`${rel}:${i + 1}  bare tile size 32 — use TILE`);
