@@ -171,30 +171,37 @@ export const PROPS = {
 };
 
 // =============================================================================
-// THE ONE COLLISION RULE — PIXEL-TRUTH: derive a solid's collider from its OPAQUE PIXELS
-// (OPAQUE_BOUNDS, precomputed by scripts/build_opaque_bounds.mjs), NOT the PNG frame. This
-// fixes "clips into the wall / invisible wall" — the collider now matches the VISIBLE silhouette,
-// ignoring transparent frame padding. Returns the collider box relative to the sprite CENTRE
-// { w, h, offX, offY } in UNSCALED frame px (the scene ×s the sprite scale; sprite origin 0.5/0.5).
-//   • CANOPY (trees)  → collider = the opaque GROUND band (the trunk/base) only; walk behind the
-//                        canopy (y-sorted). Anchored to the opaque base, not the frame.
-//   • EVERYTHING ELSE → collider = the FULL OPAQUE SILHOUETTE (rocks solid top-to-bottom = no
-//                        waist-deep clip; buildings solid to the visible walls = you stop AT the
-//                        wall, no walking 58px in; no padding overhang = no invisible wall).
-// If a texture has no precomputed bounds, fall back to the manifest footprint / frame.
+// THE ONE COLLISION RULE — PIXEL-TRUTH + PERSPECTIVE-AWARE: derive a solid's collider from its
+// OPAQUE PIXELS (OPAQUE_BOUNDS, precomputed by scripts/build_opaque_bounds.mjs), NOT the PNG frame.
+// HORIZONTAL extent is always the opaque silhouette WIDTH (matches the visible left/right edges).
+// VERTICAL extent is the object's GROUND FOOTPRINT — anchored to the opaque BASE — by class:
+//   • CANOPY (trees)     → trunk/ground band only; walk behind the canopy (y-sorted).
+//   • BUILDING (tall ¾)  → a BASE GROUND BAND (the wall-foot where it meets the ground), full
+//                          opaque width: you stop at the front base AND walk BEHIND the upper
+//                          roof (y-sorted) — not blocked at the roofline. Band depth ≈ the ¾
+//                          ground projection (opaque width × 0.5), so it scales with the footprint.
+//   • COMPACT (rocks/etc)→ the FULL opaque silhouette (solid top-to-bottom; you walk around it).
+// Returns { w, h, offX, offY } relative to the sprite CENTRE, UNSCALED frame px (origin 0.5/0.5).
 // =============================================================================
 const _CANOPY = /tree/;
+const _BUILDING = /forge|house|paneled|structure|hall|keep|cottage|tower|manor/;
 export function solidBox(key, d) {
   const W = d.width, H = d.height;
   const ob = OPAQUE_BOUNDS[key];
   if (ob) {
-    const cx = (ob.x0 + ob.x1 + 1) / 2 - W / 2;            // opaque centre, relative to frame centre
-    if (_CANOPY.test(key)) {                                // trunk = opaque ground band
-      const bandH = Math.min(16, Math.max(2, Math.round((ob.y1 - ob.y0 + 1) * 0.14)));
+    const oH = ob.y1 - ob.y0 + 1, oW = ob.x1 - ob.x0 + 1;
+    const cx = (ob.x0 + ob.x1 + 1) / 2 - W / 2;            // opaque centre x, relative to frame centre
+    const baseAnchoredBand = (h) => ({ w: oW, h, offX: Math.round(cx), offY: Math.round((ob.y1 + 1) - h / 2 - H / 2) });
+    if (_CANOPY.test(key)) {                                // trunk = opaque ground band (narrow)
+      const bandH = Math.min(16, Math.max(2, Math.round(oH * 0.14)));
       const bcx = (ob.baseX0 + ob.baseX1 + 1) / 2 - W / 2;
       return { w: ob.baseX1 - ob.baseX0 + 1, h: bandH, offX: Math.round(bcx), offY: Math.round((ob.y1 + 1) - bandH / 2 - H / 2) };
     }
-    return { w: ob.x1 - ob.x0 + 1, h: ob.y1 - ob.y0 + 1,    // FULL opaque silhouette
+    if (_BUILDING.test(key)) {                              // BASE GROUND BAND (walk behind the roof)
+      const bandH = Math.max(24, Math.min(oH, Math.round(oW * 0.5)));
+      return baseAnchoredBand(bandH);
+    }
+    return { w: oW, h: oH,                                  // COMPACT: FULL opaque silhouette
              offX: Math.round(cx), offY: Math.round((ob.y0 + ob.y1 + 1) / 2 - H / 2) };
   }
   // fallback (no opaque bounds, e.g. palette PNG): manifest footprint, else a base box

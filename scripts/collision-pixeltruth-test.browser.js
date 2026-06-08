@@ -33,12 +33,19 @@ window.__pixelTruthTest = function () {
     for (let y = y1 - bh + 1; y <= y1; y++) for (let x = 0; x < W; x++) if (px[(y * W + x) * 4 + 3] > A) { if (x < bx0) bx0 = x; if (x > bx1) bx1 = x; }
     return (_c[k] = { W, H, x0, y0, x1, y1, baseX0: bx0, baseX1: bx1, bh });
   };
-  // SOLID world box from pixels: trees → trunk band; everything else → full opaque silhouette.
+  // The expected GROUND-FOOTPRINT box from pixels + the perspective rule (the spec the collider
+  // must implement): horizontal = the opaque silhouette WIDTH (pixel-truth); vertical anchored to
+  // the opaque BASE — trees → trunk band, BUILDINGS → base ground band (so BACK stops at the band
+  // top = walk behind the roof, a full-height collider would FAIL), compact → full silhouette.
+  const BUILDING = /forge|house|paneled|structure|hall|keep|cottage|tower|manor/;
   const boxOf = (spr) => {
     const ob = opaque(spr.texture.key), sc = spr.scaleX, scy = spr.scaleY, W = ob.W, H = ob.H, flip = spr.flipX;
     const fx = (p) => spr.x + ((flip ? W - p : p) - W / 2) * sc, fy = (p) => spr.y + (p - H / 2) * scy;
-    if (/tree/.test(spr.texture.key)) { const l = fx(ob.baseX0), r = fx(ob.baseX1 + 1); return { L: Math.min(l, r), R: Math.max(l, r), T: fy(ob.y1 + 1 - ob.bh), B: fy(ob.y1 + 1) }; }
-    const l = fx(ob.x0), r = fx(ob.x1 + 1); return { L: Math.min(l, r), R: Math.max(l, r), T: fy(ob.y0), B: fy(ob.y1 + 1) };
+    const oW = ob.x1 - ob.x0 + 1, oH = ob.y1 - ob.y0 + 1;
+    const l = fx(ob.x0), r = fx(ob.x1 + 1), L = Math.min(l, r), R = Math.max(l, r), B = fy(ob.y1 + 1);
+    if (/tree/.test(spr.texture.key)) { const tl = fx(ob.baseX0), tr = fx(ob.baseX1 + 1); return { L: Math.min(tl, tr), R: Math.max(tl, tr), T: fy(ob.y1 + 1 - ob.bh), B }; }
+    if (BUILDING.test(spr.texture.key)) { const bandH = Math.max(24, Math.min(oH, Math.round(oW * 0.5))); return { L, R, T: B - bandH * scy, B }; }
+    return { L, R, T: fy(ob.y0), B };  // compact → full silhouette
   };
   const ov = (a, b) => a.L < b.R && a.R > b.L && a.T < b.B && a.B > b.T;
   const inB = (x, y, b, m = 3) => x >= b.L - m && x <= b.R + m && y >= b.T - m && y <= b.B + m;

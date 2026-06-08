@@ -263,12 +263,14 @@ const tile = (px) => Math.round(px / TILE);
       offenders.push(`settlement region '${R.key}': ${through.length} NON-SOLID solid-mass prop(s) (${kinds}…) — walk-through; make them solid:true`);
     }
   }
-  // EXTENDED — assert PIXEL-TRUTH: every solid prop's collider is derived from its OPAQUE PIXELS
-  // (OPAQUE_BOUNDS), not the PNG frame. The collider must sit INSIDE the opaque silhouette (no
-  // transparent-padding overhang = no invisible wall) and its BOTTOM must meet the visible base.
-  // Non-trees must cover the FULL silhouette (solid to the visible edges = no clip-through);
-  // trees collide on the trunk band only (walk behind canopy). A frame-padding collider FAILS here.
+  // EXTENDED — assert PIXEL-TRUTH + PERSPECTIVE-AWARE: every solid prop's collider is derived from
+  // its OPAQUE PIXELS (OPAQUE_BOUNDS), not the PNG frame. HORIZONTAL = the opaque silhouette WIDTH
+  // (matches the visible left/right edges) for EVERY solid; the collider sits INSIDE the silhouette
+  // (no padding overhang = no invisible wall) with its BOTTOM at the visible base. VERTICAL by class:
+  // compact (rocks) cover the FULL height; buildings use a BASE GROUND BAND (walk behind the roof);
+  // trees a narrow trunk band. A frame-padding collider, or a full-height-front building, FAILS here.
   const T = 3; // px tolerance
+  const BUILDING = /forge|house|paneled|structure|hall|keep|cottage|tower|manor/;
   const seenKeys = new Set();
   for (const R of REGIONS) for (const p of (R.props || [])) {
     if (!p.solid || seenKeys.has(p.key)) continue; seenKeys.add(p.key);
@@ -285,10 +287,15 @@ const tile = (px) => Math.round(px / TILE);
       offenders.push(`'${p.key}' collider [${cL|0},${cT|0}..${cR|0},${cB|0}] OVERHANGS the opaque box [${oL},${oT}..${oR},${oB}] — frame-padding collider (invisible wall)`);
     // (2) bottom meets the visible base
     if (Math.abs(cB - oB) > T) offenders.push(`'${p.key}' collider bottom ${cB|0} ≠ opaque base ${oB} (Δ${Math.abs(cB-oB)|0}px)`);
-    // (3) non-trees cover the FULL silhouette (solid to the visible edges)
-    if (!/tree/.test(p.key)) {
-      if (Math.abs(cT - oT) > T || Math.abs(cL - oL) > T || Math.abs(cR - oR) > T)
-        offenders.push(`'${p.key}' collider doesn't cover the full opaque silhouette (top/sides Δ>${T}px) — would clip-through`);
+    // (3) HORIZONTAL = the full opaque WIDTH for EVERY non-tree solid (the left/right-correct fix)
+    if (!/tree/.test(p.key) && (Math.abs(cL - oL) > T || Math.abs(cR - oR) > T))
+      offenders.push(`'${p.key}' collider width ≠ opaque silhouette (L/R Δ>${T}px) — would clip the sides`);
+    // (4) VERTICAL: compact = full height; building = base band (NOT full-height front, so you walk behind)
+    if (!/tree/.test(p.key) && !BUILDING.test(p.key)) {
+      if (Math.abs(cT - oT) > T) offenders.push(`compact '${p.key}' collider top ${cT|0} ≠ opaque top ${oT} — should be solid full-height`);
+    } else if (BUILDING.test(p.key)) {
+      if (cT < oT + 4) offenders.push(`building '${p.key}' collider is full-height (top ${cT|0} ≈ opaque top ${oT}) — should be a BASE BAND so you walk behind the roof`);
+      if (b.h < 24) offenders.push(`building '${p.key}' base band ${b.h}px too thin (tunnel risk)`);
     }
   }
   if (offenders.length) fail('COLLISION-MATCHES-VISUAL-MASS violation(s):\n' + offenders.map((s) => '      ' + s).join('\n'));
