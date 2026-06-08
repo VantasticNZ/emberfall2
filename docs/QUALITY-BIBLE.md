@@ -367,10 +367,27 @@ faked. (Cross-ref `docs/ASSET-SOURCING-TIERS.md` if/when it exists.)
 ### PROCESS HOOK
 Every region "gold-standard" session MUST self-check this Part 2.6 — the **[OBJECTIVE]** gates
 with proof + screenshots, and hand the **[EYE]** gates to Van to play-judge — exactly the shape
-of the Part 2.5 Presentation & Feel DoD, under HARD RULE 9. The [OBJECTIVE] gates marked
-**(→ verify.mjs)** are to be wired as automated checks in a LATER code session (A-proxy,
-B-straight-run, C-spill/edge-bound, D-seam, E-variety, J-secret-count) — listed here, not built
-this session.
+of the Part 2.5 Presentation & Feel DoD, under HARD RULE 9.
+
+#### ✅ WIRED into `scripts/verify.mjs` (2026-06-08) — these [OBJECTIVE] gates now SELF-ENFORCE
+A drifting build FAILS `npm run verify` (the pre-commit hook) and can't commit. Reading region/
+world DATA (`src/data/worldmap.js` REGIONS + `src/data/gating.js` the gate DAG):
+- **NO SOFT-LOCKS** (WORLD-STRUCTURE §2.5 "clear eventual key") — the gating DAG: every key
+  obtainable, acyclic, no key-behind-itself, every tease pays off. *(the strict one)*
+- **CHANNELLED-NOT-OPEN** (§2.1b/2.4) — a `route:true` region may not contain an open k×k
+  walkable block > 8 tiles (would read as open field).
+- **DENSITY FLOOR per sector** (§2.4) — every ~24-tile screen-sector of every region has content.
+- **COLLISION-MATCHES-VISUAL-MASS** (the recurring Phase-5 bug) — a region with non-solid
+  solid-mass props (trees/buildings) MUST have colliders, else the player walks through them.
+- **SEAM COHERENCE** (Level-B seam lint) — adjacent regions share EXACT edge coords (no gap/overlap).
+- **PROP-KEY INTEGRITY** — every region prop key exists in the PROPS manifest (+ the existing
+  ASSET-LEDGER licence gate covers the art FILES).
+
+#### STILL [OBJECTIVE]-but-PROPOSED (need data we don't yet capture / per-region art metrics — wire when built)
+A-proxy (grid-alignment), B (straight-run path tiers), C (spill/edge-bound), D (seam-tile run),
+E (ground/scenery variety counts), J (secret count ≥3), K (interactable kinds ≥3), WEB-NOT-LINE
+(≥2 routes) — these read pixel/tile-render or per-region metadata the data doesn't expose yet;
+flagged, not faked. Wire each as its region reaches gold-standard.
 
 ----------------------------------------------------------------
 ## PART 2.6 — SETTLEMENT DESIGN: THE FOUR PILLARS (all scales: hamlet → city)
