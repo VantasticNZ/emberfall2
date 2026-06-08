@@ -62,6 +62,7 @@ export class NpcLife {
   setPhase(phase) {
     this._phase = phase;
     for (const m of this.movers) {
+      if (!m.schedule) continue;                               // scheduleless NPC = static (stays at spawn, idles)
       const e = m.schedule.find((s) => s.phase === phase);
       if (!e) continue;                                        // partial schedule: keep previous
       const j = NPC_LIFE.TARGET_JITTER_PX;

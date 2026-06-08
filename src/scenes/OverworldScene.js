@@ -165,6 +165,14 @@ export class OverworldScene extends Phaser.Scene {
     if (R.terrain) this._buildRegionTerrain(R);
     this._buildRegionWater(R);
     this._buildRegionDecals(R);
+    // CHANNEL COLLIDERS — invisible static tile-rects (decoupled from prop footprints so
+    // walls have no vertical seams the hero slips through). Used by the WEST_BELT route.
+    for (const c of (R.colliders || [])) {
+      const rect = this.add.rectangle(c.x, c.y, c.w, c.h, 0x000000, 0).setVisible(false);
+      this.physics.add.existing(rect, true);               // static Arcade body sized to the rect
+      this.solids.add(rect);
+      this._regionObjs.push(rect);
+    }
     for (const p of R.props) {
       const d = PROPS[p.key]; if (!d) continue;
       const spr = this.physics.add.sprite(p.x, p.y, p.key).setOrigin(0.5, 0.5);
