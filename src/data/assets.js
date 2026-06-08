@@ -132,19 +132,20 @@ export const PROPS = {
                     footprint: { w: 22, h: 12, offX: 0, offY: 8 } },   // enables SOLID bushes (channel movement); non-solid placements stay passable
   prop_sign:      { src: 'art/terrain/sign.png', width: 24, height: 24,
                     footprint: { w: 14, h: 6, offX: 0, offY: 8 } },
-  // The forge — a brick building assembled from the LPC house-exterior kit
-  // (Sharm, CC-BY-SA/OGA-BY). Solid at the base; y-sorts like a tall prop.
+  // The forge — a brick building (LPC house-exterior kit, Sharm). FULLY SOLID (no interior):
+  // the footprint covers the building's whole MASS (walls+door+base), bottom-aligned so the
+  // y-sort anchor is unchanged — you can't walk into ANY face. (The thin base-only strip let
+  // the player walk into the front/door = the reported walk-through-houses bug.)
   prop_forge:     { src: 'art/terrain/forge.png', width: 96, height: 128,
-                    footprint: { w: 84, h: 18, offX: 0, offY: 54 } },
+                    footprint: { w: 88, h: 96, offX: 0, offY: 16 } },
 
-  // REAL LPC buildings + village props (ElizaWy LPC structure/objects, OGA-BY).
-  // Distinct complete houses; solid at the base, y-sort like tall props.
+  // REAL LPC buildings (ElizaWy LPC structure, OGA-BY). FULLY SOLID — footprint = full mass.
   prop_house_a:   { src: 'art/structures/house_brick_a.png', width: 256, height: 224,   // a notable house / manor
-                    footprint: { w: 190, h: 24, offX: 0, offY: 96 } },
+                    footprint: { w: 224, h: 160, offX: 0, offY: 32 } },
   prop_house_b:   { src: 'art/structures/house_brick_b.png', width: 192, height: 192,   // a brick cottage
-                    footprint: { w: 140, h: 22, offX: 0, offY: 80 } },
+                    footprint: { w: 172, h: 140, offX: 0, offY: 26 } },
   prop_house_paneled: { src: 'art/structures/house_paneled.png', width: 160, height: 160, // paneled house (tavern/shop)
-                    footprint: { w: 120, h: 20, offX: 0, offY: 62 } },
+                    footprint: { w: 144, h: 116, offX: 0, offY: 22 } },
   prop_fountain:  { src: 'art/structures/fountain.png', width: 64, height: 96,          // the village well/fountain
                     footprint: { w: 46, h: 16, offX: 0, offY: 34 } },
   prop_barrel:    { src: 'art/structures/barrel.png', width: 32, height: 32,            // scenery

@@ -283,11 +283,13 @@ function _buildPeaksProps() {
   }
   // TERRACED STONE TOWN (stone-tinted LPC structures — FLAG: a true terraced stone-town
   // set is wanted) + the town well.
-  props.push({ key: 'prop_forge', x: pkx(30) + TILE / 2, y: pky(34) + TILE / 2, solid: true, tint: 0x8f97a8 });        // town hall
-  props.push({ key: 'prop_house_b', x: pkx(21) + TILE / 2, y: pky(40) + TILE / 2, solid: true, tint: 0x9aa0b4 });
-  props.push({ key: 'prop_house_paneled', x: pkx(39) + TILE / 2, y: pky(40) + TILE / 2, solid: true, tint: 0x9aa0b4 });
+  // Buildings FLANK the central keep-road corridor (x29–31) — never ON it — so the dirt road from
+  // the town up through the cleft pass to Cinder Keep is a clear, walkable, obvious path.
+  props.push({ key: 'prop_forge', x: pkx(23) + TILE / 2, y: pky(33) + TILE / 2, solid: true, tint: 0x8f97a8 });        // town hall (W flank)
+  props.push({ key: 'prop_house_b', x: pkx(20) + TILE / 2, y: pky(40) + TILE / 2, solid: true, tint: 0x9aa0b4 });
+  props.push({ key: 'prop_house_paneled', x: pkx(40) + TILE / 2, y: pky(40) + TILE / 2, solid: true, tint: 0x9aa0b4 });
   props.push({ key: 'prop_forge', x: pkx(15) + TILE / 2, y: pky(42) + TILE / 2, solid: true, tint: 0x8f97a8 });        // stoneworks
-  props.push({ key: 'prop_fountain', x: pkx(30) + TILE / 2, y: pky(42) + TILE / 2, solid: true });                     // the town well
+  props.push({ key: 'prop_fountain', x: pkx(37) + TILE / 2, y: pky(41) + TILE / 2, solid: true });                     // the town well (E flank)
   props.push({ key: 'prop_barrel', x: pkx(27) + TILE / 2, y: pky(44) + TILE / 2, solid: true });
   props.push({ key: 'prop_barrel', x: pkx(33) + TILE / 2, y: pky(44) + TILE / 2, solid: true });
   props.push({ key: 'prop_fence', x: pkx(25) + TILE / 2, y: pky(46) + TILE / 2, solid: true });

@@ -262,6 +262,18 @@ const tile = (px) => Math.round(px / TILE);
       offenders.push(`settlement region '${R.key}': ${through.length} NON-SOLID solid-mass prop(s) (${kinds}…) — walk-through; make them solid:true`);
     }
   }
+  // EXTENDED (the walk-into-house-FRONT hole): a BUILDING's footprint (its collider) must cover
+  // the building's MASS, not a thin base strip — else the player walks into the front/door/walls
+  // above the strip. Require ≥70% of the frame WIDTH and ≥50% of the frame HEIGHT (no interiors
+  // yet → the whole building is solid from every face).
+  const BUILDING = /forge|house|paneled|structure|hall|keep|cottage|tower|manor/;
+  for (const [key, d] of Object.entries(PROPS)) {
+    if (!BUILDING.test(key) || !d.footprint) continue;
+    const fp = d.footprint, wRatio = fp.w / d.width, hRatio = fp.h / d.height;
+    if (wRatio < 0.7 || hRatio < 0.5) {
+      offenders.push(`building '${key}' footprint covers only ${(wRatio * 100) | 0}%×${(hRatio * 100) | 0}% of its frame (need ≥70%×≥50%) — front/faces walkable-through; enlarge the footprint to the full mass`);
+    }
+  }
   if (offenders.length) fail('COLLISION-MATCHES-VISUAL-MASS violation(s):\n' + offenders.map((s) => '      ' + s).join('\n'));
   else ok('collision matches visual mass: no walk-through solid-mass props (visual mass is solid OR collider-backed)');
 }
