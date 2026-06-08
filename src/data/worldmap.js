@@ -182,6 +182,7 @@ export const WEST_BELT = {
   origin: BELT_ORIGIN,
   bounds: { x: BELT_ORIGIN.x, y: BELT_ORIGIN.y, w: BW * TILE, h: BH * TILE },
   safeZone: true,                                        // travel corridor — combat stays in Marsh
+  route: true,                                           // a CHANNELLED route (not a settlement) — verify.mjs channelled-not-open gate applies
   widthTiles: BW, heightTiles: BH,
   originTile: BELT_OT,
   // worn-dirt TRAIL traced along the lane (autotiler feathers it into grass = Gate D)

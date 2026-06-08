@@ -24,6 +24,9 @@ import { ITEM_IDS } from '../src/constants/items.js';
 import { QUESTS } from '../src/data/quests/index.js';
 import { ITEMS } from '../src/data/items/index.js';
 import { SHOPS, JOBS } from '../src/data/economy.js';
+import { REGIONS, TILE } from '../src/data/worldmap.js';
+import { PROPS } from '../src/data/assets.js';
+import { GATES, TEASES } from '../src/data/gating.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const fails = [];
@@ -145,6 +148,133 @@ const magic = [];
 })(srcDir);
 if (magic.length) fail('magic numbers bypassing the standards SSOT:\n' + magic.map((m) => '      ' + m).join('\n'));
 else ok('consistency: no bare interaction-radius / tile-size literals bypass the SSOT');
+
+// =============================================================================
+// WORLD-DESIGN [OBJECTIVE] GATES — the captured QUALITY-BIBLE 2.6 / WORLD-STRUCTURE
+// §2.4/2.5 rules, now SELF-ENFORCED against region/world DATA. A drifting build FAILS
+// here and can't commit. Each names the offending area so it's actionable.
+// =============================================================================
+const tile = (px) => Math.round(px / TILE);
+
+// 7) NO SOFT-LOCKS (strict) — the gating DAG: every key obtainable, no cycle, no
+//    key-behind-itself, every tease pays off (WORLD-STRUCTURE §2.5 "clear eventual key").
+{
+  const issues = [];
+  const allKeys = new Set();
+  GATES.forEach((g) => { g.requires.forEach((k) => allKeys.add(k)); g.grants.forEach((k) => allKeys.add(k)); });
+  TEASES.forEach((t) => allKeys.add(t.key));
+  const badKeys = [...allKeys].filter((k) => !validDeed.has(k));
+  if (badKeys.length) issues.push(`non-SSOT gating key id(s): ${badKeys.join(', ')}`);
+  const grantedBy = {};                                  // key -> [areas granting it]
+  GATES.forEach((g) => g.grants.forEach((k) => (grantedBy[k] ||= []).push(g.area)));
+  GATES.forEach((g) => g.requires.forEach((k) => {
+    if (!grantedBy[k]) issues.push(`area '${g.area}' requires '${k}' that NO area grants — unobtainable (SOFT-LOCK)`);
+    if (g.grants.includes(k)) issues.push(`area '${g.area}' requires '${k}' it also grants — locked behind itself`);
+  }));
+  if (!GATES.some((g) => g.requires.length === 0)) issues.push('NO start area (every area gated → world unreachable)');
+  TEASES.forEach((t) => { if (!grantedBy[t.key]) issues.push(`tease '${t.id}' (${t.where}) keyed on '${t.key}' that NO area grants — orphan tease (never pays off)`); });
+  // circular-gate check: topo-sort areas over deps (prereq area → dependent area)
+  const deps = {}; GATES.forEach((g) => { deps[g.area] = new Set(); g.requires.forEach((k) => (grantedBy[k] || []).forEach((a) => { if (a !== g.area) deps[g.area].add(a); })); });
+  const indeg = {}; GATES.forEach((g) => (indeg[g.area] = deps[g.area].size));
+  const dependents = {}; GATES.forEach((g) => (dependents[g.area] = []));
+  Object.entries(deps).forEach(([a, set]) => set.forEach((p) => dependents[p] && dependents[p].push(a)));
+  const q = Object.keys(indeg).filter((a) => indeg[a] === 0); const order = [];
+  while (q.length) { const a = q.shift(); order.push(a); (dependents[a] || []).forEach((d) => { if (--indeg[d] === 0) q.push(d); }); }
+  if (order.length !== GATES.length) issues.push(`CIRCULAR GATE — topo-sort covered ${order.length}/${GATES.length} areas; a requires/grants cycle exists`);
+  if (issues.length) fail('NO-SOFT-LOCK / gating violation(s):\n' + issues.map((s) => '      ' + s).join('\n'));
+  else ok(`no soft-locks: ${GATES.length} gated areas + ${TEASES.length} teases — every key obtainable, acyclic, no key-behind-itself`);
+}
+
+// 8) CHANNELLED-NOT-OPEN — a `route:true` region must not contain a large open
+//    walkable block (it'd read as open field, not a channelled route; §2.4 / Ph5b).
+{
+  const OPEN_SQUARE_MAX = 8;                              // no k×k all-walkable block larger than this
+  const routes = REGIONS.filter((r) => r.route);
+  const offenders = [];
+  for (const R of routes) {
+    const ox = tile(R.bounds.x), oy = tile(R.bounds.y), W = R.widthTiles, H = R.heightTiles;
+    const blocked = Array.from({ length: H }, () => new Array(W).fill(false));
+    const mark = (cx, cy) => { if (cy >= 0 && cy < H && cx >= 0 && cx < W) blocked[cy][cx] = true; };
+    (R.colliders || []).forEach((c) => mark(tile(c.x - c.w / 2) - ox, tile(c.y - c.h / 2) - oy));
+    (R.pools || []).forEach((p) => { for (let y = 0; y < p.h; y++) for (let x = 0; x < p.w; x++) mark(p.tx + x, p.ty + y); });
+    (R.props || []).filter((p) => p.solid).forEach((p) => mark(tile(p.x) - ox, tile(p.y) - oy));
+    let best = 0; const dp = Array.from({ length: H }, () => new Array(W).fill(0));
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      if (blocked[y][x]) { dp[y][x] = 0; continue; }
+      dp[y][x] = (x && y) ? Math.min(dp[y - 1][x], dp[y][x - 1], dp[y - 1][x - 1]) + 1 : 1;
+      if (dp[y][x] > best) best = dp[y][x];
+    }
+    if (best > OPEN_SQUARE_MAX) offenders.push(`route '${R.key}' has an open ${best}×${best}-tile walkable block (> ${OPEN_SQUARE_MAX}) — reads as open field, not channelled`);
+  }
+  if (offenders.length) fail('CHANNELLED-NOT-OPEN violation(s):\n' + offenders.map((s) => '      ' + s).join('\n'));
+  else ok(`channelled-not-open: ${routes.length} route region(s) stay channelled (no open block > ${OPEN_SQUARE_MAX} tiles)`);
+}
+
+// 9) DENSITY FLOOR — every screen-sized sector of every region has SOME content
+//    (no empty/useless terrain; §2.4 density floor per sector).
+{
+  const SEC = 24;                                         // ~a screen-width of tiles
+  const empties = [];
+  for (const R of REGIONS) {
+    const rox = tile(R.bounds.x), roy = tile(R.bounds.y), rw = R.widthTiles || tile(R.bounds.w), rh = R.heightTiles || tile(R.bounds.h);
+    const ncx = Math.ceil(rw / SEC), ncy = Math.ceil(rh / SEC);
+    const sec = Array.from({ length: ncy }, () => new Array(ncx).fill(0));
+    const add = (px, py) => { const sx = Math.floor((tile(px) - rox) / SEC), sy = Math.floor((tile(py) - roy) / SEC); if (sx >= 0 && sx < ncx && sy >= 0 && sy < ncy) sec[sy][sx]++; };
+    (R.props || []).forEach((p) => add(p.x, p.y));
+    (R.npcs || []).forEach((n) => add(n.x, n.y));
+    (R.chests || []).forEach((c) => add(c.x, c.y));
+    (R.colliders || []).forEach((c) => add(c.x, c.y));
+    (R.pools || []).forEach((p) => add(R.bounds.x + (p.tx + p.w / 2) * TILE, R.bounds.y + (p.ty + p.h / 2) * TILE));
+    if (R.shrine) add(R.shrine.x, R.shrine.y);
+    if (R.combat) (R.combat.enemies || []).forEach((e) => add(e.tx * TILE, e.ty * TILE));   // Marsh enemy tx are absolute world tiles
+    for (let y = 0; y < ncy; y++) for (let x = 0; x < ncx; x++) if (sec[y][x] === 0) empties.push(`region '${R.key}' sector (${x},${y}) [~${SEC}-tile screen] is EMPTY (no prop/npc/chest/feature)`);
+  }
+  if (empties.length) fail('DENSITY-FLOOR violation(s):\n' + empties.map((s) => '      ' + s).join('\n'));
+  else ok(`density floor: every ~${SEC}-tile sector across ${REGIONS.length} regions has content`);
+}
+
+// 10) COLLISION-MATCHES-VISUAL-MASS — a region with non-solid solid-mass props
+//     (trees/buildings you'd expect to block) MUST have colliders, else the player
+//     walks straight through them (the Phase-5 bug). Solidity may be a prop flag OR
+//     decoupled tile-colliders — but visual mass without EITHER is the bug.
+{
+  const SOLID_MASS = /tree|forge|house|fountain|fence|sign|barrel/;
+  const offenders = [];
+  for (const R of REGIONS) {
+    const visualMass = (R.props || []).filter((p) => !p.solid && SOLID_MASS.test(p.key));
+    if (visualMass.length && (R.colliders || []).length === 0) {
+      const kinds = [...new Set(visualMass.map((p) => p.key))].slice(0, 3).join(', ');
+      offenders.push(`region '${R.key}': ${visualMass.length} non-solid solid-mass prop(s) (${kinds}…) but NO colliders — player walks THROUGH them`);
+    }
+  }
+  if (offenders.length) fail('COLLISION-MATCHES-VISUAL-MASS violation(s):\n' + offenders.map((s) => '      ' + s).join('\n'));
+  else ok('collision matches visual mass: no walk-through solid-mass props (visual mass is solid OR collider-backed)');
+}
+
+// 11) SEAM COHERENCE — adjacent regions share EXACT edge coords (no gap/overlap at a
+//     seam; WORLD-STRUCTURE Level-B seam lint). Catches a mis-placed/mis-sized region.
+{
+  const offenders = [];
+  const rs = REGIONS.map((R) => ({ key: R.key, x0: tile(R.bounds.x), x1: tile(R.bounds.x + R.bounds.w), y0: tile(R.bounds.y), y1: tile(R.bounds.y + R.bounds.h) }));
+  for (let i = 0; i < rs.length; i++) for (let j = 0; j < rs.length; j++) {
+    if (i === j) continue; const a = rs[i], b = rs[j];
+    const yOv = Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0);   // a left-of-b vertical seam
+    if (yOv > 0) { const gap = b.x0 - a.x1; if (gap !== 0 && Math.abs(gap) <= 2) offenders.push(`vertical seam '${a.key}'.E(${a.x1}) ↔ '${b.key}'.W(${b.x0}) off by ${gap} tile(s) — edges don't share coords`); }
+    const xOv = Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0);   // a above-b horizontal seam
+    if (xOv > 0) { const gap = b.y0 - a.y1; if (gap !== 0 && Math.abs(gap) <= 2) offenders.push(`horizontal seam '${a.key}'.S(${a.y1}) ↔ '${b.key}'.N(${b.y0}) off by ${gap} tile(s) — edges don't share coords`); }
+  }
+  if (offenders.length) fail('SEAM-COHERENCE violation(s):\n' + [...new Set(offenders)].map((s) => '      ' + s).join('\n'));
+  else ok(`seam coherence: all adjacent regions share exact edge coords (${rs.length} regions checked)`);
+}
+
+// 12) PROP-KEY INTEGRITY — every prop key a region references exists in the PROPS
+//     manifest (complements the licence ledger, which covers the art FILES).
+{
+  const offenders = [];
+  for (const R of REGIONS) for (const p of (R.props || [])) if (!PROPS[p.key]) offenders.push(`region '${R.key}' references prop '${p.key}' not in assets.js PROPS`);
+  if (offenders.length) fail('PROP-KEY integrity:\n' + [...new Set(offenders)].map((s) => '      ' + s).join('\n'));
+  else ok('prop-key integrity: all region prop keys exist in the PROPS manifest');
+}
 
 // --- summary ------------------------------------------------------------------
 if (fails.length) {
