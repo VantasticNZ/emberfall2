@@ -39,7 +39,7 @@ export const PEAKS = {
     { key: 'prop_forge', tx: 11, ty: 16, solid: true },     // a stone workshop
     { key: 'prop_forge', tx: 28, ty: 16, solid: true },     // the town hall
     { key: 'prop_forge', tx: 20, ty: 5, solid: true },      // CINDER KEEP (looming, north)
-    { key: 'prop_sign', tx: 19, ty: 28, solid: true },
+    { key: 'prop_sign', tx: 19, ty: 28, solid: true, text: 'SUNDERED PEAKS — Cinder Keep ahead; the quarry road west. The Order once held this pass. Watch the slopes — the cold here has teeth.' },
   ],
 
   // Townsfolk. The Miner gives M11 (arrival + dispute). Mike Hunt gives SP3

@@ -90,7 +90,7 @@ export const WORLD = {
   props: [
     // ---- the PLAZA (the off-centre social node) ----
     { key: 'prop_fountain', tx: 20, ty: 14, solid: true },          // the WELL — off-centre within the plaza
-    { key: 'prop_sign', tx: 25, ty: 13, solid: true },             // the NOTICE BOARD
+    { key: 'prop_sign', tx: 25, ty: 13, solid: true, text: 'GREENHOLLOW NOTICE BOARD — Hearthflame Festival at week\'s end, all welcome. Lost: one brown hen (answers to nothing). Mind the boarded cave past the meadow; the elders say stay clear.' },   // the NOTICE BOARD
     { key: 'prop_barrel', tx: 23, ty: 16, solid: true }, { key: 'prop_barrel', tx: 24, ty: 16, solid: true }, // market stalls (FLAG: a bench sprite would suit better)
 
     // ---- buildings FRONTING the plaza (enclosure) ----
@@ -133,9 +133,9 @@ export const WORLD = {
     { key: 'prop_bush', tx: 31, ty: 22, solid: true }, { key: 'prop_bush', tx: 12, ty: 20, solid: true },
 
     // ---- signs (shop + trailhead waystone) ----
-    { key: 'prop_sign', tx: 12, ty: 17, solid: true },     // Pem's Store sign
-    { key: 'prop_sign', tx: 31, ty: 17, solid: true },     // the Tankard sign
-    { key: 'prop_sign', tx: 25, ty: 6, solid: true },      // the WAYSTONE at the N trailhead
+    { key: 'prop_sign', tx: 12, ty: 17, solid: true, text: 'PEM\'S GENERAL STORE — provisions, tools, and a fair price for honest folk. Bring coin or barter.' },     // Pem's Store sign
+    { key: 'prop_sign', tx: 31, ty: 17, solid: true, text: 'THE COPPER TANKARD — ale, hearth, and a song. Rooms upstairs. Mind the step.' },     // the Tankard sign
+    { key: 'prop_sign', tx: 25, ty: 6, solid: true, text: 'WAYSTONE — North: the foothill road to the Sundered Peaks (the way is barred until the Marsh\'s truth is borne). West: the Ashen Marsh.' },      // the WAYSTONE at the N trailhead
 
     // ---- the boundary DEPTH BAND (generated; walls every edge, 3 rows deep) ----
     ...depthBand(),

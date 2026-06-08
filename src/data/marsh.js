@@ -47,7 +47,7 @@ export const MARSH = {
     { key: 'prop_tree_pine', tx: 14, ty: 26, solid: true },
     { key: 'prop_tree_pine', tx: 22, ty: 16, solid: true },
     { key: 'prop_tree_oak',  tx: 36, ty: 16, solid: true },
-    { key: 'prop_sign', tx: 19, ty: 20, solid: true },
+    { key: 'prop_sign', tx: 19, ty: 20, solid: true, text: 'ASHEN MARSH — Turn back. The water is black and the ground lies. Those who must go on: keep to the reeds, and do not trust a light that beckons.' },
   ],
 
   // Elder Yssa guards the boardwalk into Mirefen (talk -> the real M8 quest).

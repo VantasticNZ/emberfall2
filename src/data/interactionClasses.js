@@ -38,7 +38,7 @@ export const IX_CLASS = {
   prop_fence: { solid: true },
   prop_barrel: { solid: true, searchable: 'loot_barrel' },
   prop_chest: { solid: true },                  // chests use their own permanence path
-  prop_sign: { solid: false },                  // a readable waypost — pass through
+  prop_sign: { solid: false, readable: true },  // a sign/waypost/notice board — press-E to READ its `text`
 
   // --- SPEC'd-but-GAP assets (Van's table; art not in repo — class DEFINED + ready) --
   // ⚑ prop_bush_big: { solid:true,  cuttable:true, throwable:true }  (needs art + throw engine)

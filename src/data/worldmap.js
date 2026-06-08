@@ -170,7 +170,7 @@ function _buildBeltProps() {
     if (rnd() < 0.46) props.push({ key: bog ? 'prop_tree_pine' : 'prop_tree_oak', x: blx(x) + (rnd() * 12 - 6), y: bly(y) + (rnd() * 8 - 10), solid: false, tint: bog ? 0x8d9a6e : undefined }); // canopy
   }
   // landmark: a weathered trail WAYSTONE at the junction (diegetic wayfinding)
-  props.push({ key: 'prop_sign', x: blx(6.5) + 6, y: bly(15.6), solid: false });
+  props.push({ key: 'prop_sign', x: blx(6.5) + 6, y: bly(15.6), solid: false, text: 'WEST BELT — the lowland trail between Greenhollow and the Ashen Marsh. Keep to the dry ridge; the bog drinks the careless.' });
   // TEASE → PAYOFF (§2.5): a chest you can SEE on the pond island but can't reach yet
   // (no swim/raft = [ENGINE] water-crossing gate). Visual only — NOT an interactable.
   props.push({ key: 'prop_chest', x: blx(2.4), y: bly(5.6), solid: false });
@@ -307,8 +307,8 @@ function _buildPeaksProps() {
   // CINDER KEEP — looming, dark, behind the cleft (N). The grapple / shard_2 grant point.
   props.push({ key: 'prop_forge', x: pkx(PK_KEEP.tx) + TILE / 2, y: pky(PK_KEEP.ty) + TILE / 2, solid: true, tint: 0x5f6675, scale: 1.7 });
   // diegetic signs: the town entrance + the riven cleft
-  props.push({ key: 'prop_sign', x: pkx(30) + TILE / 2, y: pky(48) + TILE / 2, solid: false });
-  props.push({ key: 'prop_sign', x: pkx(30) + TILE / 2, y: pky(25) + TILE / 2, solid: false });
+  props.push({ key: 'prop_sign', x: pkx(30) + TILE / 2, y: pky(48) + TILE / 2, solid: false, text: 'THE TOWN RING — no blades drawn within. Rest, trade, and warm yourself. The fighting stays on the slopes.' });
+  props.push({ key: 'prop_sign', x: pkx(30) + TILE / 2, y: pky(25) + TILE / 2, solid: false, text: 'CINDER KEEP — the Sentinel guards the way to Shard II. Steel and steady footing past this point.' });
   return props;
 }
 
@@ -441,7 +441,7 @@ function _buildFoothillProps() {
       if (rnd() < 0.5) props.push({ key: 'prop_bush', x: px + (rnd() * 14 - 7), y: py + (rnd() * 10 - 5), solid: false, scale: 0.55 + rnd() * 0.3, tint: coolBush });
     }
   }
-  props.push({ key: 'prop_sign', x: fhx(12) + TILE / 2 + 6, y: fhy(6) + TILE / 2, solid: false });   // the fork waystone
+  props.push({ key: 'prop_sign', x: fhx(12) + TILE / 2 + 6, y: fhy(6) + TILE / 2, solid: false, text: 'THE FORK — left (NW) to the quarry road; right (NE) the steep climb to Cinder Keep. Both reach the Peaks town.' });   // the fork waystone
   return props;
 }
 // gate rockfall: seal the two lane mouths (top row) into the Peaks until shard_1 is borne

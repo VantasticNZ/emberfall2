@@ -205,6 +205,9 @@ export class OverworldScene extends Phaser.Scene {
       // (the "cut works in GH not Peaks" fix). Tracked here; the swing tests this list (_cutSwing).
       const ic = ixClass(p.key);
       if (ic.cuttable) this._cuttables.push({ spr, rect, key: p.key, loot: ic.loot });
+      // READABLE (signs/notice boards/waystones) — press-E to read the placement's `text`. Consistent
+      // in every region; no more walk-through-can't-read white squares.
+      if (ic.readable && p.text) Interaction.register({ x: p.x, y: p.y + 8, prompt: 'Read the sign', onInteract: () => this._startGreeting('', Array.isArray(p.text) ? p.text : [p.text]) });
       DepthSort.track(spr, (b.offY + b.h / 2) * sc);   // y-sort by the solid base (same rule)
       this._regionObjs.push(spr);
     }
