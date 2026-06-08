@@ -41,6 +41,17 @@ Water_Deep / Water_Shallows]`
 | GH ↔ Emberwood | **Ashen-road** x308–338 / y328–363 | ash/frost bleed + chasm walls | planned |
 | Peaks ↔ Spire | **Gated ascent** through Peaks N headroom y206–218 → ascent y202–206 | single forced corridor (the one sanctioned chokepoint, §2.5) | planned |
 
+**THE CONNECTION MODEL — entrance contracts (`src/data/entrances.js`, machine-checked):** regions
+are **modular** — their INTERIORS are free to rebuild (e.g. the Peaks re-fix), but they connect
+ONLY through a few **declared ENTRANCES**, each a two-sided contract `{region, to, at:(tx,ty),
+gate}`. The **verify gate #13 ENTRANCE-COHERENCE** enforces: (a) every entrance has a reciprocal
+at the same coords + gate (handshake), (b) an entrance into a gated area carries that area's
+`gating.js` key, (c) every built region is reachable from Greenhollow. Built links today:
+GH↔Belt, Belt↔Marsh, GH↔Foothill (all ungated) and **Foothill↔Peaks (gate `shard_1`, the
+rockfall)**; reserved stubs: GH→Coast (`tool_grapple`), GH→Emberwood (`tool_hookshot`),
+Peaks→Spire (`tool_firefrost`). *This is why a region's interior can change freely while the world
+stays coherent — the entrances are the only contract.*
+
 **Gating order (DAG — `gating.js`, do not re-place):** GH (open) → Marsh (open; earn
 `tool_lantern`+`shard_1`) → Peaks `[shard_1]` (earn `tool_grapple`+`shard_2`) → Coast
 `[tool_grapple]` (earn `tool_hookshot`+`shard_3`) → Emberwood `[tool_hookshot]` (earn
@@ -126,12 +137,16 @@ roads fork. Childhood + return hub (M1–M7).
 
 ---
 
-## 4. SUNDERED PEAKS — the N mountains · bounds x288–348 / y218–278 (60×60) · **BUILT (defects to RECONCILE)**
+## 4. SUNDERED PEAKS — the N mountains · bounds x288–348 / y218–278 (60×60) · **BUILT + RE-FIXED (2026-06-08)**
 
-> ⚑ **The reconcile region.** Built, but it violates two locked cohesion rules: **C2** (ground
-> is stone-TINTED green grass, not a rock tile) and **C1** (cliffs are scattered single props,
-> not a continuous autotiled face). This section is the FIX SPEC. Footprint is 60×60 inside the
-> reserved 75×72 (278–353/206–278) — the **N headroom y206–218 is reserved for the Spire ascent**.
+> ✅ **RECONCILE DONE.** The two cohesion defects are FIXED (live-verified): **C2** — ground is
+> now real **Rock_Gray** rock (rock patch under the bowl + Snow_1 cap + Stone_Tan town floor),
+> not stone-tinted grass; **C1** — cliffs render as a **continuous face** via the
+> `_buildRegionCliffs` RenderTexture over `R.cliffWalls` (seamless `cliff_wall` body + `cliff_top`
+> lip), not scattered props (0 orphan tiles). Perf improved (max 36.7→20.0ms). The spec below
+> stands as the build record. Footprint 60×60 inside the reserved 75×72 — the **N headroom
+> y206–218 is reserved for the Spire ascent**. ⚑ Remaining GAP: the terraced-stone-town EXTERIOR
+> building set (brick-house stand-ins remain) — an LPC hunt before the next Peaks polish.
 
 1. **PATHS:** the **Foothill route** (x303–333/y278–288) enters the **S mouth** (gap x303–333);
    rises through the **town terraces** (centre ~x318,y256) then forks at the **riven cleft**
