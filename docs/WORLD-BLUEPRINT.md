@@ -25,16 +25,16 @@ Consequence: there is **~300 tiles of room E and ~310 S**, but only **~160 N** (
 and the **W edge is already at Marsh**. WORLD-MAP says "Greenhollow at the CENTRE." This is
 a contradiction between the doc-intent and the built coords.
 
-**RESOLUTION (chosen — option A, no re-coordinate migration):** keep the built coords;
-treat the world as **hub-biased-NW with the bulk of exploration unfolding E (Coast) and S
-(Emberwood)**, and **Peaks/Spire stacked in the N strip** (160 tiles is plenty — Peaks ~72
-tall + Spire ~50 tall + foothill bleed fits). This is *acceptable* hub-and-spoke (the Spire
-still looms N on the horizon from everywhere) and avoids a risky shift of built content.
-- ⚑ **FLAGGED ALTERNATIVE (B):** if Van wants true central symmetry, a one-time
-  **re-centre migration** (shift GH/Marsh/Belt +~96 tiles E and +~64 S to ~chunk 8) OR
-  **enlarge the world** (`WORLD_CHUNKS 16→20`) before building Peaks. Bigger change, better
-  symmetry. **Decision needed at lock-time.** This blueprint is authored for **A**; the
-  coord blocks below shift cleanly if B is chosen (they're all relative to GH).
+**✅ DECISION B APPLIED (2026-06-08) — world re-centred + enlarged.** `WORLD_CHUNKS 16→20`
+(world now **640×640 tiles / 20480 px**) and **`GH_ORIGIN` chunk(5,5)→(9,9) = tile (288,288)**,
+so Greenhollow's centre ≈ **(314,308)** ≈ the world centre **(320,320)** and all regions
+radiate **symmetrically** (no NW bias). The move was a uniform **+4-chunk (+128-tile / +4096-px)
+shift**; because Marsh + West Belt are defined *relative* to `GH_ORIGIN`, they relocated as one
+coherent move and the **GH↔Belt↔Marsh seam stayed exact** (Marsh.E = Belt.W = tile 278; Belt.E =
+GH.W = tile 288). Pre-recentre saves migrate (SaveManager **v2→v3** shifts the saved position +
+chunk-delta keys by +4 chunks — a playthrough is preserved, not reset). **The coordinate blocks
+in §1 below are now the LIVE post-recentre values** (the original A-layout numbers were +128 lower).
+*(Historical: option A kept the NW-biased chunk-5,5 layout; superseded.)*
 
 ---
 
@@ -64,21 +64,28 @@ still looms N on the horizon from everywhere) and avoids a risky shift of built 
         x: 110        160      211         260        345     →E (ocean edge)
 ```
 
+**LIVE coords (post-recentre, GH at chunk 9,9; world 640 tiles).** [B]=built+placed ·
+[P]=planned+coordinate-RESERVED (empty, ready for its build session to drop in).
+
 | Region | Tiles (x / y) | ~Size | Compass | State | Borders (bleed) |
 |---|---|---|---|---|---|
-| **Greenhollow Vale** (hub) | x160–211 / y160–199 | 52×40 | centre-NW | **BUILT** | W→Belt→Marsh · N→foothills→Peaks · E→river-road→Coast · S→ashen-road→Emberwood |
-| **West Belt route** | x150–159 / y165–198 | 10×34 | between GH & Marsh | **BUILT** (Ph5/5b) | E↔GH W-trailhead · W↔Marsh E-edge |
-| **Ashen Marsh** | x110–149 / y165–198 | 40×34 | W | **BUILT** | E↔Belt · N/S mire gated (later tools) |
-| **Sundered Peaks** | x150–225 / y78–150 | 75×72 | N | PLANNED | S↔GH foothills (y150–160) · N↔Spire ascent (gated) |
-| **Hollow Spire** | x175–210 / y24–74 | 35×50 | far-N | PLANNED | S↔Peaks (gated, all-tools) |
-| **Tidewreck Coast** | x260–345 / y150–215 | 85×65 | E | PLANNED | W↔river-road↔GH · E→ocean (world edge) |
-| **Emberwood** | x160–235 / y235–305 | 75×70 | S | PLANNED | N↔ashen-road↔GH |
+| **Greenhollow Vale** (hub) | x288–340 / y288–328 | 52×40 | **CENTRE** (314,308) | **BUILT** | W→Belt→Marsh · N→foothills→Peaks · E→river-road→Coast · S→ashen-road→Emberwood |
+| **West Belt route** | x278–288 / y293–327 | 10×34 | between GH & Marsh | **BUILT** (Ph5/5b) | E↔GH W-trailhead · W↔Marsh E-edge |
+| **Ashen Marsh** | x238–278 / y293–327 | 40×34 | W | **BUILT** | E↔Belt · N/S mire gated (later tools) |
+| **Sundered Peaks** | x278–353 / y206–278 | 75×72 | N | RESERVED | S↔GH foothills (y278–288) · N↔Spire ascent (gated) |
+| **Hollow Spire** | x303–338 / y152–202 | 35×50 | far-N | RESERVED | S↔Peaks (gated, all-tools) |
+| **Tidewreck Coast** | x388–473 / y278–343 | 85×65 | E | RESERVED | W↔river-road↔GH · E→ocean (world edge ~x540) |
+| **Emberwood** | x288–363 / y363–433 | 75×70 | S | RESERVED | N↔ashen-road↔GH |
 
-**Connecting wild/route bands** (the traversable wilds BETWEEN settlements, §2.1):
-GH↔Marsh = the **West Belt** (built); GH↔Peaks = **foothill route** band y150–160 (N
-trailhead at ~GH x185); GH↔Coast = **river-road** band x211–260 y170–195 (follows the river
-E); GH↔Emberwood = **ashen-road** band y200–235 x180–210 (S trailhead); Peaks↔Spire =
-the **gated ascent** y74–78.
+*(All within the 0–640 world with generous margin: Coast ends x473, Emberwood ends y433,
+Spire starts y152, Peaks starts x278 — none crowd a world edge. The §1 ASCII above shows the
+original A-layout numbers; add +128 to every coordinate to read it at the live B scale.)*
+
+**Connecting wild/route bands** (the traversable wilds BETWEEN settlements, §2.1; live coords):
+GH↔Marsh = the **West Belt** (built); GH↔Peaks = **foothill route** band y278–288 (N
+trailhead at ~GH x313); GH↔Coast = **river-road** band x340–388 y298–323 (follows the river
+E); GH↔Emberwood = **ashen-road** band y328–363 x308–338 (S trailhead); Peaks↔Spire =
+the **gated ascent** y202–206.
 
 ---
 
