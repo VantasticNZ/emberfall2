@@ -27,6 +27,7 @@ import { SHOPS, JOBS } from '../src/data/economy.js';
 import { REGIONS, TILE } from '../src/data/worldmap.js';
 import { PROPS } from '../src/data/assets.js';
 import { GATES, TEASES } from '../src/data/gating.js';
+import { ENTRANCES } from '../src/data/entrances.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const fails = [];
@@ -274,6 +275,46 @@ const tile = (px) => Math.round(px / TILE);
   for (const R of REGIONS) for (const p of (R.props || [])) if (!PROPS[p.key]) offenders.push(`region '${R.key}' references prop '${p.key}' not in assets.js PROPS`);
   if (offenders.length) fail('PROP-KEY integrity:\n' + [...new Set(offenders)].map((s) => '      ' + s).join('\n'));
   else ok('prop-key integrity: all region prop keys exist in the PROPS manifest');
+}
+
+// 13) ENTRANCE COHERENCE — the modular CONNECTION MODEL (src/data/entrances.js): every
+//     declared entrance must (a) HANDSHAKE with a reciprocal at the same coords + gate,
+//     (b) its GATE match gating.js for the area it enters, (c) leave no region unreachable
+//     from Greenhollow. Lets a region's INTERIOR be rebuilt freely while its ENTRANCES stay
+//     coherent — the modular contract, machine-enforced.
+{
+  const issues = [];
+  const regionKeys = new Set(REGIONS.map((r) => r.key));
+  const builtEnt = ENTRANCES.filter((e) => !e.reserved);
+  // id/region validity
+  for (const e of ENTRANCES) {
+    if (!regionKeys.has(e.region)) issues.push(`entrance from unknown region '${e.region}'`);
+    if (!e.reserved && !regionKeys.has(e.to)) issues.push(`entrance '${e.region}'→'${e.to}' targets a non-built region (mark reserved:true?)`);
+    if (e.gate && !validDeed.has(e.gate)) issues.push(`entrance '${e.region}'→'${e.to}' gate '${e.gate}' not in the SSOT`);
+  }
+  // (a) two-sided HANDSHAKE (built entrances)
+  for (const e of builtEnt) {
+    const recip = builtEnt.find((f) => f.region === e.to && f.to === e.region);
+    if (!recip) { issues.push(`entrance '${e.region}'→'${e.to}' has NO reciprocal '${e.to}'→'${e.region}' (one-sided link)`); continue; }
+    if (Math.abs(recip.at.tx - e.at.tx) > 1 || Math.abs(recip.at.ty - e.at.ty) > 1) issues.push(`entrance '${e.region}'↔'${e.to}' coords disagree ((${e.at.tx},${e.at.ty}) vs (${recip.at.tx},${recip.at.ty}))`);
+    if ((e.gate || null) !== (recip.gate || null)) issues.push(`entrance '${e.region}'↔'${e.to}' gates disagree ('${e.gate}' vs '${recip.gate}')`);
+  }
+  // (b) GATE matches gating.js — an entrance INTO a gated AREA carries one of that area's requires keys
+  const AREA_OF = { Greenhollow: 'Greenhollow', Marsh: 'Ashen Marsh', Peaks: 'Sundered Peaks', Coast: 'Tidewreck Coast', Emberwood: 'Emberwood', Spire: 'Hollow Spire' };
+  for (const e of ENTRANCES) {
+    const areaName = AREA_OF[e.to]; if (!areaName) continue;             // routes (Belt/Foothill) aren't gated areas
+    const g = GATES.find((G) => G.area === areaName); if (!g) continue;
+    if (g.requires.length === 0) { if (e.gate) issues.push(`entrance into '${e.to}' is gated '${e.gate}' but gating.js '${areaName}' is OPEN (no requires)`); }
+    else if (!g.requires.includes(e.gate)) issues.push(`entrance into '${e.to}' gate '${e.gate}' is not among gating.js '${areaName}' requires [${g.requires.join(', ')}]`);
+  }
+  // (c) REACHABILITY — undirected built-entrance graph from Greenhollow covers every built region
+  const adj = {}; regionKeys.forEach((k) => (adj[k] = new Set()));
+  builtEnt.forEach((e) => { if (adj[e.region]) adj[e.region].add(e.to); if (adj[e.to]) adj[e.to].add(e.region); });
+  const seen = new Set(['Greenhollow']); const q = ['Greenhollow'];
+  while (q.length) { const k = q.shift(); (adj[k] || new Set()).forEach((n) => { if (!seen.has(n)) { seen.add(n); q.push(n); } }); }
+  for (const k of regionKeys) if (!seen.has(k)) issues.push(`region '${k}' is UNREACHABLE from Greenhollow via entrances`);
+  if (issues.length) fail('ENTRANCE-COHERENCE violation(s):\n' + issues.map((s) => '      ' + s).join('\n'));
+  else ok(`entrance coherence: ${builtEnt.length} built entrances handshake + gates match gating.js + all ${regionKeys.size} regions reachable from Greenhollow`);
 }
 
 // --- summary ------------------------------------------------------------------
