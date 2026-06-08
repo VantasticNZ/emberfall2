@@ -183,19 +183,29 @@ autotiler/bake pass — no sourcing) · `[GAP]` = needs sourcing/assembly.
 | | tool HELD-items (lantern/grapple/hookshot/firefrost) + their FX | **[GAP / partial]** | lpc-magic covers spell FX; held-item sprites = gap |
 | | fast-travel WAYSTONE | **[HAVE ⚙ / approx]** | sign/Stone Pillar approximate |
 
-### Gap count by region (needs-sourcing/assembly `[GAP]` only)
-- **Greenhollow:** 0 · **West Belt / Marsh:** 0
-- **Sundered Peaks:** 1 (terraced stone-town exterior) — *the rest are HAVE-but-unwired*
-- **Tidewreck Coast:** 3 (dock/pier, shipwreck, lighthouse)
-- **Emberwood:** 2 (volcano cone, burnt trees)
-- **Hollow Spire:** 1 (tower/spire structure)
-- **Cross-cutting:** 4 (animals, crop growth-stages, outdoor bench, tool held-items)
-- **TOTAL distinct GAP items: 11** (+ ~8 HAVE-but-UNWIRED that need an autotiler/bake pass, NOT sourcing).
+### Gap count by region — CONFIDENCE-RANKED (`EXCELLENCE-FRAMEWORK.md §6`)
+Tags: **[HIGH]** = almost certainly sourceable as clean LPC/OGA (source just-in-time during the
+build) · **[LOW]** = might not exist as clean LPC → **must be in hand BEFORE its region build
+starts** (resolve the sourcing risk before committing). *(rock/cliff/snow ground were the
+HAVE-but-unwired set — Peaks now wired; the rest wire per region, not a hunt.)*
 
-**Headline:** the biggest "missing" items (rock ground, cliffs, snow, lava, ocean, sand) are
-**already in-repo and licence-vetted — they are a WIRING gap, not a sourcing gap.** True
-sourcing gaps are the region SET-PIECES (dock/wreck/lighthouse/volcano/spire) + cross-cutting
-life (animals/crops/bench/tool-items). See `PEAKS-ART-CANDIDATES.md` for the Peaks wiring path.
+- **Greenhollow:** 0 · **West Belt / Marsh:** 0
+- **Sundered Peaks:** 1 — terraced stone-town exterior **[HIGH]** (LPC stone buildings exist)
+- **Tidewreck Coast:** 3 — dock/pier **[HIGH]** · shipwreck **[LOW]** · lighthouse **[LOW]**
+- **Emberwood:** 2 — burnt trees **[HIGH]** (recolour `trees_winter`) · volcano cone **[LOW]**
+- **Hollow Spire:** 1 — spire/tower structure **[LOW]**
+- **Cross-cutting:** 4 — animals **[HIGH]** · crop growth-stages **[HIGH]** · outdoor bench **[HIGH]** · tool held-item sprites **[LOW]**
+- **Audio (all regions):** CC0 music beds + extra SFX **[HIGH]** · narrator + bespoke leitmotifs **[LOW/create]**
+- **TOTAL distinct GAP items: 11 art** (+ audio) · **5 are [LOW]** (shipwreck, lighthouse, volcano,
+  spire-tower, tool-held-items) (+ ~8 HAVE-but-UNWIRED wiring items).
+
+**THE SOURCING-RISK RULE:** **no region build starts until its [LOW] gaps are in hand** — Coast
+waits on lighthouse+shipwreck, Emberwood on the volcano cone, Spire on the tower; the GH→Peaks
+**vertical slice** waits on the stone-town set ([HIGH]) + tool-held-item sprites ([LOW]) + the
+audio system standing up. **Headline:** the biggest "missing" terrain (rock/cliffs/snow/lava/
+ocean/sand) was a WIRING gap, not sourcing; true sourcing gaps are the SET-PIECES + cross-cutting
+life + audio. See `PEAKS-ART-CANDIDATES.md` (wiring) + `EXCELLENCE-FRAMEWORK.md §6` (the full
+confidence table + the rule).
 
 ---
 
