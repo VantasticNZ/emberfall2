@@ -146,13 +146,16 @@ region whose look depends on an asset that may not exist).
 | **lighthouse** (tall tower) | **LOW** | Coast | a clean LPC lighthouse is uncertain — verify before Coast |
 | **volcano cone** silhouette | **LOW** | Emberwood | a proper LPC volcano is uncertain — verify before Emberwood |
 | **spire / tall tower** structure | **LOW** | Spire | a distinct tall spire is uncertain — verify before Spire |
-| **tool HELD-item sprites** (lantern/grapple/hookshot/firefrost on the LPC rig) + world FX | **LOW** | slice + all | may need custom paper-doll layers — resolve for the SLICE |
+| **tool HELD-item sprites** (lantern/grapple/hookshot/firefrost on the LPC rig) + world FX | **LOW → RESOLVED for the slice via FALLBACK** | slice + all | confirmed NOT licence-clean (rigged held grapple/hookshot doesn't exist in LPC); slice uses a 2D item-get icon + VFX (no new rig layer) — see `PEAKS-ART-CANDIDATES.md` "Slice tool-representation decision". The rigged version stays deferred [LOW] for later polish |
 | narrator voice + bespoke leitmotifs | **LOW (create)** | audio | local TTS render (Piper/Kokoro) + composed motifs — not "sourced" |
 
 **THE RULE (sourcing-risk gate):** **no region build starts until its [LOW] assets are in
 hand.** Coast waits on lighthouse+shipwreck confidence; Emberwood on the volcano cone; Spire on
 the tower. [HIGH] assets are sourced just-in-time during the build. *(This is exactly what
-prevented a second "no stone tile mid-build" — risk is resolved before commitment.)*
+prevented a second "no stone tile mid-build" — risk is resolved before commitment.)* **The
+GH→Peaks slice's one [LOW] (tool held-item sprites) is now RESOLVED via the 2D item-get fallback
+(`PEAKS-ART-CANDIDATES.md`) — no risky asset blocks the slice; only the stone-town set [HIGH] +
+audio remain, both known.**
 
 ---
 
