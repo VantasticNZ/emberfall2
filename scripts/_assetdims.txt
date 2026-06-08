@@ -1,0 +1,491 @@
+public/art/eliza/beard_bram/attack.png|448x256
+public/art/eliza/beard_bram/idle.png|192x256
+public/art/eliza/beard_bram/walk.png|512x256
+public/art/eliza/body/attack.png|448x256
+public/art/eliza/body/idle.png|192x256
+public/art/eliza/body/walk.png|512x256
+public/art/eliza/body_fem/attack.png|448x256
+public/art/eliza/body_fem/idle.png|192x256
+public/art/eliza/body_fem/walk.png|512x256
+public/art/eliza/eyebrows/attack.png|448x256
+public/art/eliza/eyebrows/idle.png|192x256
+public/art/eliza/eyebrows/walk.png|512x256
+public/art/eliza/hair/attack.png|448x256
+public/art/eliza/hair/idle.png|192x256
+public/art/eliza/hair/walk.png|512x256
+public/art/eliza/hair_bram/attack.png|448x256
+public/art/eliza/hair_bram/idle.png|192x256
+public/art/eliza/hair_bram/walk.png|512x256
+public/art/eliza/hair_mara/attack.png|448x256
+public/art/eliza/hair_mara/idle.png|192x256
+public/art/eliza/hair_mara/walk.png|512x256
+public/art/eliza/head/attack.png|448x256
+public/art/eliza/head/expr.png|768x256
+public/art/eliza/head/idle.png|192x256
+public/art/eliza/head/walk.png|512x256
+public/art/eliza/head_fem/attack.png|448x256
+public/art/eliza/head_fem/expr.png|768x256
+public/art/eliza/head_fem/idle.png|192x256
+public/art/eliza/head_fem/walk.png|512x256
+public/art/eliza/pants/attack.png|448x256
+public/art/eliza/pants/idle.png|192x256
+public/art/eliza/pants/walk.png|512x256
+public/art/eliza/pants_fem/attack.png|448x256
+public/art/eliza/pants_fem/idle.png|192x256
+public/art/eliza/pants_fem/walk.png|512x256
+public/art/eliza/shield_behind/attack.png|448x256
+public/art/eliza/shield_front/attack.png|448x256
+public/art/eliza/shirt/attack.png|448x256
+public/art/eliza/shirt/idle.png|192x256
+public/art/eliza/shirt/walk.png|512x256
+public/art/eliza/shirt_forest/attack.png|448x256
+public/art/eliza/shirt_forest/idle.png|192x256
+public/art/eliza/shirt_forest/walk.png|512x256
+public/art/eliza/shirt_leather/attack.png|448x256
+public/art/eliza/shirt_leather/idle.png|192x256
+public/art/eliza/shirt_leather/walk.png|512x256
+public/art/eliza/shoes/attack.png|448x256
+public/art/eliza/shoes/idle.png|192x256
+public/art/eliza/shoes/walk.png|512x256
+public/art/eliza/shoes_fem/attack.png|448x256
+public/art/eliza/shoes_fem/idle.png|192x256
+public/art/eliza/shoes_fem/walk.png|512x256
+public/art/eliza/sword_behind/attack.png|896x512
+public/art/eliza/sword_front/attack.png|896x512
+public/art/kenney/barrel.png|32x32
+public/art/kenney/bush.png|32x32
+public/art/kenney/dirt.png|16x16
+public/art/kenney/garden.png|16x16
+public/art/kenney/grass.png|16x16
+public/art/kenney/grass_flower.png|16x16
+public/art/kenney/house.png|96x96
+public/art/kenney/mushroom.png|32x32
+public/art/kenney/sign.png|32x32
+public/art/kenney/tiny_town.png|192x176
+public/art/kenney/tree.png|32x32
+public/art/lpc/body_brown.png|832x2944
+public/art/lpc/body_light.png|832x2944
+public/art/lpc/body_olive.png|832x2944
+public/art/lpc/brow_black.png|832x2944
+public/art/lpc/brow_chestnut.png|832x2944
+public/art/lpc/brow_gold.png|832x2944
+public/art/lpc/ears_brown.png|832x2944
+public/art/lpc/ears_light.png|832x2944
+public/art/lpc/ears_olive.png|832x2944
+public/art/lpc/eyes_blue.png|832x2944
+public/art/lpc/eyes_brown.png|832x2944
+public/art/lpc/eyes_green.png|832x2944
+public/art/lpc/feet_black.png|832x1344
+public/art/lpc/feet_brown.png|832x1344
+public/art/lpc/hair_black.png|832x2944
+public/art/lpc/hair_chestnut.png|832x2944
+public/art/lpc/hair_gold.png|832x2944
+public/art/lpc/hat_feathercap.png|832x2944
+public/art/lpc/legs_brown.png|832x2944
+public/art/lpc/legs_charcoal.png|832x2944
+public/art/lpc/legs_forest.png|832x2944
+public/art/lpc/nose_brown.png|832x2944
+public/art/lpc/nose_light.png|832x2944
+public/art/lpc/nose_olive.png|832x2944
+public/art/lpc/shield_bg.png|832x2944
+public/art/lpc/shield_fg.png|832x2944
+public/art/lpc/torso_blue.png|832x1344
+public/art/lpc/torso_brown.png|832x1344
+public/art/lpc/torso_forest.png|832x1344
+public/art/lpc/weapon_carry.png|832x1344
+public/art/lpc/weapon_carry_behind.png|832x1344
+public/art/lpc/weapon_longsword.png|832x1344
+public/art/lpc/weapon_slash.png|1152x768
+public/art/lpc/weapon_slash_behind.png|1152x768
+public/art/lpc/body/light.png|832x2944
+public/art/monsters/bat.png|448x256
+public/art/monsters/big_worm.png|384x256
+public/art/monsters/eyeball.png|448x256
+public/art/monsters/ghost.png|384x256
+public/art/monsters/man_eater_flower.png|768x512
+public/art/monsters/pumpking.png|384x256
+public/art/monsters/slime.png|512x256
+public/art/monsters/snake.png|448x256
+public/art/structures/barrel.png|32x32
+public/art/structures/chest.png|32x32
+public/art/structures/fence_h.png|32x32
+public/art/structures/fountain.png|64x96
+public/art/structures/house_brick_a.png|256x224
+public/art/structures/house_brick_b.png|192x192
+public/art/structures/house_paneled.png|160x160
+public/art/terrain/bush.png|32x32
+public/art/terrain/cliff_face.png|64x128
+public/art/terrain/decal_clover.png|32x32
+public/art/terrain/decal_dirt_patch.png|28x20
+public/art/terrain/decal_fern.png|27x16
+public/art/terrain/decal_flower_blue.png|13x18
+public/art/terrain/decal_flower_pink.png|9x6
+public/art/terrain/decal_flower_white.png|9x6
+public/art/terrain/decal_grass_lush.png|12x9
+public/art/terrain/decal_grass_tall.png|27x32
+public/art/terrain/decal_tuft.png|22x32
+public/art/terrain/dirt.png|32x32
+public/art/terrain/forge.png|96x128
+public/art/terrain/garden.png|32x32
+public/art/terrain/grass.png|32x32
+public/art/terrain/lpc_terrain.png|1024x2048
+public/art/terrain/path.png|32x32
+public/art/terrain/pond_c.png|32x32
+public/art/terrain/pond_e.png|32x32
+public/art/terrain/pond_n.png|32x32
+public/art/terrain/pond_ne.png|32x32
+public/art/terrain/pond_nw.png|32x32
+public/art/terrain/pond_s.png|32x32
+public/art/terrain/pond_se.png|32x32
+public/art/terrain/pond_sw.png|32x32
+public/art/terrain/pond_w.png|32x32
+public/art/terrain/rock_boulder.png|59x54
+public/art/terrain/rock_crag.png|64x91
+public/art/terrain/rock_small.png|32x30
+public/art/terrain/sign.png|24x24
+public/art/terrain/tree_oak.png|94x125
+public/art/terrain/tree_pine.png|60x136
+public/art/terrain/water.png|32x32
+public/art/terrain/_src/lpc_house.png|288x224
+public/art/terrain/_src/plants_summer.png|512x160
+public/art/terrain/_src/sign_backgrounds.png|64x64
+public/art/terrain/_src/terrain_summer.png|512x832
+public/art/terrain/_src/tilled_soil.png|256x256
+public/art/terrain/_src/trees_summer.png|512x576
+public/audio/charge_impact.ogg|audio 31619b
+public/audio/hit.ogg|audio 9370b
+public/audio/swing.ogg|audio 15532b
+asset-library/2d/tiles/eliza-terrain/Rocks, Cliffs.png|192x128
+asset-library/2d/tiles/eliza-terrain/Rocks, Grasslands.png|192x384
+asset-library/2d/tiles/eliza-terrain/Waterfall.png|512x608
+asset-library/2d/tiles/eliza-terrain/cliff_autumn.png|512x448
+asset-library/2d/tiles/eliza-terrain/cliff_spring.png|512x448
+asset-library/2d/tiles/eliza-terrain/cliff_summer.png|512x448
+asset-library/2d/tiles/eliza-terrain/cliff_winter.png|512x448
+asset-library/2d/tiles/eliza-terrain/cliff_winter_ice.png|512x448
+asset-library/2d/tiles/eliza-terrain/flowers.png|352x160
+asset-library/2d/tiles/eliza-terrain/ice-shallows.png|192x192
+asset-library/2d/tiles/eliza-terrain/mushrooms.png|192x160
+asset-library/2d/tiles/eliza-terrain/plants_autumn.png|512x160
+asset-library/2d/tiles/eliza-terrain/plants_spring.png|512x160
+asset-library/2d/tiles/eliza-terrain/plants_summer.png|512x160
+asset-library/2d/tiles/eliza-terrain/plants_winter.png|512x160
+asset-library/2d/tiles/eliza-terrain/terrain_autumn.png|512x832
+asset-library/2d/tiles/eliza-terrain/terrain_spring.png|512x832
+asset-library/2d/tiles/eliza-terrain/terrain_summer.png|512x832
+asset-library/2d/tiles/eliza-terrain/terrain_winter.png|512x832
+asset-library/2d/tiles/eliza-terrain/terrain_winter_ice.png|512x832
+asset-library/2d/tiles/eliza-terrain/tilled_soil.png|256x256
+asset-library/2d/tiles/eliza-terrain/trees_autumn.png|512x576
+asset-library/2d/tiles/eliza-terrain/trees_spring.png|512x576
+asset-library/2d/tiles/eliza-terrain/trees_summer.png|512x576
+asset-library/2d/tiles/eliza-terrain/trees_winter.png|512x576
+asset-library/2d/tiles/eliza-terrain/wildflowers_autumn.png|144x160
+asset-library/2d/tiles/eliza-terrain/wildflowers_spring.png|144x160
+asset-library/2d/tiles/eliza-terrain/wildflowers_summer.png|144x160
+asset-library/2d/tiles/eliza-terrain/wildflowers_winter.png|144x160
+asset-library/2d/tiles/lpc-terrains/terrain-v7.png|1024x2048
+asset-library/2d/buildings/eliza-structure/Bridges/Drawbridge A.png|128x192
+asset-library/2d/buildings/eliza-structure/Bridges/Rope Bridge A - No Rails.png|128x192
+asset-library/2d/buildings/eliza-structure/Bridges/Rope Bridge A - Rails.png|160x288
+asset-library/2d/buildings/eliza-structure/Bridges/Wood Bridge A - No Rails.png|320x384
+asset-library/2d/buildings/eliza-structure/Bridges/Wood Bridge A - Rails.png|320x384
+asset-library/2d/buildings/eliza-structure/Doors/Door 32x64 Swing Example.gif|128x256
+asset-library/2d/buildings/eliza-structure/Doors/32x48px Doors/12 Panel Door A.png|896x768
+asset-library/2d/buildings/eliza-structure/Doors/32x48px Doors/12 Panel Door B.png|896x768
+asset-library/2d/buildings/eliza-structure/Doors/32x48px Doors/Barred Prison Door A.png|448x96
+asset-library/2d/buildings/eliza-structure/Doors/32x48px Doors/DoorFrame B Shadows.png|64x128
+asset-library/2d/buildings/eliza-structure/Doors/32x48px Doors/Doorframe A Shadows.png|64x128
+asset-library/2d/buildings/eliza-structure/Doors/32x48px Doors/Doorframe A.png|384x192
+asset-library/2d/buildings/eliza-structure/Doors/32x48px Doors/Doorframe B.png|64x64
+asset-library/2d/buildings/eliza-structure/Doors/32x64px Doors/15 Panel Door A.png|896x1024
+asset-library/2d/buildings/eliza-structure/Doors/32x64px Doors/Doorframe A Shadows.png|64x128
+asset-library/2d/buildings/eliza-structure/Doors/32x64px Doors/Doorframe A.png|384x192
+asset-library/2d/buildings/eliza-structure/Doors/64x64px Arched Doors/Arched Doorway A Shadows.png|128x128
+asset-library/2d/buildings/eliza-structure/Doors/64x64px Arched Doors/Arched Doorway A.png|160x288
+asset-library/2d/buildings/eliza-structure/Doors/64x64px Arched Doors/Arched Double Doors A.png|256x384
+asset-library/2d/buildings/eliza-structure/Fences/Ornamental Fence A.png|128x256
+asset-library/2d/buildings/eliza-structure/Fences/Ornamental Fence B.png|128x128
+asset-library/2d/buildings/eliza-structure/Fences/Plain Fence A.png|160x128
+asset-library/2d/buildings/eliza-structure/Floor/Diamond Tile A.png|256x128
+asset-library/2d/buildings/eliza-structure/Floor/Diamond Tile B.png|288x128
+asset-library/2d/buildings/eliza-structure/Floor/Diamond Tile C.png|128x128
+asset-library/2d/buildings/eliza-structure/Floor/Floral Carpet A.png|1120x384
+asset-library/2d/buildings/eliza-structure/Floor/Floral Carpet B.png|1120x512
+asset-library/2d/buildings/eliza-structure/Floor/Geometric Carpet A.png|2016x672
+asset-library/2d/buildings/eliza-structure/Floor/Geometric Carpet B.png|2016x672
+asset-library/2d/buildings/eliza-structure/Floor/Geometric Carpet C.png|288x128
+asset-library/2d/buildings/eliza-structure/Floor/Gritty Dirt.png|64x64
+asset-library/2d/buildings/eliza-structure/Floor/Herringbone A.png|96x96
+asset-library/2d/buildings/eliza-structure/Floor/Subfloor.png|96x96
+asset-library/2d/buildings/eliza-structure/Floor/Tile A.png|96x128
+asset-library/2d/buildings/eliza-structure/Floor/Tile B.png|128x128
+asset-library/2d/buildings/eliza-structure/Floor/Tile C.png|128x256
+asset-library/2d/buildings/eliza-structure/Floor/Wood Floor A.png|160x192
+asset-library/2d/buildings/eliza-structure/Floor/Wood Floor B.png|64x32
+asset-library/2d/buildings/eliza-structure/Misc/Drain A.png|32x128
+asset-library/2d/buildings/eliza-structure/Misc/Fountain A.png|64x96
+asset-library/2d/buildings/eliza-structure/Misc/Pool A.png|96x96
+asset-library/2d/buildings/eliza-structure/Misc/Prison A.png|192x128
+asset-library/2d/buildings/eliza-structure/Misc/Trellis A.png|384x256
+asset-library/2d/buildings/eliza-structure/Pillars/Floral Pillar A.png|320x512
+asset-library/2d/buildings/eliza-structure/Pillars/Stone Pillar A.png|288x384
+asset-library/2d/buildings/eliza-structure/Platforms/Cement Platform A.png|96x192
+asset-library/2d/buildings/eliza-structure/Platforms/Dias with Steps A.png|96x96
+asset-library/2d/buildings/eliza-structure/Roofing/Adobe Brick Roof.png|384x256
+asset-library/2d/buildings/eliza-structure/Roofing/Adobe Stucco Roof.png|416x128
+asset-library/2d/buildings/eliza-structure/Roofing/Brick Chimney A.png|192x192
+asset-library/2d/buildings/eliza-structure/Roofing/Flat Shingle Roof A.png|768x384
+asset-library/2d/buildings/eliza-structure/Roofing/Gable Shingle Roof A.png|768x480
+asset-library/2d/buildings/eliza-structure/Roofing/Hipped Shingle Roof A.png|960x480
+asset-library/2d/buildings/eliza-structure/Roofing/Roof Trim.png|1536x288
+asset-library/2d/buildings/eliza-structure/Signs/Sign Backgrounds A.png|64x64
+asset-library/2d/buildings/eliza-structure/Signs/Sign Icons A.png|160x96
+asset-library/2d/buildings/eliza-structure/Stairs/Cement Stairs A.png|160x128
+asset-library/2d/buildings/eliza-structure/Stairs/Formal Interior Stairs A.png|256x352
+asset-library/2d/buildings/eliza-structure/Stairs/Short Steps A.png|224x160
+asset-library/2d/buildings/eliza-structure/Stairs/Wood Interior Stairs A.png|256x352
+asset-library/2d/buildings/eliza-structure/Stairs/Wood Interior Stairs B.png|256x352
+asset-library/2d/buildings/eliza-structure/Stairs/Wood Interior Stairs Wall.png|254x251
+asset-library/2d/buildings/eliza-structure/Structures/Brick House A.png|256x224
+asset-library/2d/buildings/eliza-structure/Structures/Brick House B.png|192x192
+asset-library/2d/buildings/eliza-structure/Structures/Paneled House A.png|160x160
+asset-library/2d/buildings/eliza-structure/Wall Borders/Decorative Border A.png|384x128
+asset-library/2d/buildings/eliza-structure/Wall Borders/Formal Crown Molding.png|192x96
+asset-library/2d/buildings/eliza-structure/Wall Borders/Pillar Crown Molding.png|160x192
+asset-library/2d/buildings/eliza-structure/Wall Borders/Plain Edged Border - A.png|384x128
+asset-library/2d/buildings/eliza-structure/Wall Borders/Plain Edged Border.png|768x384
+asset-library/2d/buildings/eliza-structure/Wall Borders/Plain Smooth Border.png|768x384
+asset-library/2d/buildings/eliza-structure/Wall Borders/Textured Wood Border.png|768x256
+asset-library/2d/buildings/eliza-structure/Walls/Adobe Brick Wall.png|128x192
+asset-library/2d/buildings/eliza-structure/Walls/Adobe Stucco Wall.png|256x160
+asset-library/2d/buildings/eliza-structure/Walls/Brick Wall A.png|192x288
+asset-library/2d/buildings/eliza-structure/Walls/Brick Wall B.png|384x288
+asset-library/2d/buildings/eliza-structure/Walls/Brick Wall Block Edging.png|192x288
+asset-library/2d/buildings/eliza-structure/Walls/CutawayOverlay.png|96x64
+asset-library/2d/buildings/eliza-structure/Walls/Diamond Wallpaper.png|1152x1280
+asset-library/2d/buildings/eliza-structure/Walls/Drywall.png|224x96
+asset-library/2d/buildings/eliza-structure/Walls/Floral Wallpaper A.png|960x512
+asset-library/2d/buildings/eliza-structure/Walls/Floral Wallpaper B.png|192x512
+asset-library/2d/buildings/eliza-structure/Walls/Grainy Plain Wall.png|576x384
+asset-library/2d/buildings/eliza-structure/Walls/Half-Wall Paneling A.png|288x96
+asset-library/2d/buildings/eliza-structure/Walls/Jagged Stone Walls.png|192x288
+asset-library/2d/buildings/eliza-structure/Walls/Molding.png|192x288
+asset-library/2d/buildings/eliza-structure/Walls/Painted Walls.png|1536x512
+asset-library/2d/buildings/eliza-structure/Walls/Panels A.png|96x64
+asset-library/2d/buildings/eliza-structure/Walls/Siding, Plain.png|1600x384
+asset-library/2d/buildings/eliza-structure/Walls/Striped Wallpaper A.png|1056x512
+asset-library/2d/buildings/eliza-structure/Walls/Striped Wallpaper B.png|1056x512
+asset-library/2d/buildings/eliza-structure/Walls/Striped Wallpaper C.png|1152x512
+asset-library/2d/buildings/eliza-structure/Windows/Ornamental Windows A - Emission.png|96x160
+asset-library/2d/buildings/eliza-structure/Windows/Ornamental Windows A.png|96x160
+asset-library/2d/buildings/eliza-structure/Windows/Ornamental Windows B - Emission.png|96x128
+asset-library/2d/buildings/eliza-structure/Windows/Ornamental Windows B.png|96x128
+asset-library/2d/buildings/eliza-structure/Windows/Stone Windows A - Emission.png|96x128
+asset-library/2d/buildings/eliza-structure/Windows/Stone Windows A.png|96x128
+asset-library/2d/buildings/eliza-structure/Windows/Window Awnings A.png|288x192
+asset-library/2d/items/eliza-objects/Furniture/Barrel.png|160x64
+asset-library/2d/items/eliza-objects/Furniture/Bin.png|192x128
+asset-library/2d/items/eliza-objects/Furniture/Cabinet.png|224x288
+asset-library/2d/items/eliza-objects/Furniture/Cauldron.png|32x160
+asset-library/2d/items/eliza-objects/Furniture/Chest.png|128x96
+asset-library/2d/items/eliza-objects/Furniture/Clock, Grandfather.png|96x96
+asset-library/2d/items/eliza-objects/Furniture/Countertop.png|192x224
+asset-library/2d/items/eliza-objects/Furniture/Crate.png|96x128
+asset-library/2d/items/eliza-objects/Furniture/Desk, Vanity.png|64x96
+asset-library/2d/items/eliza-objects/Furniture/Dresser.png|384x384
+asset-library/2d/items/eliza-objects/Furniture/End Table.png|64x224
+asset-library/2d/items/eliza-objects/Furniture/Fireplace, Cast Iron.png|96x96
+asset-library/2d/items/eliza-objects/Furniture/Fireplace.png|192x192
+asset-library/2d/items/eliza-objects/Furniture/Ladder.png|96x96
+asset-library/2d/items/eliza-objects/Furniture/Lighting, Floor.png|192x192
+asset-library/2d/items/eliza-objects/Furniture/Lighting, Outdoors.png|64x96
+asset-library/2d/items/eliza-objects/Furniture/Mirror, Standing.png|128x128
+asset-library/2d/items/eliza-objects/Furniture/Planter.png|160x96
+asset-library/2d/items/eliza-objects/Furniture/Sawhorse.png|64x96
+asset-library/2d/items/eliza-objects/Furniture/Shavehorse.png|128x64
+asset-library/2d/items/eliza-objects/Furniture/Shelf.png|224x96
+asset-library/2d/items/eliza-objects/Furniture/Standing Screen.png|256x160
+asset-library/2d/items/eliza-objects/Furniture/Stone Slab.png|128x128
+asset-library/2d/items/eliza-objects/Furniture/Table, Card.png|128x192
+asset-library/2d/items/eliza-objects/Furniture/Table, Ornate Wood.png|192x128
+asset-library/2d/items/eliza-objects/Furniture/Table, Rough Wood.png|192x192
+asset-library/2d/items/eliza-objects/Furniture/Table, Workshop.png|128x128
+asset-library/2d/items/eliza-objects/Furniture/Trough.png|320x320
+asset-library/2d/items/eliza-objects/Furniture/Vase-Studies.png|128x320
+asset-library/2d/items/eliza-objects/Furniture/Wolf Stone.png|128x128
+asset-library/2d/items/eliza-objects/Furniture/Workbench, Carpentry.png|128x160
+asset-library/2d/items/eliza-objects/Furniture/Workbench, Wire Drawing.png|64x96
+asset-library/2d/items/eliza-objects/Furniture/Beds/Beds, Child Headboards.png|160x384
+asset-library/2d/items/eliza-objects/Furniture/Beds/Beds, Child Mattresses.png|128x128
+asset-library/2d/items/eliza-objects/Furniture/Beds/Beds, Child.png|768x256
+asset-library/2d/items/eliza-objects/Furniture/Beds/Beds, Double B.png|896x256
+asset-library/2d/items/eliza-objects/Furniture/Beds/Beds, Double C - Overlays.png|320x64
+asset-library/2d/items/eliza-objects/Furniture/Beds/Beds, Double C.png|512x512
+asset-library/2d/items/eliza-objects/Furniture/Beds/Beds, Double Headboards.png|192x384
+asset-library/2d/items/eliza-objects/Furniture/Beds/Beds, Double Mattresses.png|224x192
+asset-library/2d/items/eliza-objects/Furniture/Beds/Beds, Double.png|896x256
+asset-library/2d/items/eliza-objects/Furniture/Beds/Beds, Single  A.png|896x256
+asset-library/2d/items/eliza-objects/Furniture/Beds/Beds, Single B.png|512x448
+asset-library/2d/items/eliza-objects/Furniture/Beds/Beds, Single C.png|256x224
+asset-library/2d/items/eliza-objects/Furniture/Beds/Beds, Single Headboards.png|192x288
+asset-library/2d/items/eliza-objects/Furniture/Beds/Beds, Single Mattresses.png|224x192
+asset-library/2d/items/eliza-objects/Furniture/Beds/Single Beds B.png|640x448
+asset-library/2d/items/eliza-objects/Furniture/Rugs/Diamond Rug, tiling.png|384x192
+asset-library/2d/items/eliza-objects/Furniture/Rugs/Rainbow Checkered Rug.png|192x160
+asset-library/2d/items/eliza-objects/Furniture/Rugs/Rainbow Rug.png|192x160
+asset-library/2d/items/eliza-objects/Furniture/Rugs/Swirling Vine Rug.png|160x128
+asset-library/2d/items/eliza-objects/Furniture/Seating/Bar Stools.png|256x32
+asset-library/2d/items/eliza-objects/Furniture/Seating/Chair, Dining A.png|224x256
+asset-library/2d/items/eliza-objects/Furniture/Seating/Chair, Dining B.png|224x256
+asset-library/2d/items/eliza-objects/Furniture/Seating/Chair, Dining C.png|128x256
+asset-library/2d/items/eliza-objects/Furniture/Seating/Chair, Dining D.png|192x256
+asset-library/2d/items/eliza-objects/Furniture/Seating/Chair, Dining E.png|160x128
+asset-library/2d/items/eliza-objects/Furniture/Seating/Chair, Dining F.png|160x128
+asset-library/2d/items/eliza-objects/Furniture/Seating/Chair, Office.png|96x96
+asset-library/2d/items/eliza-objects/Furniture/Seating/Chair, Sofa A.png|128x256
+asset-library/2d/items/eliza-objects/Furniture/Seating/Chair, Sofa B.png|192x256
+asset-library/2d/items/eliza-objects/Furniture/Seating/Chair, Sofa C.png|320x512
+asset-library/2d/items/eliza-objects/Furniture/Seating/Chair, Sofa D.png|256x128
+asset-library/2d/items/eliza-objects/Furniture/Seating/Chair, Sofa E.png|256x128
+asset-library/2d/items/eliza-objects/Furniture/Seating/Chair, Sofa F.png|256x128
+asset-library/2d/items/eliza-objects/Furniture/Seating/Chair, Sofa G.png|256x128
+asset-library/2d/items/eliza-objects/Furniture/Seating/Loveseat, Small - Casual Patterned A.png|256x256
+asset-library/2d/items/eliza-objects/Furniture/Seating/Loveseat, Small - Casual Patterned B.png|256x256
+asset-library/2d/items/eliza-objects/Furniture/Seating/Loveseat, Small - Casual Patterned C.png|256x256
+asset-library/2d/items/eliza-objects/Furniture/Seating/Loveseat, Small - Casual Patterned D.png|256x256
+asset-library/2d/items/eliza-objects/Furniture/Seating/Loveseat, Small - Casual Solid A.png|256x384
+asset-library/2d/items/eliza-objects/Furniture/Seating/Loveseat, Small - Casual Solid B.png|256x256
+asset-library/2d/items/eliza-objects/Furniture/Seating/Loveseat, Small - Casual Solid C.png|256x256
+asset-library/2d/items/eliza-objects/Furniture/Seating/Loveseat, Small - Formal A.png|256x320
+asset-library/2d/items/eliza-objects/Furniture/Seating/Ottoman, Long A.png|256x128
+asset-library/2d/items/eliza-objects/Furniture/Seating/Ottoman, Medium A.png|128x64
+asset-library/2d/items/eliza-objects/Furniture/Seating/Ottoman, Small A.png|128x64
+asset-library/2d/items/eliza-objects/Furniture/Seating/Ottoman, Small B.png|128x64
+asset-library/2d/items/eliza-objects/Furniture/Seating/Sofa Set, Casual A.png|416x96
+asset-library/2d/items/eliza-objects/Furniture/Seating/Sofa, Casual A.png|480x256
+asset-library/2d/items/eliza-objects/Furniture/Seating/Thrones.png|320x160
+asset-library/2d/items/eliza-objects/Furniture/Sewing & Weaving/Dress Form.png|192x64
+asset-library/2d/items/eliza-objects/Furniture/Sewing & Weaving/Loom.png|512x320
+asset-library/2d/items/eliza-objects/Furniture/Sewing & Weaving/Spinning Wheel.png|320x64
+asset-library/2d/items/eliza-objects/Furniture/Sewing & Weaving/Workbench, Sewing Machine.png|64x64
+asset-library/2d/items/eliza-objects/Furniture/Sewing & Weaving/Workbench, Sewing.png|192x160
+asset-library/2d/items/eliza-objects/Furniture/Smithing/Anvils.png|128x64
+asset-library/2d/items/eliza-objects/Furniture/Smithing/Bellows.png|256x96
+asset-library/2d/items/eliza-objects/Furniture/Smithing/Coal Piles.png|384x192
+asset-library/2d/items/eliza-objects/Furniture/Smithing/Forge A.png|512x256
+asset-library/2d/items/eliza-objects/Furniture/Smithing/Furnace A.png|256x256
+asset-library/2d/items/eliza-objects/Furniture/Smithing/Grindstone.png|128x64
+asset-library/2d/items/eliza-objects/Furniture/Smithing/Smelter.png|192x128
+asset-library/2d/items/eliza-objects/Furniture/Smithing/Workbench, Smith.png|192x128
+asset-library/2d/items/eliza-objects/Moveable/Shopping Cart.png|32x64
+asset-library/2d/items/eliza-objects/Moveable/Wheelchair, Black.png|192x256
+asset-library/2d/items/eliza-objects/Moveable/Wheelchair, Blue.png|192x256
+asset-library/2d/items/eliza-objects/Moveable/Wheelchair, Pink.png|192x256
+asset-library/2d/items/eliza-objects/Moveable/Wheelchair, Tan.png|192x256
+asset-library/2d/items/eliza-objects/Moveable/Wheelchair, White.png|192x256
+asset-library/2d/items/eliza-objects/Small Items/Baskets A.png|96x64
+asset-library/2d/items/eliza-objects/Small Items/Boxes.png|64x64
+asset-library/2d/items/eliza-objects/Small Items/Buckets.png|96x64
+asset-library/2d/items/eliza-objects/Small Items/Dishes A.png|256x64
+asset-library/2d/items/eliza-objects/Small Items/Dungeon Elements.png|64x128
+asset-library/2d/items/eliza-objects/Small Items/Fire, Camp.png|128x64
+asset-library/2d/items/eliza-objects/Small Items/Fire, Fireplace.png|128x192
+asset-library/2d/items/eliza-objects/Small Items/Fireplace, Accessories A.png|64x32
+asset-library/2d/items/eliza-objects/Small Items/Flowers.png|288x128
+asset-library/2d/items/eliza-objects/Small Items/Games.png|32x32
+asset-library/2d/items/eliza-objects/Small Items/Hay & Straw.png|128x96
+asset-library/2d/items/eliza-objects/Small Items/Kitchen Clutter A.png|192x160
+asset-library/2d/items/eliza-objects/Small Items/Lighting, Table.png|256x96
+asset-library/2d/items/eliza-objects/Small Items/Loose Paper.png|96x96
+asset-library/2d/items/eliza-objects/Small Items/Lumber.png|320x96
+asset-library/2d/items/eliza-objects/Small Items/Pillows.png|384x256
+asset-library/2d/items/eliza-objects/Small Items/Sawdust.png|96x64
+asset-library/2d/items/eliza-objects/Small Items/Skeletons A.png|96x64
+asset-library/2d/items/eliza-objects/Small Items/Tabletop Portraits.png|64x96
+asset-library/2d/items/eliza-objects/Small Items/Tools, Carpentry.png|416x128
+asset-library/2d/items/eliza-objects/Small Items/Tools, Sewing.png|224x96
+asset-library/2d/items/eliza-objects/Small Items/Tools, Smithing.png|384x128
+asset-library/2d/items/eliza-objects/Small Items/Fabric/Blankets, Crumpled.png|512x128
+asset-library/2d/items/eliza-objects/Small Items/Fabric/Fabric Baskets.png|128x128
+asset-library/2d/items/eliza-objects/Small Items/Fabric/Fabric Rolls, Groups.png|96x64
+asset-library/2d/items/eliza-objects/Small Items/Fabric/Fabric Rolls.png|384x192
+asset-library/2d/items/eliza-objects/Small Items/Fabric/Fabril Rolls, Mounted.png|256x64
+asset-library/2d/items/eliza-objects/Small Items/Food/Bread A.png|128x64
+asset-library/2d/items/eliza-objects/Small Items/Food/Bread B.png|192x192
+asset-library/2d/items/eliza-objects/Small Items/Food/Bread C.png|192x192
+asset-library/2d/items/eliza-objects/Small Items/Food/Butter.png|32x96
+asset-library/2d/items/eliza-objects/Small Items/Food/Cheese A.png|192x96
+asset-library/2d/items/eliza-objects/Small Items/Food/Cheese B.png|224x96
+asset-library/2d/items/eliza-objects/Small Items/Food/Dessert.png|160x160
+asset-library/2d/items/eliza-objects/Small Items/Food/Eggs.png|160x96
+asset-library/2d/items/eliza-objects/Small Items/Food/Fruit A.png|192x192
+asset-library/2d/items/eliza-objects/Small Items/Food/Fruit B.png|480x480
+asset-library/2d/items/eliza-objects/Small Items/Food/Grains, Grasses.png|320x160
+asset-library/2d/items/eliza-objects/Small Items/Food/Grains, Rice, Noodles.png|128x96
+asset-library/2d/items/eliza-objects/Small Items/Food/Hamburgers.png|160x96
+asset-library/2d/items/eliza-objects/Small Items/Food/Herbs & Spices.png|480x320
+asset-library/2d/items/eliza-objects/Small Items/Food/Meals.png|224x96
+asset-library/2d/items/eliza-objects/Small Items/Food/Meats A.png|160x352
+asset-library/2d/items/eliza-objects/Small Items/Food/Meats B.png|352x96
+asset-library/2d/items/eliza-objects/Small Items/Food/Mushrooms.png|320x96
+asset-library/2d/items/eliza-objects/Small Items/Food/Nuts.png|288x160
+asset-library/2d/items/eliza-objects/Small Items/Food/Seafood A.png|384x160
+asset-library/2d/items/eliza-objects/Small Items/Food/Tea, Coffee, Medicinal Herbs.png|256x160
+asset-library/2d/items/eliza-objects/Small Items/Food/Tortillas.png|64x64
+asset-library/2d/items/eliza-objects/Small Items/Food/Vegetables A.png|384x448
+asset-library/2d/items/eliza-objects/Small Items/Food/Vegetables B.png|96x160
+asset-library/2d/items/eliza-objects/Small Items/Food/Vegetables C.png|576x480
+asset-library/2d/items/eliza-objects/Small Items/Ores & Ingots/Alloys.png|96x64
+asset-library/2d/items/eliza-objects/Small Items/Ores & Ingots/Ore, Coal.png|64x128
+asset-library/2d/items/eliza-objects/Small Items/Ores & Ingots/Ore, Copper.png|128x96
+asset-library/2d/items/eliza-objects/Small Items/Ores & Ingots/Ore, Gold.png|128x96
+asset-library/2d/items/eliza-objects/Small Items/Ores & Ingots/Ore, Iron.png|96x96
+asset-library/2d/items/eliza-objects/Small Items/Ores & Ingots/Ore, Silver.png|128x96
+asset-library/2d/items/eliza-objects/Small Items/Ores & Ingots/Ore, Stone.png|64x128
+asset-library/2d/items/eliza-objects/Small Items/Ores & Ingots/Ore, Tin.png|128x96
+asset-library/2d/items/eliza-objects/Wall Items/Christmas Wall Decor.png|192x128
+asset-library/2d/items/eliza-objects/Wall Items/Curtains.png|768x416
+asset-library/2d/items/eliza-objects/Wall Items/Graffiti Elements.png|320x256
+asset-library/2d/items/eliza-objects/Wall Items/Graffiti.png|352x160
+asset-library/2d/items/eliza-objects/Wall Items/Lighting, Wall.png|192x64
+asset-library/2d/items/eliza-objects/Wall Items/Mailboxes (tiling).png|96x96
+asset-library/2d/items/eliza-objects/Wall Items/Mirrors.png|128x64
+asset-library/2d/items/eliza-objects/Wall Items/Paintings, Abstract.png|192x64
+asset-library/2d/items/eliza-objects/Wall Items/Paintings, Landscape.png|128x128
+asset-library/2d/items/eliza-objects/Wall Items/Paintings, Portraits.png|160x128
+asset-library/2d/items/eliza-objects/Wall Items/Paintings, Still Life.png|128x64
+asset-library/2d/items/eliza-objects/Wall Items/Posters.png|160x96
+asset-library/2d/items/eliza-objects/Wall Items/Pride Flags.png|128x96
+asset-library/2d/effects/eliza-water/Splash.png|384x32
+asset-library/2d/effects/eliza-water/Splash_Back.png|384x32
+asset-library/2d/effects/eliza-water/Water Reflections.png|128x96
+asset-library/2d/effects/eliza-water/WaterRipple.png|128x32
+asset-library/2d/effects/eliza-water/WaterRipple_Back.png|128x32
+asset-library/2d/effects/lpc-magic/firelion_down.png|512x512
+asset-library/2d/effects/lpc-magic/firelion_left.png|512x512
+asset-library/2d/effects/lpc-magic/firelion_right.png|512x512
+asset-library/2d/effects/lpc-magic/firelion_up.png|512x512
+asset-library/2d/effects/lpc-magic/iceshield.png|512x512
+asset-library/2d/effects/lpc-magic/icetacle.png|512x512
+asset-library/2d/effects/lpc-magic/lightningclaw.png|512x512
+asset-library/2d/effects/lpc-magic/snakebite_down.png|512x512
+asset-library/2d/effects/lpc-magic/snakebite_side.png|512x512
+asset-library/2d/effects/lpc-magic/snakebite_up.png|512x512
+asset-library/2d/effects/lpc-magic/spikes.png|640x256
+asset-library/2d/effects/lpc-magic/tornado.png|512x512
+asset-library/2d/effects/lpc-magic/torrentacle.png|512x512
+asset-library/2d/effects/lpc-magic/turtleshell_front.png|512x512
+asset-library/2d/effects/lpc-magic/turtleshell_side.png|512x512
+asset-library/2d/sprites/enemies/lpc-monsters/bat.png|448x256
+asset-library/2d/sprites/enemies/lpc-monsters/bat_extended.png|128x320
+asset-library/2d/sprites/enemies/lpc-monsters/bee.png|192x128
+asset-library/2d/sprites/enemies/lpc-monsters/big_worm.png|384x256
+asset-library/2d/sprites/enemies/lpc-monsters/eyeball.png|448x256
+asset-library/2d/sprites/enemies/lpc-monsters/ghost.png|384x256
+asset-library/2d/sprites/enemies/lpc-monsters/man_eater_flower.png|768x512
+asset-library/2d/sprites/enemies/lpc-monsters/pumpking.png|384x256
+asset-library/2d/sprites/enemies/lpc-monsters/slime-projectile.png|64x16
+asset-library/2d/sprites/enemies/lpc-monsters/slime.png|512x256
+asset-library/2d/sprites/enemies/lpc-monsters/small_worm.png|704x256
+asset-library/2d/sprites/enemies/lpc-monsters/snake.png|448x256
