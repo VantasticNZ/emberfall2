@@ -260,21 +260,20 @@ function _buildPeaksColliders() {
 function _buildPeaksProps() {
   const props = [];
   let seed = 0x9eed01 >>> 0; const rnd = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
-  // CLIFF FACES / CRAGS along the wall lines (visual mass; collision is the tile-collider)
-  for (let y = 0; y < PK_H; y += 2) for (let x = 0; x < PK_W; x += 2) {
-    if (!_pkInWall(x, y)) continue;
-    props.push({ key: (x % 4 === 0) ? 'prop_cliff_face' : 'prop_rock_crag', x: pkx(x) + TILE / 2, y: pky(y) + TILE, solid: false, tint: STONE_TINT });
-  }
-  // SCREE / BOULDERS + alpine PINES across the open bowl (density + cover), avoiding the
-  // walls, the plaza, the keep-road pass and the foothill mouth.
-  for (let y = 4; y < PK_H - 3; y += 3) for (let x = 4; x < PK_W - 3; x += 3) {
+  // (Cliffs are no longer scattered single props — they render as a CONTINUOUS face via
+  //  R.cliffWalls + the scene cliff RenderTexture, QUALITY-SPEC C1.)
+  // SCREE / BOULDERS + alpine PINES strewn across the rock bowl (density to the wild band +
+  // cover for combat), avoiding the walls, the plaza, the keep-road pass and the foothill
+  // mouth. On a step-2 grid (denser than before) so screens hit the wild density band.
+  for (let y = 4; y < PK_H - 3; y += 2) for (let x = 4; x < PK_W - 3; x += 2) {
     if (_pkInWall(x, y)) continue;
     if (Math.hypot(x - PK_TOWN.cx, y - PK_TOWN.cy) < 6) continue;     // keep the plaza clear
     if (x > 26 && x < 34 && y < 28) continue;                         // keep the keep-road pass clear
     if (x > 14 && x < 46 && y > PK_H - 9) continue;                   // keep the foothill mouth clear
     const r = rnd();
-    if (r < 0.5) props.push({ key: r < 0.26 ? 'prop_rock_boulder' : 'prop_rock_small', x: pkx(x) + (rnd() * 10 - 5), y: pky(y) + (rnd() * 8 - 4), solid: true, tint: STONE_TINT });
-    else if (r < 0.74) props.push({ key: 'prop_tree_pine', x: pkx(x) + (rnd() * 10 - 5), y: pky(y) + (rnd() * 8 - 4), solid: false, tint: 0x8a96a0 });
+    if (r < 0.4) props.push({ key: r < 0.22 ? 'prop_rock_boulder' : 'prop_rock_small', x: pkx(x) + (rnd() * 12 - 6), y: pky(y) + (rnd() * 8 - 4), solid: true, tint: 0xc2c6cf });
+    else if (r < 0.62) props.push({ key: 'prop_tree_pine', x: pkx(x) + (rnd() * 12 - 6), y: pky(y) + (rnd() * 8 - 4), solid: false, tint: 0x8a96a0 });
+    else if (r < 0.70) props.push({ key: 'prop_rock_crag', x: pkx(x) + (rnd() * 10 - 5), y: pky(y) + (rnd() * 6 - 3), solid: true, tint: 0xb6bac4 }); // the odd standing crag
   }
   // TERRACED STONE TOWN (stone-tinted LPC structures — FLAG: a true terraced stone-town
   // set is wanted) + the town well.
@@ -309,21 +308,30 @@ export const SUNDERED_PEAKS = {
   originTile: PEAKS_OT,
   mapColor: 0x6d7280,                    // stone-grey on the minimap
   player: { x: pkx(30) + TILE / 2, y: pky(47) + TILE / 2 },
-  terrain: { patches: [{ set: 'dirt', rects: [
-    [23, 33, 14, 12],                    // the town plaza (gravel/dirt)
-    [29, 24, 3, 12],                     // keep-road: town → cleft pass
-    [29, 8, 3, 8],                       // the keep approach
-    [27, 45, 7, 13],                     // the foothill mouth rising into town
-  ] }] },
+  // GROUND = real ROCK terrain (Rock_Gray autotile), NOT stone-tinted grass (QUALITY-SPEC C2).
+  // rock fills the whole bowl; snow dusts the high N slope; stone = the terraced town floor;
+  // dirt = the roads + the foothill mouth. All from the shipped terrain-v7 atlas (wire, not source).
+  terrain: { patches: [
+    { set: 'rock',  rects: [[0, 0, PK_W, PK_H]] },              // the mountain bowl ground
+    { set: 'snow',  rects: [[3, 2, PK_W - 6, 9]] },             // snow-dusted high N slope (below the N cliffs)
+    { set: 'stone', rects: [[22, 32, 16, 13]] },               // the terraced town floor
+    { set: 'dirt',  rects: [
+      [29, 24, 3, 10],                   // keep-road: town → cleft pass
+      [29, 9, 3, 7],                     // the keep approach
+      [27, 45, 7, 13],                   // the foothill mouth rising into town
+      [45, 31, 6, 4],                    // the quarry-road spur (E)
+    ] },
+  ] },
+  cliffWalls: PK_WALLS,                  // → continuous cliff RenderTexture (C1)
   props: _buildPeaksProps(),
   colliders: _buildPeaksColliders(),
   pools: [PK_TARN],
-  waterTint: 0x9fb6c8,
+  waterTint: 0xbfe0ec,                   // a pale ICY tarn (the high-pass frozen pool)
   decalLayers: [
-    { seed: 0x70123, count: 80, pool: ['decal_tuft', 'decal_grass_tall', 'decal_clover', 'decal_dirt_patch'] },
-    { seed: 0x5151, count: 40, pool: ['decal_dirt_patch'] },
+    { seed: 0x70123, count: 60, pool: ['decal_dirt_patch', 'decal_tuft', 'decal_dirt_patch'] },  // scree/rubble dressing
+    { seed: 0x5151, count: 36, pool: ['decal_dirt_patch'] },
   ],
-  decalTint: 0xb0b4c0,
+  decalTint: 0xb6bac4,
   chests: [
     { id: 'peaks_quarry_cache', x: pkx(49) + TILE / 2, y: pky(34) + TILE / 2, gold: 45, line: 'A quarryman\'s lockbox wedged in the scree — forty-five gold.' },
   ],

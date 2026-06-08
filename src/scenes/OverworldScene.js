@@ -163,6 +163,7 @@ export class OverworldScene extends Phaser.Scene {
   // build ONE region's content into the SHARED state (objs / npcLife / combat).
   _buildRegion(R) {
     if (R.terrain) this._buildRegionTerrain(R);
+    if (R.cliffWalls) this._buildRegionCliffs(R);   // continuous cliff faces (QUALITY-SPEC C1)
     this._buildRegionWater(R);
     this._buildRegionDecals(R);
     // CHANNEL COLLIDERS — invisible static tile-rects (decoupled from prop footprints so
@@ -193,6 +194,26 @@ export class OverworldScene extends Phaser.Scene {
     // PEAKS set-pieces: Cinder Keep (the grapple + shard_2 grant point) + the records.
     if (R.keep) this._buildPeaksKeep(R);
     if (R.records) this._buildPeaksRecords(R);
+  }
+
+  // CLIFFS — render cliff MASSES (rectangles in R.cliffWalls, local tiles) as ONE continuous
+  // RenderTexture: every wall tile = the seamless rock FACE; a wall tile with no wall above =
+  // the rock-LIP top edge. So cliffs read as continuous faces with a feathered top, NOT
+  // scattered single props (QUALITY-SPEC C1: 0 orphan tiles, 0 gaps, perimeter uses the edge).
+  // Collision stays the invisible tile-colliders (R.colliders); this is pure visual.
+  _buildRegionCliffs(R) {
+    const W = R.widthTiles, H = R.heightTiles;
+    const wall = Array.from({ length: H }, () => new Uint8Array(W));
+    for (const [x, y, w, h] of R.cliffWalls) for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) {
+      const tx = x + i, ty = y + j; if (tx >= 0 && tx < W && ty >= 0 && ty < H) wall[ty][tx] = 1;
+    }
+    const rt = this.add.renderTexture(R.origin.x, R.origin.y, W * TILE, H * TILE).setOrigin(0, 0).setDepth(DEPTH.FLOOR + 3);
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      if (!wall[y][x]) continue;
+      const isTop = (y === 0 || !wall[y - 1][x]);     // no wall above → the lip; else solid face
+      rt.draw(isTop ? 'cliff_top' : 'cliff_wall', x * TILE, y * TILE);
+    }
+    this._regionObjs.push(rt);
   }
 
   // ENTRY GATE — while the player lacks the keyed deed (shard_1), seal the lane mouths
