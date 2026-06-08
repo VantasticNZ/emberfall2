@@ -27,6 +27,7 @@ import { SHOPS, JOBS } from '../src/data/economy.js';
 import { REGIONS, TILE } from '../src/data/worldmap.js';
 import { PROPS, solidBox } from '../src/data/assets.js';
 import { OPAQUE_BOUNDS } from '../src/data/opaqueBounds.js';
+import { IX_CLASS } from '../src/data/interactionClasses.js';
 import { GATES, TEASES } from '../src/data/gating.js';
 import { ENTRANCES } from '../src/data/entrances.js';
 
@@ -271,6 +272,11 @@ const tile = (px) => Math.round(px / TILE);
   // trees a narrow trunk band. A frame-padding collider, or a full-height-front building, FAILS here.
   const T = 3; // px tolerance
   const BUILDING = /forge|house|paneled|structure|hall|keep|cottage|tower|manor/;
+  // INTERACTION-CLASS coverage: every PLACED prop/interactable asset MUST have an explicit class in
+  // the SSOT (no undefined interaction behaviour — Van's consistent-rules principle).
+  for (const R of REGIONS) for (const p of [...(R.props || []), ...(R.interactables || [])]) {
+    if (!IX_CLASS[p.key]) offenders.push(`asset '${p.key}' (placed in '${R.key}') has NO interaction class — add it to src/data/interactionClasses.js (no undefined behaviour)`);
+  }
   const seenKeys = new Set();
   for (const R of REGIONS) for (const p of (R.props || [])) {
     if (!p.solid || seenKeys.has(p.key)) continue; seenKeys.add(p.key);

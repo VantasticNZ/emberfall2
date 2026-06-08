@@ -358,9 +358,9 @@ export const SUNDERED_PEAKS = {
   interactables: [
     { via: 'search', key: 'prop_barrel', x: pkx(24) + TILE / 2, y: pky(40) + TILE / 2, id: 'peaks_barrel_w', loot: 'loot_barrel', solid: true, prompt: 'Search the barrel' },
     { via: 'search', key: 'prop_barrel', x: pkx(36) + TILE / 2, y: pky(40) + TILE / 2, id: 'peaks_barrel_e', loot: 'loot_barrel', solid: true, prompt: 'Search the barrel' },
-    { via: 'cut', key: 'prop_bush', x: pkx(25) + TILE / 2, y: pky(43) + TILE / 2, id: 'peaks_bush_w', loot: 'loot_bush', prompt: 'Cut the bush' },
-    { via: 'cut', key: 'prop_bush', x: pkx(35) + TILE / 2, y: pky(43) + TILE / 2, id: 'peaks_bush_e', loot: 'loot_bush', prompt: 'Cut the bush' },
     { via: 'push', key: 'prop_rock_small', x: pkx(24) + TILE / 2, y: pky(36) + TILE / 2, id: 'peaks_block', solid: true, prompt: 'Push the stone' },
+    // cuttable bushes are now CLASS-driven (the sword swing cuts ANY bush in EVERY region — the
+    // Peaks scatter + GH hedges are all cuttable); no per-placement via:'cut' needed.
   ],
   combat: {
     enabled: true,

@@ -28,12 +28,13 @@ import { Inventory } from '../systems/Inventory.js';
 import { NpcLife } from '../systems/NpcLife.js';
 import { Interaction } from '../systems/Interaction.js';
 import { searchContainer, cutObject, pushBlock, grantLoot, enterGate } from '../systems/Interactables.js';
+import { ixClass, isSolid } from '../data/interactionClasses.js';
 import { Dialogue } from '../systems/Dialogue.js';
 import { Social } from '../systems/Social.js';
 import { EnemyController } from '../systems/EnemyController.js';
 import { PlayerCombat } from '../systems/Combat.js';
 import { ModifierRegistry } from '../systems/Modifiers.js';
-import { COMBAT } from '../constants/standards.js';
+import { COMBAT, INTERACTION_RADIUS } from '../constants/standards.js';
 import { bindings } from '../constants/controls.js';
 import { AssetLoader } from '../art/AssetLoader.js';
 import { PROPS, PARTS, DIR_ROW, ANIMS, EXPRESSIONS, EXPR_COLS, EXPR_ROW, solidBox } from '../data/assets.js';
@@ -158,7 +159,7 @@ export class OverworldScene extends Phaser.Scene {
 
   _loadRegions(list) {
     this._activeRegions = list.slice();
-    this._regionObjs = []; this._chestSprites = []; this._npcByQuest = {};
+    this._regionObjs = []; this._chestSprites = []; this._npcByQuest = {}; this._cuttables = [];
     Interaction.reset();
     this.npcLife = new NpcLife(this);
     for (const R of list) this._buildRegion(R);
@@ -192,11 +193,18 @@ export class OverworldScene extends Phaser.Scene {
       const sc = (p.scale != null ? p.scale : 1);
       const b = solidBox(p.key, d);
       const offX = (p.flip ? -b.offX : b.offX);   // mirror the collider with the sprite's flipX (off-centre silhouettes, e.g. tree trunks)
-      if (p.solid) {
-        const rect = this.add.rectangle(p.x + offX * sc, p.y + b.offY * sc, Math.max(8, b.w * sc), Math.max(8, b.h * sc), 0x000000, 0).setVisible(false);
+      // SOLIDITY from the INTERACTION-CLASS (SSOT) — consistent per asset type in every region
+      // (bushes honour their placement's small-vs-big flag; everything else = its class).
+      let rect = null;
+      if (isSolid(p.key, p.solid)) {
+        rect = this.add.rectangle(p.x + offX * sc, p.y + b.offY * sc, Math.max(8, b.w * sc), Math.max(8, b.h * sc), 0x000000, 0).setVisible(false);
         this.physics.add.existing(rect, true); this.solids.add(rect); this._regionObjs.push(rect);
         spr.setData('solidKey', p.key);   // pixel-truth test hook: marks this sprite as a tested solid
       }
+      // CUTTABLE from the class — every cuttable asset is cut by the sword swing in EVERY region
+      // (the "cut works in GH not Peaks" fix). Tracked here; the swing tests this list (_cutSwing).
+      const ic = ixClass(p.key);
+      if (ic.cuttable) this._cuttables.push({ spr, rect, key: p.key, loot: ic.loot });
       DepthSort.track(spr, (b.offY + b.h / 2) * sc);   // y-sort by the solid base (same rule)
       this._regionObjs.push(spr);
     }
@@ -510,12 +518,37 @@ export class OverworldScene extends Phaser.Scene {
     this.banner = this.add.text(this.scale.width / 2, 92, '', { fontFamily: 'monospace', fontSize: '15px', color: '#ffe9c2', backgroundColor: '#10171acc', padding: { x: 10, y: 5 }, align: 'center' }).setOrigin(0.5, 0).setScrollFactor(0).setDepth(DEPTH.OVERLAY + 12).setVisible(false);
   }
   _canAct() { return !this._dlg && this._hitFreeze <= 0 && !!this.combat; }
+  // SAFE HUB: within a combat region's no-aggro `safe` ring (the Peaks town) → the sword swings +
+  // cuts foliage but deals NO combat damage (matching a GH-style safe zone). See the safe-zone rule.
+  _inSafeHub() {
+    const cr = this._combatRegion(), sf = cr && cr.combat && cr.combat.safe;
+    return !!sf && Math.hypot(this.player.x - sf.x, this.player.y - sf.y) <= sf.r;
+  }
+  // The sword SWING cuts any cuttable asset (class table) in front of the player — in EVERY region,
+  // incl. safe zones (cutting foliage isn't combat). One cut per swing; bushes respawn.
+  _cutSwing() {
+    if (!this._cuttables || !this._cuttables.length) return false;
+    const f = FACE_VEC[this.player.facing] || FACE_VEC.down;
+    const ax = this.player.x + f.x * 18, ay = this.player.y + 6 + f.y * 18;
+    for (const c of this._cuttables) {
+      if (!c.spr.active || !c.spr.visible) continue;
+      if (Math.hypot(c.spr.x - ax, c.spr.y - ay) > INTERACTION_RADIUS) continue;
+      const res = cutObject({ loot: c.loot }, { inv: this.inv, rng: Math.random, mem: { has: () => false, record: () => {} }, key: c.key });
+      this._sfx('sfx_hit', 0.4); this._grantLootFeedback(res.granted, c.spr.x, c.spr.y);
+      c.spr.setVisible(false); if (c.rect) c.rect.body.enable = false;
+      this.time.delayedCall(12000, () => { if (c.spr.active) { c.spr.setVisible(true); if (c.rect) c.rect.body.enable = true; } });   // bushes respawn
+      return true;
+    }
+    return false;
+  }
   _playerAttack() {
-    if (!this.combat || this.region?.safeZone) return;   // attack allowed in the belt + combat regions; blocked in a safe region
     const now = this.time.now;
     if (now < this._atkReady || this.player.isBusy()) { this._atkBuffered = now + COMBAT.INPUT_BUFFER_MS; return; }
     this._atkBuffered = 0; this._atkReady = now + COMBAT.ATTACK_COOLDOWN_MS;
     this.player.action('attack'); this._sfx('sfx_swing', 0.45);
+    this._cutSwing();   // the swing always cuts foliage — consistent in EVERY region (incl. safe zones)
+    // COMBAT damage only OUTSIDE a safe zone AND outside the town safe-hub (Peaks town = sword inert for combat).
+    if (!this.combat || this.region?.safeZone || this._inSafeHub()) return;
     const out = this.combat.playerAttack(this.player, COMBAT.ATTACK_DAMAGE, { tool: this.playerAttackTool() });
     for (const r of out) {
       if (r.outcome === 'hit' || r.outcome === 'swarm') {
@@ -722,7 +755,7 @@ export class OverworldScene extends Phaser.Scene {
     this.input.keyboard.on('keydown-E', () => { if (this._dlg) this._dlgConfirm(); else Interaction.tryInteract(); });
     this.input.keyboard.on('keydown-UP', () => { if (this._dlg) this._dlgNav(-1); });
     this.input.keyboard.on('keydown-DOWN', () => { if (this._dlg) this._dlgNav(1); });
-    this.input.keyboard.on('keydown-J', () => { if (this._canAct() && !this.region?.safeZone) this._playerAttack(); });    // attack
+    this.input.keyboard.on('keydown-J', () => { if (this._canAct()) this._playerAttack(); });    // attack (swing+cut everywhere; combat damage gated inside _playerAttack)
     this.input.keyboard.on('keydown-SPACE', () => { if (this._canAct()) this._tryDodge(); });                              // dodge-roll
     this.input.keyboard.on('keydown-F5', () => this.saveGame());
     this.input.keyboard.on('keydown-F9', () => this.loadGame());
@@ -811,7 +844,15 @@ export class OverworldScene extends Phaser.Scene {
       if (k.W.isDown || k.UP.isDown) dy -= 1; if (k.S.isDown || k.DOWN.isDown) dy += 1;
       this._inputDir = { dx, dy };
       this.pc.setBlocking(now, combatLive && k.C.isDown && !this.player.isBusy());
-      if (this.pc.isDodgeMoving(now)) { const v = this.pc.dodgeVelocity(); this.player.body.setVelocity(v.x, v.y); }
+      if (this.pc.isDodgeMoving(now)) {
+        // DODGE move — but CANCEL the push into a solid the body is already against, else the fast
+        // 611px/s burst re-applies its velocity every frame and CREEPS THROUGH a static collider
+        // (the dash-over-a-rock bug). With this, the dash respects every solid from ALL directions.
+        const v = this.pc.dodgeVelocity(), b = this.player.body.blocked;
+        const vx = ((v.x < 0 && b.left) || (v.x > 0 && b.right)) ? 0 : v.x;
+        const vy = ((v.y < 0 && b.up) || (v.y > 0 && b.down)) ? 0 : v.y;
+        this.player.body.setVelocity(vx, vy);
+      }
       else if (this.pc.isBlocking()) Movement.stop(this.player);
       else if (dx || dy) Movement.drive(this.player, dx, dy, run); else Movement.stop(this.player);
       // flush a BUFFERED attack the instant the swing is ready (crisp combat)
