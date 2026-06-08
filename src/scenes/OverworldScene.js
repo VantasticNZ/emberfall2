@@ -70,7 +70,10 @@ export class OverworldScene extends Phaser.Scene {
     this.player = new Character(this, start.x, start.y, { parts: HERO, facing: 'down', speed: 150 });
     this.player.isAdult = true; this.player.isMinor = false;
     this.player.equip('sword');   // FIX: the player swings a visible sword (discrete RegionScene does this; Overworld didn't → "no sword")
-    this.add.existing(this.player); DepthSort.track(this.player, 18);
+    // y-sort the hero by its FEET LINE (the collision base = body bottom), so it sorts against
+    // buildings/rocks/trees by where it meets the ground — the SAME anchor the pixel-truth collider
+    // uses. (Was 18 = ~12px above the feet → the hero drew UNDER a building it stood in FRONT of.)
+    this.add.existing(this.player); DepthSort.track(this.player, this.player.body.offset.y + this.player.body.height);
     this.physics.add.collider(this.player, this.solids);
     this.combat = new EnemyController(this, { solids: this.solids, onPlayerHit: (dmg, info) => this._onPlayerHit(dmg, info), onPlayerRecoil: (dmg) => this._onPlayerRecoil(dmg) });
     this._buildCombatUI();
@@ -274,7 +277,7 @@ export class OverworldScene extends Phaser.Scene {
   _buildRegionNpc(n) {
     const npc = new Character(this, n.x, n.y, { parts: n.parts, facing: n.facing || 'down', speed: n.speed || 70 });
     this.add.existing(npc); npc.body.setImmovable(false);
-    DepthSort.track(npc, 18);
+    DepthSort.track(npc, npc.body.offset.y + npc.body.height);   // sort NPCs by their feet line too (same as the hero)
     this.npcLife.add(npc, n.schedule, n.tempo);
     this._regionObjs.push(npc);
     if (n.quest) (this._npcByQuest || (this._npcByQuest = {}))[n.quest] = npc;   // objective-arrow target (live)
