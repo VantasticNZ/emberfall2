@@ -9,3 +9,12 @@ STATUS: STAGED + licence-vetted. NOT baked to public/ yet.
   At wire-time: trial in-scene vs the ElizaWy LPC hero/terrain; cool-tint the stone for the COLD Peaks;
   if it clashes (C4 fail), fall back to the in-repo eliza-structure stone kit (Jagged Stone Walls + Stone Pillar),
   which is pure-ElizaWy and cohesion-safe. Bake only the USED crops to public/art + add an ASSET-LEDGER row then.
+
+--- C4 TRIAL VERDICT (2026-06-08) ---
+REJECTED for in-scene use with the ElizaWy LPC hero (QUALITY-SPEC C4 = one style family).
+Side-by-side trial vs the ElizaWy hero + brick houses: this set is a HIGHER-detail, more
+rendered/painterly hand (busier stone texture, ornate shading) — it clashes with the flat
+ElizaWy LPC character + structures. Per the lock + "off-style used badly is worse than fewer
+good", it does NOT go in the Peaks. SLICE stone-town = the cohesive cool-tinted ElizaWy brick
+houses (already in) + the eliza-structure stone kit for future cold-stone assembly. This set
+stays staged/vetted for a possible different (higher-fidelity) context, never alongside ElizaWy.
