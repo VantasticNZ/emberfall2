@@ -186,9 +186,11 @@ export class OverworldScene extends Phaser.Scene {
       // provably blocks; a dynamic body in the STATIC solids group never enters the collision tree).
       const sc = (p.scale != null ? p.scale : 1);
       const b = solidBox(p.key, d);
+      const offX = (p.flip ? -b.offX : b.offX);   // mirror the collider with the sprite's flipX (off-centre silhouettes, e.g. tree trunks)
       if (p.solid) {
-        const rect = this.add.rectangle(p.x + b.offX * sc, p.y + b.offY * sc, Math.max(8, b.w * sc), Math.max(8, b.h * sc), 0x000000, 0).setVisible(false);
+        const rect = this.add.rectangle(p.x + offX * sc, p.y + b.offY * sc, Math.max(8, b.w * sc), Math.max(8, b.h * sc), 0x000000, 0).setVisible(false);
         this.physics.add.existing(rect, true); this.solids.add(rect); this._regionObjs.push(rect);
+        spr.setData('solidKey', p.key);   // pixel-truth test hook: marks this sprite as a tested solid
       }
       DepthSort.track(spr, (b.offY + b.h / 2) * sc);   // y-sort by the solid base (same rule)
       this._regionObjs.push(spr);

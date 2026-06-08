@@ -26,6 +26,7 @@ import { ITEMS } from '../src/data/items/index.js';
 import { SHOPS, JOBS } from '../src/data/economy.js';
 import { REGIONS, TILE } from '../src/data/worldmap.js';
 import { PROPS, solidBox } from '../src/data/assets.js';
+import { OPAQUE_BOUNDS } from '../src/data/opaqueBounds.js';
 import { GATES, TEASES } from '../src/data/gating.js';
 import { ENTRANCES } from '../src/data/entrances.js';
 
@@ -262,21 +263,32 @@ const tile = (px) => Math.round(px / TILE);
       offenders.push(`settlement region '${R.key}': ${through.length} NON-SOLID solid-mass prop(s) (${kinds}…) — walk-through; make them solid:true`);
     }
   }
-  // EXTENDED — assert THE ONE COLLISION RULE (solidBox) holds for every solid in every region:
-  // (a) every solid prop resolves to a real collider (w,h ≥ 8); (b) a MASS object (rock/building)
-  // gets a MASS collider — ≥40% of the frame HEIGHT and ≥60% of the frame WIDTH — never a thin
-  // base strip (the walk-into-the-front bug). This is derived from the sprite by ONE rule, not
-  // hand-tuned per object, so colliders can't drift "off to different degrees" again.
-  const MASS = /rock|boulder|crag|forge|house|paneled|fountain|structure|keep|hall|cliff/;
+  // EXTENDED — assert PIXEL-TRUTH: every solid prop's collider is derived from its OPAQUE PIXELS
+  // (OPAQUE_BOUNDS), not the PNG frame. The collider must sit INSIDE the opaque silhouette (no
+  // transparent-padding overhang = no invisible wall) and its BOTTOM must meet the visible base.
+  // Non-trees must cover the FULL silhouette (solid to the visible edges = no clip-through);
+  // trees collide on the trunk band only (walk behind canopy). A frame-padding collider FAILS here.
+  const T = 3; // px tolerance
   const seenKeys = new Set();
   for (const R of REGIONS) for (const p of (R.props || [])) {
     if (!p.solid || seenKeys.has(p.key)) continue; seenKeys.add(p.key);
     const d = PROPS[p.key]; if (!d) continue;
     const b = solidBox(p.key, d);
-    if (!(b.w > 0 && b.h > 0)) { offenders.push(`solidBox('${p.key}') → degenerate collider ${b.w}×${b.h} (rule must yield a real blocker)`); continue; }
-    if (MASS.test(p.key)) {
-      const wR = b.w / d.width, hR = b.h / d.height;
-      if (wR < 0.6 || hR < 0.4) offenders.push(`MASS '${p.key}' collider covers only ${(wR*100)|0}%×${(hR*100)|0}% of its frame (rule needs ≥60%×≥40%) — would clip-through`);
+    if (!(b.w > 0 && b.h > 0)) { offenders.push(`solidBox('${p.key}') → degenerate collider ${b.w}×${b.h}`); continue; }
+    const ob = OPAQUE_BOUNDS[p.key];
+    if (!ob) continue; // no precomputed bounds (e.g. palette PNG) → frame fallback, not gate-checked
+    const cL = d.width / 2 + b.offX - b.w / 2, cR = d.width / 2 + b.offX + b.w / 2;
+    const cT = d.height / 2 + b.offY - b.h / 2, cB = d.height / 2 + b.offY + b.h / 2;
+    const oL = ob.x0, oR = ob.x1 + 1, oT = ob.y0, oB = ob.y1 + 1;
+    // (1) no padding overhang — collider may not extend beyond the opaque silhouette
+    if (cL < oL - T || cR > oR + T || cT < oT - T || cB > oB + T)
+      offenders.push(`'${p.key}' collider [${cL|0},${cT|0}..${cR|0},${cB|0}] OVERHANGS the opaque box [${oL},${oT}..${oR},${oB}] — frame-padding collider (invisible wall)`);
+    // (2) bottom meets the visible base
+    if (Math.abs(cB - oB) > T) offenders.push(`'${p.key}' collider bottom ${cB|0} ≠ opaque base ${oB} (Δ${Math.abs(cB-oB)|0}px)`);
+    // (3) non-trees cover the FULL silhouette (solid to the visible edges)
+    if (!/tree/.test(p.key)) {
+      if (Math.abs(cT - oT) > T || Math.abs(cL - oL) > T || Math.abs(cR - oR) > T)
+        offenders.push(`'${p.key}' collider doesn't cover the full opaque silhouette (top/sides Δ>${T}px) — would clip-through`);
     }
   }
   if (offenders.length) fail('COLLISION-MATCHES-VISUAL-MASS violation(s):\n' + offenders.map((s) => '      ' + s).join('\n'));

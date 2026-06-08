@@ -17,6 +17,8 @@
 
 export const ART_SOURCE = 'real';
 
+import { OPAQUE_BOUNDS } from './opaqueBounds.js';   // precomputed opaque-pixel bounds (build_opaque_bounds.mjs) — pixel-truth colliders
+
 export const TILE = 32;   // world tile px (LPC terrain native; tiled 1:1)
 export const FRAME = 64;  // character frame px
 
@@ -169,29 +171,33 @@ export const PROPS = {
 };
 
 // =============================================================================
-// THE ONE COLLISION RULE — derive a solid object's collider from its sprite by CLASS
-// (NO per-instance hand-tuning; this replaces the per-building footprint guessing that
-// left "houses off to different degrees"). Returns the collider box relative to the
-// sprite CENTRE { w, h, offX, offY } in UNSCALED frame px (the scene ×s the sprite scale).
-// The box's SOUTH edge sits at the sprite's visual BOTTOM, so you stop AT the front of the
-// mass (no clip-through) from EVERY direction, and the base blocks all four faces.
-//   • CANOPY (trees)            → solid TRUNK only (you walk behind the canopy, y-sorted).
-//   • MASS (rocks, buildings)   → ~full width × the lower ~55% of the sprite (block the
-//                                 visual mass; walk behind the top — roof/peak — y-sorted).
-//   • SMALL (barrel/chest/bush/sign/fence/…) → the manifest base footprint.
+// THE ONE COLLISION RULE — PIXEL-TRUTH: derive a solid's collider from its OPAQUE PIXELS
+// (OPAQUE_BOUNDS, precomputed by scripts/build_opaque_bounds.mjs), NOT the PNG frame. This
+// fixes "clips into the wall / invisible wall" — the collider now matches the VISIBLE silhouette,
+// ignoring transparent frame padding. Returns the collider box relative to the sprite CENTRE
+// { w, h, offX, offY } in UNSCALED frame px (the scene ×s the sprite scale; sprite origin 0.5/0.5).
+//   • CANOPY (trees)  → collider = the opaque GROUND band (the trunk/base) only; walk behind the
+//                        canopy (y-sorted). Anchored to the opaque base, not the frame.
+//   • EVERYTHING ELSE → collider = the FULL OPAQUE SILHOUETTE (rocks solid top-to-bottom = no
+//                        waist-deep clip; buildings solid to the visible walls = you stop AT the
+//                        wall, no walking 58px in; no padding overhang = no invisible wall).
+// If a texture has no precomputed bounds, fall back to the manifest footprint / frame.
 // =============================================================================
 const _CANOPY = /tree/;
-const _MASS = /rock|boulder|crag|forge|house|paneled|fountain|structure|keep|hall|cliff/;
 export function solidBox(key, d) {
   const W = d.width, H = d.height;
-  if (_CANOPY.test(key)) {                                   // trunk base band
-    const h = Math.max(8, Math.round(H * 0.10));
-    return { w: Math.max(10, Math.round(W * 0.26)), h, offX: 0, offY: Math.round(H / 2 - h / 2) };
+  const ob = OPAQUE_BOUNDS[key];
+  if (ob) {
+    const cx = (ob.x0 + ob.x1 + 1) / 2 - W / 2;            // opaque centre, relative to frame centre
+    if (_CANOPY.test(key)) {                                // trunk = opaque ground band
+      const bandH = Math.min(16, Math.max(2, Math.round((ob.y1 - ob.y0 + 1) * 0.14)));
+      const bcx = (ob.baseX0 + ob.baseX1 + 1) / 2 - W / 2;
+      return { w: ob.baseX1 - ob.baseX0 + 1, h: bandH, offX: Math.round(bcx), offY: Math.round((ob.y1 + 1) - bandH / 2 - H / 2) };
+    }
+    return { w: ob.x1 - ob.x0 + 1, h: ob.y1 - ob.y0 + 1,    // FULL opaque silhouette
+             offX: Math.round(cx), offY: Math.round((ob.y0 + ob.y1 + 1) / 2 - H / 2) };
   }
-  if (_MASS.test(key)) {                                     // block the visual mass (lower ~55%)
-    const h = Math.round(H * 0.55);
-    return { w: Math.round(W * 0.9), h, offX: 0, offY: Math.round(H / 2 - h / 2) };
-  }
+  // fallback (no opaque bounds, e.g. palette PNG): manifest footprint, else a base box
   const fp = d.footprint || { w: Math.round(W * 0.7), h: Math.max(8, Math.round(H * 0.3)), offX: 0, offY: Math.round(H * 0.2) };
   return { w: fp.w, h: fp.h, offX: fp.offX || 0, offY: fp.offY || 0 };
 }
