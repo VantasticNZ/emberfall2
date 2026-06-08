@@ -147,6 +147,19 @@ export const PROPS = {
   prop_fence:     { src: 'art/structures/fence_h.png', width: 32, height: 32,           // a tileable fence segment
                     footprint: { w: 32, h: 8, offX: 0, offY: 10 } },
   prop_chest:     { src: 'art/structures/chest.png', width: 32, height: 32, footprint: null }, // a findable chest (interactable)
+
+  // ROCK / CLIFF props (ElizaWy eliza-terrain crops, OGA-BY 3.0) — the Sundered Peaks
+  // mountain mass: a tall cliff face frames routes + the riven cleft; boulders/scree
+  // give rocky density. Solid at the base; y-sort like tall props. (FLAG: snow-cap +
+  // proper terraced-stone-town autotile remain to source — see ASSET-LIBRARY.)
+  prop_cliff_face: { src: 'art/terrain/cliff_face.png', width: 64, height: 128,
+                     footprint: { w: 56, h: 16, offX: 0, offY: 54 } },
+  prop_rock_crag:  { src: 'art/terrain/rock_crag.png', width: 64, height: 91,
+                     footprint: { w: 52, h: 14, offX: 0, offY: 36 } },
+  prop_rock_boulder:{ src: 'art/terrain/rock_boulder.png', width: 59, height: 54,
+                     footprint: { w: 48, h: 12, offX: 0, offY: 18 } },
+  prop_rock_small: { src: 'art/terrain/rock_small.png', width: 32, height: 30,
+                     footprint: { w: 24, h: 10, offX: 0, offY: 8 } },
 };
 
 export const DECALS = {
