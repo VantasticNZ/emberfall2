@@ -10,6 +10,7 @@
 
 import { WORLD } from './world.js';
 import { MARSH } from './marsh.js';
+import { PEAKS } from './peaks.js';
 
 export const TILE = 32;
 export const CHUNK = 32;                       // tiles per chunk side
@@ -214,13 +215,236 @@ export const WEST_BELT = {
   }],
 };
 
-export const REGIONS = [GREENHOLLOW, ASHEN_MARSH, WEST_BELT];
+// ============================================================================
+// SUNDERED PEAKS — the N region (WORLD-BLUEPRINT §1: reserved x278–353 y206–278).
+// Built into x288–348 / y218–278 (60×60): W edge aligned to Greenhollow's, S edge at
+// y278 = the foothill-route mouth (the FOOTHILL_ROUTE bridges y278→GH.N y288). A
+// mountain BOWL — perimeter + internal CLIFF WALLS (real eliza-terrain cliff_face/rock
+// crops, OGA-BY) frame a terraced stone TOWN (a no-aggro hub), the looming CINDER KEEP
+// (N — the grapple + shard_2 GRANT, per gating.js), the riven CLEFT ("Sundered") with a
+// keep-road pass, a high-pass tarn, scree slopes with LIVE adult combat, and a
+// grapple-ledge cache. Mood = a cold stone GROUND TINT (green→stone bleeds across the
+// foothill seam) + alpine pines. FLAG (omitted, NOT faked per HARD RULE 9): a proper
+// SNOW-cap autotile, a true terraced-stone-town building set, and the gated Spire
+// ascent (N) — each wants a targeted art pass before it ships.
+// ============================================================================
+const PK_W = 60, PK_H = 60;
+const PEAKS_ORIGIN = { x: GH_ORIGIN.x, y: (GH_ORIGIN.y / TILE - 10 - PK_H) * TILE }; // S edge (tile 278) = 10 tiles N of GH (the foothill band)
+const pkx = (tx) => PEAKS_ORIGIN.x + tx * TILE, pky = (ty) => PEAKS_ORIGIN.y + ty * TILE;
+const PEAKS_OT = { x: PEAKS_ORIGIN.x / TILE, y: PEAKS_ORIGIN.y / TILE };
+export const STONE_TINT = 0x9ea4b4;   // the cold mountain ground colour (PEAKS.tint.ground)
+
+// cliff WALLS (local tiles [x,y,w,h]) — perimeter ring (S split for the foothill mouth
+// at x15..45) + the riven-cleft shoulders (a keep-road pass at x27..33) + work ridges.
+// Off-wall is an OPEN walkable bowl — Peaks is a settlement (not a route:true corridor),
+// so the open-block gate doesn't apply; the plaza reads as a town, framed by cliffs.
+const PK_WALLS = [
+  [0, 0, PK_W, 2], [0, 0, 2, PK_H], [PK_W - 2, 0, 2, PK_H],     // N / W / E ring
+  [0, PK_H - 2, 15, 2], [45, PK_H - 2, 15, 2],                  // S ring (gap x15..45 = foothill mouth)
+  [18, 14, 9, 9], [33, 14, 9, 9],                              // riven-cleft shoulders (pass x27..33)
+  [44, 30, 8, 3], [8, 31, 6, 3],                              // quarry / work ridges flanking the town
+];
+const _pkInWall = (tx, ty) => PK_WALLS.some((w) => tx >= w[0] && tx < w[0] + w[2] && ty >= w[1] && ty < w[1] + w[3]);
+const PK_TOWN = { cx: 30, cy: 38 };     // plaza centre (the no-aggro hub)
+const PK_KEEP = { tx: 30, ty: 7 };      // Cinder Keep (grapple + shard_2 grant point)
+const PK_RECORDS = { tx: 24, ty: 35 };  // the Order's records (SP-lore set-piece)
+const PK_TARN = { tx: 6, ty: 7, w: 4, h: 3 };   // high-pass tarn (NW)
+
+function _buildPeaksColliders() {
+  const rects = [];
+  for (let y = 0; y < PK_H; y++) for (let x = 0; x < PK_W; x++) {
+    if (_pkInWall(x, y)) rects.push({ x: pkx(x) + TILE / 2, y: pky(y) + TILE / 2, w: TILE, h: TILE });
+  }
+  return rects;
+}
+function _buildPeaksProps() {
+  const props = [];
+  let seed = 0x9eed01 >>> 0; const rnd = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
+  // CLIFF FACES / CRAGS along the wall lines (visual mass; collision is the tile-collider)
+  for (let y = 0; y < PK_H; y += 2) for (let x = 0; x < PK_W; x += 2) {
+    if (!_pkInWall(x, y)) continue;
+    props.push({ key: (x % 4 === 0) ? 'prop_cliff_face' : 'prop_rock_crag', x: pkx(x) + TILE / 2, y: pky(y) + TILE, solid: false, tint: STONE_TINT });
+  }
+  // SCREE / BOULDERS + alpine PINES across the open bowl (density + cover), avoiding the
+  // walls, the plaza, the keep-road pass and the foothill mouth.
+  for (let y = 4; y < PK_H - 3; y += 3) for (let x = 4; x < PK_W - 3; x += 3) {
+    if (_pkInWall(x, y)) continue;
+    if (Math.hypot(x - PK_TOWN.cx, y - PK_TOWN.cy) < 6) continue;     // keep the plaza clear
+    if (x > 26 && x < 34 && y < 28) continue;                         // keep the keep-road pass clear
+    if (x > 14 && x < 46 && y > PK_H - 9) continue;                   // keep the foothill mouth clear
+    const r = rnd();
+    if (r < 0.5) props.push({ key: r < 0.26 ? 'prop_rock_boulder' : 'prop_rock_small', x: pkx(x) + (rnd() * 10 - 5), y: pky(y) + (rnd() * 8 - 4), solid: true, tint: STONE_TINT });
+    else if (r < 0.74) props.push({ key: 'prop_tree_pine', x: pkx(x) + (rnd() * 10 - 5), y: pky(y) + (rnd() * 8 - 4), solid: false, tint: 0x8a96a0 });
+  }
+  // TERRACED STONE TOWN (stone-tinted LPC structures — FLAG: a true terraced stone-town
+  // set is wanted) + the town well.
+  props.push({ key: 'prop_forge', x: pkx(30) + TILE / 2, y: pky(34) + TILE / 2, solid: true, tint: 0x8f97a8 });        // town hall
+  props.push({ key: 'prop_house_b', x: pkx(21) + TILE / 2, y: pky(40) + TILE / 2, solid: true, tint: 0x9aa0b4 });
+  props.push({ key: 'prop_house_paneled', x: pkx(39) + TILE / 2, y: pky(40) + TILE / 2, solid: true, tint: 0x9aa0b4 });
+  props.push({ key: 'prop_forge', x: pkx(15) + TILE / 2, y: pky(42) + TILE / 2, solid: true, tint: 0x8f97a8 });        // stoneworks
+  props.push({ key: 'prop_fountain', x: pkx(30) + TILE / 2, y: pky(42) + TILE / 2, solid: true });                     // the town well
+  props.push({ key: 'prop_barrel', x: pkx(27) + TILE / 2, y: pky(44) + TILE / 2, solid: true });
+  props.push({ key: 'prop_barrel', x: pkx(33) + TILE / 2, y: pky(44) + TILE / 2, solid: true });
+  props.push({ key: 'prop_fence', x: pkx(25) + TILE / 2, y: pky(46) + TILE / 2, solid: true });
+  props.push({ key: 'prop_fence', x: pkx(35) + TILE / 2, y: pky(46) + TILE / 2, solid: true });
+  // CINDER KEEP — looming, dark, behind the cleft (N). The grapple / shard_2 grant point.
+  props.push({ key: 'prop_forge', x: pkx(PK_KEEP.tx) + TILE / 2, y: pky(PK_KEEP.ty) + TILE / 2, solid: true, tint: 0x5f6675, scale: 1.7 });
+  // diegetic signs: the town entrance + the riven cleft
+  props.push({ key: 'prop_sign', x: pkx(30) + TILE / 2, y: pky(48) + TILE / 2, solid: false });
+  props.push({ key: 'prop_sign', x: pkx(30) + TILE / 2, y: pky(25) + TILE / 2, solid: false });
+  return props;
+}
+
+// re-place the canonical discrete cast (peaks.js) into the town — keep ALL quest/social/
+// greeting DATA (the SSOT), only override positions for the larger world layout.
+const PK_CAST_POS = { Miner: [29, 37], 'Mike Hunt': [34, 36], 'Desperate Stranger': [20, 41], 'Bounty-Master': [36, 38], Stonewright: [25, 34] };
+
+export const SUNDERED_PEAKS = {
+  key: 'Peaks',
+  origin: PEAKS_ORIGIN,
+  bounds: { x: PEAKS_ORIGIN.x, y: PEAKS_ORIGIN.y, w: PK_W * TILE, h: PK_H * TILE },
+  safeZone: false,                       // COMBAT LIVE on the slopes (the town ring is no-aggro)
+  mountain: true,
+  widthTiles: PK_W, heightTiles: PK_H,
+  originTile: PEAKS_OT,
+  mapColor: 0x6d7280,                    // stone-grey on the minimap
+  player: { x: pkx(30) + TILE / 2, y: pky(47) + TILE / 2 },
+  terrain: { patches: [{ set: 'dirt', rects: [
+    [23, 33, 14, 12],                    // the town plaza (gravel/dirt)
+    [29, 24, 3, 12],                     // keep-road: town → cleft pass
+    [29, 8, 3, 8],                       // the keep approach
+    [27, 45, 7, 13],                     // the foothill mouth rising into town
+  ] }] },
+  props: _buildPeaksProps(),
+  colliders: _buildPeaksColliders(),
+  pools: [PK_TARN],
+  waterTint: 0x9fb6c8,
+  decalLayers: [
+    { seed: 0x70123, count: 80, pool: ['decal_tuft', 'decal_grass_tall', 'decal_clover', 'decal_dirt_patch'] },
+    { seed: 0x5151, count: 40, pool: ['decal_dirt_patch'] },
+  ],
+  decalTint: 0xb0b4c0,
+  chests: [
+    { id: 'peaks_quarry_cache', x: pkx(49) + TILE / 2, y: pky(34) + TILE / 2, gold: 45, line: 'A quarryman\'s lockbox wedged in the scree — forty-five gold.' },
+  ],
+  combat: {
+    enabled: true,
+    enemies: [
+      { id: 'charger', tx: PEAKS_OT.x + 16, ty: PEAKS_OT.y + 25, placeId: 'peaks_charger' },          // Crag Ram
+      { id: 'shielded', tx: PEAKS_OT.x + 44, ty: PEAKS_OT.y + 25, placeId: 'peaks_shielded' },        // Order Revenant
+      { id: 'ranged', tx: PEAKS_OT.x + 12, ty: PEAKS_OT.y + 17, placeId: 'peaks_ranged' },            // Crag Archer
+      { id: 'brute', tx: PEAKS_OT.x + 46, ty: PEAKS_OT.y + 17, placeId: 'peaks_brute' },              // Stone Ogre
+      { id: 'charger_electric', tx: PEAKS_OT.x + 30, ty: PEAKS_OT.y + 19, placeId: 'peaks_storm' },   // Storm Crawler (cleft)
+      { id: 'swarm', tx: PEAKS_OT.x + 22, ty: PEAKS_OT.y + 29, placeId: 'peaks_swarm' },              // crag bats
+    ],
+    safe: { x: pkx(30) + TILE / 2, y: pky(40) + TILE / 2, r: 8 * TILE },   // the town no-aggro hub
+    spawn: { x: pkx(30) + TILE / 2, y: pky(47) + TILE / 2 },               // respawn at the town gate
+  },
+  keep: { x: pkx(PK_KEEP.tx) + TILE / 2, y: pky(PK_KEEP.ty) + TILE / 2, name: 'Cinder Keep' },
+  records: { x: pkx(PK_RECORDS.tx) + TILE / 2, y: pky(PK_RECORDS.ty) + TILE / 2, name: "the Order's records" },
+  npcs: PEAKS.npcs.map((n) => {
+    const [lx, ly] = PK_CAST_POS[n.name] || [n.tx, n.ty];
+    return { ...n, x: pkx(lx) + TILE / 2, y: pky(ly) + TILE / 2,
+      schedule: (n.schedule || []).map((s) => ({ ...s, tx: s.tx + PEAKS_OT.x, ty: s.ty + PEAKS_OT.y })) };
+  }),
+};
+
+// ============================================================================
+// FOOTHILL ROUTE — the GH↔Peaks channelled, LEGIBLE, FORKING lane (WORLD-BLUEPRINT
+// §2: a framed lane that READS as the way up — NOT an open field; the Phase-5b lesson).
+// Bridges GH's NORTH edge (y288) to the Peaks SOUTH mouth (y278) — the 10-tile foothill
+// band. A trunk from the GH N-trailhead (~x313) rises, then FORKS: a gentle QUARRY-ROAD
+// (NW, to the mine/town) vs a steeper KEEP-ROAD (NE, toward Cinder Keep); a short SPUR
+// hides a cache. Walled by cliff faces + scrub (off-lane = solid tile-colliders, no
+// seams). ENTRY GATE: a fresh ROCKFALL seals the Peaks mouth until you bear shard_1
+// (the Marsh truth) — gating.js: Peaks requires shard_1. No soft-lock (shard_1 is earned
+// in the open Marsh). Safe travel corridor (combat stays in the Peaks).
+// ============================================================================
+const FH_W = 30, FH_H = 10;
+const FOOTHILL_ORIGIN = { x: (GH_ORIGIN.x / TILE + 15) * TILE, y: (GH_ORIGIN.y / TILE - FH_H) * TILE }; // x303..333 (= Peaks mouth), y278..288 (GH.N)
+const fhx = (tx) => FOOTHILL_ORIGIN.x + tx * TILE, fhy = (ty) => FOOTHILL_ORIGIN.y + ty * TILE;
+const FH_OT = { x: FOOTHILL_ORIGIN.x / TILE, y: FOOTHILL_ORIGIN.y / TILE };
+// lane centrelines in foothill-local tiles (y: 0=N/Peaks … 9=S/Greenhollow; x: 0..29)
+const _FH_TRUNK  = [[10, 9], [10, 7.5], [11, 6.5], [12, 6]];                 // from the GH N-trailhead up to the fork
+const _FH_QUARRY = [[12, 6], [10, 5], [8, 3.6], [7, 2], [6, 0.3]];           // gentle: exits NW (mine/town side)
+const _FH_KEEP   = [[12, 6], [15, 5], [17, 3.6], [18, 2], [18, 0.3]];        // steeper: exits NE (toward the keep)
+const _FH_SPUR   = [[8, 3.6], [6, 3.2], [5, 2.9]];                           // short dead-end spur → the hidden cache
+const _FH_LANES = [_FH_TRUNK, _FH_QUARRY, _FH_KEEP, _FH_SPUR];
+const _fhLaneDist = (x, y) => { let m = 99; for (const p of _FH_LANES) for (let i = 0; i < p.length - 1; i++) m = Math.min(m, _distToSeg(x, y, p[i], p[i + 1])); return m; };
+const FH_LANE_R = 1.2;
+const _fhWalk = (() => { const w = []; for (let y = 0; y < FH_H; y++) { w[y] = []; for (let x = 0; x < FH_W; x++) w[y][x] = _fhLaneDist(x, y) <= FH_LANE_R; } return w; })();
+function _buildFoothillColliders() {
+  const rects = [];
+  for (let y = 0; y < FH_H; y++) for (let x = 0; x < FH_W; x++) if (!_fhWalk[y][x]) rects.push({ x: fhx(x) + TILE / 2, y: fhy(y) + TILE / 2, w: TILE, h: TILE });
+  return rects;
+}
+function _buildFoothillProps() {
+  const props = [];
+  let seed = 0xf007a1 >>> 0; const rnd = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
+  for (let y = 0; y < FH_H; y++) for (let x = 0; x < FH_W; x++) {
+    if (_fhWalk[y][x]) continue;
+    const stony = y <= 4;                                  // upper half rises to stone (cliff faces), lower half grassy scrub
+    if (stony && x % 3 === 0 && y % 2 === 0) props.push({ key: 'prop_rock_crag', x: fhx(x) + TILE / 2, y: fhy(y) + TILE, solid: false, tint: STONE_TINT });
+    else props.push({ key: 'prop_bush', x: fhx(x) + TILE / 2, y: fhy(y) + TILE / 2, solid: false, tint: stony ? 0x9aa0a8 : undefined });
+    if (rnd() < 0.4) props.push({ key: 'prop_tree_pine', x: fhx(x) + (rnd() * 12 - 6), y: fhy(y) + (rnd() * 8 - 10), solid: false, tint: stony ? 0x8a96a0 : undefined });
+  }
+  props.push({ key: 'prop_sign', x: fhx(12) + TILE / 2 + 6, y: fhy(6) + TILE / 2, solid: false });   // the fork waystone
+  return props;
+}
+// gate rockfall: seal the two lane mouths (top row) into the Peaks until shard_1 is borne
+function _buildFoothillGateColliders() {
+  const rects = [];
+  for (let y = 0; y <= 1; y++) for (let x = 0; x < FH_W; x++) if (_fhWalk[y][x]) rects.push({ x: fhx(x) + TILE / 2, y: fhy(y) + TILE / 2, w: TILE, h: TILE });
+  return rects;
+}
+
+export const FOOTHILL_ROUTE = {
+  key: 'Foothill',
+  origin: FOOTHILL_ORIGIN,
+  bounds: { x: FOOTHILL_ORIGIN.x, y: FOOTHILL_ORIGIN.y, w: FH_W * TILE, h: FH_H * TILE },
+  safeZone: true,
+  route: true,                           // CHANNELLED route — verify.mjs open-block gate applies
+  widthTiles: FH_W, heightTiles: FH_H,
+  originTile: FH_OT,
+  mapColor: 0x7d8466,                    // foothill green-grey on the minimap
+  terrain: { patches: [{ set: 'dirt', rects: [
+    [9, 6, 3, 4],                        // trunk + GH trailhead
+    [6, 3, 3, 3], [5, 1, 3, 2],          // quarry branch
+    [14, 4, 4, 2], [17, 1, 2, 3],        // keep branch
+    [5, 3, 2, 1],                        // the spur
+  ] }] },
+  props: _buildFoothillProps(),
+  colliders: _buildFoothillColliders(),
+  decalLayers: [
+    { seed: 0x10cc, count: 30, pool: ['decal_tuft', 'decal_grass_lush', 'decal_clover', 'decal_dirt_patch'] },
+    { seed: 0x20cc, count: 14, pool: ['decal_dirt_patch', 'decal_grass_tall'] },
+  ],
+  chests: [{ id: 'foothill_cache', x: fhx(5) + TILE / 2, y: fhy(2.9) + TILE / 2, gold: 35, line: 'Off the spur, behind a crag — a climber\'s cache. Thirty-five gold.' }],
+  // ENTRY GATE (gating.js: Peaks requires shard_1). Rockfall blocks the Peaks mouth until borne.
+  gate: {
+    deed: 'shard_1',
+    colliders: _buildFoothillGateColliders(),
+    sign: { x: fhx(12) + TILE / 2, y: fhy(1.4) + TILE / 2 },
+    lockedMsg: 'A fresh ROCKFALL chokes the pass into the Peaks — the Order\'s work. They say the Marsh\'s truth (Shard I) is what shifts it.',
+  },
+  npcs: [{
+    name: 'Pell', x: fhx(10) + TILE / 2, y: fhy(8) + TILE / 2, facing: 'up', speed: 0, expression: 'neutral',
+    parts: ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_parted_gray', 'shirt_leather', 'pants_brown', 'shoes_brown'],
+    greeting: [
+      'Headed up? The trail forks past the cairn — quarry-road\'s the gentle way, keep-road\'s the climb.',
+      'Mind the top, though. The Order brought half the cliff down across the pass. No one\'s through since.',
+    ],
+  }],
+};
+
+export const REGIONS = [GREENHOLLOW, ASHEN_MARSH, WEST_BELT, SUNDERED_PEAKS, FOOTHILL_ROUTE];
 const inBounds = (b, x, y) => x >= b.x && x < b.x + b.w && y >= b.y && y < b.y + b.h;
 /** The region whose bounds contain (x,y), or null (the green/bog belt between). */
 export function regionAt(x, y) { for (const R of REGIONS) if (inBounds(R.bounds, x, y)) return R; return null; }
 /** Is a world point inside Greenhollow's (safe) bounds? */
 export function inGreenhollow(x, y) { return inBounds(GREENHOLLOW.bounds, x, y); }
 export function inMarsh(x, y) { return inBounds(ASHEN_MARSH.bounds, x, y); }
+export function inPeaks(x, y) { return inBounds(SUNDERED_PEAKS.bounds, x, y); }
 
 // ---- THE GREEN→BOG SEAM: a CONTINUOUS ground-tint gradient (no per-chunk step).
 // 0 (Greenhollow grass) east of the belt → 1 (bog) at/within Marsh. Lerps the grass
@@ -235,13 +459,30 @@ function bogness(x, y) {
   return Math.max(0, Math.min(1, (gWest - x) / (gWest - mEast)));
 }
 const lerpCh = (a, b, t) => Math.round(a + (b - a) * t);
-/** Ground tint for a chunk centre — grass (0xffffff) → BOG_TINT across the seam. */
-export function groundTintAt(x, y) {
-  const t = bogness(x, y); if (t <= 0) return 0xffffff;
-  const br = (BOG_TINT >> 16) & 255, bg = (BOG_TINT >> 8) & 255, bb = BOG_TINT & 255;
-  return (lerpCh(255, br, t) << 16) | (lerpCh(255, bg, t) << 8) | lerpCh(255, bb, t);
+const tintLerp = (TINT, t) => {
+  const r = (TINT >> 16) & 255, g = (TINT >> 8) & 255, b = TINT & 255;
+  return (lerpCh(255, r, t) << 16) | (lerpCh(255, g, t) << 8) | lerpCh(255, b, t);
+};
+
+// ---- THE GREEN→STONE SEAM (N): grass → cold mountain ground. 1 inside the Peaks; a
+// gradient across the 10-tile foothill band (the land RISES N), restricted to the
+// foothill x-corridor so GH/Belt stay green (mirror of bogness for the W bog seam).
+function stoneness(x, y) {
+  if (inPeaks(x, y)) return 1;
+  const fhX0 = FOOTHILL_ORIGIN.x - CHUNK_PX, fhX1 = FOOTHILL_ORIGIN.x + FH_W * TILE + CHUNK_PX;
+  if (x < fhX0 || x >= fhX1) return 0;                      // only in the N foothill corridor
+  const peaksS = SUNDERED_PEAKS.bounds.y + SUNDERED_PEAKS.bounds.h, ghN = GREENHOLLOW.bounds.y;
+  if (y >= ghN) return 0;                                   // inside GH proper = still green
+  if (y <= peaksS) return 1;                                // at/above the Peaks mouth = full stone
+  return Math.max(0, Math.min(1, (ghN - y) / (ghN - peaksS)));
 }
-export { bogness };
+/** Ground tint for a chunk centre — grass → BOG_TINT (W) or STONE_TINT (N) across a seam. */
+export function groundTintAt(x, y) {
+  const s = stoneness(x, y); if (s > 0) return tintLerp(STONE_TINT, s);
+  const t = bogness(x, y); if (t <= 0) return 0xffffff;
+  return tintLerp(BOG_TINT, t);
+}
+export { bogness, stoneness };
 
 // a tiny seeded PRNG so each chunk's content is DETERMINISTIC (stable across reloads
 // + identical for the same chunk every time it streams in — required for delta ids).

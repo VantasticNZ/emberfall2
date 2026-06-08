@@ -37,7 +37,7 @@ import { bindings } from '../constants/controls.js';
 import { AssetLoader } from '../art/AssetLoader.js';
 import { PROPS, PARTS, DIR_ROW, ANIMS, EXPRESSIONS, EXPR_COLS, EXPR_ROW } from '../data/assets.js';
 import { TERRAIN } from '../data/terrainTiles.js';
-import { GREENHOLLOW_CHILDHOOD, GREENHOLLOW_SIDE, ASHEN_MARSH } from '../data/quests/index.js';
+import { GREENHOLLOW_CHILDHOOD, GREENHOLLOW_SIDE, ASHEN_MARSH, SUNDERED_PEAKS as PEAKS_QUESTS, SUNDERED_PEAKS_SIDE } from '../data/quests/index.js';
 import { TILE, CHUNK_PX, WORLD_CHUNKS, WORLD_PX, chunkContent, groundTintAt, GREENHOLLOW, ASHEN_MARSH as MARSH_REGION, REGIONS, regionAt, inGreenhollow, inMarsh } from '../data/worldmap.js';
 
 const FACE_VEC = { up: { x: 0, y: -1 }, down: { x: 0, y: 1 }, left: { x: -1, y: 0 }, right: { x: 1, y: 0 } };
@@ -107,7 +107,7 @@ export class OverworldScene extends Phaser.Scene {
   _buildSystems() {
     const storage = memoryStorage();   // per-session; the SaveManager owns durable composition via link()
     this.karma = new KarmaEngine({ storage });
-    this.quests = new QuestEngine({ karma: this.karma, storage, quests: [...GREENHOLLOW_CHILDHOOD, ...GREENHOLLOW_SIDE, ...ASHEN_MARSH] });
+    this.quests = new QuestEngine({ karma: this.karma, storage, quests: [...GREENHOLLOW_CHILDHOOD, ...GREENHOLLOW_SIDE, ...ASHEN_MARSH, ...PEAKS_QUESTS, ...SUNDERED_PEAKS_SIDE] });
     this.tod = new TimeOfDay({ storage });
     this.inv = new Inventory({ storage });
     this.inv.hp = this.inv.stats().maxHp;
@@ -184,9 +184,57 @@ export class OverworldScene extends Phaser.Scene {
     }
     for (const n of R.npcs) this._buildRegionNpc(n);
     for (const c of (R.chests || [])) this._buildRegionChest(c);
-    // COMBAT — a non-safe region (Marsh) spawns its enemies + hub; a safe region
-    // (Greenhollow) spawns none. With both loaded, only Marsh enemies exist (in Marsh).
+    // COMBAT — a non-safe region (Marsh/Peaks) spawns its enemies + hub; a safe region
+    // (Greenhollow/Belt/Foothill) spawns none. With several loaded, only the combat
+    // region's enemies exist (in their own bounds).
     if (R.combat && R.combat.enabled && !R.safeZone) this._buildRegionCombat(R);
+    // ENTRY GATE (Foothill→Peaks: a rockfall keyed to shard_1, per gating.js).
+    if (R.gate) this._buildRegionGate(R);
+    // PEAKS set-pieces: Cinder Keep (the grapple + shard_2 grant point) + the records.
+    if (R.keep) this._buildPeaksKeep(R);
+    if (R.records) this._buildPeaksRecords(R);
+  }
+
+  // ENTRY GATE — while the player lacks the keyed deed (shard_1), seal the lane mouths
+  // with the rockfall colliders + a diegetic "inspect" prompt explaining the key. Once
+  // borne, the pass is simply open (no collider) — gating.js declares this; no soft-lock
+  // (shard_1 is earned in the ungated Marsh, so the key always precedes the gate).
+  _buildRegionGate(R) {
+    const g = R.gate;
+    if (this.karma.hasDeed(g.deed)) return;                 // unlocked — pass open
+    for (const c of g.colliders) {
+      const rect = this.add.rectangle(c.x, c.y, c.w, c.h, 0x000000, 0).setVisible(false);
+      this.physics.add.existing(rect, true); this.solids.add(rect); this._regionObjs.push(rect);
+    }
+    const m = this.physics.add.sprite(g.sign.x, g.sign.y, 'prop_rock_crag').setTint(0x8a8f9c);
+    m.body.enable = false; DepthSort.track(m, 30); this._regionObjs.push(m);
+    Interaction.register({ x: g.sign.x, y: g.sign.y + 8, prompt: 'Inspect the rockfall', onInteract: () => this._startGreeting('', [g.lockedMsg]) });
+  }
+
+  // CINDER KEEP — the GRAPPLE + SHARD_2 grant point (gating.js: Peaks GRANTS tool_grapple
+  // + shard_2). Mirrors the Marsh lantern beat. FLAG: the full M12 Keep-Sentinel boss
+  // fight (as Marsh's Drowned-Guardian) is not yet wired into the overworld boss flow —
+  // the grant is taken at the Keep entrance for now (deferred: generalise the boss flow).
+  _buildPeaksKeep(R) {
+    const k = R.keep;
+    Interaction.register({ x: k.x, y: k.y + 14, prompt: `Enter ${k.name}`, onInteract: () => {
+      if (this.karma.hasDeed('tool_grapple')) return this._startGreeting('', ['Cinder Keep stands silent — the Sentinel down, the grapple and Shard II already yours.']);
+      this.karma.recordDeed('tool_grapple', { tool: 'grapple' });
+      this.karma.recordDeed('shard_2');
+      this.saveGame();
+      this._banner('CINDER KEEP — you wrest the Order\'s GRAPPLE from the broken Sentinel and claim SHARD II. New ledges await the hook.', 5200);
+    } });
+  }
+  _buildPeaksRecords(R) {
+    const r = R.records;
+    const m = this.physics.add.sprite(r.x, r.y, 'prop_sign').setTint(0x9a8f6a);
+    m.body.enable = false; DepthSort.track(m, 8); this._regionObjs.push(m);
+    Interaction.register({ x: r.x, y: r.y + 8, prompt: `Read ${r.name}`, onInteract: () => {
+      const st = this.quests.status('SP1');
+      if (st === 'available' || st === 'active') return this._startQuestDialogue('SP1');
+      if (st === 'complete') return this._startGreeting('', ['The Order\'s records, read and damning.']);
+      return this._startGreeting('', ['Weathered ledgers of the Order — sealed until the town trusts you (stand with the miners).']);
+    } });
   }
 
   _buildRegionNpc(n) {
@@ -686,7 +734,7 @@ export class OverworldScene extends Phaser.Scene {
     const s = box.scale, ox = box.x, oy = box.y;
     g.fillStyle(0x3f5a34, 1).fillRect(ox, oy, WORLD_PX * s, WORLD_PX * s);   // belt/grass base
     for (const R of REGIONS) {
-      const c = R.bogTint ? 0x6b724e : 0x4a7a3a;   // Marsh bog vs Greenhollow green
+      const c = R.mapColor || (R.bogTint ? 0x6b724e : 0x4a7a3a);   // Peaks stone / Marsh bog / Greenhollow green
       g.fillStyle(c, 1).fillRect(ox + R.bounds.x * s, oy + R.bounds.y * s, Math.max(2, R.bounds.w * s), Math.max(2, R.bounds.h * s));
     }
   }
