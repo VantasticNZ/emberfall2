@@ -241,7 +241,11 @@ export const STONE_TINT = 0x9ea4b4;   // the cold mountain ground colour (PEAKS.
 const PK_WALLS = [
   [0, 0, PK_W, 2], [0, 0, 2, PK_H], [PK_W - 2, 0, 2, PK_H],     // N / W / E ring
   [0, PK_H - 2, 15, 2], [45, PK_H - 2, 15, 2],                  // S ring (gap x15..45 = foothill mouth)
-  [18, 14, 9, 9], [33, 14, 9, 9],                              // riven-cleft shoulders (pass x27..33)
+  // the riven CLEFT is a FULL cross-wall (W-perimeter→pass and pass→E-perimeter), so the ONLY
+  // way from the town (S) up to Cinder Keep (N) is the keep-road through the pass (x27..33). No
+  // dashing up the open sides to bypass the path. (was two short shoulders that left the W/E
+  // flanks of the upper bowl open — the walk-up-the-sides bug.)
+  [2, 14, 25, 9], [33, 14, 25, 9],                            // cleft cross-wall — pass gap x27..33
   [44, 30, 8, 3], [8, 31, 6, 3],                              // quarry / work ridges flanking the town
 ];
 const _pkInWall = (tx, ty) => PK_WALLS.some((w) => tx >= w[0] && tx < w[0] + w[2] && ty >= w[1] && ty < w[1] + w[3]);
@@ -267,12 +271,14 @@ function _buildPeaksProps() {
   // mouth. On a step-2 grid (denser than before) so screens hit the wild density band.
   for (let y = 4; y < PK_H - 3; y += 2) for (let x = 4; x < PK_W - 3; x += 2) {
     if (_pkInWall(x, y)) continue;
-    if (Math.hypot(x - PK_TOWN.cx, y - PK_TOWN.cy) < 6) continue;     // keep the plaza clear
-    if (x > 26 && x < 34 && y < 28) continue;                         // keep the keep-road pass clear
-    if (x > 14 && x < 46 && y > PK_H - 9) continue;                   // keep the foothill mouth clear
+    if (Math.hypot(x - PK_TOWN.cx, y - PK_TOWN.cy) < 8) continue;     // keep the plaza clear (now SOLID scatter, so clear it wider)
+    if (x > 26 && x < 34) continue;                                  // keep the WHOLE keep-road corridor clear (N↔keep) — solid obstacles must not block the path
+    if (x > 14 && x < 46 && y > PK_H - 11) continue;                  // keep the foothill mouth + town approach clear
     const r = rnd();
+    // SOLID obstacles on the slopes (the bowl ground stays walkable, but you can't walk THROUGH
+    // boulders/pines/crags) — kills the "walk through objects" hole.
     if (r < 0.4) props.push({ key: r < 0.22 ? 'prop_rock_boulder' : 'prop_rock_small', x: pkx(x) + (rnd() * 12 - 6), y: pky(y) + (rnd() * 8 - 4), solid: true, tint: 0xc2c6cf });
-    else if (r < 0.62) props.push({ key: 'prop_tree_pine', x: pkx(x) + (rnd() * 12 - 6), y: pky(y) + (rnd() * 8 - 4), solid: false, tint: 0x8a96a0 });
+    else if (r < 0.62) props.push({ key: 'prop_tree_pine', x: pkx(x) + (rnd() * 12 - 6), y: pky(y) + (rnd() * 8 - 4), solid: true, tint: 0x8a96a0 });
     else if (r < 0.70) props.push({ key: 'prop_rock_crag', x: pkx(x) + (rnd() * 10 - 5), y: pky(y) + (rnd() * 6 - 3), solid: true, tint: 0xb6bac4 }); // the odd standing crag
   }
   // TERRACED STONE TOWN (stone-tinted LPC structures — FLAG: a true terraced stone-town

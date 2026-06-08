@@ -177,11 +177,18 @@ export class OverworldScene extends Phaser.Scene {
     }
     for (const p of R.props) {
       const d = PROPS[p.key]; if (!d) continue;
-      const spr = this.physics.add.sprite(p.x, p.y, p.key).setOrigin(0.5, 0.5);
+      const spr = this.add.sprite(p.x, p.y, p.key).setOrigin(0.5, 0.5);   // pure VISUAL (no physics body)
       if (p.scale != null) spr.setScale(p.scale);
       if (p.flip) spr.setFlipX(true);
       if (p.tint != null) spr.setTint(p.tint);
-      if (p.solid && d.footprint) { Collision.makeSolid(spr, d.footprint); this.solids.add(spr); } else if (spr.body) spr.body.enable = false;
+      // SOLID props get a STATIC collider RECT at the footprint base (the cliff-wall pattern that
+      // PROVABLY blocks). A dynamic body added to the STATIC `solids` group did NOT enter the
+      // static collision tree → the player walked through houses/boulders (the reported bug).
+      if (p.solid && d.footprint) {
+        const fp = d.footprint, sc = (p.scale != null ? p.scale : 1);
+        const rect = this.add.rectangle(p.x + fp.offX * sc, p.y + fp.offY * sc, Math.max(8, fp.w * sc), Math.max(8, fp.h * sc), 0x000000, 0).setVisible(false);
+        this.physics.add.existing(rect, true); this.solids.add(rect); this._regionObjs.push(rect);
+      }
       DepthSort.track(spr, d.footprint ? d.footprint.offY + d.footprint.h / 2 : (d.height || 32) / 2);
       this._regionObjs.push(spr);
     }

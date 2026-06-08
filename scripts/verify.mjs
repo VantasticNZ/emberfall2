@@ -248,6 +248,20 @@ const tile = (px) => Math.round(px / TILE);
       offenders.push(`region '${R.key}': ${visualMass.length} non-solid solid-mass prop(s) (${kinds}…) but NO colliders — player walks THROUGH them`);
     }
   }
+  // EXTENDED (the Peaks walk-through-pines hole): in a SETTLEMENT (non-route) region, every
+  // solid-MASS prop MUST be solid:true (→ a footprint collider). A non-solid tree/house/etc. in
+  // an open town = walk-through (having *some* cliff colliders elsewhere doesn't cover it). Route
+  // regions (route:true) are exempt — they use non-solid visuals over the contiguous channel
+  // tile-colliders by design (West-Belt pattern). Signs are decorative (exempt from solidity).
+  const MUST_BE_SOLID = /tree|forge|house|fountain|fence|barrel/;
+  for (const R of REGIONS) {
+    if (R.route) continue;
+    const through = (R.props || []).filter((p) => !p.solid && MUST_BE_SOLID.test(p.key));
+    if (through.length) {
+      const kinds = [...new Set(through.map((p) => p.key))].slice(0, 3).join(', ');
+      offenders.push(`settlement region '${R.key}': ${through.length} NON-SOLID solid-mass prop(s) (${kinds}…) — walk-through; make them solid:true`);
+    }
+  }
   if (offenders.length) fail('COLLISION-MATCHES-VISUAL-MASS violation(s):\n' + offenders.map((s) => '      ' + s).join('\n'));
   else ok('collision matches visual mass: no walk-through solid-mass props (visual mass is solid OR collider-backed)');
 }
