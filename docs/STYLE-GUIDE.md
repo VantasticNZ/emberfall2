@@ -1,16 +1,24 @@
 # EMBERFALL 2 — STYLE GUIDE (the objective "does this asset fit" standard)
 
-Concrete, measurable values pulled from the current LPC setup. Any new art/UI is
-judged against THESE (Gate I art-cohesion + Part 2.5 DoD). When in doubt, match.
+> **⚑ GOVERNED BY THE LOCK.** The whole game is locked to ONE canonical asset standard —
+> **LPC · 32px terrain · 64px LPC character frames · LPC palette · the measured scale ratios**
+> — no tiers, no mixing (`QUALITY-SPEC.md` §0). Every value here restates that single locked
+> standard. Non-conforming art is rejected/recoloured/resized, never adapted-around; the sole
+> exception is a deliberately `outOfPlace:true` gag character. This guide and `QUALITY-SPEC.md`
+> must agree; QUALITY-SPEC is authoritative on any conflict.
+
+Concrete, measurable values pulled from the locked LPC standard. Any new art/UI is
+judged against THESE (Gate I art-cohesion + Part 2.5 DoD + the §0.3 conformance gate). When in doubt, match.
 
 ## Pixel grid & resolution
 - **Terrain tile:** 32 px (`TILE` in src/data/assets.js); tiled 1:1, never upscaled.
 - **Character frame:** 64 px (`FRAME`); one sheet per animation, rows in order
   `up, left, down, right` (`DIR_ROW`).
 - **Animations:** idle = 3 frames @ 4 fps; walk = 8 frames @ 16 fps (`ANIMS`).
-- **Native render:** 768 × 432 (16:9, `VIEW`); pixelArt + roundPixels ON.
-- **Scale mode:** ENVELOP (fills the window, no letterbox); zoom levels
-  `[0.7, 0.85, 1.1]`, default 0.85.
+- **Native render:** 768 × 432 (16:9, `VIEW`); pixelArt ON.
+- **Scale mode + zoom (canonical, live):** `Phaser.Scale.RESIZE`; **world zoom 1.25** (Overworld;
+  HUD on a separate zoom-1 uiCamera). *(Was: the discrete-era "ENVELOP / zoom [0.7,0.85,1.1]@0.85" —
+  superseded; see QUALITY-SPEC §1.)*
 - Pixel art is NEVER smoothed (CSS `image-rendering: pixelated`); UI text is the
   only thing allowed to be sub-pixel, via `setResolution(3)`.
 

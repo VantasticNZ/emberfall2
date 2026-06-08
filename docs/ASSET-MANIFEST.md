@@ -14,28 +14,33 @@ working set summarized from its `manifest.json`. Total ≈ **35,060 assets inven
 FX = **64 px** frames (FX 128 px oversize). All AI-safe licences (CC0 / OGA-BY / CC-BY[-SA] /
 GPL — none anti-AI). See `ASSET-LEDGER.md` for the machine-checked prefix coverage.
 
-### TIER / FAMILY field (growth-ready grouping)
-Per `QUALITY-SPEC.md` §0, every asset carries a **tier** = `{tileSize, frameSize, family}` so
-the cohesion gate can verify *"everything used in region X is the same tier."* Today the whole
-world is **Tier T0 — LPC-32** (32px terrain / 64px LPC actors); future tiers (e.g. LPC-64) get
-their own rows here when added. The taxonomy:
+### CONFORMS field — the ONE locked standard (`QUALITY-SPEC.md` §0)
+The game is **LOCKED to a single canonical standard** (no tiers, no mixing): **LPC, 32px
+terrain, 64px LPC actors, LPC palette, the §2 scale ratios.** Every asset carries a
+**`conforms`** verdict so the cohesion gate can assert *"everything used on the map is the one
+standard."*
 
-| Tier | tileSize / frame | family | repo groups in this tier |
-|---|---|---|---|
-| **T0-terrain** | 32 px tile | LPC terrain (ElizaWy + terrain-v7) | §C terrain, §D buildings, §E props/items, parts of §F FX-on-ground |
-| **T0-actor** | 64 px frame (128 oversize) | LPC character/creature | §A characters, §B enemies, §F combat FX |
-| **(legacy / off-tier — DO NOT MAP)** | 16 px (kenney) / universal 832-wide (lpc) | non-current | §A3 legacy — excluded from all maps |
-| *T1 LPC-64 (reserved)* | 64 px tile / 128 frame | LPC-HD | *none yet* |
-| *T2 alt-style (reserved)* | declared | other family | *none yet — the `outOfPlace` gag / themed zone* |
+- **`yes`** — meets the lock (32px grid / 64px LPC frame / LPC palette / in-scale). Usable on maps.
+- **`no`** — off-standard (wrong resolution / off-family). **NEVER placed on a map**; recolour/
+  resize to conform, or do not use.
+- **`exception`** — the **deliberately out-of-place character** (a different style as a gag),
+  explicitly tagged `outOfPlace:true`. Recorded as the sanctioned exception (§0.2) — does **not**
+  count as a cohesion violation. *(No such asset exists in-repo yet — slot reserved.)*
 
-Each group below is tagged **`[tier]`**. A region's manifest will declare `region.tier`; the
-gate then asserts every referenced asset's tier == the region's. T0-terrain and T0-actor are
-the **same tier T0** (one is the ground grid, one the actor frame) — they coexist in every T0
-region by design; "mixing tiers" means mixing *T0 with a different Tn*, not terrain with actors.
+| conforms | repo groups |
+|---|---|
+| **yes** | §A1/A2 ElizaWy + LPC working-set characters (64px) · §B enemies (64px) · §C terrain (32px) · §D buildings · §E props/items · §F FX |
+| **no (off-map)** | §A3 **legacy**: `public/art/kenney/` (16px — off-grid) + `public/art/lpc/` universal sheets (superseded) — *excluded from every map* |
+| **exception** | *(reserved — the future `outOfPlace:true` gag character)* |
+
+Each group below is tagged **`[conforms: …]`**. A region references only `conforms:yes`
+assets (+ at most one `exception`). Note: 32px terrain and 64px actors are the **same one
+standard** (ground grid vs actor frame) — they coexist in every region by design; "mixing"
+means an off-standard (`no`) asset on the map, never terrain-with-actors.
 
 ---
 
-## A. CHARACTERS  `[tier: T0-actor]` (A3 legacy = off-tier)
+## A. CHARACTERS  `[conforms: yes — 64px LPC]` (A3 legacy = `no`, off-map)
 
 ### A1. SHIPPED — ElizaWy LPC Revised (`public/art/eliza/`) — the LIVE rig
 - **52 sheets across 19 layers** (body, body_fem, head, head_fem, eyebrows, hair ×3,
@@ -63,13 +68,13 @@ region by design; "mixing tiers" means mixing *T0 with a different Tn*, not terr
 - `public/art/kenney/` — Kenney tiles (11 files; **16×16 dirt/grass/garden = OFF the 32px
   grid**, 32×32 props, 192×176 tiny_town). CC0. **Legacy, unreferenced.** ⚑ Off-grid → never mix onto the 32px map.
 
-## B. ENEMIES / MONSTERS (64 px frames)  `[tier: T0-actor]`
+## B. ENEMIES / MONSTERS (64 px frames)  `[conforms: yes — 64px LPC]`
 | Source | Files | Dims (frames) | Licence | Builds |
 |---|---|---|---|---|
 | **`public/art/monsters/`** (SHIPPED, 8) | bat/eyeball/snake 448×256 · big_worm/ghost/pumpking 384×256 · slime 512×256 · man_eater_flower 768×512 (boss maw) | 64px (boss 128px) | CC-BY-SA 3.0 / GPL 3.0 | the 9 combat archetypes + the Marsh boss |
 | **`asset-library/.../enemies/lpc-monsters/`** (STAGED, 12) | as above + bat_extended 128×320, bee 192×128, small_worm 704×256, slime-projectile 64×16 | 64px | CC-BY-SA 3.0 / GPL 3.0 / OGA-BY 3.0 | extra creatures (bee/worm variants/projectile) |
 
-## C. TERRAIN — GROUND + AUTOTILE (32 px grid)  `[tier: T0-terrain]`
+## C. TERRAIN — GROUND + AUTOTILE (32 px grid)  `[conforms: yes — 32px LPC]`
 
 ### C1. SHIPPED (`public/art/terrain/`)
 - **`lpc_terrain.png` = 1024×2048** — the **[LPC] Terrains "terrain-v7" mega-atlas** (32×64
@@ -100,7 +105,7 @@ region by design; "mixing tiers" means mixing *T0 with a different Tn*, not terr
 - `terrain-v7.png` 1024×2048 (= the shipped atlas) + **`terrain-v7.tsx`** (the Wang autotile
   data) + `CREDITS-terrain.txt`. CC-BY 3.0 / CC-BY-SA 3.0 / GPL 3.0.
 
-## D. BUILDINGS / STRUCTURES  `[tier: T0-terrain]`
+## D. BUILDINGS / STRUCTURES  `[conforms: yes — 32px LPC]`
 
 ### D1. SHIPPED (`public/art/structures/` + `terrain/forge.png`)
 - `house_brick_a` 256×224, `house_brick_b` 192×192, `house_paneled` 160×160, `fountain` 64×96,
@@ -118,7 +123,7 @@ Paneled House A — the shipped exteriors). **Builds:** stone-town walls/windows
 interiors (oracle sanctum, keep interior). ⚑ *Exterior assembled "terraced stone town" houses are
 limited to the 3 brick/paneled exteriors — a dedicated set is a gap (see GAPS).*
 
-## E. PROPS / ITEMS — ElizaWy objects  `[tier: T0-terrain]` (`asset-library/2d/items/eliza-objects/`, OGA-BY 3.0, ~173 files)
+## E. PROPS / ITEMS — ElizaWy objects  `[conforms: yes — 32px LPC]` (`asset-library/2d/items/eliza-objects/`, OGA-BY 3.0, ~173 files)
 - **Furniture (94):** beds (child/single/double), seating (chairs/sofas/ottomans/stools — **indoor**),
   tables, dressers/cabinets/shelves, **Cauldron 32×160**, **Smithing/Workbench/Anvil**, fireplace,
   ladder, planter, trough, **Stone Slab 128×128 / Wolf Stone 128×128** (altar candidates).
@@ -130,14 +135,14 @@ limited to the 3 brick/paneled exteriors — a dedicated set is a gap (see GAPS)
 - **Builds:** shop/home interiors, smithy, altar (Stone Slab/Wolf Stone), market clutter, mine ore,
   food economy. ⚑ *All furniture seating is INDOOR; no outdoor bench. No animals. No crop growth-stages.*
 
-## F. FX (`asset-library/2d/effects/`)  `[tier: T0-actor (lpc-magic, 128px) · T0-terrain (eliza-water)]`
+## F. FX (`asset-library/2d/effects/`)  `[conforms: yes — LPC (lpc-magic 128px · eliza-water)]`
 - **`lpc-magic/` (15, CC-BY-SA 3.0 / GPL 3.0):** fire (firelion 512×512 ×4 dir), ice (iceshield/
   icetacle/turtleshell), lightning (lightningclaw), tornado, spikes 640×256, snakebite, torrentacle.
   → tool/spell FX (firefrost, combat magic).
 - **`eliza-water/` (5, OGA-BY 3.0):** Splash 384×32, WaterRipple 128×32, Water Reflections 128×96.
   → water splash/ripple.
 
-## G. AUDIO (`public/audio/`, Kenney CC0)  `[tier: n/a — audio]`
+## G. AUDIO (`public/audio/`, Kenney CC0)  `[conforms: n/a — audio]`
 - `swing.ogg`, `hit.ogg`, `charge_impact.ogg` (combat SFX). ⚑ *No music, no ambient, no
   death/hurt/UI cues — flagged in PLAYTEST-LOG.*
 
@@ -206,12 +211,14 @@ life (animals/crops/bench/tool-items). See `PEAKS-ART-CANDIDATES.md` for the Pea
    a **latent capability** the master map should exploit (rock/snow/lava/water/sand all ready).
 4. **No animals/crops/bench/tool-items** despite WORLD-BIBLE/Part-2.6 "living world" intent —
    a real gap (cross-cutting), not yet sourced.
-5. **Growth-readiness (tier model):** every asset above is **Tier T0** (LPC-32 / LPC-64-actor).
-   The pipeline can ACCEPT a future different-size/style tier *per region* without breaking
-   cohesion — see `QUALITY-SPEC.md` §0 (tier registry + within-context cohesion). The code spots
-   that hardcode `32` and would need softening *when* a non-T0 tier is added are **located**
-   (not refactored) in `QUALITY-SPEC.md` §7. ⚑ Until then, T0 is the only tier — keep every
-   region single-tier.
+5. **THE LOCK (supersedes the prior tier model):** the game is LOCKED to **one** canonical
+   standard — LPC / 32px terrain / 64px LPC actors / LPC palette / the §2 ratios — for the
+   WHOLE game, no tiers, no mixing (`QUALITY-SPEC.md` §0). Every asset above is `conforms:yes`
+   except the legacy off-map set (`kenney` 16px + `lpc` universal = `conforms:no`, flag #2).
+   The sole sanctioned deviation is a future `outOfPlace:true` gag character (`exception`).
+   New assets are checked against the lock BEFORE import (QUALITY-SPEC §0.3) — conform or
+   reject. The hardcoded `TILE=32`/`FRAME=64` are now CORRECT/intentional (the lock made
+   physical); the only code item is deduping the duplicate `TILE` to one SSOT (QUALITY-SPEC §7).
 
 *Cross-links: ASSET-LEDGER.md (licence gate) · STYLE-GUIDE.md (fit values) · QUALITY-BIBLE 2.6
 (Gate I cohesion) · WORLD-BLUEPRINT.md §7 (asset reality-check) · PEAKS-ART-CANDIDATES.md ·
