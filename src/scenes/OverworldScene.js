@@ -148,6 +148,7 @@ export class OverworldScene extends Phaser.Scene {
     const same = inRange.length === cur.length && inRange.every((R) => cur.includes(R));
     if (!same) { this._unloadAllRegions(); this._loadRegions(inRange); this._wipe(); this._restream(true); }
     this.region = regionAt(this.player.x, this.player.y);   // primary (or null = belt) — refresh each call
+    this._setAmbient(this.region?.mountain ? 'amb_wind' : 'amb_birds');   // region soundscape (wind in the Peaks, birds in the green)
   }
 
   _loadRegions(list) {
@@ -178,6 +179,7 @@ export class OverworldScene extends Phaser.Scene {
       const d = PROPS[p.key]; if (!d) continue;
       const spr = this.physics.add.sprite(p.x, p.y, p.key).setOrigin(0.5, 0.5);
       if (p.scale != null) spr.setScale(p.scale);
+      if (p.flip) spr.setFlipX(true);
       if (p.tint != null) spr.setTint(p.tint);
       if (p.solid && d.footprint) { Collision.makeSolid(spr, d.footprint); this.solids.add(spr); } else if (spr.body) spr.body.enable = false;
       DepthSort.track(spr, d.footprint ? d.footprint.offY + d.footprint.h / 2 : (d.height || 32) / 2);
@@ -243,6 +245,7 @@ export class OverworldScene extends Phaser.Scene {
       this.karma.recordDeed('tool_grapple', { tool: 'grapple' });
       this.karma.recordDeed('shard_2');
       this.saveGame();
+      this._itemGetFx(this.player.x, this.player.y - 8, 'ow_orb', 0xbfe0ec);   // the 2D overhead item-get beat (grapple fallback) + sting
       this._banner('CINDER KEEP — you wrest the Order\'s GRAPPLE from the broken Sentinel and claim SHARD II. New ledges await the hook.', 5200);
     } });
   }
@@ -276,12 +279,16 @@ export class OverworldScene extends Phaser.Scene {
     if (this.save.isOpened(cx, cy, c.id)) return;          // already looted (delta) → don't spawn
     const spr = this.physics.add.sprite(c.x, c.y, 'prop_chest').setOrigin(0.5, 0.72);
     DepthSort.track(spr, 10); this._regionObjs.push(spr); this._chestSprites.push(spr);
+    let looted = false;
     Interaction.register({
       x: c.x, y: c.y + 6, prompt: 'Open the chest',
       onInteract: () => {
+        if (looted || this.save.isOpened(cx, cy, c.id)) return;   // OBJECT PERMANENCE: looted once, never re-claimed
+        looted = true;
         this.inv.addGold(c.gold);
         this.save.recordOpened(cx, cy, c.id);
         spr.setVisible(false).setActive(false); DepthSort.untrack(spr);
+        this._sfx('sfx_pickup', 0.85); this._itemGetFx(c.x, c.y - 4);   // feedback + the 2D item-get flourish
         this._startGreeting('', [c.line]);
       },
     });
@@ -478,6 +485,25 @@ export class OverworldScene extends Phaser.Scene {
     this._hpLabel.setText(`HP ${hp}/${max}`);
   }
   _sfx(key, vol = 0.6) { if (this.cache.audio.exists(key)) { const a = bindings.options.audio; this.sound.play(key, { volume: vol * a.master * a.sfx }); } }
+  // REGION AMBIENT bed (OGA CC0 loops): birds in the green, wind in the Peaks. Swapped on region
+  // change; looped + low. (Music beds layer on top once Van downloads them — leave the hook.)
+  _setAmbient(key) {
+    if (this._ambKey === key) return; this._ambKey = key;
+    if (this._amb) { this._amb.stop(); this._amb.destroy(); this._amb = null; }
+    if (!key || !this.cache.audio.exists(key)) return;
+    const a = bindings.options.audio;
+    this._amb = this.sound.add(key, { loop: true, volume: 0.5 * a.master * a.music });
+    this._amb.play();
+  }
+  // 2D ITEM-GET flourish (the tool/overhead-pickup FALLBACK — no rigged held layer): a glow + the
+  // named item floats up above a point, scales up, fades. Pairs with a banner + a confirm sting.
+  _itemGetFx(x, y, iconKey = 'ow_orb', tint = 0xffe66d) {
+    const glow = this.add.image(x, y - 18, 'ow_orb').setTint(tint).setScale(0.6).setDepth(DEPTH.OVERLAY).setAlpha(0.9);
+    const icon = this.cache.obj && this.textures.exists(iconKey) ? this.add.image(x, y - 18, iconKey).setScale(0.5).setDepth(DEPTH.OVERLAY + 1) : null;
+    this._sfx('sfx_confirm', 0.8);
+    this.tweens.add({ targets: [glow, icon].filter(Boolean), y: y - 46, scale: 1.4, duration: 520, ease: 'Back.out',
+      onComplete: () => this.tweens.add({ targets: [glow, icon].filter(Boolean), alpha: 0, duration: 420, delay: 360, onComplete: () => { glow.destroy(); icon && icon.destroy(); } }) });
+  }
 
   // ---- interaction → dialogue branch (mirror the discrete-scene logic) --------
   _npcInteract(n) {
@@ -617,7 +643,7 @@ export class OverworldScene extends Phaser.Scene {
     if (!overRegion) for (const p of data.props) {
       let spr = c.props[pi++]; if (!spr) { spr = this.add.sprite(0, 0, p.key).setOrigin(0.5, 0.85); c.props.push(spr); }
       const d = PROPS[p.key] || {};
-      spr.setTexture(p.key).setPosition(p.x, p.y).setVisible(true).setActive(true);
+      spr.setTexture(p.key).setPosition(p.x, p.y).setScale(p.scale || 1).setFlipX(!!p.flip).setVisible(true).setActive(true);
       DepthSort.track(spr, d.footprint ? d.footprint.offY + d.footprint.h / 2 : (d.height || 32) * 0.15);
     }
     for (; pi < c.props.length; pi++) { c.props[pi].setVisible(false).setActive(false); DepthSort.untrack(c.props[pi]); }

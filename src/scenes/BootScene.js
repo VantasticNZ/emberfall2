@@ -24,6 +24,14 @@ export class BootScene extends Phaser.Scene {
     this.load.audio('sfx_swing', 'audio/swing.ogg');
     this.load.audio('sfx_hit', 'audio/hit.ogg');
     this.load.audio('sfx_charge_impact', 'audio/charge_impact.ogg');
+    // UI / feedback SFX (Kenney Interface, CC0) + region AMBIENT beds (OGA CC0) — the slice
+    // audio layer ("no action without feedback" + region soundscape). Music beds pending Van.
+    this.load.audio('sfx_pickup', 'audio/ui/pickup.wav');
+    this.load.audio('sfx_confirm', 'audio/ui/ui_confirm.wav');
+    this.load.audio('sfx_select', 'audio/ui/ui_select.wav');
+    this.load.audio('sfx_deny', 'audio/ui/ui_deny.wav');
+    this.load.audio('amb_birds', 'audio/ambient/birds_ambient.ogg');   // Greenhollow / foothill
+    this.load.audio('amb_wind', 'audio/ambient/wind_ambient.ogg');     // Sundered Peaks
     for (const m of MONSTER_SHEETS) this.load.spritesheet(`mon_${m.key}`, `art/monsters/${m.key}.png`, { frameWidth: m.fw, frameHeight: m.fw });
   }
 

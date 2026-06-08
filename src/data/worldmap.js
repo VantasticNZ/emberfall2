@@ -389,12 +389,30 @@ function _buildFoothillColliders() {
 function _buildFoothillProps() {
   const props = [];
   let seed = 0xf007a1 >>> 0; const rnd = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
+  // A VARIED, COMPOSED treeline frames the lane (not a hedge of identical pines): per off-lane
+  // tile, roll a growth TYPE — big/medium canopy · sapling+undergrowth · low undergrowth-only
+  // (a silhouette GAP = breathing room) · the odd crag up high — with size jitter (scale),
+  // species mix (oak/pine), and OFF-GRID position jitter (kills the row look). Every off-lane
+  // tile is still visually covered; collision stays the invisible tile-collider (channel intact).
   for (let y = 0; y < FH_H; y++) for (let x = 0; x < FH_W; x++) {
     if (_fhWalk[y][x]) continue;
-    const stony = y <= 4;                                  // upper half rises to stone (cliff faces), lower half grassy scrub
-    if (stony && x % 3 === 0 && y % 2 === 0) props.push({ key: 'prop_rock_crag', x: fhx(x) + TILE / 2, y: fhy(y) + TILE, solid: false, tint: STONE_TINT });
-    else props.push({ key: 'prop_bush', x: fhx(x) + TILE / 2, y: fhy(y) + TILE / 2, solid: false, tint: stony ? 0x9aa0a8 : undefined });
-    if (rnd() < 0.4) props.push({ key: 'prop_tree_pine', x: fhx(x) + (rnd() * 12 - 6), y: fhy(y) + (rnd() * 8 - 10), solid: false, tint: stony ? 0x8a96a0 : undefined });
+    const stony = y <= 3;                                  // toward the Peaks the growth thins to stony scrub
+    const px = fhx(x) + TILE / 2 + (rnd() * 16 - 8), py = fhy(y) + TILE / 2 + (rnd() * 12 - 6);
+    const coolPine = stony ? 0x9aa6ae : undefined, coolBush = stony ? 0x9aa0a8 : undefined;
+    const r = rnd();
+    if (stony && r < 0.22) {
+      props.push({ key: 'prop_rock_crag', x: px, y: py + TILE / 2, solid: false, tint: STONE_TINT, scale: 0.65 + rnd() * 0.4 });
+    } else if (r < 0.48) {                                 // BIG / MEDIUM canopy
+      const big = rnd() < 0.45, pine = stony || rnd() < 0.5;
+      props.push({ key: pine ? 'prop_tree_pine' : 'prop_tree_oak', x: px, y: py + TILE / 2, solid: false, flip: rnd() < 0.5, scale: big ? 1.08 + rnd() * 0.32 : 0.82 + rnd() * 0.22, tint: pine ? coolPine : undefined });
+      if (rnd() < 0.5) props.push({ key: 'prop_bush', x: px + (rnd() * 14 - 7), y: py + TILE / 2 - 2, solid: false, scale: 0.75 + rnd() * 0.3, tint: coolBush });
+    } else if (r < 0.76) {                                 // SAPLING + undergrowth (lower silhouette)
+      props.push({ key: rnd() < 0.5 ? 'prop_tree_oak' : 'prop_tree_pine', x: px, y: py + TILE / 2, solid: false, flip: rnd() < 0.5, scale: 0.5 + rnd() * 0.22, tint: stony ? coolPine : undefined });
+      props.push({ key: 'prop_bush', x: px + (rnd() * 12 - 6), y: py + 6, solid: false, scale: 0.72 + rnd() * 0.3, tint: coolBush });
+    } else {                                               // UNDERGROWTH-only — a low gap (breathing room)
+      props.push({ key: 'prop_bush', x: px, y: py, solid: false, scale: 0.7 + rnd() * 0.4, tint: coolBush });
+      if (rnd() < 0.5) props.push({ key: 'prop_bush', x: px + (rnd() * 14 - 7), y: py + (rnd() * 10 - 5), solid: false, scale: 0.55 + rnd() * 0.3, tint: coolBush });
+    }
   }
   props.push({ key: 'prop_sign', x: fhx(12) + TILE / 2 + 6, y: fhy(6) + TILE / 2, solid: false });   // the fork waystone
   return props;
@@ -530,10 +548,25 @@ export function chunkContent(cx, cy) {
   const d = distToGreenhollowChunks(cx, cy);
   const ramp = (d <= 0 ? 0 : Math.max(0.35, 1 - (d - 1) * 0.22)) * (1 - 0.6 * bog);
   const props = [];
-  const count = Math.round((10 + rnd() * 10) * ramp);
+  // CLUSTERED woodland with CLEARINGS (not a uniform fill): a few clump-centres per chunk; trees
+  // gather near them with a falloff, the gaps between read as breathing-room clearings. Each tree
+  // varies in SIZE (scale, skewed small with occasional big canopy), SPECIES (oak/pine/bush) and
+  // is randomly H-FLIPPED — so no two read the same and the treeline composes, not repeats.
+  const centers = [];
+  const nClusters = 1 + Math.floor(rnd() * 3);
+  for (let i = 0; i < nClusters; i++) centers.push([rnd() * CHUNK_PX, rnd() * CHUNK_PX]);
+  const count = Math.round((9 + rnd() * 9) * ramp);
   for (let i = 0; i < count; i++) {
-    const key = bog > 0.5 ? 'prop_tree_pine' : PROP_KINDS[(rnd() * PROP_KINDS.length) | 0];   // pines toward the bog
-    props.push({ key, x: ox + rnd() * CHUNK_PX, y: oy + rnd() * CHUNK_PX });
+    const c = centers[(rnd() * centers.length) | 0];
+    const ang = rnd() * Math.PI * 2, rad = (rnd() * rnd()) * (CHUNK_PX * 0.42);   // gaussian-ish clump
+    const x = Math.max(6, Math.min(CHUNK_PX - 6, c[0] + Math.cos(ang) * rad));
+    const y = Math.max(6, Math.min(CHUNK_PX - 6, c[1] + Math.sin(ang) * rad));
+    const sz = rnd(), scale = 0.6 + sz * sz * 0.85;        // skew small; the rare big canopy
+    let key;
+    if (bog > 0.5) key = 'prop_tree_pine';
+    else if (scale < 0.78) key = rnd() < 0.45 ? 'prop_bush' : (rnd() < 0.5 ? 'prop_tree_oak' : 'prop_tree_pine');
+    else key = rnd() < 0.55 ? 'prop_tree_oak' : 'prop_tree_pine';
+    props.push({ key, x: ox + x, y: oy + y, scale: key === 'prop_bush' ? 0.7 + rnd() * 0.5 : scale, flip: rnd() < 0.5 });
   }
   // GROUND DRESSING — flowers/tufts in green; reeds/mud toward the bog (seam bleed)
   const decals = [];
