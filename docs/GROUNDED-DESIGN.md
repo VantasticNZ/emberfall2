@@ -1,89 +1,89 @@
-# GROUNDED DESIGN — story/areas/quests reconciled against the ACTUAL asset library
+# GROUNDED DESIGN — story/areas/quests reconciled against the RICH actual library (keep-first)
 
-> **Let what we HAVE shape what we build.** Design/audit only (no building), run **after the asset
-> intake** so it works on the real post-intake library. **Principle:** assets constrain the world's
-> scope + look; the **story adapts but keeps its soul** — edit/re-place beats cut; protect the heart
-> (the morality system, the 5 endings, the Frog good-monster, Wiremu the jandal-cop, Hagga, the chicken
-> callback, the core arc). Reconciles `MASTER-WORLD-SPEC` + the quest data + `ASSET-INTAKE`/`ASSET-LEDGER`.
+> **Ground the build in the REAL (rich) asset reality — optimistically.** Design/audit only (no
+> building), run after the asset intake + the forge report. **Correction to prior pessimism: assets are
+> NOT a wall.** The library is strong — **unlimited LPC characters (the forge)**, **interiors CLOSED**
+> (furniture), **buildings + terrain covered**. The ONLY gaps are **non-humanoid enemies (1 licence to
+> confirm), 4 region music beds, and a frog + hen sprite.** So **KEEP-FIRST**: we can render most of the
+> world; only TRIM/DEFER what genuinely needs a missing thing. Protect the heart (morality, 5 endings,
+> the Frog, Wiremu, Hagga, the chicken). Reconciles `MASTER-WORLD-SPEC` + quest data + the forge report.
 
-## 1. ASSET-REALITY SURVEY — what we can RENDER WELL right now (post-intake)
-| Class | HAVE (renders well) | Weak / GAP |
+## 1. ASSET-REALITY SURVEY (the optimistic, accurate version)
+The forge report confirms a rich library: **38 terrain · 111 buildings · 209 props/furniture · 34,581
+character parts · 8 monsters · 208 SFX · 2 music beds.**
+| Class | Render WELL now | Note |
 |---|---|---|
-| **Terrain** | grass/vale, **stone/mountain + snow/ice** (eliza), **sand/desert · water/coast · lava · dirt** (terrain-v7 atlas), **cave/crypt** (lpc-dungeon + cavern-ruins), plants/flowers/trees/cliffs/waterfall | dedicated **swamp/bog** (use water+plants+tint 🟡); a unique **fire/frost split** ground 🟡 |
-| **Buildings** | **village** (eliza), **CITY mansions/shops** (lpc-victorian), **civic + a church** (lpc-colonial), **desert/adobe** + **temple/ruins** (adobe + desert-ruins), **forge** (lpc-blacksmith), stone home | **stilt-hut** bog set (re-theme with eliza 🟡); ships/docks (improvise from bridges/piers 🟡) |
-| **Props / furniture** | full interiors — beds/tables/chairs/dressers/shelf/**anvil+forge**/fireplace/rugs/lamps/crates/barrels/cauldron (eliza-objects) + **altar · statues · fountains** (statues-fountains, cavern obelisk/monk-statue/shrine) + signs/banners (medieval-deco) + dungeon dressing | — (essentially complete) |
-| **Characters / NPCs** | **any humanoid** via the LPC modular generator (bodies/clothes/hair × dirs × anims × colours); standouts via recolour/overlay | — |
-| **Enemies** | humanoid foes via LPC **skeleton + orc** bodies (+ bandit/cultist recolours); generic monsters **slime · snake · bat · big_worm · eyeball · ghost · man_eater_flower · pumpking** (8 shipped) | 🔴 **the Frog** (SA4), **drowned-folk**, **crag-beast**, **fire/frost elementals**, the **named bosses** = no dedicated sprite (re-skin or source) |
-| **Audio** | SFX (kenney CC0) + music beds **green (GH)** + **peaks** | 🔴 **marsh · coast · emberwood · spire** music beds |
+| **Characters / NPCs** | ✅ **UNLIMITED** — the Universal-LPC forge (compose/recolour, licence-clean, wired into the game) builds *any* humanoid: the cast, every townsfolk, the standouts (Wiremu/Hagga/Pellamy/Sela/the gunhand) by recolour | the player + all NPCs are the same layered system |
+| **Humanoid enemies** | ✅ **UNLIMITED** — LPC **skeleton/orc/bandit/cultist** bodies + gear via the forge | bog-folk, drowned, miners-gone, sentinels, **and the named bosses** (imposing humanoids) are all renderable NOW |
+| **Interiors / furniture** | ✅ **CLOSED** — beds/tables/chairs/dressers/shelf/**anvil+forge**/fireplace/rugs/lamps/crates/cauldron + **altar/statues/fountains** | the Phase-2 "greybox furniture" flag is resolved — just wire eliza-objects |
+| **Towns / cities / civic** | ✅ village (eliza) · **CITY** (victorian) · **church/civic** (colonial) · **desert/adobe** · **temple/ruins** · **forge** (blacksmith) | every settlement tier is buildable |
+| **Biomes / terrain** | ✅ vale · stone · **snow/ice** · **sand/desert** · **water/coast** · **lava** · **cave/crypt** | **bog/swamp 🟡** (tint + water + reeds/plants — fine for greybox→art); fire/frost-split = lava+ice tiles |
+| **Dungeons** | ✅ crypt (lpc-dungeon) + cavern/ruin + altar pieces | real dungeon tiles now |
+| **Non-humanoid monsters** | 🟡 **8 shipped** (slime · snake · bat · big_worm · eyeball · ghost · man_eater_flower · pumpking) | enough for bog/dungeon ambience; the **beast bounties + a few bespoke creatures** want more (gap #1) |
+| **Audio** | ✅ SFX (kenney CC0) + music **green · peaks** | **marsh/coast/ember/spire** beds = gap #2 |
+**Verdict: MOST of the world is FULLY-supported NOW.** The library is a foundation, not a wall.
 
-**Net:** worlds, towns, interiors, NPCs, and dungeons are **well-supported**; the real constraints are
-**enemy/boss variety + region music**, not environments.
-
-## 2. AREA RECONCILIATION (KEEP / TRIM / RE-THEME / DEFER)
-| Area (spec theme) | Asset basis | Decision |
+## 2. AREA RECONCILIATION (KEEP-first)
+| Area | Rating | Decision |
 |---|---|---|
-| **Greenhollow** (pastoral vale) | grass + eliza village + interiors + LPC cast + mus_green | **KEEP — FULLY-SUPPORTED** (the showcase) |
-| **Sundered Peaks / Stonereach** (cold stone city) | eliza cliffs + snow + **lpc-victorian** city + **blacksmith** mine + mus_peaks | **KEEP — FULLY-SUPPORTED** (city now buildable) |
-| **Ashen Marsh / Mirefen** (bog) | terrain water+plants+**bog-tint** + eliza huts (re-themed) + statues for the shrine | **KEEP / RE-THEME** — bog as tinted-grass + water + reeds; Mirefen = eliza huts on dark ground (no stilt set). Music GAP. |
-| **Tidewreck Coast / Saltbreak** (storm harbour city) | terrain water + **sand/beach** + **lpc-victorian** harbour-city + eliza piers/bridges + **lighthouse** (build from tower tiles) | **KEEP / TRIM** — harbour city ✅; ships/wrecks improvised from ruins-debris. Music GAP. |
-| **Sunken Shrine · Cinder Keep · Drowned Vault** (dungeons) | **lpc-dungeon** + **cavern-ruins** (crypt/cave + altar) | **KEEP — SUPPORTED** (real dungeon tiles now) |
-| **Oracle Capital** (sacral civic) | **lpc-colonial church** + **desert-ruins temple** + **statues/fountains/altar** | **KEEP / RE-THEME** as a temple-city (no bespoke "oracle" set) |
-| **Hollow Spire** (the ascent + binding chamber) | cavern-ruins + dungeon + altar/obelisk/monk-statue as the binding-stand-in | **KEEP-arc / DEFER bespoke art** — build the ascent/chamber from cavern+altar; the *unique god-reveal* art is a later polish |
-| **Emberwood / Ember Hollow** (fire-vs-frost split) | lava (atlas) + winter/ice (eliza) split across a wood | **TRIM / RE-THEME** — a **burnt-vs-frozen forest** (lava ground east, snow/ice west) using existing tiles; defer bespoke "Feverheart fever" VFX |
-| **Forest / Desert** (expansion) | adobe + desert-ruins + jungle/conifers/trees (staged) | **DEFER** (post-core; assets exist, scope later) |
-**No area is CUT** — every region has a renderable basis (re-themed where a bespoke set is missing).
+| **Greenhollow** | FULLY | **KEEP** (the showcase) |
+| **Ashen Marsh / Mirefen** | FULLY (bog via tint+water+reeds; eliza huts; forge NPCs; slime/snake/ghost + humanoid bog-folk) | **KEEP** (the Frog wants a sprite — gap #3) |
+| **Sundered Peaks / Stonereach** | FULLY (cliffs/snow + **victorian city** + **blacksmith mine** + humanoid miners/sentinels) | **KEEP** |
+| **Tidewreck Coast / Saltbreak** | FULLY (water+sand + **victorian harbour-city** + eliza piers; **Tideward = humanoid boss**) | **KEEP** (wrecks improvised from ruins-debris) |
+| **Sunken Shrine · Cinder Keep · Drowned Vault** | FULLY (lpc-dungeon + cavern-ruins + altar) | **KEEP** |
+| **Oracle Capital** | FULLY (colonial church + desert-ruins temple + **statues/altar/fountains**) | **KEEP** (a temple-city) |
+| **Hollow Spire** | FULLY-arc (cavern + altar + obelisk/monk-statue as the binding; **the Warden = a fused-guardian humanoid boss**) | **KEEP**; the unique god-reveal VFX = **DEFER** (polish only) |
+| **Emberwood / Ember Hollow** | PARTIAL (lava + winter/ice tiles → burnt-vs-frozen forest; Feverheart = humanoid boss) | **KEEP / light RE-THEME**; bespoke fever-VFX = DEFER |
+| **Forest / Desert (expansion)** | SUPPORTED (adobe/desert-ruins/jungle staged) | **DEFER** (post-core; assets exist) |
+**Every region KEEP.** Only the *bespoke VFX polish* (Spire god-reveal, Feverheart fever) and the
+expansion are DEFERRED — **no area trimmed for lack of assets.**
 
-## 3. QUEST RECONCILIATION (KEEP / EDIT / RE-PLACE / CUT) — the at-risk + the heart
-The bulk (M1–M10 childhood→Marsh, the GH sides, the town/dialogue quests) are **KEEP** — they happen in
-fully-supported settlements with available NPCs/props. Listed here are the ones that touch a gap:
-| Quest | Issue | Decision |
+## 3. QUEST RECONCILIATION — mostly KEEP (we have the NPCs/props/interiors/bosses)
+The forge gives every humanoid NPC + boss, and interiors/buildings/terrain are covered, so the **vast
+majority of the 66 quests are KEEP, buildable now.** Only the handful touching the 3 tiny gaps need a note:
+| Quest(s) | Status | Why |
 |---|---|---|
-| **M1–M10** (the 5h core arc) | all supported | **KEEP** (buildable now) |
-| **SA4 The Frog** (good-monster, signature) | no frog sprite | **KEEP / EDIT** — re-skin (a big creature) or **source a frog** (top of the shopping list — protects the heart) |
-| **M9/M12/M14/M16/M19 bosses** (Guardian/Sentinel/Tideward/Feverheart/Warden) | no bespoke boss sprites | **KEEP / EDIT** — re-skin LPC humanoids (skeleton/orc + equipment) or scaled monsters for now; bespoke boss art = a later pass |
-| **CAM7 Wiremu** (jandal-cop) | needs the constable | **KEEP** — LPC NPC recolour (uniform); the heart beat stays |
-| **The kicked chicken** (M2/M18 callback) | needs a chicken/hen sprite | **KEEP / EDIT** — a small bird sprite (cheap to source/recolour); a signature beat — protect it |
-| **CAM5 The Wanderer** (anachronistic "glowing slab") | no modern prop | **KEEP / EDIT** — improvise the slab (a tiny lit prop) or play it in dialogue; the off-theme **police/cars** PNGs in Downloads are **NOT used** (UNKNOWN licence + off-theme) |
-| **EDG1 Midnight Raid** (clothesline bloomers) | no laundry props | **KEEP / EDIT** — improvise from fences + cloth/banner props |
-| **ST4 Wreck Wraith / the wrecks** (Coast) | no ship sprites | **KEEP / RE-PLACE** — wrecks as ruined hulls (cavern/desert-ruins debris + water) |
-| **SE2 The Caught Settlement** (fire/frost split) | bespoke split look | **KEEP / RE-THEME** — burnt-vs-frozen halves from lava + ice tiles |
-| Expansion side-content (Forest/Desert villages) | supported but late | **DEFER** with the expansion |
-**CUT: none required.** Every heart-beat is **kept or edited/re-placed**; only *bespoke art polish*
-(unique boss/god VFX) is deferred, never the beat itself.
+| **M1–M10 (the 5h core)** + all GH/town/dialogue/morality quests | **KEEP** | settlements + NPCs + interiors + morality system all supported |
+| **The 5 named bosses** (Guardian/Sentinel/Tideward/Feverheart/Warden) | **KEEP** | render as imposing **humanoid** figures via the forge (skeleton/orc + gear/scale) — no longer "re-skins," genuinely buildable |
+| **CAM7 Wiremu · Hagga · Pellamy · Sela · the gunhand/ninja-gran** (standouts) | **KEEP** | LPC recolours/overlays via the forge |
+| **SA4 The Frog** (signature good-monster) | **KEEP / EDIT** | wants a **frog sprite** (gap #3 — small, high-soul) |
+| **The kicked chicken** (M2 → M18 callback) | **KEEP / EDIT** | wants a **hen sprite** (gap #3 — signature beat) |
+| **Beast bounties — Crag Beast (SP2) · Cinder Stag (SE5) · Wreck Wraith (ST4) · the Fen frog** | **KEEP / EDIT or DEFER** | use the 8 monsters or **confirm lpc-monsters (gap #1)**; these are *optional* side-bounties → deferrable per-region |
+| **CAM5 Wanderer** (anachronistic "glowing slab") | **KEEP / EDIT** | improvise the slab as a small lit prop (or play in dialogue) |
+| **EDG1 Midnight Raid** (clothesline) | **KEEP / EDIT** | improvise from fences + cloth/banner props |
+| Forest/Desert expansion side-content | **DEFER** | with the expansion |
+**CUT: NONE.** Every heart-beat is KEEP (a few EDIT for the frog/hen/slab); only optional beast-bounty
+*art* is deferrable, and the expansion is later.
 
-## 4. THE GROUNDED, BUILDABLE DESIGN + SCOPE
-- **Build order, grounded:** the **5-hour core** (Greenhollow town → Ashen Marsh + Sunken Shrine →
-  Hagga's truth) is **FULLY buildable now** — every terrain/building/prop/NPC/dungeon-tile exists; the
-  only edits are **enemy re-skins** (skeleton/orc/monsters as bog-folk/drowned) + a **frog** + the
-  **marsh music bed**.
-- **Full game:** all 6 regions + 3 cities + dungeons are **environment-supported** (terrain + the new
-  building sets + cavern/dungeon tiles + altar/statues). Remaining art is **narrow**: enemy/boss
-  variety + 4 region music beds + a few bespoke set-pieces (deferred).
-- **Grounded hours:** the buildable scope still lands the **30–40h** target (the content is unchanged;
-  re-themes don't cut quests). The 5h slice is **shippable on current assets** (+ the 3-item shopping
-  list below). The bespoke-art deferrals are *polish*, not scope cuts.
+## 4. THE GROUNDED, BUILDABLE DESIGN + (GENEROUS) SCOPE
+- **First real build (the 5h core):** **fully buildable NOW** — Greenhollow town → Ashen Marsh + Sunken
+  Shrine → Hagga's truth. Every terrain/building/interior/NPC/dungeon-tile exists; the only adds are a
+  **frog + hen** (heart-beats) and the **marsh music bed**.
+- **The full game (all 6 regions + 3 cities + dungeons + the 5 endings):** **environment-, building-,
+  interior-, NPC-, and boss-supported NOW.** Build generously — *much of the vision*, not a bare
+  minimum. The only things gated on the 3 gaps are: a few **optional beast bounties** (gap #1), the
+  remaining **3 region music beds** (gap #2, per-region), and **bespoke VFX polish** (deferred).
+- **Grounded hours — GENEROUS:** the content is unchanged + renderable → the **30–40h** target stands.
+  The 5h slice ships on current assets + 3 tiny items; the rest unlocks region-by-region as the music
+  beds + the monster-licence land. **The library supports the ambition.**
 
-## 5. TARGETED GAP SHOPPING-LIST (source these FEW → unlock the most kept content)
-1. 🔴 **Confirm `lpc-monsters.zip` licence** (it's staged-UNKNOWN, no in-pack credit). If clean →
-   **the single biggest unlock**: a real monster roster (drowned/crag/elemental analogues + boss-able
-   creatures) for the whole difficulty curve, removing most enemy re-skins.
-2. 🔴 **4 region MUSIC beds** (marsh-dread · coast-storm · ember-tension · spire-sacral) — CC0 on OGA
-   (the "RPG music" packs Van already has, e.g. `28 High Quality 16-bit RPG Music.zip` — **read its
-   readme licence first**). Unlocks the audio DoD for 4 regions in one go.
-3. 🟠 **A FROG sprite** (SA4 the good-monster) + **a hen/chicken** (the signature callback) — tiny,
-   high-soul-value; recolour/source.
-4. 🟡 (optional) a **fish-folk / drowned** set (Marsh) + a **ship/wreck** (Coast) — re-skinnable, lower
-   priority; only if the lpc-monsters set doesn't cover them.
+## 5. THE TARGETED GAP LIST (tiny — 3 items)
+| # | Gap | Unlocks | Needed for first build? |
+|---|---|---|---|
+| 1 | **Confirm `lpc-monsters.zip` licence** (staged-UNKNOWN; read the OGA page) | a non-humanoid monster roster → the **beast bounties** (Crag Beast/Cinder Stag/Wreck Wraith) + creature variety | **No — DEFERRABLE** (humanoid bosses + 8 monsters cover the core; bounties are optional) |
+| 2 | **4 region music beds** (marsh · coast · ember · spire — CC0/CC-BY; read the readme of Van's `28 …RPG Music.zip`) | the audio DoD per region | **Marsh: YES** (for the 5h core); coast/ember/spire DEFERRABLE per-region |
+| 3 | **A frog + a hen sprite** (OGA LPC, tiny) | **SA4 the Frog** (signature good-monster) + **the chicken callback** | **YES** — both are heart-beats in the 5h core (frog in the Marsh) + the finale (chicken) |
+**Needed before the first real build (5h core): the frog, the hen, and the marsh music bed.** That's it
+— everything else for the core is in-library; the rest is deferrable region-by-region.
 
 ## ✅ SUMMARY
-- **Render-well now:** vale/stone/desert/snow/lava/coast terrain · village + **city** + **church** +
-  **adobe** + **forge** buildings · full interiors + **altar/statues** · **any LPC NPC** · crypt/cavern
-  dungeons · GH/Peaks music. **Constraints:** enemy/boss variety + region music.
-- **Areas:** all 6 regions **KEEP** (Marsh/Capital/Emberwood **RE-THEME** to renderable looks; Spire
-  binding-art + the Forest/Desert expansion **DEFER**) — **none cut**.
-- **Quests:** the core + heart-beats all **KEEP/EDIT/RE-PLACE** (the Frog, the bosses, the chicken,
-  Wiremu, the wrecks re-placed); **CUT: none**; only bespoke art deferred.
-- **Scope:** the **5h core is buildable on current assets** + a 3-item shopping list; the full 30–40h
-  stays intact (re-themes, not cuts).
-- **Shopping list (highest leverage):** confirm **lpc-monsters licence** → 4 **region music beds** →
-  a **frog + hen** sprite. Source these few and ~all kept content is unblocked.
+- **Render-well NOW (optimistic):** unlimited LPC NPCs/enemies/bosses (the forge) · CLOSED interiors ·
+  city/church/adobe/forge buildings · vale/stone/snow/desert/coast/lava/cave terrain (bog 🟡) · crypt/
+  cavern dungeons + altar. **Most of the world is FULLY-supported.**
+- **Areas:** **all 6 KEEP** (Emberwood light RE-THEME; Spire-VFX + Forest/Desert DEFER) — **none cut.**
+- **Quests:** the core + heart-beats + the 5 bosses + the standouts all **KEEP** (a few EDIT for frog/
+  hen/slab); optional beast-bounty art DEFERRABLE; **CUT: none.**
+- **Scope: GENEROUS** — the rich library supports building *much of the 30–40h vision*; the 5h core
+  ships on current assets + 3 tiny items.
+- **The tiny gap list: (1) confirm the monster licence · (2) 4 music beds (marsh first) · (3) a frog +
+  hen.** Grab the **frog + hen + marsh bed** and the first real build is fully unblocked.
