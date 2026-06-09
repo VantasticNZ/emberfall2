@@ -341,7 +341,9 @@ const tile = (px) => Math.round(px / TILE);
 //     coherent — the modular contract, machine-enforced.
 {
   const issues = [];
-  const regionKeys = new Set(REGIONS.map((r) => r.key));
+  // INTERIORS connect via the runtime DOOR system (not the overworld entrance graph), so they are
+  // excluded from the overworld entrance-coherence + reachability checks (validated by navGates instead).
+  const regionKeys = new Set(REGIONS.filter((r) => !r.interior).map((r) => r.key));
   const builtEnt = ENTRANCES.filter((e) => !e.reserved);
   // id/region validity
   for (const e of ENTRANCES) {

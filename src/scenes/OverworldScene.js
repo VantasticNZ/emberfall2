@@ -278,6 +278,37 @@ export class OverworldScene extends Phaser.Scene {
     } });
   }
 
+  // ---- AREA TRANSITION (Phase 0): overworld ↔ interior ↔ floor, with a return-stack ----------------
+  // `to` = an interior region key (enter, pushing the current spot) OR 'back' (pop → exit/descend).
+  // Reuses the proven streaming (interiors are REGIONS in a far corner) + SaveManager deltas, so a
+  // looted interior chest stays looted, tools/quests/karma persist, and navGates validate interiors.
+  _enterArea(to) {
+    if (this._areaT) return; this._areaT = true;                     // debounce mid-transition
+    if (to === 'back') {
+      const ret = (this._areaStack || []).pop();
+      if (ret) { this.player.x = ret.x; this.player.y = ret.y; this._inInterior = !!ret.interior; }
+      else this._inInterior = false;
+    } else {
+      const R = REGIONS.find((r) => r.key === to && r.interior);
+      if (!R || !R.spawn) { this._areaT = false; return; }
+      (this._areaStack = this._areaStack || []).push({ x: this.player.x, y: this.player.y, interior: !!this._inInterior });
+      this.player.x = R.spawn.x; this.player.y = R.spawn.y; this._inInterior = true;
+    }
+    this.player.body.reset(this.player.x, this.player.y);
+    this._unloadAllRegions(); this._maybeToggleRegion(true); this._restream(true);
+    this.cameras.main.centerOn(this.player.x, this.player.y);
+    this._setInteriorView(this._inInterior);
+    this._banner(this._inInterior ? (this.region ? 'Entered ' + this.region.key : 'Inside') : 'Back outside', 1100);
+    this.time.delayedCall(160, () => { this._areaT = false; });
+  }
+
+  // enclosed look: a dark backdrop over the overworld ground (under the interior floor) + dim bg.
+  _setInteriorView(on) {
+    if (!this._interiorBg) this._interiorBg = this.add.rectangle(0, 0, this.scale.width, this.scale.height, 0x07060c, 1).setOrigin(0, 0).setScrollFactor(0).setDepth(DEPTH.FLOOR + 0.5).setVisible(false);
+    this._interiorBg.setVisible(!!on);
+    this.cameras.main.setBackgroundColor(on ? '#07060c' : '#243a2a');
+  }
+
   // CINDER KEEP — the GRAPPLE + SHARD_2 grant point (gating.js: Peaks GRANTS tool_grapple
   // + shard_2). Mirrors the Marsh lantern beat. FLAG: the full M12 Keep-Sentinel boss
   // fight (as Marsh's Drowned-Guardian) is not yet wired into the overworld boss flow —
@@ -414,6 +445,9 @@ export class OverworldScene extends Phaser.Scene {
         if (rect) { rect.x = nx + b.offX * sc; rect.y = ny + b.offY * sc; if (rect.body.updateFromGameObject) rect.body.updateFromGameObject(); else rect.body.position.set(rect.x - rect.width / 2, rect.y - rect.height / 2); }
         this._sfx('sfx_hit', 0.4);
       } });
+    } else if (o.via === 'door') {
+      // AREA-TRANSITION (Phase 0): a door/stairs → enter an interior region (or 'back' = exit/descend).
+      Interaction.register({ x: o.x, y: o.y + 6, prompt: o.prompt || 'Enter', onInteract: () => this._enterArea(o.to) });
     }
   }
 

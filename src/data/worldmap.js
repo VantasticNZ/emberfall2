@@ -61,6 +61,9 @@ export const GREENHOLLOW = {
       solid: true, tint: 0x4b4a55, prompt: 'The boarded cave', locked: 'tool_lantern', grantsDeeds: ['cave_lore'],
       lockedLine: "The cave mouth is boarded and black inside. A plank hangs loose — but it's far too dark to go further without a light.",
       lines: ["You squeeze the lantern through the loose plank. Inside it's cold and far too quiet — and there, scratched deep into the stone: a flame, weeping, tears running down the rock. The first seed of the god's truth. You understood nothing as a child. You understand more now."] },
+    // PHASE-0 interior doors (the area-transition test): enter buildings/caves → separate interiors.
+    { via: 'door', key: 'prop_sign', solid: false, x: gx(33) + TILE / 2, y: gy(15) + TILE / 2, to: 'tankard_f1', prompt: 'Enter the Copper Tankard' },
+    { via: 'door', key: 'prop_sign', solid: false, x: gx(38) + TILE / 2, y: gy(20) + TILE / 2, to: 'cave_f1', prompt: 'Enter the cave' },
   ],
   // Phase-3 ART (restore discrete-v3 gold standard on the overworld; RESIDENT atlas):
   widthTiles: WORLD.widthTiles, heightTiles: WORLD.heightTiles,
@@ -577,7 +580,62 @@ export const HOLLOW_SPIRE = greyboxRegion({
   grant: { tx: 18, ty: 4, deeds: ['shard_5'], label: 'The Binding Chamber — Shard V, and the whole truth.' },
 });
 
-export const REGIONS = [GREENHOLLOW, ASHEN_MARSH, WEST_BELT, SUNDERED_PEAKS, FOOTHILL_ROUTE, TIDEWRECK_COAST, EMBERWOOD, HOLLOW_SPIRE];
+// =============================================================================
+// INTERIOR / AREA-TRANSITION system (Phase 0). An interior is just a REGION placed in a reserved,
+// far corner of the world (tiles 520+, away from every overworld region) — so the proven streaming,
+// _buildRegion, pixel-truth collision, depth-sort, interaction-classes, navGates and SAVE deltas all
+// apply UNCHANGED. A `via:'door'` interactable teleports the player in/out (OverworldScene._enterArea);
+// floors are just more interior regions reached by stairs. `interior:true` enclosed rooms (walls all
+// round, walkable inside), greybox (a floor patch — Phase 2/3 art them). spawn = where you appear inside.
+// =============================================================================
+function interiorRegion(spec) {
+  const { key, otx, oty, W, H, doors = [], chests = [], spawn, floor = 'dirt', mapColor = 0x2a2620 } = spec;
+  const ox = otx * TILE, oy = oty * TILE;
+  const walkable = [], gated = [], colliders = [];
+  for (let ty = 0; ty < H; ty++) {
+    walkable[ty] = new Uint8Array(W); gated[ty] = new Uint8Array(W);
+    for (let tx = 0; tx < W; tx++) {
+      const wall = tx === 0 || ty === 0 || tx === W - 1 || ty === H - 1;
+      walkable[ty][tx] = wall ? 0 : 1;
+      if (wall) colliders.push({ x: ox + tx * TILE + TILE / 2, y: oy + ty * TILE + TILE / 2, w: TILE, h: TILE });
+    }
+  }
+  const interactables = doors.map((d) => ({ via: 'door', key: 'prop_sign', solid: false, x: ox + d.tx * TILE + TILE / 2, y: oy + d.ty * TILE + TILE / 2, to: d.to, prompt: d.label || 'Go' }));
+  const chestData = chests.map((c) => ({ id: c.id, x: ox + c.tx * TILE + TILE / 2, y: oy + c.ty * TILE + TILE / 2, gold: c.gold || 15 }));
+  return {
+    key, origin: { x: ox, y: oy }, widthTiles: W, heightTiles: H, bounds: { x: ox, y: oy, w: W * TILE, h: H * TILE },
+    route: true, interior: true, mapColor,
+    terrain: { patches: [{ set: floor, rects: [[1, 1, W - 2, H - 2]] }] },
+    colliders, props: [], npcs: [], chests: chestData, interactables,
+    spawn: { x: ox + spawn.tx * TILE + TILE / 2, y: oy + spawn.ty * TILE + TILE / 2 },
+    nav: { walkable, gated, W, H },
+  };
+}
+
+// The Copper Tankard — floor 1 (front room) + floor 2 (rooms upstairs). And a 2-floor test dungeon.
+export const TANKARD_F1 = interiorRegion({
+  key: 'tankard_f1', otx: 520, oty: 520, W: 14, H: 10, floor: 'dirt', mapColor: 0x6b4a2e, spawn: { tx: 3, ty: 8 },
+  doors: [{ tx: 2, ty: 8, to: 'back', label: 'Leave (back outside)' }, { tx: 11, ty: 2, to: 'tankard_f2', label: 'Upstairs →' }],
+  chests: [{ tx: 7, ty: 5, id: 'tankard_f1_chest', gold: 20 }],
+});
+export const TANKARD_F2 = interiorRegion({
+  key: 'tankard_f2', otx: 590, oty: 520, W: 14, H: 10, floor: 'dirt', mapColor: 0x7a5638, spawn: { tx: 11, ty: 2 },
+  doors: [{ tx: 10, ty: 2, to: 'back', label: 'Downstairs ↓' }],
+  chests: [{ tx: 6, ty: 5, id: 'tankard_f2_chest', gold: 30 }],
+});
+export const TEST_CAVE_F1 = interiorRegion({
+  key: 'cave_f1', otx: 520, oty: 590, W: 14, H: 10, floor: 'rock', mapColor: 0x4a4540, spawn: { tx: 3, ty: 8 },
+  doors: [{ tx: 2, ty: 8, to: 'back', label: 'Leave (back outside)' }, { tx: 11, ty: 2, to: 'cave_f2', label: 'Descend ↓' }],
+  chests: [{ tx: 7, ty: 5, id: 'cave_f1_chest', gold: 15 }],
+});
+export const TEST_CAVE_F2 = interiorRegion({
+  key: 'cave_f2', otx: 590, oty: 590, W: 14, H: 10, floor: 'rock', mapColor: 0x3f3a36, spawn: { tx: 11, ty: 2 },
+  doors: [{ tx: 10, ty: 2, to: 'back', label: 'Ascend ↑' }],
+  chests: [{ tx: 6, ty: 5, id: 'cave_f2_chest', gold: 40 }],
+});
+export const INTERIORS = [TANKARD_F1, TANKARD_F2, TEST_CAVE_F1, TEST_CAVE_F2];
+
+export const REGIONS = [GREENHOLLOW, ASHEN_MARSH, WEST_BELT, SUNDERED_PEAKS, FOOTHILL_ROUTE, TIDEWRECK_COAST, EMBERWOOD, HOLLOW_SPIRE, ...INTERIORS];
 const inBounds = (b, x, y) => x >= b.x && x < b.x + b.w && y >= b.y && y < b.y + b.h;
 /** The region whose bounds contain (x,y), or null (the green/bog belt between). */
 export function regionAt(x, y) { for (const R of REGIONS) if (inBounds(R.bounds, x, y)) return R; return null; }
