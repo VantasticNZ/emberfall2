@@ -220,6 +220,9 @@ export class OverworldScene extends Phaser.Scene {
     if (R.combat && R.combat.enabled && !R.safeZone) this._buildRegionCombat(R);
     // ENTRY GATE (Foothill→Peaks: a rockfall keyed to shard_1, per gating.js).
     if (R.gate) this._buildRegionGate(R);
+    // GREYBOX GRANT — a placeholder dungeon/boss reward that records its tools/shards so the
+    // gate-chain stays walkable end-to-end on the WORLD-SKELETON (replaced by the real dungeon later).
+    if (R.grant) this._buildRegionGrant(R);
     // PEAKS set-pieces: Cinder Keep (the grapple + shard_2 grant point) + the records.
     if (R.keep) this._buildPeaksKeep(R);
     if (R.records) this._buildPeaksRecords(R);
@@ -259,6 +262,19 @@ export class OverworldScene extends Phaser.Scene {
     const m = this.physics.add.sprite(g.sign.x, g.sign.y, 'prop_rock_crag').setTint(0x8a8f9c);
     m.body.enable = false; DepthSort.track(m, 30); this._regionObjs.push(m);
     Interaction.register({ x: g.sign.x, y: g.sign.y + 8, prompt: 'Inspect the rockfall', onInteract: () => this._startGreeting('', [g.lockedMsg]) });
+  }
+
+  // GREYBOX GRANT — a placeholder reward node (a glowing marker) that records the region's tools/
+  // shards on interact, so the whole gate-chain is walkable on the skeleton (no real dungeon yet).
+  _buildRegionGrant(R) {
+    const g = R.grant;
+    if (g.deeds.every((d) => this.karma.hasDeed(d))) return;                  // already granted
+    const m = this.add.rectangle(g.x, g.y, 28, 28, 0xffcf66, 0.45).setStrokeStyle(2, 0xffe9a8);
+    DepthSort.track(m, 10); this._regionObjs.push(m);
+    Interaction.register({ x: g.x, y: g.y + 6, prompt: 'Investigate (greybox reward)', onInteract: () => {
+      g.deeds.forEach((d) => this.karma.recordDeed(d));
+      this._startGreeting('', [g.label + '  [greybox grant — placeholder for the dungeon/boss]']);
+    } });
   }
 
   // CINDER KEEP — the GRAPPLE + SHARD_2 grant point (gating.js: Peaks GRANTS tool_grapple

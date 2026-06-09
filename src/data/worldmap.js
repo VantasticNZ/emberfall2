@@ -490,7 +490,94 @@ export const FOOTHILL_ROUTE = {
   }],
 };
 
-export const REGIONS = [GREENHOLLOW, ASHEN_MARSH, WEST_BELT, SUNDERED_PEAKS, FOOTHILL_ROUTE];
+// =============================================================================
+// GREYBOX REGION BUILDER — the v2 nav-FIRST skeleton (WORLD-SKELETON milestone, §8.3).
+// A spec of walkable corridor rects (local tiles) → a `route` region: corridors cut into a
+// SOLID FILL (a per-tile collider for every non-walkable tile = the channel walls, the Foothill
+// pattern the gates expect), an entry GATE (keyed to a tool, per gating.js), a dungeon GRANT
+// point (records the tools/shards so the gate-chain stays walkable), and a `nav` grid for the
+// runtime navGates. NO art/props — structure + walkability only (Van walks + checks the layout
+// BEFORE the art pass). Greybox terrain = a plain `dirt` patch on the corridors so the path reads.
+// =============================================================================
+function greyboxRegion(spec) {
+  const { key, otx, oty, W, H, walk, gate, grant, mapColor } = spec;
+  const ox = otx * TILE, oy = oty * TILE;
+  const inWalk = (tx, ty) => walk.some(([x, y, w, h]) => tx >= x && tx < x + w && ty >= y && ty < y + h);
+  const inGate = (tx, ty) => gate && tx >= gate.tx && tx < gate.tx + gate.w && ty >= gate.ty && ty < gate.ty + gate.h;
+  const walkable = [], gated = [];
+  for (let ty = 0; ty < H; ty++) {
+    walkable[ty] = new Uint8Array(W); gated[ty] = new Uint8Array(W);
+    for (let tx = 0; tx < W; tx++) { const w = inWalk(tx, ty) ? 1 : 0; walkable[ty][tx] = w; if (w && inGate(tx, ty)) gated[ty][tx] = 1; }
+  }
+  const colliders = [];   // SOLID FILL: one collider per non-walkable tile (the channel walls)
+  for (let ty = 0; ty < H; ty++) for (let tx = 0; tx < W; tx++)
+    if (!inWalk(tx, ty)) colliders.push({ x: ox + tx * TILE + TILE / 2, y: oy + ty * TILE + TILE / 2, w: TILE, h: TILE });
+  let gateObj = null, gatedColliders = [];
+  if (gate) {
+    const gc = [];
+    for (let j = 0; j < gate.h; j++) for (let i = 0; i < gate.w; i++) { const tx = gate.tx + i, ty = gate.ty + j; gc.push({ x: ox + tx * TILE + TILE / 2, y: oy + ty * TILE + TILE / 2, w: TILE, h: TILE }); }
+    gateObj = { deed: gate.deed, colliders: gc, sign: { x: ox + (gate.tx + gate.w / 2) * TILE, y: oy + (gate.ty + gate.h / 2) * TILE }, lockedMsg: gate.msg };
+    gatedColliders = gc.map((c) => ({ ...c, gate: gate.deed }));
+  }
+  const grantObj = grant ? { x: ox + grant.tx * TILE + TILE / 2, y: oy + grant.ty * TILE + TILE / 2, deeds: grant.deeds, label: grant.label } : null;
+  return {
+    key, origin: { x: ox, y: oy }, widthTiles: W, heightTiles: H,
+    bounds: { x: ox, y: oy, w: W * TILE, h: H * TILE }, route: true, greybox: true, mapColor,
+    terrain: { patches: [{ set: 'dirt', rects: walk.map((r) => [...r]) }] },
+    colliders, gate: gateObj, gatedColliders, grant: grantObj, props: [], npcs: [], chests: [],
+    nav: { walkable, gated, W, H },
+  };
+}
+
+// --- TIDEWRECK COAST (E of Greenhollow; seam GH.E tile 340; grapple-gated river-road) --------
+export const TIDEWRECK_COAST = greyboxRegion({
+  key: 'Coast', otx: 340, oty: 288, W: 36, H: 28, mapColor: 0x3b6e7a,
+  gate: { tx: 0, ty: 15, w: 2, h: 5, deed: 'tool_grapple', msg: 'A river-gorge cuts the road — too wide to cross. The grapple-line earned in the Peaks would carry you over.' },
+  walk: [
+    [0, 16, 9, 4],     // entry river-road (W) → main spine
+    [4, 16, 28, 4],    // main E-W spine
+    [10, 4, 6, 13],    // N fork → the harbour
+    [8, 4, 8, 6],      // Saltbreak harbour TOWN junction (8×6)
+    [2, 8, 4, 9],      // a NW secret spur (cache)
+    [22, 19, 5, 8],    // S fork → the Drowned Vault
+    [19, 21, 9, 6],    // Drowned Vault dungeon node (hookshot + shard_3)
+    [26, 13, 8, 6],    // E coastal cliff path (a tease)
+  ],
+  grant: { tx: 23, ty: 24, deeds: ['tool_hookshot', 'shard_3'], label: 'The Drowned Vault yields the HOOKSHOT + Shard III.' },
+});
+
+// --- EMBERWOOD (S of Greenhollow; seam GH.S tile 328; hookshot-gated ashen chasm) ------------
+export const EMBERWOOD = greyboxRegion({
+  key: 'Emberwood', otx: 288, oty: 328, W: 36, H: 28, mapColor: 0x6e3b2e,
+  gate: { tx: 31, ty: 0, w: 3, h: 2, deed: 'tool_hookshot', msg: 'A scorched chasm splits the wood. The hookshot from the Coast would span it.' },
+  walk: [
+    [31, 0, 3, 10],    // entry chasm-road (N) → spine
+    [6, 8, 28, 4],     // main E-W spine
+    [6, 8, 8, 7],      // Emberwood CAMP town junction
+    [18, 11, 4, 14],   // S fork → Ember Hollow
+    [14, 20, 9, 7],    // Ember Hollow dungeon node (firefrost + shard_4)
+    [26, 11, 7, 9],    // E fever-grove spur (secret)
+  ],
+  grant: { tx: 18, ty: 23, deeds: ['tool_firefrost', 'shard_4'], label: 'Ember Hollow yields the FIREFROST tool + Shard IV.' },
+});
+
+// --- HOLLOW SPIRE (N of the Peaks; seam Peaks.N tile 218; firefrost+4-shard ascent) ----------
+export const HOLLOW_SPIRE = greyboxRegion({
+  key: 'Spire', otx: 288, oty: 178, W: 36, H: 40, mapColor: 0xb8c2d0,
+  gate: { tx: 31, ty: 38, w: 3, h: 2, deed: 'tool_firefrost', msg: 'The frozen ascent bars the way — only firefrost, and the four shards together, open the Spire.' },
+  walk: [
+    [31, 31, 3, 9],    // entry (S, from the Peaks)
+    [14, 30, 20, 4],   // switchback 1
+    [14, 14, 4, 20],   // up the W flank
+    [14, 14, 18, 4],   // switchback 2
+    [28, 4, 4, 14],    // up the E flank
+    [10, 2, 20, 6],    // the SUMMIT — Binding Chamber (shard_5) — meets the E flank at x28-29
+    [8, 18, 7, 7],     // a hidden side-ledge (secret) — meets the W flank at x14 (kept ≤8 to stay channelled)
+  ],
+  grant: { tx: 18, ty: 4, deeds: ['shard_5'], label: 'The Binding Chamber — Shard V, and the whole truth.' },
+});
+
+export const REGIONS = [GREENHOLLOW, ASHEN_MARSH, WEST_BELT, SUNDERED_PEAKS, FOOTHILL_ROUTE, TIDEWRECK_COAST, EMBERWOOD, HOLLOW_SPIRE];
 const inBounds = (b, x, y) => x >= b.x && x < b.x + b.w && y >= b.y && y < b.y + b.h;
 /** The region whose bounds contain (x,y), or null (the green/bog belt between). */
 export function regionAt(x, y) { for (const R of REGIONS) if (inBounds(R.bounds, x, y)) return R; return null; }

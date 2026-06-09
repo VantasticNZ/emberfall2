@@ -356,13 +356,22 @@ const tile = (px) => Math.round(px / TILE);
     if (Math.abs(recip.at.tx - e.at.tx) > 1 || Math.abs(recip.at.ty - e.at.ty) > 1) issues.push(`entrance '${e.region}'↔'${e.to}' coords disagree ((${e.at.tx},${e.at.ty}) vs (${recip.at.tx},${recip.at.ty}))`);
     if ((e.gate || null) !== (recip.gate || null)) issues.push(`entrance '${e.region}'↔'${e.to}' gates disagree ('${e.gate}' vs '${recip.gate}')`);
   }
-  // (b) GATE matches gating.js — an entrance INTO a gated AREA carries one of that area's requires keys
+  // (b) GATE matches gating.js. An entrance's gate is the LINK BARRIER; it is valid if EITHER the
+  //     destination area requires it, OR the link's FAR side requires it (a SYMMETRIC barrier — a
+  //     gorge/chasm on a link to the open hub: you only stand on the far side if you hold the key, so
+  //     the reciprocal can never soft-lock). Also: an UNGATED entrance INTO a gated area IS a hole.
   const AREA_OF = { Greenhollow: 'Greenhollow', Marsh: 'Ashen Marsh', Peaks: 'Sundered Peaks', Coast: 'Tidewreck Coast', Emberwood: 'Emberwood', Spire: 'Hollow Spire' };
+  const requiresOf = (regKey) => { const a = AREA_OF[regKey]; const g = a && GATES.find((G) => G.area === a); return g ? g.requires : null; };   // null = a route (ungated)
   for (const e of ENTRANCES) {
-    const areaName = AREA_OF[e.to]; if (!areaName) continue;             // routes (Belt/Foothill) aren't gated areas
-    const g = GATES.find((G) => G.area === areaName); if (!g) continue;
-    if (g.requires.length === 0) { if (e.gate) issues.push(`entrance into '${e.to}' is gated '${e.gate}' but gating.js '${areaName}' is OPEN (no requires)`); }
-    else if (!g.requires.includes(e.gate)) issues.push(`entrance into '${e.to}' gate '${e.gate}' is not among gating.js '${areaName}' requires [${g.requires.join(', ')}]`);
+    const reqTo = requiresOf(e.to);
+    if (!e.gate) { if (reqTo && reqTo.length) issues.push(`entrance into '${e.to}' is UNGATED but gating.js requires [${reqTo.join(', ')}] — a soft-lock hole`); continue; }
+    const reqBack = requiresOf(e.region);                               // the area on the OTHER (gated) side of this link
+    const okHere = reqTo && reqTo.includes(e.gate);
+    const okSymmetric = reqBack && reqBack.includes(e.gate);            // symmetric link-barrier to the hub
+    if (!okHere && !okSymmetric) {
+      if (!reqTo || reqTo.length === 0) issues.push(`entrance into '${e.to}' is gated '${e.gate}' but neither it nor the link's far side requires it (spurious gate)`);
+      else issues.push(`entrance into '${e.to}' gate '${e.gate}' is not among gating.js requires [${reqTo.join(', ')}]`);
+    }
   }
   // (c) REACHABILITY — undirected built-entrance graph from Greenhollow covers every built region
   const adj = {}; regionKeys.forEach((k) => (adj[k] = new Set()));

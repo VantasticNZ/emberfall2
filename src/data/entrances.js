@@ -33,11 +33,14 @@ export const ENTRANCES = [
   { region: 'Foothill',    to: 'Peaks',       at: { tx: 313, ty: 278 }, gate: SHARDS.shard_1 },
   { region: 'Peaks',       to: 'Foothill',    at: { tx: 313, ty: 278 }, gate: SHARDS.shard_1 },
 
-  // --- RESERVED links (planned per WORLD-BLUEPRINT; other side builds later) ----
-  // GH → Tidewreck Coast via the river-road gorge (E) — grapple gate
-  { region: 'Greenhollow', to: 'Coast',     at: { tx: 340, ty: 305 }, gate: TOOLS.tool_grapple,   reserved: true },
-  // GH → Emberwood via the ashen-road chasm (S) — hookshot gate
-  { region: 'Greenhollow', to: 'Emberwood', at: { tx: 320, ty: 328 }, gate: TOOLS.tool_hookshot,  reserved: true },
-  // Peaks → Hollow Spire via the gated ascent (N headroom) — firefrost (+ 4 shards) gate
-  { region: 'Peaks',       to: 'Spire',      at: { tx: 320, ty: 218 }, gate: TOOLS.tool_firefrost, reserved: true },
+  // --- WORLD-SKELETON greybox links (now BUILT two-sided; interiors are nav-greybox) ----------
+  // Greenhollow ↔ Tidewreck Coast via the river-road gorge (E; shared edge tile x340) — grapple gate
+  { region: 'Greenhollow', to: 'Coast',       at: { tx: 340, ty: 305 }, gate: TOOLS.tool_grapple },
+  { region: 'Coast',       to: 'Greenhollow', at: { tx: 340, ty: 305 }, gate: TOOLS.tool_grapple },
+  // Greenhollow ↔ Emberwood via the ashen-road chasm (S; shared edge tile y328) — hookshot gate
+  { region: 'Greenhollow', to: 'Emberwood',   at: { tx: 320, ty: 328 }, gate: TOOLS.tool_hookshot },
+  { region: 'Emberwood',   to: 'Greenhollow', at: { tx: 320, ty: 328 }, gate: TOOLS.tool_hookshot },
+  // Sundered Peaks ↔ Hollow Spire via the gated ascent (N; shared edge tile y218) — firefrost gate
+  { region: 'Peaks',       to: 'Spire',       at: { tx: 320, ty: 218 }, gate: TOOLS.tool_firefrost },
+  { region: 'Spire',       to: 'Peaks',       at: { tx: 320, ty: 218 }, gate: TOOLS.tool_firefrost },
 ];
