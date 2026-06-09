@@ -811,6 +811,43 @@ export class OverworldScene extends Phaser.Scene {
     this.input.keyboard.on('keydown-T', () => { if (!this._dlg) this._trkState = (this._trkState + 2) % 3; });   // cycle tracker: full→title→off
     this.input.keyboard.on('keydown-H', () => { if (!this._dlg) { this._hudHidden = !this._hudHidden; this.hud2.setVisible(!this._hudHidden); } });
     this.input.keyboard.on('keydown-ESC', () => this._openSettings());
+    this._setupDebug();   // dev-only world-skeleton walkthrough aids (gated by ?debug)
+  }
+
+  // DEBUG / TEST MODE — gated by the `?debug` URL param (or Vite DEV) so it can't fire in normal
+  // play. Lets Van free-walk the whole WORLD-SKELETON: G = grant every tool/shard (opens every gate),
+  // 1–7 = warp to each region. NOTE: a pure testing aid — no data/verify-gate impact; granting tools
+  // does write the deeds to the (debug) session save, by design.
+  _setupDebug() {
+    const allowed = typeof window !== 'undefined' && /[?&]debug\b/.test(window.location.search || '');
+    if (!allowed) return;   // deliberate activation only — never fires in normal play (no ?debug)
+    const T = TILE;
+    // region warp targets — just INSIDE each region (world tiles), so the gate never blocks the warp
+    this._debugWarps = {
+      ONE:   { name: 'Greenhollow', x: 314 * T + 16, y: 305 * T + 16 },
+      TWO:   { name: 'West Belt',   x: 283 * T + 16, y: 310 * T + 16 },
+      THREE: { name: 'Ashen Marsh', x: 258 * T + 16, y: 310 * T + 16 },
+      FOUR:  { name: 'Sundered Peaks', x: 318 * T + 16, y: 250 * T + 16 },
+      FIVE:  { name: 'Tidewreck Coast', x: 345 * T + 16, y: 305 * T + 16 },
+      SIX:   { name: 'Emberwood',   x: 320 * T + 16, y: 333 * T + 16 },
+      SEVEN: { name: 'Hollow Spire', x: 320 * T + 16, y: 214 * T + 16 },
+    };
+    const ALL = ['tool_lantern', 'tool_grapple', 'tool_hookshot', 'tool_firefrost', 'shard_1', 'shard_2', 'shard_3', 'shard_4'];
+    this.input.keyboard.on('keydown-G', () => {
+      ALL.forEach((d) => this.karma.recordDeed(d));
+      this._unloadAllRegions(); this._maybeToggleRegion(true); this._restream(true);   // re-evaluate every gate
+      this._banner('DEBUG: granted all tools + shards — every gate is open.', 2200);
+    });
+    const warp = (w) => { if (!w) return; this.player.x = w.x; this.player.y = w.y; this.player.body.reset(w.x, w.y);
+      this._unloadAllRegions(); this._maybeToggleRegion(true); this._restream(true); this.cameras.main.centerOn(w.x, w.y);
+      this._banner('DEBUG: warped to ' + w.name, 1600); };
+    for (const k of Object.keys(this._debugWarps)) this.input.keyboard.on('keydown-' + k, () => warp(this._debugWarps[k]));
+    // on-screen indicator + key legend (only while debug is active)
+    this.add.text(this.scale.width / 2, 8,
+      '● DEBUG MODE   G: grant all tools/shards    1-7 warp: 1 Greenhollow · 2 Belt · 3 Marsh · 4 Peaks · 5 Coast · 6 Emberwood · 7 Spire',
+      { fontFamily: 'monospace', fontSize: '10px', color: '#ffd36a', backgroundColor: '#1a0f00cc', padding: { x: 6, y: 3 }, align: 'center' })
+      .setOrigin(0.5, 0).setScrollFactor(0).setDepth(DEPTH.OVERLAY + 14);
+    console.log('[DEBUG MODE active] G = grant all tools/shards · 1-7 = warp to GH/Belt/Marsh/Peaks/Coast/Emberwood/Spire');
   }
 
   // ---- per-chunk terrain/green-belt streaming (Phase 1; unchanged) -----------
