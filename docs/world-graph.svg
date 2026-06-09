@@ -1,0 +1,260 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1720" height="1180" viewBox="0 0 1720 1180" font-family="monospace">
+<rect width="1720" height="1180" fill="#0a0e08"/>
+<rect x="752" y="40" width="191" height="171" rx="22" fill="#221d33" stroke="#bcaadf" stroke-width="1.5" stroke-opacity="0.5" fill-opacity="0.85" />
+<text x="762" y="60" fill="#bcaadf" font-size="15" font-weight="bold" opacity="0.85">SPIRE</text>
+<rect x="592" y="165" width="421" height="241" rx="22" fill="#1f2733" stroke="#93a0b8" stroke-width="1.5" stroke-opacity="0.5" fill-opacity="0.85" />
+<text x="602" y="185" fill="#93a0b8" font-size="15" font-weight="bold" opacity="0.85">PEAKS</text>
+<rect x="667" y="418" width="366" height="260" rx="22" fill="#1c3216" stroke="#74b24e" stroke-width="1.5" stroke-opacity="0.5" fill-opacity="0.85" />
+<text x="677" y="438" fill="#74b24e" font-size="15" font-weight="bold" opacity="0.85">GREENHOLLOW</text>
+<rect x="962" y="518" width="216" height="318" rx="22" fill="#16290f" stroke="#4a8a40" stroke-width="1.5" stroke-opacity="0.5" fill-opacity="0.85" stroke-dasharray="6 5"/>
+<text x="972" y="538" fill="#4a8a40" font-size="15" font-weight="bold" opacity="0.85">FOREST · new</text>
+<rect x="162" y="490" width="326" height="268" rx="22" fill="#13302c" stroke="#56988c" stroke-width="1.5" stroke-opacity="0.5" fill-opacity="0.85" />
+<text x="172" y="510" fill="#56988c" font-size="15" font-weight="bold" opacity="0.85">MARSH</text>
+<rect x="1102" y="430" width="396" height="264" rx="22" fill="#102536" stroke="#4a90cf" stroke-width="1.5" stroke-opacity="0.5" fill-opacity="0.85" />
+<text x="1112" y="450" fill="#4a90cf" font-size="15" font-weight="bold" opacity="0.85">COAST</text>
+<rect x="657" y="810" width="286" height="218" rx="22" fill="#2e1810" stroke="#d96f3c" stroke-width="1.5" stroke-opacity="0.5" fill-opacity="0.85" />
+<text x="667" y="830" fill="#d96f3c" font-size="15" font-weight="bold" opacity="0.85">EMBERWOOD</text>
+<rect x="1242" y="768" width="261" height="208" rx="22" fill="#33270f" stroke="#d4ad6a" stroke-width="1.5" stroke-opacity="0.5" fill-opacity="0.85" stroke-dasharray="6 5"/>
+<text x="1252" y="788" fill="#d4ad6a" font-size="15" font-weight="bold" opacity="0.85">DESERT · new</text>
+<polyline points="800,120 790,300 810,500 840,560 1000,600 1200,600 1290,560" fill="none" stroke="#3f86c4" stroke-width="6" stroke-opacity="0.45" stroke-linecap="round"/>
+<text x="845" y="455" fill="#5a9fd6" font-size="11" opacity="0.7">↳ the river spine (N→E delta) · bridges where paths cross</text>
+<line x1="800" y1="580" x2="330" y2="580" stroke="#5a6b4a" stroke-width="2"  opacity="0.8"/>
+<line x1="800" y1="580" x2="800" y2="300" stroke="#d98b3a" stroke-width="2.5" stroke-dasharray="7 5" opacity="0.8"/>
+<text x="800" y="437" fill="#ffcf8a" font-size="9" text-anchor="middle">🔒shard 1</text>
+<line x1="800" y1="580" x2="1290" y2="560" stroke="#d98b3a" stroke-width="2.5" stroke-dasharray="7 5" opacity="0.8"/>
+<text x="1045" y="567" fill="#ffcf8a" font-size="9" text-anchor="middle">🔒grapple</text>
+<line x1="800" y1="580" x2="800" y2="850" stroke="#d98b3a" stroke-width="2.5" stroke-dasharray="7 5" opacity="0.8"/>
+<text x="800" y="712" fill="#ffcf8a" font-size="9" text-anchor="middle">🔒hookshot</text>
+<line x1="800" y1="300" x2="800" y2="80" stroke="#d98b3a" stroke-width="2.5" stroke-dasharray="7 5" opacity="0.8"/>
+<text x="800" y="187" fill="#ffcf8a" font-size="9" text-anchor="middle">🔒firefrost</text>
+<line x1="800" y1="80" x2="800" y2="165" stroke="#5a6b4a" stroke-width="2"  opacity="0.8"/>
+<line x1="800" y1="165" x2="895" y2="150" stroke="#5a6b4a" stroke-width="2"  opacity="0.8"/>
+<line x1="800" y1="300" x2="905" y2="268" stroke="#5a6b4a" stroke-width="2"  opacity="0.8"/>
+<line x1="905" y1="268" x2="965" y2="300" stroke="#5a6b4a" stroke-width="2"  opacity="0.8"/>
+<line x1="800" y1="300" x2="700" y2="268" stroke="#5a6b4a" stroke-width="2"  opacity="0.8"/>
+<line x1="800" y1="300" x2="678" y2="340" stroke="#5a6b4a" stroke-width="2"  opacity="0.8"/>
+<line x1="800" y1="300" x2="905" y2="205" stroke="#d98b3a" stroke-width="2.5" stroke-dasharray="7 5" opacity="0.8"/>
+<text x="852.5" y="249.5" fill="#ffcf8a" font-size="9" text-anchor="middle">🔒grapple</text>
+<line x1="905" y1="205" x2="965" y2="240" stroke="#5a6b4a" stroke-width="2"  opacity="0.8"/>
+<line x1="800" y1="300" x2="640" y2="230" stroke="#5a6b4a" stroke-width="2"  opacity="0.8"/>
+<line x1="800" y1="580" x2="870" y2="560" stroke="#5a6b4a" stroke-width="2"  opacity="0.8"/>
+<line x1="800" y1="580" x2="730" y2="632" stroke="#d98b3a" stroke-width="2.5" stroke-dasharray="7 5" opacity="0.8"/>
+<text x="765" y="603" fill="#ffcf8a" font-size="9" text-anchor="middle">🔒lantern</text>
+<line x1="800" y1="580" x2="880" y2="632" stroke="#5a6b4a" stroke-width="2"  opacity="0.8"/>
+<line x1="800" y1="580" x2="800" y2="505" stroke="#5a6b4a" stroke-width="2"  opacity="0.8"/>
+<line x1="800" y1="580" x2="715" y2="560" stroke="#5a6b4a" stroke-width="2"  opacity="0.8"/>
+<line x1="800" y1="505" x2="905" y2="510" stroke="#5a6b4a" stroke-width="2"  opacity="0.8"/>
+<line x1="800" y1="580" x2="740" y2="600" stroke="#5a6b4a" stroke-width="2"  opacity="0.8"/>
+<line x1="800" y1="580" x2="935" y2="600" stroke="#5a6b4a" stroke-width="2"  opacity="0.8"/>
+<line x1="330" y1="580" x2="215" y2="552" stroke="#5a6b4a" stroke-width="2"  opacity="0.8"/>
+<line x1="330" y1="580" x2="268" y2="660" stroke="#5a6b4a" stroke-width="2"  opacity="0.8"/>
+<line x1="268" y1="660" x2="210" y2="690" stroke="#d98b3a" stroke-width="2.5" stroke-dasharray="7 5" opacity="0.8"/>
+<text x="239" y="672" fill="#ffcf8a" font-size="9" text-anchor="middle">🔒lantern</text>
+<line x1="330" y1="580" x2="405" y2="668" stroke="#5a6b4a" stroke-width="2"  opacity="0.8"/>
+<line x1="330" y1="580" x2="405" y2="530" stroke="#5a6b4a" stroke-width="2"  opacity="0.8"/>
+<line x1="330" y1="580" x2="300" y2="712" stroke="#5a6b4a" stroke-width="2"  opacity="0.8"/>
+<line x1="330" y1="580" x2="440" y2="600" stroke="#5a6b4a" stroke-width="2"  opacity="0.8"/>
+<line x1="1290" y1="560" x2="1395" y2="622" stroke="#5a6b4a" stroke-width="2"  opacity="0.8"/>
+<line x1="1395" y1="622" x2="1450" y2="590" stroke="#d98b3a" stroke-width="2.5" stroke-dasharray="7 5" opacity="0.8"/>
+<text x="1422.5" y="603" fill="#ffcf8a" font-size="9" text-anchor="middle">🔒hookshot</text>
+<line x1="1290" y1="560" x2="1375" y2="470" stroke="#5a6b4a" stroke-width="2"  opacity="0.8"/>
+<line x1="1290" y1="560" x2="1440" y2="528" stroke="#5a6b4a" stroke-width="2"  opacity="0.8"/>
+<line x1="1290" y1="560" x2="1185" y2="478" stroke="#5a6b4a" stroke-width="2"  opacity="0.8"/>
+<line x1="1290" y1="560" x2="1180" y2="648" stroke="#5a6b4a" stroke-width="2"  opacity="0.8"/>
+<line x1="800" y1="850" x2="800" y2="950" stroke="#5a6b4a" stroke-width="2"  opacity="0.8"/>
+<line x1="800" y1="850" x2="705" y2="918" stroke="#5a6b4a" stroke-width="2"  opacity="0.8"/>
+<line x1="800" y1="850" x2="895" y2="918" stroke="#5a6b4a" stroke-width="2"  opacity="0.8"/>
+<line x1="800" y1="950" x2="880" y2="980" stroke="#d98b3a" stroke-width="2.5" stroke-dasharray="7 5" opacity="0.8"/>
+<text x="840" y="962" fill="#ffcf8a" font-size="9" text-anchor="middle">🔒firefrost</text>
+<line x1="800" y1="850" x2="712" y2="982" stroke="#5a6b4a" stroke-width="2"  opacity="0.8"/>
+<line x1="800" y1="300" x2="860" y2="360" stroke="#5a6b4a" stroke-width="2"  opacity="0.8"/>
+<line x1="800" y1="505" x2="800" y2="458" stroke="#5a6b4a" stroke-width="2"  opacity="0.8"/>
+<line x1="935" y1="600" x2="985" y2="465" stroke="#5a6b4a" stroke-width="2"  opacity="0.8"/>
+<line x1="1290" y1="560" x2="1150" y2="605" stroke="#5a6b4a" stroke-width="2"  opacity="0.8"/>
+<line x1="935" y1="600" x2="1010" y2="558" stroke="#7d6a3a" stroke-width="2.5" stroke-dasharray="7 5" opacity="0.8"/>
+<line x1="1010" y1="558" x2="1055" y2="730" stroke="#5a6b4a" stroke-width="2"  opacity="0.8"/>
+<line x1="1010" y1="558" x2="1290" y2="560" stroke="#7d6a3a" stroke-width="2.5" stroke-dasharray="7 5" opacity="0.8"/>
+<line x1="1055" y1="730" x2="1130" y2="790" stroke="#5a6b4a" stroke-width="2"  opacity="0.8"/>
+<line x1="1055" y1="730" x2="1010" y2="780" stroke="#5a6b4a" stroke-width="2"  opacity="0.8"/>
+<line x1="1055" y1="730" x2="1100" y2="690" stroke="#5a6b4a" stroke-width="2"  opacity="0.8"/>
+<line x1="1055" y1="730" x2="800" y2="850" stroke="#7d6a3a" stroke-width="2.5" stroke-dasharray="7 5" opacity="0.8"/>
+<line x1="1290" y1="560" x2="1370" y2="860" stroke="#7d6a3a" stroke-width="2.5" stroke-dasharray="7 5" opacity="0.8"/>
+<line x1="1370" y1="860" x2="1455" y2="808" stroke="#5a6b4a" stroke-width="2"  opacity="0.8"/>
+<line x1="1370" y1="860" x2="1440" y2="930" stroke="#7d6a3a" stroke-width="2.5" stroke-dasharray="7 5" opacity="0.8"/>
+<line x1="1370" y1="860" x2="1290" y2="930" stroke="#5a6b4a" stroke-width="2"  opacity="0.8"/>
+<polygon points="800.0,50.0 808.1,68.8 828.5,70.7 813.1,84.3 817.6,104.3 800.0,93.8 782.4,104.3 786.9,84.3 771.5,70.7 791.9,68.8 " fill="#bcaadf" stroke="#0a0e08" stroke-width="2"/>
+<text x="800" y="126" fill="#eef3e6" font-size="15" font-weight="bold" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">Oracle Capital</text>
+<title>Oracle Capital [hugecity] — Sela's civic-religious seat · libraries/temples/ancient-texts · M17 approach</title>
+<polygon points="800,148 817,165 800,182 783,165" fill="#bcaadf" stroke="#0a0e08" stroke-width="2"/>
+<text x="800" y="193" fill="#eef3e6" font-size="10" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">The Long Ascent</text>
+<title>The Long Ascent [dungeon] — M18 gauntlet (multi-floor; all 4 tool-gates) · THE CHICKEN landing</title>
+<polygon points="895,133 912,150 895,167 878,150" fill="#bcaadf" stroke="#0a0e08" stroke-width="2"/>
+<text x="895" y="178" fill="#eef3e6" font-size="10" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">Binding Chamber</text>
+<title>Binding Chamber [dungeon] — M19 boss · M20 the 5-ending finale · shard 5</title>
+<polygon points="800.0,270.0 808.1,288.8 828.5,290.7 813.1,304.3 817.6,324.3 800.0,313.8 782.4,324.3 786.9,304.3 771.5,290.7 791.9,288.8 " fill="#93a0b8" stroke="#0a0e08" stroke-width="2"/>
+<text x="800" y="346" fill="#eef3e6" font-size="15" font-weight="bold" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">Stonereach</text>
+<title>Stonereach [hugecity] — M11 · SP1-3 · miners/Mike Hunt/Stonewright · the Order seat · mine office · terraced streets</title>
+<circle cx="860" cy="360" r="18" fill="#93a0b8" stroke="#0a0e08" stroke-width="2"/>
+<text x="860" y="391" fill="#eef3e6" font-size="12" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">Quarryside</text>
+<title>Quarryside [town] — [exp] lower mining town · workers' quarter</title>
+<polygon points="905,251 922,268 905,285 888,268" fill="#93a0b8" stroke="#0a0e08" stroke-width="2"/>
+<text x="905" y="296" fill="#eef3e6" font-size="10" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">Cinder Keep</text>
+<title>Cinder Keep [dungeon] — M12 (Keep Sentinel · grapple · shard 2)</title>
+<polygon points="965,289 976,300 965,311 954,300" fill="#93a0b8" stroke="#0a0e08" stroke-width="2"/>
+<text x="965" y="321" fill="#eef3e6" font-size="9" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">Order's Records</text>
+<title>Order's Records [cave] — SP1 the lie's depth · a records-library floor</title>
+<polygon points="700,251 717,268 700,285 683,268" fill="#93a0b8" stroke="#0a0e08" stroke-width="2"/>
+<text x="700" y="296" fill="#eef3e6" font-size="10" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">The Deep Mine</text>
+<title>The Deep Mine [dungeon] — SP3 dispute · PH1 the runaway cart</title>
+<circle cx="678" cy="340" r="8" fill="#93a0b8" stroke="#0a0e08" stroke-width="2"/>
+<text x="678" y="357" fill="#eef3e6" font-size="8" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">Pellamy's Marble Hall</text>
+<title>Pellamy's Marble Hall [landmark] — CAM1 the Cynic (Diogenes) · a noble mansion interior</title>
+<polygon points="905,194 916,216 894,216" fill="#93a0b8" stroke="#0a0e08" stroke-width="2"/>
+<text x="905" y="225" fill="#eef3e6" font-size="8" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">High Pass</text>
+<title>High Pass [secret] — SP4 grapple cache · sky-iron charm</title>
+<polygon points="965,229 976,251 954,251" fill="#93a0b8" stroke="#0a0e08" stroke-width="2"/>
+<text x="965" y="260" fill="#eef3e6" font-size="8" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">High Crags</text>
+<title>High Crags [secret] — SP2 the Crag Beast bounty</title>
+<circle cx="640" cy="230" r="12" fill="#93a0b8" stroke="#0a0e08" stroke-width="2"/>
+<text x="640" y="253" fill="#eef3e6" font-size="10" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">Cragfoot Hamlet</text>
+<title>Cragfoot Hamlet [village] — [exp] mountain hamlet · foothill cast + rest</title>
+<circle cx="800" cy="580" r="18" fill="#74b24e" stroke="#0a0e08" stroke-width="2"/>
+<text x="800" y="611" fill="#eef3e6" font-size="12" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">Greenhollow</text>
+<title>Greenhollow [town] — M1-M7 · SG1-7 · GHUB · the Act-1 cast · plaza/districts</title>
+<circle cx="870" cy="560" r="8" fill="#74b24e" stroke="#0a0e08" stroke-width="2"/>
+<text x="870" y="577" fill="#eef3e6" font-size="8" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">GH interiors</text>
+<title>GH interiors [landmark] — Tankard(+upstairs SG5) · Pem's Store(SG2) · Forge(SG3) · Chapel · Manor · homes</title>
+<polygon points="730,621 741,632 730,643 719,632" fill="#74b24e" stroke="#0a0e08" stroke-width="2"/>
+<text x="730" y="653" fill="#eef3e6" font-size="9" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">Boarded Cave</text>
+<title>Boarded Cave [cave] — M4 the weeping-flame carving (ending-A seed)</title>
+<circle cx="880" cy="632" r="8" fill="#74b24e" stroke="#0a0e08" stroke-width="2"/>
+<text x="880" y="649" fill="#eef3e6" font-size="8" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">The Orchard</text>
+<title>The Orchard [landmark] — SG7 the orchard thief</title>
+<circle cx="800" cy="505" r="8" fill="#74b24e" stroke="#0a0e08" stroke-width="2"/>
+<text x="800" y="522" fill="#eef3e6" font-size="8" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">Crossroads</text>
+<title>Crossroads [landmark] — GAG1 the wits · the waystone fork (N/W/E/S)</title>
+<polygon points="715,549 726,571 704,571" fill="#74b24e" stroke="#0a0e08" stroke-width="2"/>
+<text x="715" y="580" fill="#eef3e6" font-size="8" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">Vale caches</text>
+<title>Vale caches [secret] — 3 hidden caches (40/25/15g)</title>
+<circle cx="905" cy="510" r="8" fill="#74b24e" stroke="#0a0e08" stroke-width="2"/>
+<text x="905" y="527" fill="#eef3e6" font-size="8" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">Sisyphus Hill</text>
+<title>Sisyphus Hill [landmark] — CAM2 the eternal boulder</title>
+<circle cx="740" cy="600" r="8" fill="#74b24e" stroke="#0a0e08" stroke-width="2"/>
+<text x="740" y="617" fill="#eef3e6" font-size="8" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">The Bakery</text>
+<title>The Bakery [landmark] — CAM7 Constable Wiremu — "blow on the pie" (the jandal-cop seed)</title>
+<circle cx="935" cy="600" r="18" fill="#74b24e" stroke="#0a0e08" stroke-width="2"/>
+<text x="935" y="631" fill="#eef3e6" font-size="12" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">Brookfield</text>
+<title>Brookfield [town] — [exp] vale farming town · crops/livestock · light sides</title>
+<polygon points="800,447 811,469 789,469" fill="#74b24e" stroke="#0a0e08" stroke-width="2"/>
+<text x="800" y="478" fill="#eef3e6" font-size="8" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">Pem's Marks</text>
+<title>Pem's Marks [secret] — SG2 — "PEM WOZ ERE" 1-of-4 marks/region → the hidden Pem</title>
+<circle cx="985" cy="465" r="8" fill="#74b24e" stroke="#0a0e08" stroke-width="2"/>
+<text x="985" y="482" fill="#eef3e6" font-size="8" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">The Wanderer</text>
+<title>The Wanderer [landmark] — CAM5 rare-spawn time-traveller (roams all regions)</title>
+<circle cx="1010" cy="558" r="18" fill="#4a8a40" stroke="#0a0e08" stroke-width="2"/>
+<text x="1010" y="589" fill="#eef3e6" font-size="12" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">Fordwater</text>
+<title>Fordwater [town] — [exp] river-crossing town · bridges/ferry · trade</title>
+<polygon points="341.3,586.5 330.0,593.0 318.7,586.5 318.7,573.5 330.0,567.0 341.3,573.5" fill="#56988c" stroke="#0a0e08" stroke-width="2"/>
+<text x="330" y="604" fill="#eef3e6" font-size="10" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">Mirefen</text>
+<title>Mirefen [huttown] — M8 · SA1 · Yssa + bog-folk · stilt hut-town</title>
+<circle cx="215" cy="552" r="8" fill="#56988c" stroke="#0a0e08" stroke-width="2"/>
+<text x="215" y="569" fill="#eef3e6" font-size="8" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">Hagga's Hut</text>
+<title>Hagga's Hut [landmark] — M8/M10 the truth · across the black water</title>
+<polygon points="268,643 285,660 268,677 251,660" fill="#56988c" stroke="#0a0e08" stroke-width="2"/>
+<text x="268" y="688" fill="#eef3e6" font-size="10" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">Sunken Shrine</text>
+<title>Sunken Shrine [dungeon] — M9 (Drowned Guardian · lantern · shard 1)</title>
+<polygon points="210,679 221,690 210,701 199,690" fill="#56988c" stroke="#0a0e08" stroke-width="2"/>
+<text x="210" y="711" fill="#eef3e6" font-size="9" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">Drowned Crypts</text>
+<title>Drowned Crypts [cave] — SA3 lantern-loot</title>
+<polygon points="405,657 416,679 394,679" fill="#56988c" stroke="#0a0e08" stroke-width="2"/>
+<text x="405" y="688" fill="#eef3e6" font-size="8" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">The Fen</text>
+<title>The Fen [secret] — SA4 the Frog (puzzle-not-fight) · SA5 reeds</title>
+<circle cx="405" cy="530" r="8" fill="#56988c" stroke="#0a0e08" stroke-width="2"/>
+<text x="405" y="547" fill="#eef3e6" font-size="8" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">Karl's Hummock</text>
+<title>Karl's Hummock [landmark] — CAM4 star-gazer (night) · NIGHT1 bog-wraith</title>
+<circle cx="300" cy="712" r="8" fill="#56988c" stroke="#0a0e08" stroke-width="2"/>
+<text x="300" y="729" fill="#eef3e6" font-size="8" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">Vell's Bog</text>
+<title>Vell's Bog [landmark] — PH5 the Experience Stone</title>
+<circle cx="440" cy="600" r="12" fill="#56988c" stroke="#0a0e08" stroke-width="2"/>
+<text x="440" y="623" fill="#eef3e6" font-size="10" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">Fenwick</text>
+<title>Fenwick [village] — [exp] marsh-edge village · fisherfolk</title>
+<polygon points="1290.0,530.0 1298.1,548.8 1318.5,550.7 1303.1,564.3 1307.6,584.3 1290.0,573.8 1272.4,584.3 1276.9,564.3 1261.5,550.7 1281.9,548.8 " fill="#4a90cf" stroke="#0a0e08" stroke-width="2"/>
+<text x="1290" y="606" fill="#eef3e6" font-size="15" font-weight="bold" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">Saltbreak</text>
+<title>Saltbreak [hugecity] — M13 · ST1-5/ST8 · Hugh Jass + Harbourmaster · docks/underworld/market · tavern(PH2/EDG1) · CAM3</title>
+<polygon points="1395,605 1412,622 1395,639 1378,622" fill="#4a90cf" stroke="#0a0e08" stroke-width="2"/>
+<text x="1395" y="650" fill="#eef3e6" font-size="10" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">Drowned Vault</text>
+<title>Drowned Vault [dungeon] — M14 (Tideward · hookshot · shard 3) · tide-timed</title>
+<polygon points="1450,579 1461,590 1450,601 1439,590" fill="#4a90cf" stroke="#0a0e08" stroke-width="2"/>
+<text x="1450" y="611" fill="#eef3e6" font-size="9" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">Tide-Caves</text>
+<title>Tide-Caves [cave] — ST2 hookshot-loot (between tides)</title>
+<circle cx="1375" cy="470" r="8" fill="#4a90cf" stroke="#0a0e08" stroke-width="2"/>
+<text x="1375" y="487" fill="#eef3e6" font-size="8" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">The Lighthouse</text>
+<title>The Lighthouse [landmark] — ST3 Holden (grief mirror) · a multi-floor interior</title>
+<polygon points="1440,517 1451,539 1429,539" fill="#4a90cf" stroke="#0a0e08" stroke-width="2"/>
+<text x="1440" y="548" fill="#eef3e6" font-size="8" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">The Wrecks</text>
+<title>The Wrecks [secret] — ST4 the Wreck Wraith · ST8 the strand bottle</title>
+<circle cx="1185" cy="478" r="8" fill="#4a90cf" stroke="#0a0e08" stroke-width="2"/>
+<text x="1185" y="495" fill="#eef3e6" font-size="8" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">The Headland</text>
+<title>The Headland [landmark] — EDG2 flowers · EDG1 the midnight raid</title>
+<circle cx="1180" cy="648" r="12" fill="#4a90cf" stroke="#0a0e08" stroke-width="2"/>
+<text x="1180" y="671" fill="#eef3e6" font-size="10" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">Cribbins Cove</text>
+<title>Cribbins Cove [village] — [exp] fishing village · coast cast</title>
+<circle cx="1150" cy="605" r="18" fill="#4a90cf" stroke="#0a0e08" stroke-width="2"/>
+<text x="1150" y="636" fill="#eef3e6" font-size="12" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">Saltmere</text>
+<title>Saltmere [town] — [exp] coast market town below Saltbreak</title>
+<circle cx="800" cy="850" r="18" fill="#d96f3c" stroke="#0a0e08" stroke-width="2"/>
+<text x="800" y="881" fill="#eef3e6" font-size="12" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">The Caught Settlement</text>
+<title>The Caught Settlement [town] — M15 · SE2 the burning/freezing halves (the heavy choice)</title>
+<polygon points="800,933 817,950 800,967 783,950" fill="#d96f3c" stroke="#0a0e08" stroke-width="2"/>
+<text x="800" y="978" fill="#eef3e6" font-size="10" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">Ember Hollow</text>
+<title>Ember Hollow [dungeon] — M16 (Feverheart · fire/frost · shard 4 · the split altar)</title>
+<polygon points="705,907 716,929 694,929" fill="#d96f3c" stroke="#0a0e08" stroke-width="2"/>
+<text x="705" y="938" fill="#eef3e6" font-size="8" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">Weeping Tree Grove</text>
+<title>Weeping Tree Grove [secret] — SE4 the god-fragment (Liberator nudge)</title>
+<polygon points="895,907 906,929 884,929" fill="#d96f3c" stroke="#0a0e08" stroke-width="2"/>
+<text x="895" y="938" fill="#eef3e6" font-size="8" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">Burning Ridges</text>
+<title>Burning Ridges [secret] — SE5 the Cinder Stag · SE1 the burn/freeze seam</title>
+<polygon points="880,969 891,980 880,991 869,980" fill="#d96f3c" stroke="#0a0e08" stroke-width="2"/>
+<text x="880" y="1001" fill="#eef3e6" font-size="9" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">Ashen Relics</text>
+<title>Ashen Relics [cave] — SE3 fire/frost-gated treasure</title>
+<circle cx="712" cy="982" r="8" fill="#d96f3c" stroke="#0a0e08" stroke-width="2"/>
+<text x="712" y="999" fill="#eef3e6" font-size="8" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">Vinizar's Feast</text>
+<title>Vinizar's Feast [landmark] — CAM6 the Chill Prophet</title>
+<circle cx="1055" cy="730" r="18" fill="#4a8a40" stroke="#0a0e08" stroke-width="2"/>
+<text x="1055" y="761" fill="#eef3e6" font-size="12" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">Thornwell</text>
+<title>Thornwell [town] — [exp] deep-forest town · woodfolk culture</title>
+<polygon points="1130,773 1147,790 1130,807 1113,790" fill="#4a8a40" stroke="#0a0e08" stroke-width="2"/>
+<text x="1130" y="818" fill="#eef3e6" font-size="10" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">The Overgrown Ruin</text>
+<title>The Overgrown Ruin [dungeon] — [exp] forest ruin · a lost-civilization texts cache</title>
+<polygon points="1010,769 1021,791 999,791" fill="#4a8a40" stroke="#0a0e08" stroke-width="2"/>
+<text x="1010" y="800" fill="#eef3e6" font-size="8" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">Hunter's Cache</text>
+<title>Hunter's Cache [secret] — [exp] grove cache · the ninja-gran / gunhand standout spots</title>
+<circle cx="1100" cy="690" r="12" fill="#4a8a40" stroke="#0a0e08" stroke-width="2"/>
+<text x="1100" y="713" fill="#eef3e6" font-size="10" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">Woodmere</text>
+<title>Woodmere [village] — [exp] forest woodcutter village</title>
+<circle cx="1370" cy="860" r="18" fill="#d4ad6a" stroke="#0a0e08" stroke-width="2"/>
+<text x="1370" y="891" fill="#eef3e6" font-size="12" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">Dustreach</text>
+<title>Dustreach [town] — [exp] desert trade-outpost town</title>
+<circle cx="1455" cy="808" r="12" fill="#d4ad6a" stroke="#0a0e08" stroke-width="2"/>
+<text x="1455" y="831" fill="#eef3e6" font-size="10" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">Mirage Oasis</text>
+<title>Mirage Oasis [village] — [exp] oasis village</title>
+<polygon points="1440,913 1457,930 1440,947 1423,930" fill="#d4ad6a" stroke="#0a0e08" stroke-width="2"/>
+<text x="1440" y="958" fill="#eef3e6" font-size="10" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">Sunken Temple</text>
+<title>Sunken Temple [dungeon] — [exp] buried temple-library — ancient civilization/texts</title>
+<polygon points="1301.3,936.5 1290.0,943.0 1278.7,936.5 1278.7,923.5 1290.0,917.0 1301.3,923.5" fill="#d4ad6a" stroke="#0a0e08" stroke-width="2"/>
+<text x="1290" y="954" fill="#eef3e6" font-size="10" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">Nomad Camp</text>
+<title>Nomad Camp [huttown] — [exp] nomad hut-town</title>
+<rect x="20" y="1006" width="430" height="146" rx="8" fill="#101510" stroke="#5a6b4a"/>
+<text x="30" y="1030" fill="#ffe9c2" font-size="14" font-weight="bold">LEGEND — node size = content load (the world is sized to its content)</text>
+<polygon points="38.0,1040.0 40.2,1045.0 45.6,1045.5 41.5,1049.1 42.7,1054.5 38.0,1051.7 33.3,1054.5 34.5,1049.1 30.4,1045.5 35.8,1045.0 " fill="#9fb89a" stroke="#0a0e08" stroke-width="2"/><text x="56" y="1052" fill="#cdd8c4" font-size="11">HUGE CITY (6-10 streets, enterable)</text>
+<circle cx="38" cy="1066" r="8" fill="#9fb89a" stroke="#0a0e08" stroke-width="2"/><text x="56" y="1070" fill="#cdd8c4" font-size="11">city / town / village (●)</text>
+<polygon points="44.9,1088.0 38.0,1092.0 31.1,1088.0 31.1,1080.0 38.0,1076.0 44.9,1080.0" fill="#9fb89a" stroke="#0a0e08" stroke-width="2"/><text x="56" y="1088" fill="#cdd8c4" font-size="11">hut-town (⬡)</text>
+<polygon points="38,1094 46,1102 38,1110 30,1102" fill="#9fb89a" stroke="#0a0e08" stroke-width="2"/><text x="56" y="1106" fill="#cdd8c4" font-size="11">dungeon / cave (◆)</text>
+<polygon points="38,1112 46,1128 30,1128" fill="#9fb89a" stroke="#0a0e08" stroke-width="2"/><text x="56" y="1124" fill="#cdd8c4" font-size="11">secret / treasure (▲)</text>
+<circle cx="38" cy="1138" r="8" fill="#9fb89a" stroke="#0a0e08" stroke-width="2"/><text x="56" y="1142" fill="#cdd8c4" font-size="11">landmark / interior (·)</text>
+<text x="260" y="1070" fill="#d98b3a" font-size="11">— dashed + 🔒 = tool-gated path</text>
+<text x="260" y="1088" fill="#7d6a3a" font-size="11">— dashed grey = NEW biome (not yet gated)</text>
+<text x="260" y="1106" fill="#5a9fd6" font-size="11">blue = river/ocean · region tint = biome</text>
+<text x="860" y="34" fill="#fff6df" font-size="22" font-weight="bold" text-anchor="middle">EMBERFALL 2 — WORLD GRAPH (the whole plan, sized from the content)</text>
+<text x="1700" y="1166" fill="#5b6b4f" font-size="11" text-anchor="end">54 nodes · 55 edges · sized from 66 quests / 30+ NPCs / 40+ places (WORLD-SCALE-DOD) · DESIGN — review + adjust</text>
+</svg>
