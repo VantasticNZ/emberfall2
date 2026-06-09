@@ -117,7 +117,11 @@ Safe today (CHA already defaults neutral → no breakage); this *implements the 
 ## 4. NPC-HARM — fully supported, **gated against soft-locks** (the risk, handled)
 
 To go *far* evil you must be able to **hurt and kill people**. This is **net-new** (combat currently
-targets `enemies` only; town NPCs aren't attackable, and the safe-hub sword is foliage-only). Design:
+targets `enemies` only; town NPCs aren't attackable, and the safe-hub sword is foliage-only). **The full
+spec — Safe-Mode lethal toggle, NPC reaction archetypes + combat-AI, law/Heat escalation, the standout
+characters, and the CHILDREN hard rule — now lives in `docs/NPC-WORLD.md`.** Key safety rule: **by
+default you CANNOT kill people** (Safe Mode on → non-lethal scuffles); killing requires a deliberate
+toggle-off with a warning. Below is the alignment-facing summary:
 
 **The mechanic [DECISION DA1 — net-new build]:**
 - A deliberate **"raise blade on a person"** (e.g. attack while targeting an NPC, or a hostile dialogue
@@ -160,15 +164,52 @@ tier (and thus their visible transformation).
 
 ---
 
-## 6. MAGIC — the [DECISION] (DA4)
+## 6. ELEMENTAL MAGIC + PUZZLES (DA4 resolved — Van's direction: ship the elemental set)
 
-| Option | Scope | Recommendation |
-|---|---|---|
-| **A — RESERVE** (keep the **MP bar + hooks**, build spells later) | low — no new content now | ✅ **RECOMMENDED.** The alignment system + transformation is already a large build; magic can ride the polish layer (v2 §8.6). MP stays a visible, reserved hook. |
-| **B — SHIP a lean set now** (3–4 MP spell-items per MECHANICS §2.3: Emberlight / Wardpulse / Frostgrasp / Hearthcall) | medium — 3–4 items + VFX + earn-beats | viable if Van wants a ranged/utility verb in the slice; *adds* to slice scope. |
-**Recommend RESERVE** for now (build the alignment slice first), revisit on the GH→Peaks slice. **Van
-to CONFIRM.** Either way magic is **not stat-scaled** (no INT) — it's MP-item verbs, consistent with the
-ratified model, and **alignment does not gate magic** (keep the axes orthogonal).
+Magic = **acquirable elemental spell-ITEMS** (Zelda-style keys, MP-gated, **not** stat-scaled — no INT,
+no spell levels). Each spell is **two tools in one: a COMBAT verb AND a puzzle/navigation verb** — this
+is what makes magic *worth* the build. The set (3, +1 optional):
+
+| Spell (MP) | COMBAT verb | PUZZLE / NAVIGATION verb | Earned ~ |
+|---|---|---|---|
+| **FIRE** (low) | a ranged flame bolt; sets enemies/oil alight | **melt ice blocks/frozen doors · light braziers & dark paths · burn vines/webs/boards blocking a way** | Act 2 (the firefrost line) |
+| **ICE** (low) | freeze a single enemy briefly (crowd-control) | **freeze a stream/waterfall/geyser to cross · raise an ice block/platform to climb or weigh a switch** | Act 2-late |
+| **ELECTRIC** (med) | chain/stun; shatter electric wards | **power a switch/door/lift · charge a crystal or rune · overload a barrier** | Act 3 |
+| **WIND/AIR** *(optional, DA12b)* | push enemies back; deflect projectiles | **turn windmill switches · clear poison gas/fog · propel a sail/raft · fan a flame** | late |
+
+**Reconciles with `tool_firefrost`:** the existing **firefrost tool (earned M16)** *is* the
+fire-and-ice elemental — so **FIRE + ICE are already on the gating spine**, no new critical-path gate;
+ELECTRIC (+ WIND) are **new spell-items** earned at story beats. **[DECISION DA12 — add ELECTRIC (+
+optional WIND) spell-items + their VFX + puzzle props; FIRE/ICE wire onto firefrost.]**
+
+### 6.1 Spells-as-gates — like tools, but for OPTIONAL content (keeps the DAG safe)
+Spells **may gate areas like tools do** — but only **secrets, caches, side-rooms, and alternate
+routes**, never the **critical path** (which stays tool+shard gated in `gating.js`). This is the
+`TEASES` pattern: a see-but-can't-reach behind a frozen stream / a dark vault / an unpowered door →
+**spell payoff**. So adding spell-gates **cannot create a soft-lock** (the main spine never depends on
+a spell the player might not have). Inside a shard-dungeon, the puzzle-spell is **granted in/before that
+dungeon** (the dungeon teaches its element) → self-contained.
+
+### 6.2 PUZZLE CADENCE (a *sprinkling* — woven through combat, nav, AND quests, not wall-to-wall)
+- **Per shard-dungeon:** **2–3 elemental puzzles** built around that dungeon's element (the boss-trick
+  often *is* the climactic puzzle — e.g. firefrost vs the Emberwood elemental boss).
+- **Per overworld region:** **1–2 optional puzzle-gated secrets/caches** (a frozen-stream crossing to a
+  heart-piece; a brazier-lit hidden room) + occasional **nav puzzles on the routes** (melt the ice
+  blocking the foothill spur).
+- **Cross-region teases:** a few "come back with spell X" see-but-can't-reach beats (mirrors the tool
+  teases) — reward for revisiting with new power (reinforces "returning feels strong", §2.1).
+- **Quest puzzles:** the odd quest resolves via a spell (douse a fire to save an NPC; power the mill for
+  the miller) — magic woven into *story*, not just dungeons.
+> Keep it a **sprinkling**: a puzzle should feel like a *treat*, not a gate on every screen. Density ≈
+> the secret/landmark density, not the combat density.
+
+### 6.3 Reconciliation
+- **MP bar:** already in the HUD — spells spend it; refills at shrines/rest/potions. No INT scaling.
+- **Alignment-orthogonal:** alignment does **not** gate magic (a saint and a monster both cast) — keep
+  the axes independent (a good player isn't locked out of fire).
+- **Difficulty-neutral puzzles:** puzzles test *logic/nav*, never stats — consistent with placed-not-
+  scaled difficulty; they add variety, not power-creep. Combat spells stay **MP-bounded** (a resource,
+  not a free win).
 
 ---
 
@@ -202,7 +243,16 @@ Per v2 (vertical-slice-first): prove the whole system **once** on Greenhollow→
 - **NPC-harm:** killable non-essential NPCs (real evil) + **essential NPCs incapacitated-not-killed +
   reroute** + a **no-soft-lock verify gate (DA6)** — the story can never be severed.
 - **Good-monster:** the spare/kill beat (`good_monster_spared/_slain`) — the rule-proving exception.
-- **[DECISIONS]:** **DA1** NPCs attackable (net-new); **DA2** re-point prices onto morality; **DA3**
-  full transformation sprites = art GAP (fallback ships); **DA4** **MAGIC — recommend RESERVE** (Van
-  confirm); **DA5** add the new deed ids; **DA6** the no-soft-lock NPC-harm verify gate. All build-time;
-  design is locked. **Build on the GH→Peaks slice first.**
+- **NPC world** (`NPC-WORLD.md`): **Safe Mode** (default non-lethal; deliberate toggle to kill) +
+  reaction archetypes (flee/fight/run-for-the-law) + **law escalation** + **standouts** (gunhand /
+  ninja-gran / the **taonga-wielding Law-Enforcer** — Van's steer required) + **CHILDREN unkillable**.
+- **Magic (DA4 RESOLVED):** **elemental spell-items** — FIRE/ICE (= firefrost) + **ELECTRIC** (+ optional
+  **WIND**), each a **combat verb AND a puzzle/nav verb**; MP-gated; spells gate OPTIONAL secrets only
+  (never the critical path); a *sprinkling* of puzzles woven through dungeons/nav/quests (§6).
+- **[DECISIONS]:** **DA1** NPCs attackable · **DA2** prices→morality · **DA3** transformation sprites
+  [GAP] (fallback ships) · **DA4** magic = elemental set (ship) · **DA5** new deed ids · **DA6** no-soft-
+  lock NPC gate · **DA7** NPC data fields · **DA8** Safe-Mode toggle · **DA9** humanoid-NPC combat ·
+  **DA10** Heat/law · **DA11** child-unkillable guard+gate · **DA12** ELECTRIC/WIND spells + puzzle props ·
+  **DA13** the Law-Enforcer **cultural steer + sensitivity check (Van — steer was referenced but not
+  supplied)**. **Art [GAPS]:** transformation layers, standout sprites + the taonga, spell VFX + puzzle
+  props. All build-time; design locked. **Build on the GH→Peaks slice first.**
