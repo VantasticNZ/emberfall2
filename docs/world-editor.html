@@ -22,8 +22,12 @@
   svg#cv{ display:block; } svg text{ user-select:none; }
   #side{ flex:0 0 350px; background:var(--panel); border-left:1px solid var(--line); display:flex; flex-direction:column; }
   #layers{ padding:7px 10px; border-bottom:1px solid var(--line); max-height:34%; overflow:auto; }
-  #layers h4{ margin:5px 0 2px; font-size:11px; color:var(--acc); text-transform:uppercase; letter-spacing:.5px; }
-  #layers label{ display:inline-flex; align-items:center; gap:4px; margin:1px 7px 1px 0; font-size:11px; cursor:pointer; }
+  #layers h4{ margin:7px 0 3px; font-size:11px; color:var(--acc); text-transform:uppercase; letter-spacing:.6px; cursor:pointer; user-select:none; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #1d2718; padding-bottom:2px; }
+  #layers h4::after{ content:'▾'; font-size:8px; opacity:.55; }
+  #layers h4.col::after{ content:'▸'; }
+  #layers .lg.col{ display:none; }
+  #layers label{ display:inline-flex; align-items:center; gap:4px; margin:2px 8px 2px 0; font-size:11px; cursor:pointer; }
+  #cvwrap{ overflow:scroll; }
   #editor{ padding:9px 12px; overflow:auto; flex:1 1 auto; }
   #editor h3{ margin:0 0 2px; font-size:15px; } #editor .sub{ color:var(--dim); font-size:11px; margin-bottom:6px; }
   #editor label.f{ display:block; margin:6px 0 1px; font-size:11px; color:var(--acc); }
@@ -46,7 +50,7 @@
 <div id="top">
   <b>WORLD EDITOR</b>
   <div class="grp">
-    <button id="v_map" class="on">🗺 Map</button><button id="v_quests">🧩 Quests</button>
+    <button id="v_map" class="on">🗺 Map</button><button id="v_quests">🧩 Quests</button><button id="v_preview">🚶 Preview</button>
   </div>
   <div class="grp">
     <button id="m_select" class="on">▣ Select</button><button id="m_node">+ Node</button><button id="m_path">— Path</button><button id="m_zone">▭ Zone</button><button id="m_note">📌 Note</button>
@@ -162,7 +166,8 @@ const DEFAULT_WORLD={
 };
 
 /* ===================== state ===================== */
-let W=clone(DEFAULT_WORLD), mode='select', view='map', sel=null, drag=null, pathStart=null, draftZone=null, lockScale=false, panStart=null;
+let W=clone(DEFAULT_WORLD), mode='select', view='map', sel=null, drag=null, pathStart=null, draftZone=null, lockScale=false, panStart=null, here=null, hoverId=null;
+const connectedSet=id=>{ const s=new Set([id]); W.paths.forEach(p=>{ if(p.a===id)s.add(p.b); if(p.b===id)s.add(p.a); }); return s; };
 const layers={ city:1,town:1,village:1,dungeon:1,secret:1,landmark:1, early:1,mid:1,late:1, pathlabels:1, gating:1, terrain:1,music:1,nogo:1, quests:1,items:1,npcs:1, complete:1, elevation:0, sound:0, secrets:1, notes:1, grid:1 };
 let show={dash:false,warn:false,sim:false};
 let sim={ abil:new Set(['walk']) };
@@ -228,7 +233,16 @@ function renderWarn(){ const w=document.getElementById('warn'); if(!show.warn){w
   w._ws=ws; w.querySelectorAll('[data-wi]').forEach(d=>d.onclick=()=>{ const x=ws[+d.dataset.wi]; if(x.sel){ if(x.sel.t==='node')selectNode(nodeById(x.sel.id)); else if(x.sel.t==='path')selectPath(W.paths.find(p=>p.id===x.sel.id)); } }); }
 
 /* ===================== render (map | quests) ===================== */
-function render(){ if(view==='quests')return renderQuests(); fit(); while(cv.firstChild)cv.removeChild(cv.firstChild);
+// ---- DISTANCE / WALK-TIME (1 grid = a chunk = tileSize tiles; 1 tile≈1m; walk ≈4 tiles/s) ----
+const WALK_TPS=4;
+function pathPts(p){ const a=nodeById(p.a),b=nodeById(p.b); if(!a||!b)return null; return [[a.gx,a.gy],...(p.bends||[]).map(bd=>[bd.gx,bd.gy]),[b.gx,b.gy]]; }
+function pathTiles(p){ const pts=pathPts(p); if(!pts)return 0; let L=0; for(let i=0;i<pts.length-1;i++)L+=Math.hypot(pts[i+1][0]-pts[i][0],pts[i+1][1]-pts[i][1]); return Math.round(L*(W.meta.tileSize||32)); }
+const walkStr=t=>`≈ ${t} tiles · ≈ ${Math.max(1,Math.round(t/WALK_TPS))}s walk`;
+// HOVER highlight (no re-render — direct opacity on existing elements)
+function hoverNode(id){ document.querySelectorAll('#cv .node').forEach(g=>g.style.opacity=connectedSet(id).has(g.dataset.nid)?1:.14); document.querySelectorAll('#cv .pathg').forEach(g=>g.style.opacity=(g.dataset.pa===id||g.dataset.pb===id)?1:.1); }
+function hoverPath(p,pg){ document.querySelectorAll('#cv .node').forEach(g=>g.style.opacity=(g.dataset.nid===p.a||g.dataset.nid===p.b)?1:.14); document.querySelectorAll('#cv .pathg').forEach(g=>g.style.opacity=g===pg?1:.1); }
+function clearHover(){ document.querySelectorAll('#cv .node,#cv .pathg').forEach(g=>g.style.opacity=''); }
+function render(){ if(view==='quests')return renderQuests(); if(view==='preview')return renderPreview(); fit(); while(cv.firstChild)cv.removeChild(cv.firstChild);
   for(const z of W.zones){ if(!layers[z.kind])continue; const col=z.color||ZONECOL[z.kind];
     if(z.fade) el('rect',{x:gx2px(z.gx)-6,y:gx2px(z.gy)-6,width:z.gw*S+12,height:z.gh*S+12,rx:16,fill:col,opacity:.06});
     const g=el('g',{class:'zone'+(sel&&sel.t==='zone'&&sel.id===z.id?' sel':'')});
@@ -245,10 +259,12 @@ function render(){ if(view==='quests')return renderQuests(); fit(); while(cv.fir
     const pts=[[gx2px(a.gx)+ox,gx2px(a.gy)+oy],...(p.bends||[]).map(bd=>[gx2px(bd.gx),gx2px(bd.gy)]),[gx2px(b.gx)+ox,gx2px(b.gy)+oy]];
     const d='M'+pts.map(q=>q.join(',')).join(' L');
     const open=!show.sim||pathOpen(p); const w=(p.width||2)*1.0+0.8;   // WIDTH → line thickness
-    const g=el('g',{class:'pathg'+(sel&&sel.t==='path'&&sel.id===p.id?' sel':'')});
+    const g=el('g',{class:'pathg'+(sel&&sel.t==='path'&&sel.id===p.id?' sel':''),'data-pa':p.a,'data-pb':p.b});
+    g.addEventListener('mouseenter',()=>{ if(mode==='select'&&!drag){ hoverPath(p,g); document.getElementById('hintbar').textContent=`${nodeById(p.a).label} ↔ ${nodeById(p.b).label} · ${p.via}${p.gate?' (🔒'+p.gate+')':''} · ${walkStr(pathTiles(p))}`; } });
+    g.addEventListener('mouseleave',clearHover);
     el('path',{d,fill:'none',stroke:STAGECOL[p.stage]||'#888','stroke-width':w,opacity:open?.9:.16,'stroke-dasharray':p.gate?'6 4':'0','stroke-linecap':'round','stroke-linejoin':'round'},g);
     if(show.sim&&!open){ const m=ptAt(pts,0.5); const wt=el('text',{x:m[0],y:m[1]+10,fill:'#e0574a','font-size':7.5,'text-anchor':'middle',stroke:'#080b07','stroke-width':2,'paint-order':'stroke'},g); wt.textContent='needs '+pathReqs(p).join('+'); }
-    if(layers.pathlabels&&open){ const m=ptAt(pts,0.5); const t=el('text',{x:m[0],y:m[1]-3,fill:STAGECOL[p.stage],'font-size':8,'text-anchor':'middle',stroke:'#080b07','stroke-width':2.5,'paint-order':'stroke'},g); t.textContent=p.via+(layers.gating&&p.gate?' · 🔒'+p.gate:''); }
+    if(layers.pathlabels&&open){ const m=ptAt(pts,0.5); const t=el('text',{x:m[0],y:m[1]-3,fill:STAGECOL[p.stage],'font-size':8,'text-anchor':'middle',stroke:'#080b07','stroke-width':2.5,'paint-order':'stroke'},g); t.textContent=p.via+(layers.gating&&p.gate?' · 🔒'+p.gate:'')+' · '+pathTiles(p)+'t'; }
     g.addEventListener('mousedown',ev=>{ if(mode==='select'){ ev.stopPropagation(); if(sel&&sel.t==='path'&&sel.id===p.id){ const gp=toGrid(ev); (p.bends=p.bends||[]).push({gx:Math.round(gp.gx*2)/2,gy:Math.round(gp.gy*2)/2}); render(); editPath(p); } else selectPath(p); } });
     if(sel&&sel.t==='path'&&sel.id===p.id)(p.bends||[]).forEach((bd,bi)=>{ const bg=el('g',{class:'bend'}); el('circle',{cx:gx2px(bd.gx),cy:gx2px(bd.gy),r:5,fill:'#fff',stroke:STAGECOL[p.stage],'stroke-width':2},bg); bg.addEventListener('mousedown',ev=>{ev.stopPropagation();drag={t:'bend',bd,start:toGrid(ev),ox:bd.gx,oy:bd.gy};}); });
     (p.dots||[]).forEach((dt,i)=>{ const ok=dt.type==='item'?layers.items:dt.type==='note'?1:layers.quests; if(!ok)return; const q=ptAt(pts,(i+1)/(p.dots.length+1)); const dg=el('g',{class:'qdot'}); el('circle',{cx:q[0],cy:q[1],r:4.5,fill:dt.type==='item'?'#ffd36a':dt.type==='note'?'#cfc0e0':'#9fe08a',stroke:'#080b07','stroke-width':1.5},dg); dg.addEventListener('mousedown',ev=>{if(mode==='select'){ev.stopPropagation();selectDot(p,dt);}}); });
@@ -261,7 +277,8 @@ function render(){ if(view==='quests')return renderQuests(); fit(); while(cv.fir
     if(sel&&sel.t==='node'&&sel.id===n.id){ const hg=el('g',{class:'bend'}); el('circle',{cx:px+n.soundRadius*S,cy:py,r:5,fill:'#5a9fd6',stroke:'#fff','stroke-width':1.5},hg); hg.addEventListener('mousedown',ev=>{ev.stopPropagation();drag={t:'radius',n,start:toGrid(ev),or:n.soundRadius};}); } }
   for(const n of W.nodes){ if(!layers[n.tier])continue; const r=Math.max(6,Math.sqrt(n.w*n.h)*0.26), px=gx2px(n.gx),py=gx2px(n.gy), col=TIERCOL[n.tier]||'#888';
     const reach=!show.sim||R.has(n.id); const op=reach?1:.2;
-    const g=el('g',{class:'node'+(sel&&sel.t==='node'&&sel.id===n.id?' sel':''),opacity:op});
+    const g=el('g',{class:'node'+(sel&&sel.t==='node'&&sel.id===n.id?' sel':''),opacity:op,'data-nid':n.id});
+    g.addEventListener('mouseenter',()=>{ if(mode==='select'&&!drag)hoverNode(n.id); }); g.addEventListener('mouseleave',clearHover);
     if(layers.elevation) el('circle',{cx:px,cy:py,r:r+4,fill:'none',stroke:elevTint(n.elev),'stroke-width':3,'stroke-opacity':.8}); // elevation ring
     if(n.tier==='dungeon'||n.tier==='secret') el('polygon',{points:`${px},${py-r} ${px+r},${py} ${px},${py+r} ${px-r},${py}`,fill:col,stroke:'#080b07','stroke-width':2},g);
     else el('circle',{cx:px,cy:py,r,fill:col,stroke:'#080b07','stroke-width':2},g);
@@ -296,7 +313,7 @@ function renderQuests(){ const qs=W.quests||[]; const memo={}, byDepth={}; qs.fo
 }
 
 /* ===================== selection + editor ===================== */
-function selectNode(n){ sel={t:'node',id:n.id}; if(view!=='map'){view='map';setView();} render(); editNode(n); }
+function selectNode(n){ sel={t:'node',id:n.id}; if(view==='quests'){view='map';setView();} render(); editNode(n); }
 function selectPath(p){ sel={t:'path',id:p.id}; render(); editPath(p); }
 function selectZone(z){ sel={t:'zone',id:z.id}; render(); editZone(z); }
 function selectNote(nt){ sel={t:'note',id:nt.id}; render(); editNote(nt); }
@@ -334,7 +351,8 @@ function editPath(p){ const a=nodeById(p.a),b=nodeById(p.b);
    <label class=f>Traversal (via)</label><select data-k="via">${VIAS.map(v=>`<option ${v===p.via?'selected':''}>${v}</option>`).join('')}</select>
    <label class=f>Gate</label><input data-k="gate" value="${esc(p.gate||'')}">
    <label class=f>Stage</label><select data-k="stage">${STAGES.map(s=>`<option ${s===p.stage?'selected':''}>${s}</option>`).join('')}</select>
-   <div class="row"><div><label class=f>Length</label><input data-k="len" value="${esc(p.len||'')}"></div><div><label class=f>Width (segments)</label><input type=number step=0.5 data-k="width" value="${p.width||2}"></div></div>
+   <div class="row"><div><label class=f>Length tag</label><input data-k="len" value="${esc(p.len||'')}"></div><div><label class=f>Width (segments)</label><input type=number step=0.5 data-k="width" value="${p.width||2}"></div></div>
+   <div class="sub" style="color:#9fe08a;margin-top:5px">📏 geometric distance: <b>${walkStr(pathTiles(p))}</b></div>
    <div class="hint" style="margin-top:6px">Width sets the line thickness (a wide road vs a narrow trail). Tip: with the path selected, CLICK the line to add a bend point; drag the white handles to shape it (double it back / narrow / widen).</div>
    <button id="straight" style="margin-top:4px">Straighten (clear bends)</button>
    <label class=f>Dots on this path</label><div id="dots"></div><button id="adddot" style="margin-top:4px">+ add dot</button>
@@ -384,6 +402,7 @@ const cvwrap=document.getElementById('cvwrap');
 cv.addEventListener('mousedown',e=>{ if(view==='quests')return; const g=toGrid(e); if(mode==='node')addNode(g); else if(mode==='note')addNote(g); else if(mode==='zone')draftZone={x0:g.gx,y0:g.gy,x1:g.gx,y1:g.gy}; else if(mode==='select'){ panStart={x:e.clientX,y:e.clientY,sl:cvwrap.scrollLeft,st:cvwrap.scrollTop,moved:false}; } });
 window.addEventListener('mousemove',e=>{ if(drag){ const g=toGrid(e);
     if(drag.t==='radius'){ drag.n.soundRadius=Math.max(0,Math.round((drag.or+(g.gx-drag.start.gx))*2)/2); render(); return; }
+    if(drag.t==='here'){ here.gx=Math.round((drag.ox+(g.gx-drag.start.gx))*2)/2; here.gy=Math.round((drag.oy+(g.gy-drag.start.gy))*2)/2; render(); return; }
     const o=drag.t==='node'?drag.n:drag.t==='zone'?drag.z:drag.t==='bend'?drag.bd:drag.nt; o.gx=Math.round((drag.ox+(g.gx-drag.start.gx))*2)/2; o.gy=Math.round((drag.oy+(g.gy-drag.start.gy))*2)/2; render(); }
   else if(draftZone){ const g=toGrid(e); draftZone.x1=g.gx; draftZone.y1=g.gy; render(); }
   else if(panStart){ panStart.moved=Math.abs(e.clientX-panStart.x)>3||Math.abs(e.clientY-panStart.y)>3; cvwrap.scrollLeft=panStart.sl-(e.clientX-panStart.x); cvwrap.scrollTop=panStart.st-(e.clientY-panStart.y); } });
@@ -399,8 +418,34 @@ window.addEventListener('keydown',e=>{ if((e.key==='Delete')&&sel&&!/INPUT|TEXTA
 /* ===================== toolbar / modes / view / IO / search / zoom ===================== */
 function setMode(m){ mode=m; pathStart=null; ['select','node','path','zone','note'].forEach(x=>document.getElementById('m_'+x).classList.toggle('on',x===m)); document.getElementById('hintbar').textContent={select:'Drag nodes/zones/bends · click a place/path/quest to edit · Delete removes',node:'Click the canvas to add a place',path:'Click node A then B to link',zone:'Drag a rectangle',note:'Click to drop a note'}[m]; }
 ['select','node','path','zone','note'].forEach(m=>document.getElementById('m_'+m).onclick=()=>setMode(m));
-function setView(){ document.getElementById('v_map').classList.toggle('on',view==='map'); document.getElementById('v_quests').classList.toggle('on',view==='quests'); render(); }
-document.getElementById('v_map').onclick=()=>{view='map';setView();}; document.getElementById('v_quests').onclick=()=>{view='quests';setView();};
+/* ===================== PREVIEW / WALKTHROUGH (true-scale schematic) ===================== */
+function renderPreview(){ fit(); while(cv.firstChild)cv.removeChild(cv.firstChild); const R=show.sim?reachable():null; const tpc=(W.meta.tileSize||32);
+  for(const z of W.zones){ if(!layers[z.kind])continue; const col=z.color||ZONECOL[z.kind]; const x=gx2px(z.gx),y=gx2px(z.gy),w=z.gw*S,h=z.gh*S;
+    if(z.kind==='nogo'){ el('rect',{x,y,width:w,height:h,fill:'none',stroke:'#c0392b','stroke-width':4,'stroke-dasharray':'2 5',opacity:.85}); continue; }
+    el('rect',{x,y,width:w,height:h,rx:6,fill:col,'fill-opacity':z.kind==='music'?0:.2,stroke:col,'stroke-opacity':.5,'stroke-width':1.4,'stroke-dasharray':z.kind==='music'?'9 5':'0'});
+    if(layers.elevation&&z.elev) el('rect',{x,y,width:w,height:h,rx:6,fill:z.elev>0?'#fff':'#000','fill-opacity':Math.min(.18,Math.abs(z.elev)*0.06)});
+    const t=el('text',{x:x+6,y:y+14,fill:col,'font-size':10,opacity:.85}); t.textContent=(z.kind==='music'?'♪ ':'▦ ')+(z.label||z.kind); }
+  for(const p of W.paths){ if(!layers[p.stage])continue; const pts=pathPts(p); if(!pts)continue; const open=!show.sim||pathOpen(p); const px=pts.map(q=>[gx2px(q[0]),gx2px(q[1])]); const d='M'+px.map(q=>q.join(',')).join(' L'); const wpx=Math.max(4,(p.width||2)*S/9);
+    el('path',{d,fill:'none',stroke:STAGECOL[p.stage],'stroke-width':wpx,'stroke-linecap':'round','stroke-linejoin':'round',opacity:open?.55:.12});
+    el('path',{d,fill:'none',stroke:'#0c1109','stroke-width':Math.max(1,wpx-3),'stroke-linecap':'round',opacity:open?.4:.08}); }
+  if(layers.sound)for(const n of W.nodes){ if(!n.soundRadius||!n.music)continue; el('circle',{cx:gx2px(n.gx),cy:gx2px(n.gy),r:n.soundRadius*S,fill:'#5a9fd6','fill-opacity':.05,stroke:'#5a9fd6','stroke-opacity':.4,'stroke-dasharray':'5 4'}); }
+  for(const n of W.nodes){ if(!layers[n.tier])continue; const reach=!show.sim||R.has(n.id); const aw=Math.max(12,(n.w/tpc)*S),ah=Math.max(9,(n.h/tpc)*S),x=gx2px(n.gx)-aw/2,y=gx2px(n.gy)-ah/2,col=TIERCOL[n.tier]||'#888'; const dgn=n.tier==='dungeon'||n.tier==='secret';
+    const g=el('g',{class:'node',opacity:reach?1:.25}); el('rect',{x,y,width:aw,height:ah,rx:dgn?3:7,fill:col,'fill-opacity':.5,stroke:col,'stroke-width':2.5},g);
+    if(layers.elevation&&n.elev) el('rect',{x,y,width:aw,height:ah,rx:7,fill:n.elev>0?'#fff':'#000','fill-opacity':Math.min(.22,Math.abs(n.elev)*0.07)},g);
+    el('text',{x:gx2px(n.gx),y:gx2px(n.gy)+3,fill:'#0a0e08','font-size':Math.max(8,Math.min(13,aw/5.5)),'font-weight':'bold','text-anchor':'middle'},g).textContent=n.label;
+    el('text',{x:gx2px(n.gx),y:y-3,fill:col,'font-size':8,'text-anchor':'middle',stroke:'#080b07','stroke-width':2.5,'paint-order':'stroke'},g).textContent=n.tier+' · '+n.w+'×'+n.h;
+    g.style.cursor='pointer'; g.onclick=()=>selectNode(n); }
+  if(!here)here={gx:W.nodes[0]?W.nodes[0].gx:12,gy:W.nodes[0]?W.nodes[0].gy:12}; const hx=gx2px(here.gx),hy=gx2px(here.gy);
+  const hg=el('g',{class:'here'}); el('circle',{cx:hx,cy:hy,r:10,fill:'#ffe04a',stroke:'#000','stroke-width':2},hg); el('text',{x:hx,y:hy+4,'text-anchor':'middle','font-size':13},hg).textContent='🚶'; hg.style.cursor='grab';
+  hg.addEventListener('mousedown',ev=>{ev.stopPropagation();drag={t:'here',start:toGrid(ev),ox:here.gx,oy:here.gy};});
+  renderHereReadout(); renderDash(); renderWarn(); renderSim();
+  document.getElementById('counts').textContent=`PREVIEW — true-scale schematic (layout/scale/distance feel; NOT the game art) · drag 🚶 to feel distances`;
+}
+function renderHereReadout(){ const tpc=(W.meta.tileSize||32); const near=W.nodes.map(n=>({n,t:Math.round(Math.hypot(n.gx-here.gx,n.gy-here.gy)*tpc)})).sort((a,b)=>a.t-b.t).slice(0,7);
+  let box=document.getElementById('hereR'); if(!box){box=document.createElement('div');box.id='hereR';box.className='overlay';box.style.cssText='right:10px;top:10px;max-width:236px';document.getElementById('cvwrap').appendChild(box);}
+  box.style.display='block'; box.innerHTML=`<h4>🚶 You are here</h4><div class="hint" style="margin-bottom:5px">straight-line distance + walk-time (≈${WALK_TPS} tiles/s):</div>`+near.map(x=>`<div style="display:flex;justify-content:space-between;gap:8px"><span style="color:${TIERCOL[x.n.tier]}">${esc(x.n.label)}</span><span style="white-space:nowrap">${x.t}t · ${Math.max(1,Math.round(x.t/WALK_TPS))}s</span></div>`).join(''); }
+function setView(){ ['map','quests','preview'].forEach(v=>document.getElementById('v_'+v).classList.toggle('on',view===v)); const hr=document.getElementById('hereR'); if(hr)hr.style.display=view==='preview'?'block':'none'; render(); }
+document.getElementById('v_map').onclick=()=>{view='map';setView();}; document.getElementById('v_quests').onclick=()=>{view='quests';setView();}; document.getElementById('v_preview').onclick=()=>{view='preview';setView();};
 document.getElementById('t_dash').onclick=()=>{show.dash=!show.dash;document.getElementById('t_dash').classList.toggle('on',show.dash);renderDash();};
 document.getElementById('t_warn').onclick=()=>{show.warn=!show.warn;document.getElementById('t_warn').classList.toggle('on',show.warn);renderWarn();};
 document.getElementById('t_sim').onclick=()=>{show.sim=!show.sim;document.getElementById('t_sim').classList.toggle('on',show.sim);renderSim();render();};
@@ -423,13 +468,14 @@ document.getElementById('io_export').onclick=()=>{ const blob=new Blob([JSON.str
 document.getElementById('io_import').onclick=()=>document.getElementById('file').click();
 document.getElementById('file').onchange=e=>{ const f=e.target.files[0]; if(!f)return; const rd=new FileReader(); rd.onload=()=>{ try{ const j=JSON.parse(rd.result); if(!j.nodes)throw 0; W=j; ['zones','notes','paths','quests'].forEach(k=>W[k]=W[k]||[]); W.meta=W.meta||{grid:24}; sel=null; render(); ed.innerHTML='<div class=hint>imported '+(W.meta.name||'world')+'.</div>'; }catch(err){ alert('Not a valid world JSON.'); } }; rd.readAsText(f); e.target.value=''; };
 document.getElementById('io_new').onclick=()=>{ if(!confirm('Start a blank world? (export first to keep this one)'))return; W={meta:{name:'New World',grid:24,tileSize:32},nodes:[],paths:[],zones:[],quests:[],notes:[]}; sel=null; render(); ed.innerHTML='<div class=hint>blank world.</div>'; };
-function buildLayers(){ const L=document.getElementById('layers'); const grp=(title,keys)=>`<h4>${title}</h4>${keys.map(([k,lab,c])=>`<label><input type=checkbox data-l="${k}" ${layers[k]?'checked':''}> <span style="color:${c||'#cdd8c4'}">${lab}</span></label>`).join('')}`;
+function buildLayers(){ const L=document.getElementById('layers'); const grp=(title,keys)=>`<h4>${title}</h4><div class="lg">${keys.map(([k,lab,c])=>`<label><input type=checkbox data-l="${k}" ${layers[k]?'checked':''}> <span style="color:${c||'#cdd8c4'}">${lab}</span></label>`).join('')}</div>`;
   L.innerHTML=grp('Places (tier)',TIERS.map(t=>[t,t,TIERCOL[t]]))
     +grp('Paths (stage)',[['early','early',STAGECOL.early],['mid','mid',STAGECOL.mid],['late','late',STAGECOL.late],['pathlabels','labels'],['gating','gate labels']])
     +grp('Zones',[['terrain','terrain',ZONECOL.terrain],['music','music',ZONECOL.music],['nogo','no-go',ZONECOL.nogo]])
     +grp('Overlays',[['quests','quests','#9fe08a'],['items','items','#ffd36a'],['npcs','NPC counts'],['complete','completeness'],['notes','notes','#ffe08a'],['grid','grid']])
     +grp('Detail layers',[['elevation','elevation','#9a7a4a'],['sound','sound-radius','#5a9fd6'],['secrets','secrets','#ffd36a']]);
-  L.querySelectorAll('[data-l]').forEach(c=>c.onchange=()=>{layers[c.dataset.l]=c.checked;render();}); }
+  L.querySelectorAll('[data-l]').forEach(c=>c.onchange=()=>{layers[c.dataset.l]=c.checked;render();});
+  L.querySelectorAll('h4').forEach(h=>h.onclick=()=>{ h.classList.toggle('col'); if(h.nextElementSibling)h.nextElementSibling.classList.toggle('col'); }); }
 buildLayers(); setMode('select'); render();
 </script>
 </body>
