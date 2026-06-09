@@ -313,7 +313,10 @@ const tile = (px) => Math.round(px / TILE);
 //     seam; WORLD-STRUCTURE Level-B seam lint). Catches a mis-placed/mis-sized region.
 {
   const offenders = [];
-  const rs = REGIONS.map((R) => ({ key: R.key, x0: tile(R.bounds.x), x1: tile(R.bounds.x + R.bounds.w), y0: tile(R.bounds.y), y1: tile(R.bounds.y + R.bounds.h) }));
+  // INTERIORS / settlements are SEPARATE enterable scenes (connected by the runtime door system, not
+  // overworld seams) — they neighbour each other in the reserved far band but never abut, so they're
+  // excluded from seam-coherence (validated by navGates instead, like the entrance-coherence gate).
+  const rs = REGIONS.filter((R) => !R.interior).map((R) => ({ key: R.key, x0: tile(R.bounds.x), x1: tile(R.bounds.x + R.bounds.w), y0: tile(R.bounds.y), y1: tile(R.bounds.y + R.bounds.h) }));
   for (let i = 0; i < rs.length; i++) for (let j = 0; j < rs.length; j++) {
     if (i === j) continue; const a = rs[i], b = rs[j];
     const yOv = Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0);   // a left-of-b vertical seam

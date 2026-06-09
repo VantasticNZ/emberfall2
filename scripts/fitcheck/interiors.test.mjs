@@ -6,7 +6,7 @@
 // =============================================================================
 
 import assert from 'node:assert/strict';
-import { TANKARD_F1, TANKARD_F2, TEST_CAVE_F1, TEST_CAVE_F2, GH_FORGE, GH_STORE, GH_CHAPEL, GH_HOME1, GH_HOME2 } from '../../src/data/worldmap.js';
+import { TANKARD_F1, TANKARD_F2, TEST_CAVE_F1, TEST_CAVE_F2, GH_FORGE, GH_STORE, GH_CHAPEL, GH_HOME1, GH_HOME2, WORLD_LAYOUT, TILE } from '../../src/data/worldmap.js';
 import { bodyWalkReachability, noSolidPropOnWalkable } from '../../src/systems/navGates.js';
 
 let n = 0; const pass = (m) => { n++; console.log('  ✓ ' + m); };
@@ -32,4 +32,16 @@ for (const { R, name, expect } of CASES) {
   pass(`${name}: a body walks spawn → doors/stairs + chest; the walls hold; no prop on the floor`);
 }
 
-console.log(`interiors.test: ${n} interiors reachability-proven`);
+// WORLD-LAYOUT (the content-sized greybox city/towns/villages/dungeons) — the STREET GRID connects
+// the spawn → every district chest + the exit; the building blocks hold; no prop on a street.
+for (const R of WORLD_LAYOUT) {
+  const ox = R.origin.x, oy = R.origin.y;
+  const chestTiles = R.chests.map((c) => [Math.round((c.x - ox - TILE / 2) / TILE), Math.round((c.y - oy - TILE / 2) / TILE)]);
+  const expect = { startTile: [1, 1], reachOpen: [[1, 1], ...chestTiles], reachGatedOnlyWithTool: [], blockedMustHold: [[3, 3] /*a building block*/] };
+  const bw = bodyWalkReachability(R, expect);
+  assert.ok(bw.ok, `${R.key}: body-walk FAILED — ${bw.failures.join(' | ')}`);
+  assert.ok(noSolidPropOnWalkable(R).ok, `${R.key}: solid prop on a walkable street`);
+  pass(`${R.label}: the street grid connects spawn → all ${R.chests.length} district chest(s); the blocks hold`);
+}
+
+console.log(`interiors.test: ${n} interiors + settlements reachability-proven`);

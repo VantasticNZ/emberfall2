@@ -73,6 +73,17 @@ export const GREENHOLLOW = {
     { via: 'door', key: 'prop_sign', solid: false, x: gx(19) + TILE / 2, y: gy(11) + TILE / 2, to: 'gh_chapel', prompt: 'Enter the chapel' },
     { via: 'door', key: 'prop_sign', solid: false, x: gx(34) + TILE / 2, y: gy(26) + TILE / 2, to: 'gh_home1', prompt: 'Enter the cottage' },
     { via: 'door', key: 'prop_sign', solid: false, x: gx(41) + TILE / 2, y: gy(30) + TILE / 2, to: 'gh_home2', prompt: 'Enter the cottage' },
+    // WORLD-LAYOUT board (the halved-scope world — content-sized greybox places, walk each to approve)
+    { via: 'door', key: 'prop_sign', solid: false, x: gx(7) + TILE / 2, y: gy(36) + TILE / 2, to: 'city_saltbreak', prompt: '→ SALTBREAK (the city)' },
+    { via: 'door', key: 'prop_sign', solid: false, x: gx(11) + TILE / 2, y: gy(36) + TILE / 2, to: 'town_stonereach', prompt: '→ Stonereach (town)' },
+    { via: 'door', key: 'prop_sign', solid: false, x: gx(15) + TILE / 2, y: gy(36) + TILE / 2, to: 'town_mirefen', prompt: '→ Mirefen (town)' },
+    { via: 'door', key: 'prop_sign', solid: false, x: gx(19) + TILE / 2, y: gy(36) + TILE / 2, to: 'vil_fenwick', prompt: '→ Fenwick (village)' },
+    { via: 'door', key: 'prop_sign', solid: false, x: gx(23) + TILE / 2, y: gy(36) + TILE / 2, to: 'vil_cribbins', prompt: '→ Cribbins Cove (village)' },
+    { via: 'door', key: 'prop_sign', solid: false, x: gx(27) + TILE / 2, y: gy(36) + TILE / 2, to: 'vil_cragfoot', prompt: '→ Cragfoot (village)' },
+    { via: 'door', key: 'prop_sign', solid: false, x: gx(31) + TILE / 2, y: gy(36) + TILE / 2, to: 'vil_oasis', prompt: '→ Mirage Oasis (village)' },
+    { via: 'door', key: 'prop_sign', solid: false, x: gx(35) + TILE / 2, y: gy(36) + TILE / 2, to: 'vil_thornwell', prompt: '→ Thornwell (village)' },
+    { via: 'door', key: 'prop_sign', solid: false, x: gx(39) + TILE / 2, y: gy(36) + TILE / 2, to: 'dgn_shrine', prompt: '→ Sunken Shrine (dungeon)' },
+    { via: 'door', key: 'prop_sign', solid: false, x: gx(43) + TILE / 2, y: gy(36) + TILE / 2, to: 'dgn_keep', prompt: '→ Cinder Keep (dungeon)' },
   ],
   // Phase-3 ART (restore discrete-v3 gold standard on the overworld; RESIDENT atlas):
   widthTiles: WORLD.widthTiles, heightTiles: WORLD.heightTiles,
@@ -649,6 +660,64 @@ export const TEST_CAVE_F2 = interiorRegion({
   doors: [{ tx: 10, ty: 2, to: 'back', label: 'Ascend ↑' }],
   chests: [{ tx: 6, ty: 5, id: 'cave_f2_chest', gold: 40 }],
 });
+// =============================================================================
+// CONTENT-SIZED WORLD LAYOUT (greybox, walkable) — the WORLD-MAP-PLAN built as separate enterable
+// scenes (the approved structure: overworld + separate scenes). griddedSettlement() auto-BLOCKS OUT a
+// place at its content-sized footprint: a STREET GRID (walkable lanes every `pitch` tiles, `street`
+// wide) with BUILDING-FOOTPRINT blocks (solid) between → a city reads as streets + districts, a village
+// as a few blocks + a lane. Walls all round; the entry door at the spawn; district CHESTS (markers).
+// navGate-validated (the street grid connects spawn → exit + every chest). Greybox only — NO art.
+// =============================================================================
+function griddedSettlement(spec) {
+  const { key, otx, oty, W, H, pitch = 7, street = 2, floor = 'dirt', mapColor = 0x3a3a3a, label, doors = [], chests = [] } = spec;
+  const ox = otx * TILE, oy = oty * TILE;
+  const walkable = [], gated = [], colliders = [], props = [], floorRects = [];
+  for (let ty = 0; ty < H; ty++) {
+    walkable[ty] = new Uint8Array(W); gated[ty] = new Uint8Array(W);
+    for (let tx = 0; tx < W; tx++) {
+      const wall = tx === 0 || ty === 0 || tx === W - 1 || ty === H - 1;
+      const onStreet = (tx % pitch) < street || (ty % pitch) < street;   // the street lattice
+      const w = !wall && onStreet;
+      walkable[ty][tx] = w ? 1 : 0;
+      const wx = ox + tx * TILE + TILE / 2, wy = oy + ty * TILE + TILE / 2;
+      if (w) floorRects.push([tx, ty, 1, 1]);
+      else { colliders.push({ x: wx, y: wy, w: TILE, h: TILE });
+        if (!wall && (tx % pitch) === street && (ty % pitch) === street) props.push({ key: 'prop_sign', x: wx, y: wy, solid: false, scale: 0.5, tint: 0x8a96a8 }); } // a building-footprint marker
+    }
+  }
+  const interactables = doors.map((d) => ({ via: 'door', key: 'prop_sign', solid: false, x: ox + d.tx * TILE + TILE / 2, y: oy + d.ty * TILE + TILE / 2, to: d.to, prompt: d.label || 'Go' }));
+  const chestData = chests.map((c) => ({ id: c.id, x: ox + c.tx * TILE + TILE / 2, y: oy + c.ty * TILE + TILE / 2, gold: c.gold || 20 }));
+  return {
+    key, label, origin: { x: ox, y: oy }, widthTiles: W, heightTiles: H, bounds: { x: ox, y: oy, w: W * TILE, h: H * TILE },
+    route: true, interior: true, settlement: true, mapColor,
+    terrain: { patches: [{ set: floor, rects: floorRects }] },
+    colliders, props, npcs: [], chests: chestData, interactables,
+    spawn: { x: ox + 1 * TILE + TILE / 2, y: oy + 1 * TILE + TILE / 2 },
+    nav: { walkable, gated, W, H },
+  };
+}
+
+// THE HALVED-SCOPE WORLD: 1 city + 2 towns + 5 villages + 2 dungeons (greybox, walkable). Far band
+// (tiles 400+), entered by doors from Greenhollow's WORLD-LAYOUT board (reachable + walkable).
+export const CITY_SALTBREAK = griddedSettlement({ key: 'city_saltbreak', label: 'SALTBREAK (city)', otx: 400, oty: 400, W: 56, H: 40, pitch: 7, street: 2, mapColor: 0x4a6e8a,
+  doors: [{ tx: 1, ty: 1, to: 'back', label: 'Leave Saltbreak' }],
+  chests: [{ tx: 7, ty: 7, id: 'saltbreak_docks', gold: 40 }, { tx: 28, ty: 14, id: 'saltbreak_market', gold: 35 }, { tx: 49, ty: 28, id: 'saltbreak_mansion', gold: 50 }, { tx: 14, ty: 28, id: 'saltbreak_under', gold: 30 }] });
+export const TOWN_STONEREACH = griddedSettlement({ key: 'town_stonereach', label: 'Stonereach (town)', otx: 400, oty: 446, W: 36, H: 28, pitch: 8, street: 2, mapColor: 0x8a93a8,
+  doors: [{ tx: 1, ty: 1, to: 'back', label: 'Leave Stonereach' }], chests: [{ tx: 8, ty: 8, id: 'stonereach_hall', gold: 30 }, { tx: 24, ty: 16, id: 'stonereach_mine', gold: 25 }] });
+export const TOWN_MIREFEN = griddedSettlement({ key: 'town_mirefen', label: 'Mirefen (town)', otx: 442, oty: 446, W: 34, H: 26, pitch: 8, street: 2, mapColor: 0x56988c,
+  doors: [{ tx: 1, ty: 1, to: 'back', label: 'Leave Mirefen' }], chests: [{ tx: 8, ty: 8, id: 'mirefen_elder', gold: 22 }] });
+const village = (key, label, otx, oty, color) => griddedSettlement({ key, label, otx, oty, W: 20, H: 16, pitch: 9, street: 2, mapColor: color, doors: [{ tx: 1, ty: 1, to: 'back', label: 'Leave ' + label }], chests: [{ tx: 9, ty: 9, id: key + '_chest', gold: 16 }] });
+export const VILLAGE_1 = village('vil_fenwick', 'Fenwick', 480, 446, 0x6e9a7a);
+export const VILLAGE_2 = village('vil_cribbins', 'Cribbins Cove', 504, 446, 0x4a90cf);
+export const VILLAGE_3 = village('vil_cragfoot', 'Cragfoot', 528, 446, 0x93a0b8);
+export const VILLAGE_4 = village('vil_oasis', 'Mirage Oasis', 400, 466, 0xd4ad6a);
+export const VILLAGE_5 = village('vil_thornwell', 'Thornwell', 424, 466, 0x4a8a40);
+export const DUNGEON_SHRINE = griddedSettlement({ key: 'dgn_shrine', label: 'Sunken Shrine (dungeon)', otx: 450, oty: 466, W: 24, H: 18, pitch: 6, street: 2, mapColor: 0x3a4a4a,
+  doors: [{ tx: 1, ty: 1, to: 'back', label: 'Leave the shrine' }], chests: [{ tx: 12, ty: 12, id: 'shrine_shard', gold: 45 }] });
+export const DUNGEON_KEEP = griddedSettlement({ key: 'dgn_keep', label: 'Cinder Keep (dungeon)', otx: 476, oty: 466, W: 24, H: 18, pitch: 6, street: 2, mapColor: 0x4a4040,
+  doors: [{ tx: 1, ty: 1, to: 'back', label: 'Leave the keep' }], chests: [{ tx: 12, ty: 12, id: 'keep_shard', gold: 48 }] });
+export const WORLD_LAYOUT = [CITY_SALTBREAK, TOWN_STONEREACH, TOWN_MIREFEN, VILLAGE_1, VILLAGE_2, VILLAGE_3, VILLAGE_4, VILLAGE_5, DUNGEON_SHRINE, DUNGEON_KEEP];
+
 // GREENHOLLOW town interiors (Phase 2) — furnished with the available prop set (the forge anvil, barrels,
 // the fountain-as-font, the fence-as-counter/pew, a potted bush, chests). FLAG (HARD RULE 9): proper
 // interior furniture — beds, tables, shelves, hearths, an altar — is an ART need for the finished polish;
@@ -706,7 +775,7 @@ export const GH_HOME2 = interiorRegion({
   chests: [{ tx: 8, ty: 5, id: 'gh_home2_chest', gold: 16 }],
 });
 
-export const INTERIORS = [TANKARD_F1, TANKARD_F2, TEST_CAVE_F1, TEST_CAVE_F2, GH_FORGE, GH_STORE, GH_CHAPEL, GH_HOME1, GH_HOME2];
+export const INTERIORS = [TANKARD_F1, TANKARD_F2, TEST_CAVE_F1, TEST_CAVE_F2, GH_FORGE, GH_STORE, GH_CHAPEL, GH_HOME1, GH_HOME2, ...WORLD_LAYOUT];
 
 export const REGIONS = [GREENHOLLOW, ASHEN_MARSH, WEST_BELT, SUNDERED_PEAKS, FOOTHILL_ROUTE, TIDEWRECK_COAST, EMBERWOOD, HOLLOW_SPIRE, ...INTERIORS];
 const inBounds = (b, x, y) => x >= b.x && x < b.x + b.w && y >= b.y && y < b.y + b.h;

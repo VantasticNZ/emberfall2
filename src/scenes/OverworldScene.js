@@ -1070,7 +1070,7 @@ export class OverworldScene extends Phaser.Scene {
     this._fullMap = add(this.add.container(0, 0).setScrollFactor(0).setDepth(OD + 2).setVisible(false));
     const fw = Math.min(W - 70, 760), fh = this.scale.height - 70, fx = (W - fw) / 2, fy = 40;
     let minx = Infinity, miny = Infinity, maxx = -Infinity, maxy = -Infinity;
-    for (const R of REGIONS) { minx = Math.min(minx, R.bounds.x); miny = Math.min(miny, R.bounds.y); maxx = Math.max(maxx, R.bounds.x + R.bounds.w); maxy = Math.max(maxy, R.bounds.y + R.bounds.h); }
+    for (const R of REGIONS) { if (R.interior) continue; minx = Math.min(minx, R.bounds.x); miny = Math.min(miny, R.bounds.y); maxx = Math.max(maxx, R.bounds.x + R.bounds.w); maxy = Math.max(maxy, R.bounds.y + R.bounds.h); }
     const pad = 2 * CHUNK_PX; minx -= pad; miny -= pad; maxx += pad; maxy += pad;
     const scale = Math.min(fw / (maxx - minx), fh / (maxy - miny));
     const box = { x: fx + (fw - (maxx - minx) * scale) / 2, y: fy + (fh - (maxy - miny) * scale) / 2, w: fw, h: fh, scale, wx: minx, wy: miny };
@@ -1081,7 +1081,13 @@ export class OverworldScene extends Phaser.Scene {
     this._renderWorldMapInto(fg, box);
     this._fullMap.add(fg);
     const lbl = (x, y, t, sz, col, oy2 = 0.5) => this._fullMap.add(this.add.text(x, y, t, { fontFamily: 'monospace', fontSize: sz + 'px', color: col, fontStyle: 'bold', stroke: '#05070b', strokeThickness: 4 }).setOrigin(0.5, oy2).setScrollFactor(0));
-    for (const R of REGIONS) lbl(mX(R.bounds.x + R.bounds.w / 2), mY(R.bounds.y + R.bounds.h / 2), R.key, R.greybox ? 11 : 13, R.greybox ? '#ffd9a0' : '#fff6df');
+    for (const R of REGIONS) { if (R.interior) continue; lbl(mX(R.bounds.x + R.bounds.w / 2), mY(R.bounds.y + R.bounds.h / 2), R.key, R.greybox ? 11 : 13, R.greybox ? '#ffd9a0' : '#fff6df'); }
+    // the content-sized WORLD-LAYOUT places (separate door-entered scenes) — listed on the map
+    const layout = REGIONS.filter((R) => R.settlement);
+    if (layout.length) {
+      this._fullMap.add(this.add.text(fx + 6, fy + 8, 'CONTENT-SIZED PLACES (door-entered scenes):', { fontFamily: 'monospace', fontSize: '10px', color: '#ffe9c2', fontStyle: 'bold' }).setScrollFactor(0));
+      layout.forEach((R, i) => this._fullMap.add(this.add.text(fx + 8, fy + 22 + i * 13, `• ${R.label}  ${R.widthTiles}×${R.heightTiles}`, { fontFamily: 'monospace', fontSize: '10px', color: '#cdd8c4' }).setScrollFactor(0)));
+    }
     const seen = new Set();
     for (const e of ENTRANCES) {
       if (e.reserved || !e.gate) continue; const k = [e.region, e.to].sort().join('|'); if (seen.has(k)) continue; seen.add(k);
@@ -1098,6 +1104,7 @@ export class OverworldScene extends Phaser.Scene {
   _renderWorldMapInto(g, box) {
     const s = box.scale, mX = (wpx) => box.x + (wpx - box.wx) * s, mY = (wpy) => box.y + (wpy - box.wy) * s;
     for (const R of REGIONS) {
+      if (R.interior) continue;   // interiors/settlements are separate scenes — not on the overworld map
       const c = R.mapColor || (R.bogTint ? 0x6b724e : 0x4a7a3a), rx = mX(R.bounds.x), ry = mY(R.bounds.y), rw = Math.max(3, R.bounds.w * s), rh = Math.max(3, R.bounds.h * s);
       g.fillStyle(c, R.greybox ? 0.5 : 1).fillRect(rx, ry, rw, rh);
       g.lineStyle(1.5, 0x8aa0b8, 0.6).strokeRect(rx, ry, rw, rh);
