@@ -132,6 +132,16 @@ export const WORLD = {
     { key: 'prop_bush', tx: 36, ty: 21, solid: true }, { key: 'prop_bush', tx: 45, ty: 27, solid: true },
     { key: 'prop_bush', tx: 31, ty: 22, solid: true }, { key: 'prop_bush', tx: 12, ty: 20, solid: true },
 
+    // ---- PHASE-2 flora enrichment (NON-SOLID decoration — zero nav impact; varied scale/tint for
+    //      the variety rule: layered undergrowth + garden clumps that frame the lanes + soften edges) ----
+    { key: 'prop_bush', tx: 6, ty: 37, solid: false, scale: 0.7, tint: 0x8fbf6a }, { key: 'prop_bush', tx: 9, ty: 38, solid: false, scale: 0.55, tint: 0xa8d27a },
+    { key: 'prop_bush', tx: 18, ty: 37, solid: false, scale: 0.8, tint: 0x7fae5a }, { key: 'prop_bush', tx: 22, ty: 38, solid: false, scale: 0.6, tint: 0x9ac46e },
+    { key: 'prop_bush', tx: 38, ty: 34, solid: false, scale: 0.7, tint: 0x8fbf6a }, { key: 'prop_bush', tx: 44, ty: 33, solid: false, scale: 0.5, tint: 0xa8d27a },
+    { key: 'prop_bush', tx: 47, ty: 18, solid: false, scale: 0.65, tint: 0x86b864 }, { key: 'prop_bush', tx: 6, ty: 12, solid: false, scale: 0.6, tint: 0x9ac46e },
+    { key: 'prop_bush', tx: 4, ty: 22, solid: false, scale: 0.75, tint: 0x7fae5a }, { key: 'prop_bush', tx: 48, ty: 30, solid: false, scale: 0.55, tint: 0xa8d27a },
+    { key: 'prop_bush', tx: 23, ty: 19, solid: false, scale: 0.5, tint: 0xb6d886 }, { key: 'prop_bush', tx: 17, ty: 12, solid: false, scale: 0.5, tint: 0xb6d886 },
+    { key: 'prop_bush', tx: 28, ty: 12, solid: false, scale: 0.55, tint: 0xa8d27a }, { key: 'prop_bush', tx: 39, ty: 17, solid: false, scale: 0.6, tint: 0x9ac46e },
+
     // ---- signs (shop + trailhead waystone) ----
     { key: 'prop_sign', tx: 12, ty: 17, solid: true, text: 'PEM\'S GENERAL STORE — provisions, tools, and a fair price for honest folk. Bring coin or barter.' },     // Pem's Store sign
     { key: 'prop_sign', tx: 31, ty: 17, solid: true, text: 'THE COPPER TANKARD — ale, hearth, and a song. Rooms upstairs. Mind the step.' },     // the Tankard sign

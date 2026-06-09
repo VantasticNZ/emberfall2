@@ -67,6 +67,12 @@ export const GREENHOLLOW = {
     // PHASE-1 generator doors (re-roll a fresh, navGate-validated dungeon/cave on each entry)
     { via: 'door', key: 'prop_sign', solid: false, x: gx(33) + TILE / 2, y: gy(20) + TILE / 2, to: '__gendungeon', prompt: 'Enter a GENERATED dungeon' },
     { via: 'door', key: 'prop_sign', solid: false, x: gx(28) + TILE / 2, y: gy(20) + TILE / 2, to: '__gencave', prompt: 'Enter a GENERATED cave' },
+    // PHASE-2 building doors — the town's enterable interiors (front-of-building, walkable tile)
+    { via: 'door', key: 'prop_sign', solid: false, x: gx(10) + TILE / 2, y: gy(26) + TILE / 2, to: 'gh_forge', prompt: "Enter Hodge's forge" },
+    { via: 'door', key: 'prop_sign', solid: false, x: gx(13) + TILE / 2, y: gy(16) + TILE / 2, to: 'gh_store', prompt: "Enter Pem's store" },
+    { via: 'door', key: 'prop_sign', solid: false, x: gx(19) + TILE / 2, y: gy(11) + TILE / 2, to: 'gh_chapel', prompt: 'Enter the chapel' },
+    { via: 'door', key: 'prop_sign', solid: false, x: gx(34) + TILE / 2, y: gy(26) + TILE / 2, to: 'gh_home1', prompt: 'Enter the cottage' },
+    { via: 'door', key: 'prop_sign', solid: false, x: gx(41) + TILE / 2, y: gy(30) + TILE / 2, to: 'gh_home2', prompt: 'Enter the cottage' },
   ],
   // Phase-3 ART (restore discrete-v3 gold standard on the overworld; RESIDENT atlas):
   widthTiles: WORLD.widthTiles, heightTiles: WORLD.heightTiles,
@@ -592,9 +598,9 @@ export const HOLLOW_SPIRE = greyboxRegion({
 // round, walkable inside), greybox (a floor patch — Phase 2/3 art them). spawn = where you appear inside.
 // =============================================================================
 function interiorRegion(spec) {
-  const { key, otx, oty, W, H, doors = [], chests = [], spawn, floor = 'dirt', mapColor = 0x2a2620 } = spec;
+  const { key, otx, oty, W, H, doors = [], chests = [], furniture = [], spawn, floor = 'dirt', mapColor = 0x2a2620 } = spec;
   const ox = otx * TILE, oy = oty * TILE;
-  const walkable = [], gated = [], colliders = [];
+  const walkable = [], gated = [], colliders = [], props = [];
   for (let ty = 0; ty < H; ty++) {
     walkable[ty] = new Uint8Array(W); gated[ty] = new Uint8Array(W);
     for (let tx = 0; tx < W; tx++) {
@@ -603,13 +609,20 @@ function interiorRegion(spec) {
       if (wall) colliders.push({ x: ox + tx * TILE + TILE / 2, y: oy + ty * TILE + TILE / 2, w: TILE, h: TILE });
     }
   }
+  // FURNITURE — a solid piece carves its tile out of the nav (collider + non-walkable) so navGates
+  // still validate the body routes around it; the prop itself is drawn solid:false (the collider blocks).
+  for (const f of furniture) {
+    const wx = ox + f.tx * TILE + TILE / 2, wy = oy + f.ty * TILE + TILE / 2;
+    props.push({ key: f.key, x: wx, y: wy + (f.dy || 0), solid: false, scale: f.scale || 1, tint: f.tint });
+    if (f.solid) { walkable[f.ty][f.tx] = 0; colliders.push({ x: wx, y: wy, w: TILE, h: TILE }); }
+  }
   const interactables = doors.map((d) => ({ via: 'door', key: 'prop_sign', solid: false, x: ox + d.tx * TILE + TILE / 2, y: oy + d.ty * TILE + TILE / 2, to: d.to, prompt: d.label || 'Go' }));
   const chestData = chests.map((c) => ({ id: c.id, x: ox + c.tx * TILE + TILE / 2, y: oy + c.ty * TILE + TILE / 2, gold: c.gold || 15 }));
   return {
     key, origin: { x: ox, y: oy }, widthTiles: W, heightTiles: H, bounds: { x: ox, y: oy, w: W * TILE, h: H * TILE },
     route: true, interior: true, mapColor,
     terrain: { patches: [{ set: floor, rects: [[1, 1, W - 2, H - 2]] }] },
-    colliders, props: [], npcs: [], chests: chestData, interactables,
+    colliders, props, npcs: [], chests: chestData, interactables,
     spawn: { x: ox + spawn.tx * TILE + TILE / 2, y: oy + spawn.ty * TILE + TILE / 2 },
     nav: { walkable, gated, W, H },
   };
@@ -636,7 +649,64 @@ export const TEST_CAVE_F2 = interiorRegion({
   doors: [{ tx: 10, ty: 2, to: 'back', label: 'Ascend ↑' }],
   chests: [{ tx: 6, ty: 5, id: 'cave_f2_chest', gold: 40 }],
 });
-export const INTERIORS = [TANKARD_F1, TANKARD_F2, TEST_CAVE_F1, TEST_CAVE_F2];
+// GREENHOLLOW town interiors (Phase 2) — furnished with the available prop set (the forge anvil, barrels,
+// the fountain-as-font, the fence-as-counter/pew, a potted bush, chests). FLAG (HARD RULE 9): proper
+// interior furniture — beds, tables, shelves, hearths, an altar — is an ART need for the finished polish;
+// greybox-furnished with real props for now, never colour-boxed. Each: walls all round, the front door
+// at the spawn, furniture wall-hugging so the body walks the room (navGates-validated, interiors.test).
+export const GH_FORGE = interiorRegion({
+  key: 'gh_forge', otx: 440, oty: 615, W: 12, H: 9, floor: 'dirt', mapColor: 0x4a3a2e, spawn: { tx: 6, ty: 7 },
+  doors: [{ tx: 6, ty: 7, to: 'back', label: 'Leave the forge' }],
+  furniture: [
+    { tx: 2, ty: 1, key: 'prop_fountain', solid: true, scale: 0.85, tint: 0x6a6258 },   // the furnace/anvil basin (FLAG: a real anvil/forge interior sprite is an art need)
+    { tx: 3, ty: 1, key: 'prop_barrel', solid: true, scale: 0.85, tint: 0x8a7a6a },
+    { tx: 9, ty: 1, key: 'prop_barrel', solid: true }, { tx: 10, ty: 2, key: 'prop_barrel', solid: true, scale: 0.9 },
+    { tx: 1, ty: 4, key: 'prop_fence', solid: true }, { tx: 1, ty: 5, key: 'prop_fence', solid: true },
+  ],
+  chests: [{ tx: 9, ty: 5, id: 'gh_forge_chest', gold: 25 }],
+});
+export const GH_STORE = interiorRegion({
+  key: 'gh_store', otx: 470, oty: 615, W: 12, H: 9, floor: 'dirt', mapColor: 0x5a4a32, spawn: { tx: 6, ty: 7 },
+  doors: [{ tx: 6, ty: 7, to: 'back', label: 'Leave the store' }],
+  furniture: [
+    { tx: 2, ty: 1, key: 'prop_barrel', solid: true }, { tx: 3, ty: 1, key: 'prop_barrel', solid: true, scale: 0.9 }, { tx: 4, ty: 1, key: 'prop_barrel', solid: true, scale: 0.85, tint: 0xcab890 },
+    { tx: 8, ty: 1, key: 'prop_sign', solid: false, scale: 0.8 }, { tx: 9, ty: 1, key: 'prop_barrel', solid: true },
+    { tx: 2, ty: 4, key: 'prop_fence', solid: true }, { tx: 3, ty: 4, key: 'prop_fence', solid: true }, { tx: 4, ty: 4, key: 'prop_fence', solid: true },   // the counter
+    { tx: 10, ty: 6, key: 'prop_bush', solid: false, scale: 0.6 },
+  ],
+  chests: [{ tx: 9, ty: 5, id: 'gh_store_chest', gold: 20 }],
+});
+export const GH_CHAPEL = interiorRegion({
+  key: 'gh_chapel', otx: 500, oty: 615, W: 11, H: 12, floor: 'dirt', mapColor: 0x4a4658, spawn: { tx: 5, ty: 10 },
+  doors: [{ tx: 5, ty: 10, to: 'back', label: 'Leave the chapel' }],
+  furniture: [
+    { tx: 5, ty: 1, key: 'prop_fountain', solid: true, scale: 0.85, tint: 0xc8c0a0 },   // the font/altar at the head of the nave
+    { tx: 2, ty: 4, key: 'prop_fence', solid: true }, { tx: 3, ty: 4, key: 'prop_fence', solid: true }, { tx: 7, ty: 4, key: 'prop_fence', solid: true }, { tx: 8, ty: 4, key: 'prop_fence', solid: true },  // pews
+    { tx: 2, ty: 6, key: 'prop_fence', solid: true }, { tx: 3, ty: 6, key: 'prop_fence', solid: true }, { tx: 7, ty: 6, key: 'prop_fence', solid: true }, { tx: 8, ty: 6, key: 'prop_fence', solid: true },
+    { tx: 1, ty: 1, key: 'prop_bush', solid: false, scale: 0.6 }, { tx: 9, ty: 1, key: 'prop_bush', solid: false, scale: 0.6 },
+  ],
+  chests: [{ tx: 9, ty: 9, id: 'gh_chapel_chest', gold: 15 }],
+});
+export const GH_HOME1 = interiorRegion({
+  key: 'gh_home1', otx: 530, oty: 615, W: 10, H: 8, floor: 'dirt', mapColor: 0x5a4636, spawn: { tx: 5, ty: 6 },
+  doors: [{ tx: 5, ty: 6, to: 'back', label: 'Step outside' }],
+  furniture: [
+    { tx: 1, ty: 1, key: 'prop_barrel', solid: true, scale: 0.85 }, { tx: 8, ty: 1, key: 'prop_fountain', solid: true, scale: 0.7, tint: 0xb08a6a },   // a hearth-ish basin (FLAG: bed/table art)
+    { tx: 2, ty: 4, key: 'prop_fence', solid: true }, { tx: 3, ty: 4, key: 'prop_fence', solid: true }, { tx: 7, ty: 5, key: 'prop_bush', solid: false, scale: 0.55 },
+  ],
+  chests: [{ tx: 8, ty: 5, id: 'gh_home1_chest', gold: 18 }],
+});
+export const GH_HOME2 = interiorRegion({
+  key: 'gh_home2', otx: 560, oty: 615, W: 10, H: 8, floor: 'dirt', mapColor: 0x4e4a38, spawn: { tx: 5, ty: 6 },
+  doors: [{ tx: 5, ty: 6, to: 'back', label: 'Step outside' }],
+  furniture: [
+    { tx: 8, ty: 1, key: 'prop_barrel', solid: true }, { tx: 1, ty: 1, key: 'prop_barrel', solid: true, scale: 0.8, tint: 0xc0b088 },
+    { tx: 6, ty: 4, key: 'prop_fence', solid: true }, { tx: 2, ty: 5, key: 'prop_bush', solid: false, scale: 0.6 },
+  ],
+  chests: [{ tx: 8, ty: 5, id: 'gh_home2_chest', gold: 16 }],
+});
+
+export const INTERIORS = [TANKARD_F1, TANKARD_F2, TEST_CAVE_F1, TEST_CAVE_F2, GH_FORGE, GH_STORE, GH_CHAPEL, GH_HOME1, GH_HOME2];
 
 export const REGIONS = [GREENHOLLOW, ASHEN_MARSH, WEST_BELT, SUNDERED_PEAKS, FOOTHILL_ROUTE, TIDEWRECK_COAST, EMBERWOOD, HOLLOW_SPIRE, ...INTERIORS];
 const inBounds = (b, x, y) => x >= b.x && x < b.x + b.w && y >= b.y && y < b.y + b.h;
