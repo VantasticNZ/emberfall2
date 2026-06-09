@@ -42,6 +42,7 @@ import { TERRAIN } from '../data/terrainTiles.js';
 import { GREENHOLLOW_CHILDHOOD, GREENHOLLOW_SIDE, ASHEN_MARSH, SUNDERED_PEAKS as PEAKS_QUESTS, SUNDERED_PEAKS_SIDE } from '../data/quests/index.js';
 import { TILE, CHUNK_PX, WORLD_CHUNKS, WORLD_PX, chunkContent, groundTintAt, GREENHOLLOW, ASHEN_MARSH as MARSH_REGION, REGIONS, regionAt, inGreenhollow, inMarsh } from '../data/worldmap.js';
 import { ENTRANCES } from '../data/entrances.js';
+import { generateDungeon, generateCave } from '../data/gen/index.js';
 
 const FACE_VEC = { up: { x: 0, y: -1 }, down: { x: 0, y: 1 }, left: { x: -1, y: 0 }, right: { x: 1, y: 0 } };
 
@@ -284,6 +285,7 @@ export class OverworldScene extends Phaser.Scene {
   // looted interior chest stays looted, tools/quests/karma persist, and navGates validate interiors.
   _enterArea(to) {
     if (this._areaT) return; this._areaT = true;                     // debounce mid-transition
+    if (to === '__gendungeon' || to === '__gencave') { to = this._generateAndInject(to === '__gencave' ? 'cave' : 'dungeon'); if (!to) { this._areaT = false; return; } }
     if (to === 'back') {
       const ret = (this._areaStack || []).pop();
       if (ret) { this.player.x = ret.x; this.player.y = ret.y; this._inInterior = !!ret.interior; }
@@ -302,11 +304,28 @@ export class OverworldScene extends Phaser.Scene {
     this.time.delayedCall(160, () => { this._areaT = false; });
   }
 
+  // GENERATE a fresh dungeon/cave (Phase 1), validate via navGates inside generate(), and inject it
+  // into REGIONS at runtime (a reserved gen slot; re-rolls a new seed each entry). Returns its key.
+  _generateAndInject(kind) {
+    const slot = kind === 'cave'
+      ? { key: 'gen_cave', otx: 440, oty: 540, w: 26, h: 18, floor: 'rock' }
+      : { key: 'gen_dungeon', otx: 440, oty: 480, gw: 4, gh: 3, floor: 'rock' };
+    slot.seed = (this._genSeed = ((this._genSeed || 1234) + 2654435761) >>> 0);   // vary each entry (re-roll)
+    const res = kind === 'cave' ? generateCave(slot) : generateDungeon(slot);
+    const region = res.region;
+    const i = REGIONS.findIndex((r) => r.key === region.key);   // runtime inject/replace (not in the static source → no gate impact)
+    if (i >= 0) REGIONS[i] = region; else REGIONS.push(region);
+    this._lastGen = { kind, tries: res.tries, fallback: res.fallback, rooms: region.chests.length };
+    return region.key;
+  }
+
   // enclosed look: a dark backdrop over the overworld ground (under the interior floor) + dim bg.
   _setInteriorView(on) {
     if (!this._interiorBg) this._interiorBg = this.add.rectangle(0, 0, this.scale.width, this.scale.height, 0x07060c, 1).setOrigin(0, 0).setScrollFactor(0).setDepth(DEPTH.FLOOR + 0.5).setVisible(false);
     this._interiorBg.setVisible(!!on);
     this.cameras.main.setBackgroundColor(on ? '#07060c' : '#243a2a');
+    // hide the overworld chunk ground/props/decals so the interior reads enclosed (not grass + trees)
+    for (const [, c] of this.chunks) { if (c.ground) c.ground.setVisible(!on); for (const s of c.props) if (s.active) s.setVisible(!on); for (const d of (c.decals || [])) if (d.active) d.setVisible(!on); }
   }
 
   // CINDER KEEP — the GRAPPLE + SHARD_2 grant point (gating.js: Peaks GRANTS tool_grapple
@@ -927,6 +946,8 @@ export class OverworldScene extends Phaser.Scene {
       img.setTexture(dc.key).setPosition(dc.x, dc.y).setVisible(true).setActive(true);
     }
     for (; di < c.decals.length; di++) c.decals[di].setVisible(false).setActive(false);
+    // inside an interior, a freshly-streamed overworld chunk stays hidden (the enclosed view)
+    if (this._inInterior) { c.ground.setVisible(false); for (const s of c.props) s.setVisible(false); for (const d of (c.decals || [])) d.setVisible(false); }
     this.chunks.set(k, c);
   }
   _release(k, c) {

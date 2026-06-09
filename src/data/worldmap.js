@@ -64,6 +64,9 @@ export const GREENHOLLOW = {
     // PHASE-0 interior doors (the area-transition test): enter buildings/caves → separate interiors.
     { via: 'door', key: 'prop_sign', solid: false, x: gx(33) + TILE / 2, y: gy(15) + TILE / 2, to: 'tankard_f1', prompt: 'Enter the Copper Tankard' },
     { via: 'door', key: 'prop_sign', solid: false, x: gx(38) + TILE / 2, y: gy(20) + TILE / 2, to: 'cave_f1', prompt: 'Enter the cave' },
+    // PHASE-1 generator doors (re-roll a fresh, navGate-validated dungeon/cave on each entry)
+    { via: 'door', key: 'prop_sign', solid: false, x: gx(33) + TILE / 2, y: gy(20) + TILE / 2, to: '__gendungeon', prompt: 'Enter a GENERATED dungeon' },
+    { via: 'door', key: 'prop_sign', solid: false, x: gx(28) + TILE / 2, y: gy(20) + TILE / 2, to: '__gencave', prompt: 'Enter a GENERATED cave' },
   ],
   // Phase-3 ART (restore discrete-v3 gold standard on the overworld; RESIDENT atlas):
   widthTiles: WORLD.widthTiles, heightTiles: WORLD.heightTiles,
