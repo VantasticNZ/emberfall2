@@ -41,6 +41,7 @@ import { PROPS, PARTS, DIR_ROW, ANIMS, EXPRESSIONS, EXPR_COLS, EXPR_ROW, solidBo
 import { TERRAIN } from '../data/terrainTiles.js';
 import { GREENHOLLOW_CHILDHOOD, GREENHOLLOW_SIDE, ASHEN_MARSH, SUNDERED_PEAKS as PEAKS_QUESTS, SUNDERED_PEAKS_SIDE } from '../data/quests/index.js';
 import { TILE, CHUNK_PX, WORLD_CHUNKS, WORLD_PX, chunkContent, groundTintAt, GREENHOLLOW, ASHEN_MARSH as MARSH_REGION, REGIONS, regionAt, inGreenhollow, inMarsh } from '../data/worldmap.js';
+import { ENTRANCES } from '../data/entrances.js';
 
 const FACE_VEC = { up: { x: 0, y: -1 }, down: { x: 0, y: 1 }, left: { x: -1, y: 0 }, right: { x: 1, y: 0 } };
 
@@ -99,7 +100,7 @@ export class OverworldScene extends Phaser.Scene {
 
     this.auto = false; this._autoT = 0; this._lastSaveMs = 0; this._lastLoadMs = 0; this._resetPerf();
     this._buildWorldHud();
-    this._helpText = this.add.text(8, 412, 'WASD move · SHIFT run · E talk · J attack · Space dodge · C block · O map · T quests · H hide HUD · Esc settings · F5/F9 save/load', { fontFamily: 'monospace', fontSize: '10px', color: '#9fb89a', backgroundColor: '#000a', padding: { x: 4, y: 2 } }).setScrollFactor(0).setDepth(DEPTH.OVERLAY + 10);
+    this._helpText = this.add.text(8, 412, 'WASD move · SHIFT run · E talk · J attack · Space dodge · C block · M map · T quests · H hide HUD · Esc settings · F5/F9 save/load', { fontFamily: 'monospace', fontSize: '10px', color: '#9fb89a', backgroundColor: '#000a', padding: { x: 4, y: 2 } }).setScrollFactor(0).setDepth(DEPTH.OVERLAY + 10);
 
     this._restream(true);
     this._maybeToggleRegion(true);
@@ -807,7 +808,9 @@ export class OverworldScene extends Phaser.Scene {
     this.input.keyboard.on('keydown-F5', () => this.saveGame());
     this.input.keyboard.on('keydown-F9', () => this.loadGame());
     // HUD toggles (control SSOT: O map · T quests · H hide HUD · Esc settings)
-    this.input.keyboard.on('keydown-O', () => { if (!this._dlg) this._fullMap.setVisible(!this._fullMap.visible); });
+    const toggleMap = () => { if (!this._dlg) this._fullMap.setVisible(!this._fullMap.visible); };
+    this.input.keyboard.on('keydown-O', toggleMap);
+    this.input.keyboard.on('keydown-M', toggleMap);   // M = the full WORLD MAP / plan view
     this.input.keyboard.on('keydown-T', () => { if (!this._dlg) this._trkState = (this._trkState + 2) % 3; });   // cycle tracker: full→title→off
     this.input.keyboard.on('keydown-H', () => { if (!this._dlg) { this._hudHidden = !this._hudHidden; this.hud2.setVisible(!this._hudHidden); } });
     this.input.keyboard.on('keydown-ESC', () => this._openSettings());
@@ -1006,26 +1009,53 @@ export class OverworldScene extends Phaser.Scene {
     this._trkHdr = add(txt(mmx + 4, ty0 + 4, 'QUESTS (T)', 11, '#9fe6a0', { fontStyle: 'bold' }));
     this._trkBody = add(txt(mmx + 4, ty0 + 22, '', 11, '#f3ecff', { wordWrap: { width: mmW - 6 }, lineSpacing: 2 }));
 
-    // FULL-MAP overlay (toggle O) — the whole world large
+    // FULL-MAP overlay (toggle M / O) — the whole-world PLAN: regions + corridors + gates + labels.
+    // PROJECTION: fit the BOUNDING BOX of the built regions (not the empty 20480px world) so the plan
+    // FILLS the view + reads. box = { x,y,scale, wx,wy } → screenPx = x + (worldPx - wx)*scale.
     this._fullMap = add(this.add.container(0, 0).setScrollFactor(0).setDepth(OD + 2).setVisible(false));
-    const fw = Math.min(W - 80, 640), fh = Math.round(fw * 1), fx = (W - fw) / 2, fy = (this.scale.height - fh) / 2;
+    const fw = Math.min(W - 70, 760), fh = this.scale.height - 70, fx = (W - fw) / 2, fy = 40;
+    let minx = Infinity, miny = Infinity, maxx = -Infinity, maxy = -Infinity;
+    for (const R of REGIONS) { minx = Math.min(minx, R.bounds.x); miny = Math.min(miny, R.bounds.y); maxx = Math.max(maxx, R.bounds.x + R.bounds.w); maxy = Math.max(maxy, R.bounds.y + R.bounds.h); }
+    const pad = 2 * CHUNK_PX; minx -= pad; miny -= pad; maxx += pad; maxy += pad;
+    const scale = Math.min(fw / (maxx - minx), fh / (maxy - miny));
+    const box = { x: fx + (fw - (maxx - minx) * scale) / 2, y: fy + (fh - (maxy - miny) * scale) / 2, w: fw, h: fh, scale, wx: minx, wy: miny };
+    const mX = (wpx) => box.x + (wpx - box.wx) * box.scale, mY = (wpy) => box.y + (wpy - box.wy) * box.scale;
     const fg = this.add.graphics().setScrollFactor(0);
-    this._fullMap.add(this.add.rectangle(0, 0, W, this.scale.height, 0x05070b, 0.74).setOrigin(0, 0).setScrollFactor(0));
-    this._fullMap.add(this.add.rectangle(fx - 4, fy - 4, fw + 8, fh + 8, 0x10141c, 0.96).setOrigin(0, 0).setStrokeStyle(2, 0x7fa86a).setScrollFactor(0));
-    this._renderWorldMapInto(fg, { x: fx, y: fy, w: fw, h: fh, scale: fw / WORLD_PX });
+    this._fullMap.add(this.add.rectangle(0, 0, W, this.scale.height, 0x05070b, 0.9).setOrigin(0, 0).setScrollFactor(0));
+    this._fullMap.add(this.add.rectangle(fx - 5, fy - 5, fw + 10, fh + 10, 0x0c1018, 0.98).setOrigin(0, 0).setStrokeStyle(2, 0x7fa86a).setScrollFactor(0));
+    this._renderWorldMapInto(fg, box);
     this._fullMap.add(fg);
+    const lbl = (x, y, t, sz, col, oy2 = 0.5) => this._fullMap.add(this.add.text(x, y, t, { fontFamily: 'monospace', fontSize: sz + 'px', color: col, fontStyle: 'bold', stroke: '#05070b', strokeThickness: 4 }).setOrigin(0.5, oy2).setScrollFactor(0));
+    for (const R of REGIONS) lbl(mX(R.bounds.x + R.bounds.w / 2), mY(R.bounds.y + R.bounds.h / 2), R.key, R.greybox ? 11 : 13, R.greybox ? '#ffd9a0' : '#fff6df');
+    const seen = new Set();
+    for (const e of ENTRANCES) {
+      if (e.reserved || !e.gate) continue; const k = [e.region, e.to].sort().join('|'); if (seen.has(k)) continue; seen.add(k);
+      lbl(mX(e.at.tx * TILE), mY(e.at.ty * TILE) - 12, '🔒' + String(e.gate).replace('tool_', '').replace('shard_', 'shard '), 9, '#ffb077', 1);
+    }
+    this._fullMap.add(this.add.text(fx, fy - 26, 'WORLD MAP — the whole plan  (M / O to close)', { fontFamily: 'monospace', fontSize: '14px', color: '#ffe9c2', fontStyle: 'bold' }).setScrollFactor(0));
+    this._fullMap.add(this.add.text(fx, fy + fh + 8, '● you  ·  ▭ region (greybox = nav skeleton)  ·  light tan = walkable corridor  ·  🔒 = tool-gate  ·  ○ entrance', { fontFamily: 'monospace', fontSize: '11px', color: '#9fb89a' }).setScrollFactor(0));
     this._fmDots = this.add.graphics().setScrollFactor(0); this._fullMap.add(this._fmDots);
-    this._fmBox = { x: fx, y: fy, w: fw, h: fh, scale: fw / WORLD_PX };
-    this._fullMap.add(this.add.text(fx, fy - 22, 'WORLD MAP (O to close)', { fontFamily: 'monospace', fontSize: '14px', color: '#ffe9c2', fontStyle: 'bold' }).setScrollFactor(0));
+    this._fmBox = box;
   }
 
-  // draw the WORLD (belt + each region's footprint) into a graphics, scaled to a box
+  // draw the WORLD PLAN — base + each region footprint + the walkable CORRIDORS (from the nav grids,
+  // so greybox paths are visible) + entrance markers — using the box's bbox projection.
   _renderWorldMapInto(g, box) {
-    const s = box.scale, ox = box.x, oy = box.y;
-    g.fillStyle(0x3f5a34, 1).fillRect(ox, oy, WORLD_PX * s, WORLD_PX * s);   // belt/grass base
+    const s = box.scale, mX = (wpx) => box.x + (wpx - box.wx) * s, mY = (wpy) => box.y + (wpy - box.wy) * s;
     for (const R of REGIONS) {
-      const c = R.mapColor || (R.bogTint ? 0x6b724e : 0x4a7a3a);   // Peaks stone / Marsh bog / Greenhollow green
-      g.fillStyle(c, 1).fillRect(ox + R.bounds.x * s, oy + R.bounds.y * s, Math.max(2, R.bounds.w * s), Math.max(2, R.bounds.h * s));
+      const c = R.mapColor || (R.bogTint ? 0x6b724e : 0x4a7a3a), rx = mX(R.bounds.x), ry = mY(R.bounds.y), rw = Math.max(3, R.bounds.w * s), rh = Math.max(3, R.bounds.h * s);
+      g.fillStyle(c, R.greybox ? 0.5 : 1).fillRect(rx, ry, rw, rh);
+      g.lineStyle(1.5, 0x8aa0b8, 0.6).strokeRect(rx, ry, rw, rh);
+      const nav = R.nav;   // the WALKABLE CORRIDORS (greybox nav grids) — light dirt so the path network reads
+      if (nav && nav.walkable) {
+        const tpx = Math.max(1, TILE * s); g.fillStyle(0xd8b878, 0.98);
+        for (let ty = 0; ty < nav.H; ty++) for (let tx = 0; tx < nav.W; tx++)
+          if (nav.walkable[ty][tx]) g.fillRect(mX(R.bounds.x + tx * TILE), mY(R.bounds.y + ty * TILE), tpx, tpx);
+      }
+    }
+    for (const e of ENTRANCES) {
+      if (e.reserved) continue;
+      g.fillStyle(e.gate ? 0xff9e3b : 0x86e06a, 1).fillCircle(mX(e.at.tx * TILE), mY(e.at.ty * TILE), 3.5);
     }
   }
 
@@ -1079,7 +1109,7 @@ export class OverworldScene extends Phaser.Scene {
     }
     // player dot on the minimap (+ full map if open)
     this._mmDots.clear().fillStyle(0xffe66d, 1).fillCircle(this._mm.x + this.player.x * this._mm.scale, this._mm.y + this.player.y * this._mm.scale, 3);
-    if (this._fullMap.visible) this._fmDots.clear().fillStyle(0xffe66d, 1).fillCircle(this._fmBox.x + this.player.x * this._fmBox.scale, this._fmBox.y + this.player.y * this._fmBox.scale, 4);
+    if (this._fullMap.visible) { const b = this._fmBox; this._fmDots.clear().fillStyle(0xffe66d, 1).fillCircle(b.x + (this.player.x - b.wx) * b.scale, b.y + (this.player.y - b.wy) * b.scale, 5).lineStyle(2, 0x4a3a00, 1).strokeCircle(b.x + (this.player.x - b.wx) * b.scale, b.y + (this.player.y - b.wy) * b.scale, 5); }
     this._updateObjective();
   }
 
