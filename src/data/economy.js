@@ -28,7 +28,7 @@ export const SHOPS = [
     { item: 'wooden_sword' }, { item: 'steel_sword' }, { item: 'leather_jerkin' },
     { item: 'lantern_oil' }, { item: 'minor_potion' }, { item: 'iron_ore' },
     { item: 'book_repair' },
-    { item: 'greenhollow_house', requires: { level: 5 } },
+    { item: 'greenhollow_house', requires: { act: 2 } },
   ] },
   { id: 'mirefen_trader', name: 'Mirefen Trader', region: 'Ashen Marsh', stock: [
     { item: 'lantern_oil' }, { item: 'minor_potion' }, { item: 'stew' },
@@ -42,7 +42,7 @@ export const SHOPS = [
   { id: 'saltbreak_market', name: 'Saltbreak Market', region: 'Tidewreck Coast', stock: [
     { item: 'tideglass_blade' }, { item: 'frost_cloak' }, { item: 'major_potion' },
     { item: 'bread' }, { item: 'meat_pie' }, { item: 'pearl_circlet' }, { item: 'book_haggling' },
-    { item: 'saltbreak_shop', requires: { level: 10 } },
+    { item: 'saltbreak_shop', requires: { act: 3 } },
     { item: 'corrupt_blade', requires: { karma: { morality: { max: -20 }, purity: { max: -20 } } } }, // Corrupt only
   ] },
   { id: 'emberwood_pedlar', name: 'Emberwood Pedlar', region: 'Emberwood', stock: [
@@ -57,7 +57,7 @@ export const JOBS = [
   { id: 'fishing',       name: 'Fishing',        gold: 6,  items: { fish: 3 } },
   { id: 'smithing_help', name: "Hodge's Helper", gold: 15, skill: 'smith', items: { iron_ore: 1 } },
   { id: 'delivery',      name: "Pem's Deliveries", gold: 12 },
-  { id: 'bounty',        name: 'Bounty Board',   gold: 40, requires: { level: 3 } }, // medium, gated
+  { id: 'bounty',        name: 'Bounty Board',   gold: 40, requires: { act: 2 } }, // medium, gated
 ];
 
 // BALANCE constants (tunable). See docs/ECONOMY-BALANCE.md.

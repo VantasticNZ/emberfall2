@@ -28,10 +28,23 @@ export function sellPrice(itemId, region, cha = 5) {
   return Math.max(0, Math.round(item(itemId).value * m * chaSellMult(cha)));
 }
 
-// --- gating (mirrors the QuestEngine requires-pattern: level/deeds/karma) -----
-export function meetsRequires(req = {}, { karma = null, level = 1 } = {}) {
+// --- ACT (the progression "level"): NOT an earned XP stat — it's the story ACT (1-3), derived from
+// main-quest milestones. Act 2 = returned as an adult (M7 `time_skip`); Act 3 = the four region
+// shards gathered (ready for the Spire). This is what `requires:{act}` gates open on — so the
+// act-gated content (bounty/house/shop) becomes reachable as the STORY advances, never by grinding.
+// (MECHANICS-DESIGN.md D1/§2. `Inventory.level` is a retired stub — gating uses the act, not it.)
+export function actOf(karma) {
+  if (!karma) return 1;
+  const has = (d) => karma.hasDeed(d);
+  if (['shard_1', 'shard_2', 'shard_3', 'shard_4'].every(has)) return 3;   // Act 3 — the Spire
+  if (has('time_skip')) return 2;                                          // Act 2 — adult, returned (M7)
+  return 1;                                                                // Act 1 — childhood
+}
+
+// --- gating (mirrors the QuestEngine requires-pattern: act/deeds/karma) -------
+export function meetsRequires(req = {}, { karma = null, act = 1 } = {}) {
   if (!req) return true;
-  if (req.level != null && level < req.level) return false;
+  if (req.act != null && act < req.act) return false;
   if (req.deeds || req.notDeeds || req.karma) {
     if (!karma) return false; // gated on memory we weren't given -> closed
     if ((req.deeds || []).some((d) => !karma.hasDeed(d))) return false;
@@ -59,13 +72,13 @@ export function isOpen(shopId, time) {
 /** The item ids currently offered by a shop, after gating. */
 export function availableStock(shopId, { inv, karma } = {}) {
   const s = shop(shopId); if (!s) return [];
-  return s.stock.filter((e) => meetsRequires(e.requires, { karma, level: inv?.level ?? 1 }))
+  return s.stock.filter((e) => meetsRequires(e.requires, { karma, act: actOf(karma) }))
     .map((e) => e.item);
 }
 export function buy(inv, karma, shopId, itemId) {
   const s = shop(shopId); const entry = s?.stock.find((e) => e.item === itemId);
   if (!entry) return { ok: false, reason: 'not stocked' };
-  if (!meetsRequires(entry.requires, { karma, level: inv.level })) return { ok: false, reason: 'locked' };
+  if (!meetsRequires(entry.requires, { karma, act: actOf(karma) })) return { ok: false, reason: 'locked' };
   if (item(itemId).type === 'property') return buyProperty(inv, karma, shopId, itemId);
   const price = buyPrice(itemId, s.region, inv.attr ? inv.attr('cha') : 5);   // CHA discount
   if (inv.gold < price) return { ok: false, reason: 'too poor', price };
@@ -98,7 +111,7 @@ export function buyProperty(inv, karma, shopId, itemId) {
   const s = shop(shopId); const entry = s?.stock.find((e) => e.item === itemId);
   const it = item(itemId);
   if (!entry || it.type !== 'property') return { ok: false, reason: 'not for sale' };
-  if (!meetsRequires(entry.requires, { karma, level: inv.level })) return { ok: false, reason: 'locked' };
+  if (!meetsRequires(entry.requires, { karma, act: actOf(karma) })) return { ok: false, reason: 'locked' };
   if (inv.property[itemId]) return { ok: false, reason: 'already owned' };
   const price = buyPrice(itemId, s.region);
   if (inv.gold < price) return { ok: false, reason: 'too poor', price };
@@ -118,7 +131,7 @@ export function collectRent(inv, periods = 1) {
 export function doJob(inv, jobId, karma = null) {
   const j = JOBS.find((x) => x.id === jobId);
   if (!j) return { ok: false, reason: 'no such job' };
-  if (!meetsRequires(j.requires, { karma, level: inv.level })) return { ok: false, reason: 'locked' };
+  if (!meetsRequires(j.requires, { karma, act: actOf(karma) })) return { ok: false, reason: 'locked' };
   if (j.gold) inv.addGold(j.gold);
   Object.entries(j.items || {}).forEach(([id, n]) => inv.add(id, n));
   if (j.skill) inv.learnSkill(j.skill);

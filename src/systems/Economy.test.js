@@ -53,14 +53,21 @@ pass('regional pricing: same item costs/sells differently by region; buy > sell 
   pass('buy deducts the regional price + adds the item; sell adds the regional payout + removes it');
 }
 
-// 3) LEVEL-gated stock unlocks at the right level ---------------------------
+// 3) ACT-gated content unlocks as the STORY advances (level=act, NEVER earned by XP — D1) -----
 {
-  const lo = newInv({ level: 1, gold: 9999 }); const hi = newInv({ level: 5, gold: 9999 });
-  const karma = newKarma();
-  assert.ok(!availableStock('hodge_forge', { inv: lo, karma }).includes('greenhollow_house')); // lvl 5 gated
-  assert.ok(availableStock('hodge_forge', { inv: hi, karma }).includes('greenhollow_house'));
-  assert.equal(buy(lo, karma, 'hodge_forge', 'greenhollow_house').reason, 'locked');
-  pass('level-gated stock: the Greenhollow house only appears + buys at level 5');
+  const inv = newInv({ gold: 9999 });
+  const act1 = newKarma();                                                       // Act 1 — childhood, no milestones
+  const act2 = newKarma(); act2.recordDeed('time_skip');                         // Act 2 — returned as an adult (M7)
+  const act3 = newKarma(); ['time_skip', 'shard_1', 'shard_2', 'shard_3', 'shard_4'].forEach((d) => act3.recordDeed(d)); // Act 3 — ready for the Spire
+  // the dead-content fix: bounty + house open at Act 2; the Saltbreak shop-property at Act 3.
+  assert.ok(!availableStock('hodge_forge', { inv, karma: act1 }).includes('greenhollow_house')); // Act 1: locked
+  assert.equal(buy(inv, act1, 'hodge_forge', 'greenhollow_house').reason, 'locked');
+  assert.equal(doJob(inv, 'bounty', act1).reason, 'locked');                     // bounty board: Act 1 locked
+  assert.ok(availableStock('hodge_forge', { inv, karma: act2 }).includes('greenhollow_house')); // Act 2: house opens
+  assert.equal(doJob(inv, 'bounty', act2).ok, true);                            // Act 2: bounty opens
+  assert.ok(!availableStock('saltbreak_market', { inv, karma: act2 }).includes('saltbreak_shop')); // shop still Act 3
+  assert.ok(availableStock('saltbreak_market', { inv, karma: act3 }).includes('saltbreak_shop'));  // Act 3: shop opens
+  pass('ACT-gated content (D1 fix): bounty+house reachable at Act 2 (time_skip), Saltbreak shop at Act 3 — opens with the STORY, not XP');
 }
 
 // 4) KARMA-gated stock: dark gear if Corrupt, blessed if Pure ----------------
@@ -92,13 +99,13 @@ pass('regional pricing: same item costs/sells differently by region; buy > sell 
 
 // 6) PROPERTY: buy (level+gold gated) then collect passive rent --------------
 {
-  const inv = newInv({ level: 5, gold: 2000 }); const karma = newKarma();
+  const inv = newInv({ gold: 2000 }); const karma = newKarma(); karma.recordDeed('time_skip'); // Act 2
   const r = buyProperty(inv, karma, 'hodge_forge', 'greenhollow_house');
   assert.equal(r.ok, true); assert.equal(r.price, 1500); assert.equal(r.rent, 25);
   assert.equal(inv.gold, 500);
   const got = collectRent(inv, 3);              // 3 periods x 25
   assert.equal(got, 75); assert.equal(inv.gold, 575);
-  pass('property: buy the Greenhollow house (gold+level gated) -> rent trickles 25/period');
+  pass('property: buy the Greenhollow house (gold + Act 2 gated) -> rent trickles 25/period');
 }
 
 // 7) FOOD -> health + body-state trade-offs ---------------------------------
@@ -120,12 +127,12 @@ pass('regional pricing: same item costs/sells differently by region; buy > sell 
 
 // 8) JOBS yield gold (+ materials/skill) ------------------------------------
 {
-  const inv = newInv({ gold: 0 });
+  const inv = newInv({ gold: 0 }); const karma = newKarma();
   const r = doJob(inv, 'woodcutting');
   assert.equal(r.ok, true); assert.equal(inv.gold, 8); assert.equal(inv.has('timber', 2), true);
-  assert.equal(doJob(inv, 'bounty').reason, 'locked'); // needs level 3
-  inv.level = 3; assert.equal(doJob(inv, 'bounty').ok, true); assert.equal(inv.gold, 48);
-  pass('jobs: woodcutting yields gold + timber; the bounty unlocks at level 3');
+  assert.equal(doJob(inv, 'bounty', karma).reason, 'locked'); // Act 1: locked (never earnable by XP)
+  karma.recordDeed('time_skip'); assert.equal(doJob(inv, 'bounty', karma).ok, true); assert.equal(inv.gold, 48);
+  pass('jobs: woodcutting yields gold + timber; the bounty unlocks at Act 2 (time_skip), not by XP');
 }
 
 // 9) DEATH penalty: a capped % of gold --------------------------------------
@@ -142,7 +149,7 @@ pass('regional pricing: same item costs/sells differently by region; buy > sell 
 // 10) persists through save -> reload ---------------------------------------
 {
   const store = memoryStorage();
-  const inv = new Inventory({ storage: store, level: 5, gold: 2000 }); const karma = newKarma();
+  const inv = new Inventory({ storage: store, gold: 2000 }); const karma = newKarma(); karma.recordDeed('time_skip'); // Act 2
   inv.add('major_potion', 2); inv.add('steel_sword'); inv.equip('steel_sword');
   learnBook(inv, (buy(inv, karma, 'hodge_forge', 'book_repair'), 'book_repair'));
   buyProperty(inv, karma, 'hodge_forge', 'greenhollow_house');

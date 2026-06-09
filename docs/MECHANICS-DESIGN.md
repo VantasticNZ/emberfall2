@@ -1,11 +1,19 @@
-# MECHANICS DESIGN — the core loop + progression model (design hierarchy level 3b)
+# MECHANICS DESIGN — the core loop + progression model (design hierarchy level 3b) — **RATIFIED v2**
 
 > **GAME-BUILD-PLAYBOOK v2 §1 level 3b** — locked here so combat content + encounters across the
-> world have a spine to hang on. **Design only.** Reconciles with what already exists (combat engine,
-> tool-DAG, karma/endings, economy) and FLAGS — never overrides — anything that changes existing data.
-> Cross-refs: `gating.js` (the tool DAG), `STORY-AND-QUESTS.md` (the M1–M20 spine + 3 acts),
-> `EXCELLENCE-FRAMEWORK.md` (the emotional arc), `Combat.js`/`Monsters.js`/`EnemyController.js` (the
-> engine), `Karma.js` + `constants/endings.js` (the 5 endings), `economy.js` (gold/gear).
+> world have a spine to hang on. **Design doc.** Cross-refs: `gating.js` (the tool DAG),
+> `STORY-AND-QUESTS.md` (the M1–M20 spine + 3 acts), `EXCELLENCE-FRAMEWORK.md` (the emotional arc),
+> `Combat.js`/`Monsters.js`/`EnemyController.js` (the engine), `Karma.js` + `constants/endings.js`
+> (the 5 endings), `economy.js` (gold/gear).
+>
+> **✅ RATIFIED (2026-06-09) — Van chose the ZELDA-STYLE model:** growth = **tool-unlocks + hearts +
+> bounded gear**, with **NO XP, NO stats (STR/DEX/CON/INT/CHA), NO skill tree**; difficulty is
+> **hand-PLACED per region** (never auto-scaling — so you genuinely feel stronger and early areas feel
+> easy on return); **level = the story ACT**; **magic = acquirable spell-ITEMS** gated by the MP bar;
+> **morality deepened Fable-style** (people/greed/cruelty vs mercy/fairness) with the **talking
+> good-monster** as the rule-proving exception. The dead level-gated content (bounty/house/shop) is
+> **FIXED in code** (now act-gated, reachable as the story advances — see §5/D1). Sections below carry
+> the [RATIFIED] decisions; retired code stubs are flagged at the end.
 
 ## 0. THE PREMISE (what this game IS, so the mechanics serve it)
 Emberfall 2 is a **~30hr story-driven action-RPG**: a wholesome-village childhood that curdles into
@@ -50,41 +58,68 @@ The loop is **front-loaded with meaning, back-loaded with reflexes** — exactly
 
 ---
 
-## 2. PROGRESSION MODEL — **"Reach + bounded gear, no XP grind."** (recommended + justified)
+## 2. PROGRESSION MODEL — **ZELDA-STYLE: tools + hearts + bounded gear. NO XP/stats/skills.** [RATIFIED]
 
-### The decision
-Of the four growth axes (tool-gated ability · stats/leveling · skill tree · gear), **adopt two,
-drop/repurpose two:**
+### The model (ratified)
+Growth is **horizontal capability + a little bounded vertical power**, exactly like a Zelda game —
+never a stat sheet:
 
-| Axis | Verdict | Role |
+| Axis | [RATIFIED] | Role |
 |---|---|---|
-| **Tool-gated capability** (the Metroidvania spine) | ✅ **PRIMARY** | The backbone. Each tool = new **reach** + a small **combat/utility verb**. Already the gating DAG. |
-| **Gear** (gold → swords/armour) | ✅ **SECONDARY (bounded)** | The *only* vertical power axis, and it's capped (atk +3 → +15 across the whole game). Already wired. |
-| **XP / leveling** | ❌ **DROP as a grind** → repurpose | NO earned XP. `level` becomes the **ACT number** (see [DECISION D1]). |
-| **Deep stat/skill tree** | ❌ **DROP** → a few perks | A handful of **utility perks** (haggle/repair/monster-sense), not a combat tree ([D5]). |
+| **Tool-unlocks** (the Metroidvania spine) | ✅ **PRIMARY** | Each tool = a **traverse ability + a combat verb** (e.g. *grapple* = reach across a gap **and** in combat yanks/**stuns** an enemy for a small punish + slight damage). The backbone of feeling more capable. Already the `gating.js` DAG. |
+| **Hearts / max life** | ✅ **the survivability axis** | Found/earned **heart-pieces** raise max HP (Zelda hearts), placed as exploration/quest rewards — *not* an HP stat that scales with a level. Survivability grows by *exploring*, not grinding. |
+| **Gear tiers** (gold → sword/armour) | ✅ **bounded vertical power** | The only damage/defence axis, and it's **capped** (atk +3 → +15 across the whole game; armour +2 → +6). Buy from shops that open by Act. Already wired. |
+| **Magic = spell-ITEMS** | ✅ **reserved, MP-gated** | Acquirable spell items/tools (Zelda-style, *not* stat-scaled), spent from the **existing MP bar**. See §2.3. |
+| **XP / leveling** | ❌ **REMOVED** | No earned XP anywhere. `level` is repurposed as the **story ACT** (§2.2, D1 — fixed in code). |
+| **Stats (STR/DEX/CON/INT/CHA)** | ❌ **REMOVED** | Not a Zelda mechanic; they were unused stubs. Combat power lives in *gear + tools*, survivability in *hearts*. **Retire the stubs** (§ end). |
+| **Skill tree** | ❌ **REMOVED** | No perk/skill tree. The few "book" abilities fold into tools/quests or are cut. |
 
-### Why this is right for a 30hr narrative RPG
-- **No grind, no number-bloat.** A story player should never have to farm slimes to be "strong
-  enough" — that would gate the *story* behind *reflexes/time*, which is the cardinal sin here.
-- **Power = capability, not stats.** Getting the grapple *feels* better than +2 STR and it advances
-  the world. Horizontal growth (new verbs/places) suits exploration; vertical growth stays bounded
-  (gear) so encounters can be *tuned* rather than out-scaled.
-- **It's already 80% built** — tools (keys), gear (economy), the boss-trick. We're naming it +
-  closing three contradictions, not building a new system.
+**Why (ratified rationale):** a 30hr *story* RPG must never gate the narrative behind *grind* — power
+is **capability you find** (a new tool, a new heart, a better blade), so the world stays the reward.
+And because difficulty is **placed, not scaled** (§2.1), every tool/heart/blade makes you *feel*
+permanently stronger — returning to the Marsh as a Spire-era hero should feel *powerful*, which only
+works if early enemies stay weak.
 
-### THE POWER CURVE across M1–M20 (mapped to the acts + the emotional arc)
-| Beats | Region | Reach gained | Gear tier | Combat intensity |
+### 2.1 DIFFICULTY = PLACED PER-REGION, never auto-scaling [RATIFIED]
+Enemy strength is **authored into each region's encounter data** and **fixed** — early regions hold
+**weaker, slower, simpler** enemies; later regions hold **stronger, faster, trickier** ones; bosses
+scale up the spine. **Nothing scales to the player.** (Engine reality: enemy hp/dmg/speed already live
+in per-archetype data + per-placement — there is no scaling system, which is correct; we just *place*
+the curve.) The per-region curve, mapped to the emotional arc:
+
+| Beats | Region | Reach + hearts | Gear tier | PLACED difficulty (fixed) |
 |---|---|---|---|---|
-| **M1–M5** | Greenhollow (childhood) | — (bare hands) | none → wooden sword | **~none** — tutorial taps; the village is a SAFE HUB |
+| **M1–M5** | Greenhollow (childhood) | — · 3 starting hearts | none → wooden sword | **~none** — tutorial taps; SAFE HUB |
 | **M6–M7** | the Burning / return | — | wooden → steel | a single scripted scare |
-| **M8–M10** | Ashen Marsh | **tool_lantern** (light + the Guardian's shroud-strip) + shard 1 | steel | **ramp starts** — teach charger/ranged/swarm; **Drowned Guardian** (lantern-trick) |
-| **M11–M12** | Sundered Peaks | **tool_grapple** (pull + the Sentinel's shield-haul) + shard 2 | + peak_mail / crag_maul | adds brute/electric; **Keep Sentinel** (grapple-trick) |
-| **M13–M14** | Tidewreck Coast | **tool_hookshot** (cross gaps) + shard 3 | + tideglass | adds ambusher (wreck) |
-| **M15–M16** | Emberwood | **tool_firefrost** (elemental option) + shard 4 | + cinderhide/frost | elemental casters; **the M16 mercy climax** |
-| **M17–M20** | Hollow Spire | all 4 tools required | top gear | **the gauntlet** — M18 "earlier enemies return harder", the over-hyped **M19 brutal boss** |
+| **M8–M10** | Ashen Marsh | **lantern** (light + Guardian shroud-strip) + shard 1 · +heart | steel | **gentle** — slow chargers, few ranged; teach 3 counters; **Drowned Guardian** |
+| **M11–M12** | Sundered Peaks | **grapple** (gap + stun/pull) + shard 2 · +heart | + peak_mail / crag_maul | **stepped up** — brutes, electric; faster; **Keep Sentinel** (bigger) |
+| **M13–M14** | Tidewreck Coast | **hookshot** (cross + pull) + shard 3 · +heart | + tideglass | **trickier** — ambushers in wreckage; mixed pockets |
+| **M15–M16** | Emberwood | **firefrost** (elemental verb) + shard 4 · +heart | + cinderhide/frost | **dangerous** — caster pressure; elemental; M16 climax |
+| **M17–M20** | Hollow Spire | all tools required · final hearts | top gear | **the gauntlet** — earlier enemies return **HARDER (placed harder variants)**; the hyped **M19 brutal boss** (biggest scale) |
 
-Power increase is therefore **4 tool-unlocks + 5 gear tiers + the boss-trick mastery** — a clean,
-authored curve with **zero farming**. Difficulty is balanced by *encounter design*, not player level.
+Power = **4 tools + ~6 hearts + 5 gear tiers + boss-trick mastery**, against a **hand-placed** rising
+curve. A returning hero genuinely steamrolls the Marsh — by design.
+
+### 2.2 LEVEL = THE STORY ACT [RATIFIED — fixed in code]
+`level` is **not** an XP stat; it is the **act (1–3)**, derived from main-quest milestones and used only
+to gate act-appropriate content. **Implemented:** `Economy.actOf(karma)` → Act 1 (childhood) · Act 2
+(`time_skip`, returned as an adult, M7) · Act 3 (the four region shards gathered). The previously
+**dead** content now opens with the story (§5/D1). The `Inventory.level` field is a retired stub.
+
+### 2.3 MAGIC — acquirable spell-ITEMS, MP-gated [RATIFIED — reserved system, lean spec]
+Magic is **Zelda-style items**, not a stat-scaled school: each spell is an **acquired tool** with a
+**fixed effect** and an **MP cost** from the existing MP bar (no INT scaling, no spell levels). Keep it
+**small + purposeful** — 3–4 spells, each earned at a story beat and each opening a *verb*, mirroring
+the tool spine. Reserved set (final names TBD with the fiction):
+| Spell (item) | Effect | MP | Earned ~ |
+|---|---|---|---|
+| **Emberlight** | a short ranged flame bolt (a ranged option vs fliers/ranged enemies) | low | Act 2 (Marsh/Peaks) |
+| **Wardpulse** | a brief damage-absorbing ward (panic-button defence) | med | Act 2-late |
+| **Frostgrasp** | freezes a single enemy briefly (crowd-control / solve a hazard) | med | Act 3 (Emberwood, pairs with firefrost) |
+| **Hearthcall** *(optional)* | warp to the last shrine/hub (QoL traversal) | high | late |
+> Magic uses the **MP bar that already exists in the HUD**. It is a **reserved system** — spec'd here,
+> built in the polish layer (v2 §8.6), not now. **[DECISION D2 — CONFIRM with Van]:** ship magic at
+> all? If yes, this lean MP-item set; if "later/cut", mark MP as reserved and proceed tools-only.
 
 ---
 
@@ -134,20 +169,51 @@ The archetype is the *mechanic*; the **skin is the biome** (`enemies.js` already
 | **Hollow Spire** | the binding | all, harder | **the M19 brutal boss** |
 *(Coast/Emberwood/Spire rosters are not yet placed — a content task, design-noted here.)*
 
-### 3.4 Karma × combat — **the corruption-vs-mercy principle** (this reconciles "mercy matters" with
-"combat is mandatory")
-> **[DECISION D3 — confirm]:** **Combat enemies are MANIFESTATIONS OF THE CORRUPTION** (the bog's
-> drowned dead, the god's fever made monsters) — *killing them is cleansing, morally neutral-to-good,
-> and never costs morality.* The **moral axis is reserved for PEOPLE and the GOD** — the M16 mercy
-> choice, the Sela betrayal (M17), the childhood seeds. So a player fights freely *and* the karma
-> system stays meaningful: you cleanse monsters with your blade and show **mercy** where it actually
-> means something (a suffering god, not a slime).
-- **Pacifism [DECISION D7]:** a *full* pacifist run is **out of scope** (the shard-dungeon bosses are
-  mandatory story gates; enemies aren't sneak-avoidable without new engine work). But a **low-violence,
-  merciful playstyle is honoured**: the **optional hunts stay optional** (`crag_beast_slain` etc. never
-  required), and **mercy is expressed at the named story beats** (`mercy_shown` at M16 gates Saint /
-  Liberator / Ashbearer). Recommend NOT adding a sneak/subdue system now — it's scope the vision
-  doesn't need.
+### 3.4 MORALITY — deepened, Fable-style (the soul of the game) [RATIFIED]
+Morality is not a combat stat; it is **how the world remembers what kind of person you are**, read on
+the existing **Morality + Purity** HUD axes (`Karma.js`) and paid off in **NPC reactions, world state,
+and the 5 endings**. The deepened rule set:
+
+**What MOVES the axes**
+| You do… | Morality | Purity | Why it's coherent |
+|---|---|---|---|
+| **Hurt / kill / rob / betray a PERSON** (NPC, the talking good-monster — §below) | ↓↓ | ↓ | violence against the innocent is the core sin |
+| **Kill a MONSTER** (corruption-spawn: bog dead, fever-beasts) | — | — | **guilt-free cleansing** — you're healing the world, not harming it |
+| **Greed**: price-gouging, extortion, looting a grave/home, theft, breaking a deal | ↓ | ↓↓ | selfishness taints the *self* (purity) |
+| **Cruelty for its own sake**: kicking the chicken, mocking grief, daring a friend into danger | ↓↓ | ↓ | the childhood seeds (`chicken_kicked`, `dared_friend`) — cruelty is remembered |
+| **Mercy / fairness / generosity**: spare, return the coin, help freely, fair trade, comfort | ↑↑ | ↑ | the good axis — the deeds the world rewards |
+| **Sacrifice / restraint / truth**: take a burden, refuse a corrupt bargain, keep a hard promise | ↑ | ↑↑ | purity is *integrity*, not piety |
+
+**Visible consequences (this is what makes it DEEP, not a number):**
+- **NPCs react**: a kind hero is greeted warmly, given discounts, trusted with secrets; a cruel/greedy
+  one is feared, overcharged, refused (the dialogue routers + `chaBuyMult`-style price reactions
+  already exist — *re-point price reactions off MORALITY/PURITY now that CHA is removed*, see [D-econ]).
+- **World state**: the village rebuilds for a good hero / stays broken for a callous one; the kicked
+  chicken returns; corrupt-only and pure-only gear/charms appear (`corrupt_blade`, `blessed_charm`).
+- **Endings**: deed/karma-gated, never power-gated (§5) — Saint/Liberator/Ashbearer need
+  `mercy_shown`; Tyrant needs Cruel+Corrupt. *You reach an ending by who you ARE, never by how strong.*
+
+**The CORRUPTION-vs-MERCY principle (ratifies D3):** *monsters are the corruption made flesh — slaying
+them is cleansing and never costs morality; the moral axis is reserved for PEOPLE and the GOD.* This is
+what lets the game be **combat-heavy AND mercy-meaningful** at once.
+
+**The TALKING, MORALLY-GOOD MONSTER — the exception that proves the rule** [RATIFIED — new designed beat]
+> A creature that **looks like a monster but is good**: it talks, it's gentle, it helps (e.g. a lone
+> **Mire-kin** outcast in the Marsh who guides you, or a **fen-troll** tending a hidden garden).
+> **Attacking/killing it is a real CRUELTY hit** (↓↓ morality, ↓ purity — same as harming a person),
+> and the world remembers (its garden dies; an NPC mourns it; it can't help you later). Sparing/helping
+> it = a generosity reward + a unique aid (a shortcut, lore, a heart-piece). **Why it matters:** it
+> teaches the player that **"monster" is not a licence to kill** — *judgement*, not the sword, is the
+> moral test. It makes the guilt-free-monster rule *deliberate* (you chose to read the situation),
+> deepening every later fight. Wire as a quest with its own deed (`good_monster_spared` /
+> `good_monster_slain`) feeding the karma axes + a late callback. **[content task — design-noted; needs
+> a deed id added to `deeds.js` when built.]**
+
+- **Pacifism [RATIFIED D7]:** a *full* pacifist run is **out of scope** (shard-dungeon bosses are
+  mandatory story gates; enemies aren't sneak-avoidable without new engine work). But a **merciful,
+  low-violence playstyle is honoured**: optional hunts stay optional (`crag_beast_slain` etc. never
+  required), and mercy is expressed at the named beats (`mercy_shown` at M16; the good-monster above).
+  No sneak/subdue system — scope the vision doesn't need.
 
 ---
 
@@ -162,7 +228,7 @@ The archetype is the *mechanic*; the **skin is the biome** (`enemies.js` already
   2. **Consumables** — potions (heal 30–80) + lantern_oil (early light-fuel sink).
   3. **Property** (greenhollow_house 1500g, saltbreak_shop 3500g) — an **optional prestige / gold-dump**
      end-game sink (passive rent = flavour), never required.
-  4. **Books** — teach the few utility perks ([D5]).
+  4. **Books** — *retired with the skill tree (D5)*; the `book_*` items fold into lore/flavour or are cut.
 - **Death penalty:** lose 15% gold (cap 200), respawn full HP — a *soft* stake, not a punishment that
   forces farming. Keep.
 - **NO crafting tree.** The smith *job* teaches a skill (fine); a crafting system would add grind +
@@ -172,33 +238,54 @@ The archetype is the *mechanic*; the **skin is the biome** (`enemies.js` already
 
 ---
 
-## 5. RECONCILIATION with existing systems + the [DECISION]s for Van
+## 5. THE DECISIONS — all RATIFIED (Van's calls) + the cross-impact pass
 
-The model **serves** the tool-DAG and the karma/endings — it doesn't fight them. But it exposes
-**contradictions in the current stubs** that need a call. Each is FLAGGED, not overridden:
-
-| # | [DECISION] | The contradiction / why | Recommendation |
+| # | Decision | Status | The ratified call |
 |---|---|---|---|
-| **D1** | **`level` = ACT, not XP** | `level` gates content (bounty L≥3, house L≥5, shop L≥10) but is **NEVER earned** (no XP anywhere) → that content is **dead/unreachable**. | Make `level` the **act number (1–5)**, auto-advanced by main-quest milestones; remap the gates to acts (bounty=Act 2, house=Act 2-late, shop=Act 3). No grind; dead content opens with the story. *Touches `Inventory.level` semantics + `economy.js` gates — a data change, flagged.* |
-| **D2** | **Tools: keys-only vs light verbs** | Tools currently only gate + unlock interactables + the boss-trick. The playbook imagined a "tool-gated moveset." | **Minimal expansion:** keep keys + boss-trick as the core; add a **single utility verb** per tool only where an encounter/puzzle uses it (grapple=pull a block/enemy; hookshot=cross; firefrost=an elemental hit option). Don't build a full moveset. *Scope call.* |
-| **D3** | **Corruption-vs-mercy** | "Mercy matters" vs "combat mandatory" looks contradictory. | Confirm the principle (§3.4): **monsters = guilt-free cleansing; morality = people + the god.** *Design principle to ratify.* |
-| **D4** | **Encounter pacing** | Marsh spawns all 7 archetypes at once — no teaching curve. | Re-space: 2–3 NEW archetypes per region, taught then combined (§3.2). *Content-placement change to Marsh/Peaks enemy data — flagged, not done.* |
-| **D5** | **Trim the stat/skill stub** | `str/dex/con/int` are unused; skills (`hasSkill`) aren't wired into anything. | Keep **cha** (social/prices) + **wis** (perception/secrets/ambusher) as the two that matter; keep a few **utility perks** (haggle/repair/monster-sense) via books/quests; **drop str/dex/con/int as combat stats** (fold any power into gear) or leave as pure dialogue flavour. *Trims the stub.* |
-| **D6** | **The "slime" readability fix** | `charger_electric` invuln-charge reads as "my hits do nothing." | Add a clear invuln telegraph + a "ping" no-damage feedback (§3.1). *Combat-feel spec.* |
-| **D7** | **Pacifist scope** | mercy gates 3 endings but you can't avoid fights. | Full pacifism **out of scope**; low-violence honoured via optional-hunts-stay-optional + M16 mercy (§3.4). *Scope call.* |
+| **D1** | `level` = ACT, not XP | ✅ **RATIFIED + FIXED IN CODE** | `level` is the **story act**; `Economy.actOf(karma)` derives it (Act 2 = `time_skip`, Act 3 = 4 shards); bounty + house gate to **Act 2**, the Saltbreak shop to **Act 3**. The dead content is now **reachable as the story advances** (test: `Economy.test.js` §3). |
+| **D2** | Tools = traverse + combat verb; **Magic** = MP spell-items | ✅ **RATIFIED** (magic = reserved, **CONFIRM ship?**) | Each tool gets ONE combat verb (grapple=stun/pull + slight dmg, etc., §2). Magic = a lean MP-gated spell-item set (§2.3), built in the polish layer. **The only open CONFIRM:** does magic ship at all, or stay reserved? |
+| **D3** | Corruption-vs-mercy + deepened morality | ✅ **RATIFIED** | Monsters = guilt-free cleansing; morality = people/greed/cruelty vs mercy/fairness, Fable-deep, on the Morality+Purity HUD (§3.4) + the **talking good-monster** beat. |
+| **D4** | Teach-then-combine encounters | ✅ **RATIFIED** (content task) | Re-space the Marsh's all-7-at-once into 2–3 new archetypes per region (§3.2). *Touches Marsh/Peaks `combat.enemies` placement — a build task, not done here.* |
+| **D5** | Remove XP/stats/skill-tree | ✅ **RATIFIED — REMOVED** | NO XP, NO STR/DEX/CON/INT/CHA, NO skill tree (§2). Growth = tools + hearts + gear. **Retire the stubs** (below). |
+| **D6** | The "slime" readability fix | ✅ **RATIFIED** | Invuln telegraph (crackle glow) + "ping" no-damage feedback on hitting an invulnerable enemy (§3.1). *Combat-feel task.* |
+| **D7** | Pacifist scope | ✅ **RATIFIED** | No full pacifism; merciful low-violence honoured (§3.4). |
 
-**No hard contradiction with `gating.js` or the endings:** the endings are **deed/karma-gated, never
-power-gated** (you never need to grind to reach an ending — good, keep it that way). The Hollow Spire's
-"4 tools + 4 shards" requirement is a *progression* gate (the climax), not a *combat-power* gate — fine.
+### Cross-impact pass — "impacts throughout the whole game" (reconciled / flagged)
+- **vs `gating.js` (tool spine):** ✅ coherent — tools ARE the primary growth axis; the model *is* the
+  DAG. The Spire's "4 tools + 4 shards" stays a *progression* gate (the climax), never a power gate.
+- **vs the 5 endings:** ✅ **endings stay DEED/MORALITY-gated, never power-gated** — you reach an ending
+  by *who you are*, never by being strong enough. Removing XP/stats can't lock an ending. Confirmed.
+- **vs the emotional pacing:** ✅ the **placed** difficulty curve (§2.1) maps to wholesome→dread→horror→
+  awe — gentle Marsh → dangerous Emberwood → the Spire gauntlet; a returning hero feeling powerful in
+  early regions *reinforces* the arc (you outgrew the childhood world).
+- **vs the economy (now-reachable sinks):** ✅ gold → **gear tiers** (the bounded power axis) + the
+  Act-2 house / Act-3 shop (now reachable, D1). Jobs/loot stay a trickle, not a farm.
+- ⚠ **[D-econ — FLAG, follow-up]:** removing **CHA** means `buyPrice/sellPrice` lose the charisma
+  multiplier. **Safe now** (it defaults to neutral 1.0 — no breakage, verified GREEN), but the *intent*
+  ("a kind/known hero gets better prices") should be **re-pointed onto MORALITY/PURITY** in a later
+  economy pass (a good hero earns discounts; a feared one is overcharged). Design-noted, not done.
+- ⚠ **[stub-retire — FLAG, follow-up]:** `Inventory` still carries the retired stubs — `level` (now
+  vestigial; gating uses `actOf`), `attr/str/dex/con/int/cha/wis`, and `skills/skillPoints/learnSkill`.
+  They're **harmless** (unused by the ratified model) and persisted saves still load. A later cleanup
+  should strip them from `Inventory` + the character sheet UI + the `book_*` skill items. *Left in
+  place now to keep this a minimal, tested change; flagged for a dedicated retire pass.*
+- ⚠ **[content — FLAG]:** the **good-monster** beat needs a deed id (`good_monster_spared/_slain`) in
+  `deeds.js` + a quest when built; the **hearts** system needs heart-piece placements + a max-HP hook
+  (engine has HP; no heart-piece item yet). Both are build tasks, design-locked here.
 
 ---
 
-## ✅ SUMMARY (the spine to build combat content on)
-- **Core loop:** explore → encounter (fight *or* choice) → reward (loot/truth/deed) → grow (tool/gear)
-  → unlock → explore. ~70% exploration-story / ~30% combat; intensity follows the Act 1→3 arc.
-- **Progression:** **reach (tools) + bounded gear, NO XP grind**; `level` repurposed as the act. Power
-  = 4 tools + 5 gear tiers + boss-trick mastery, tuned by encounter design.
-- **Combat:** keep the rich engine; design *legible, one-counter-at-a-time, hand-placed* encounters;
-  fix the electric-ooze readability; corruption = guilt-free, mercy = people/god.
-- **Economy:** gold → gear (bounded) + optional prestige; no crafting; loot is a trickle.
-- **7 [DECISION]s** above need Van's call (esp. D1 level-as-act, D3 the mercy principle, D4 pacing).
+## ✅ SUMMARY — the RATIFIED spine to build combat content on
+- **Core loop:** explore → encounter (fight *or* choice) → reward (loot/truth/deed) → grow
+  (tool / heart / gear) → unlock → explore. ~70% exploration-story / ~30% combat; the Act 1→3 arc.
+- **Progression (ZELDA-STYLE):** **tool-unlocks + hearts + bounded gear. NO XP, NO stats, NO skill
+  tree.** Power = 4 tools (each a traverse + combat verb) + ~6 hearts + 5 gear tiers + boss-trick.
+  `level` = the story **act**. **Magic** = MP-gated spell-items (reserved; the one open CONFIRM).
+- **Difficulty:** **PLACED per region, never auto-scaling** — early = weak/slow, late = strong/tricky,
+  bosses scale; a returning hero genuinely feels powerful.
+- **Morality (Fable-deep):** monsters = guilt-free; *people / greed / cruelty vs mercy / fairness*
+  move Morality+Purity, with visible NPC/world/ending consequences + the **talking good-monster** beat.
+- **Economy:** gold → gear (bounded) + the now-reachable Act-2 house / Act-3 shop; no crafting.
+- **Dead content FIXED:** bounty/house/shop are act-gated + reachable (code + test GREEN).
+- **Open:** D2 magic ship-or-reserve (CONFIRM). Flagged follow-ups: re-point prices onto morality,
+  retire the `Inventory` stat/skill stubs, build the hearts + good-monster content.
