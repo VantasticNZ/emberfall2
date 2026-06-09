@@ -1,0 +1,187 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1286" height="996" viewBox="0 0 1286 996" font-family="monospace">
+<rect width="1286" height="996" fill="#0a0e08"/>
+<rect x="631" y="70" width="255" height="816" fill="#0e2740" opacity="0.5"/>
+<text x="784" y="274" fill="#3f86c4" font-size="13" opacity="0.7" text-anchor="middle">~ OCEAN ~</text>
+<rect x="376" y="87" width="204" height="119" rx="14" fill="#bcaadf" opacity="0.13" stroke="#bcaadf" stroke-opacity="0.45" stroke-width="1.5"/>
+<text x="382" y="103" fill="#bcaadf" font-size="11" font-weight="bold" opacity="0.85">SPIRE</text>
+<rect x="359" y="206" width="255" height="170" rx="14" fill="#93a0b8" opacity="0.13" stroke="#93a0b8" stroke-opacity="0.45" stroke-width="1.5"/>
+<text x="365" y="222" fill="#93a0b8" font-size="11" font-weight="bold" opacity="0.85">PEAKS</text>
+<rect x="376" y="393" width="221" height="170" rx="14" fill="#74b24e" opacity="0.13" stroke="#74b24e" stroke-opacity="0.45" stroke-width="1.5"/>
+<text x="382" y="409" fill="#74b24e" font-size="11" font-weight="bold" opacity="0.85">GREENHOLLOW</text>
+<rect x="121" y="376" width="221" height="204" rx="14" fill="#56988c" opacity="0.13" stroke="#56988c" stroke-opacity="0.45" stroke-width="1.5"/>
+<text x="127" y="392" fill="#56988c" font-size="11" font-weight="bold" opacity="0.85">MARSH</text>
+<rect x="631" y="359" width="221" height="238" rx="14" fill="#4a90cf" opacity="0.13" stroke="#4a90cf" stroke-opacity="0.45" stroke-width="1.5"/>
+<text x="637" y="375" fill="#4a90cf" font-size="11" font-weight="bold" opacity="0.85">COAST</text>
+<rect x="359" y="580" width="221" height="187" rx="14" fill="#d96f3c" opacity="0.13" stroke="#d96f3c" stroke-opacity="0.45" stroke-width="1.5"/>
+<text x="365" y="596" fill="#d96f3c" font-size="11" font-weight="bold" opacity="0.85">EMBERWOOD</text>
+<rect x="580" y="580" width="170" height="153" rx="14" fill="#4a8a40" opacity="0.13" stroke="#4a8a40" stroke-opacity="0.45" stroke-width="1.5"/>
+<text x="586" y="596" fill="#4a8a40" font-size="11" font-weight="bold" opacity="0.85">FOREST</text>
+<rect x="699" y="699" width="170" height="170" rx="14" fill="#d4ad6a" opacity="0.13" stroke="#d4ad6a" stroke-opacity="0.45" stroke-width="1.5"/>
+<text x="705" y="715" fill="#d4ad6a" font-size="11" font-weight="bold" opacity="0.85">DESERT</text>
+<text x="478" y="83.6" fill="#aab4c4" font-size="11" text-anchor="middle" opacity="0.7">▲▲ MOUNTAINS ▲▲</text>
+<line x1="70" y1="70" x2="70" y2="886" stroke="#2a3528" stroke-width="1.1" opacity="0.8"/><line x1="70" y1="70" x2="886" y2="70" stroke="#2a3528" stroke-width="1.1" opacity="0.8"/><text x="70" y="64" fill="#5b6b4f" font-size="9" text-anchor="middle">0</text><text x="62" y="73" fill="#5b6b4f" font-size="9" text-anchor="end">0</text><line x1="104" y1="70" x2="104" y2="886" stroke="#2a3528" stroke-width="0.5" opacity="0.4"/><line x1="70" y1="104" x2="886" y2="104" stroke="#2a3528" stroke-width="0.5" opacity="0.4"/><line x1="138" y1="70" x2="138" y2="886" stroke="#2a3528" stroke-width="0.5" opacity="0.4"/><line x1="70" y1="138" x2="886" y2="138" stroke="#2a3528" stroke-width="0.5" opacity="0.4"/><line x1="172" y1="70" x2="172" y2="886" stroke="#2a3528" stroke-width="0.5" opacity="0.4"/><line x1="70" y1="172" x2="886" y2="172" stroke="#2a3528" stroke-width="0.5" opacity="0.4"/><line x1="206" y1="70" x2="206" y2="886" stroke="#2a3528" stroke-width="1.1" opacity="0.8"/><line x1="70" y1="206" x2="886" y2="206" stroke="#2a3528" stroke-width="1.1" opacity="0.8"/><text x="206" y="64" fill="#5b6b4f" font-size="9" text-anchor="middle">4</text><text x="62" y="209" fill="#5b6b4f" font-size="9" text-anchor="end">4</text><line x1="240" y1="70" x2="240" y2="886" stroke="#2a3528" stroke-width="0.5" opacity="0.4"/><line x1="70" y1="240" x2="886" y2="240" stroke="#2a3528" stroke-width="0.5" opacity="0.4"/><line x1="274" y1="70" x2="274" y2="886" stroke="#2a3528" stroke-width="0.5" opacity="0.4"/><line x1="70" y1="274" x2="886" y2="274" stroke="#2a3528" stroke-width="0.5" opacity="0.4"/><line x1="308" y1="70" x2="308" y2="886" stroke="#2a3528" stroke-width="0.5" opacity="0.4"/><line x1="70" y1="308" x2="886" y2="308" stroke="#2a3528" stroke-width="0.5" opacity="0.4"/><line x1="342" y1="70" x2="342" y2="886" stroke="#2a3528" stroke-width="1.1" opacity="0.8"/><line x1="70" y1="342" x2="886" y2="342" stroke="#2a3528" stroke-width="1.1" opacity="0.8"/><text x="342" y="64" fill="#5b6b4f" font-size="9" text-anchor="middle">8</text><text x="62" y="345" fill="#5b6b4f" font-size="9" text-anchor="end">8</text><line x1="376" y1="70" x2="376" y2="886" stroke="#2a3528" stroke-width="0.5" opacity="0.4"/><line x1="70" y1="376" x2="886" y2="376" stroke="#2a3528" stroke-width="0.5" opacity="0.4"/><line x1="410" y1="70" x2="410" y2="886" stroke="#2a3528" stroke-width="0.5" opacity="0.4"/><line x1="70" y1="410" x2="886" y2="410" stroke="#2a3528" stroke-width="0.5" opacity="0.4"/><line x1="444" y1="70" x2="444" y2="886" stroke="#2a3528" stroke-width="0.5" opacity="0.4"/><line x1="70" y1="444" x2="886" y2="444" stroke="#2a3528" stroke-width="0.5" opacity="0.4"/><line x1="478" y1="70" x2="478" y2="886" stroke="#2a3528" stroke-width="1.1" opacity="0.8"/><line x1="70" y1="478" x2="886" y2="478" stroke="#2a3528" stroke-width="1.1" opacity="0.8"/><text x="478" y="64" fill="#5b6b4f" font-size="9" text-anchor="middle">12</text><text x="62" y="481" fill="#5b6b4f" font-size="9" text-anchor="end">12</text><line x1="512" y1="70" x2="512" y2="886" stroke="#2a3528" stroke-width="0.5" opacity="0.4"/><line x1="70" y1="512" x2="886" y2="512" stroke="#2a3528" stroke-width="0.5" opacity="0.4"/><line x1="546" y1="70" x2="546" y2="886" stroke="#2a3528" stroke-width="0.5" opacity="0.4"/><line x1="70" y1="546" x2="886" y2="546" stroke="#2a3528" stroke-width="0.5" opacity="0.4"/><line x1="580" y1="70" x2="580" y2="886" stroke="#2a3528" stroke-width="0.5" opacity="0.4"/><line x1="70" y1="580" x2="886" y2="580" stroke="#2a3528" stroke-width="0.5" opacity="0.4"/><line x1="614" y1="70" x2="614" y2="886" stroke="#2a3528" stroke-width="1.1" opacity="0.8"/><line x1="70" y1="614" x2="886" y2="614" stroke="#2a3528" stroke-width="1.1" opacity="0.8"/><text x="614" y="64" fill="#5b6b4f" font-size="9" text-anchor="middle">16</text><text x="62" y="617" fill="#5b6b4f" font-size="9" text-anchor="end">16</text><line x1="648" y1="70" x2="648" y2="886" stroke="#2a3528" stroke-width="0.5" opacity="0.4"/><line x1="70" y1="648" x2="886" y2="648" stroke="#2a3528" stroke-width="0.5" opacity="0.4"/><line x1="682" y1="70" x2="682" y2="886" stroke="#2a3528" stroke-width="0.5" opacity="0.4"/><line x1="70" y1="682" x2="886" y2="682" stroke="#2a3528" stroke-width="0.5" opacity="0.4"/><line x1="716" y1="70" x2="716" y2="886" stroke="#2a3528" stroke-width="0.5" opacity="0.4"/><line x1="70" y1="716" x2="886" y2="716" stroke="#2a3528" stroke-width="0.5" opacity="0.4"/><line x1="750" y1="70" x2="750" y2="886" stroke="#2a3528" stroke-width="1.1" opacity="0.8"/><line x1="70" y1="750" x2="886" y2="750" stroke="#2a3528" stroke-width="1.1" opacity="0.8"/><text x="750" y="64" fill="#5b6b4f" font-size="9" text-anchor="middle">20</text><text x="62" y="753" fill="#5b6b4f" font-size="9" text-anchor="end">20</text><line x1="784" y1="70" x2="784" y2="886" stroke="#2a3528" stroke-width="0.5" opacity="0.4"/><line x1="70" y1="784" x2="886" y2="784" stroke="#2a3528" stroke-width="0.5" opacity="0.4"/><line x1="818" y1="70" x2="818" y2="886" stroke="#2a3528" stroke-width="0.5" opacity="0.4"/><line x1="70" y1="818" x2="886" y2="818" stroke="#2a3528" stroke-width="0.5" opacity="0.4"/><line x1="852" y1="70" x2="852" y2="886" stroke="#2a3528" stroke-width="0.5" opacity="0.4"/><line x1="70" y1="852" x2="886" y2="852" stroke="#2a3528" stroke-width="0.5" opacity="0.4"/><line x1="886" y1="70" x2="886" y2="886" stroke="#2a3528" stroke-width="1.1" opacity="0.8"/><line x1="70" y1="886" x2="886" y2="886" stroke="#2a3528" stroke-width="1.1" opacity="0.8"/><text x="886" y="64" fill="#5b6b4f" font-size="9" text-anchor="middle">24</text><text x="62" y="889" fill="#5b6b4f" font-size="9" text-anchor="end">24</text><text x="478" y="912" fill="#7c8a6e" font-size="11" text-anchor="middle">↑ grid = CHUNKS (1 chunk = 32 tiles) · the overworld = 24×24 chunks = 768×768 tiles ↑</text>
+<polyline points="478,206 478,342 512,444 546,478 614,512 716,512 818,529" fill="none" stroke="#3f86c4" stroke-width="5" opacity="0.55" stroke-linecap="round"/>
+<text x="580" y="457.6" fill="#5a9fd6" font-size="9" opacity="0.7">river + bridges →</text>
+<line x1="467.79999999999995" y1="467.79999999999995" x2="212.8" y2="491.6" stroke="#5a6b4a" stroke-width="1.8"  opacity="0.85"/>
+<line x1="467.79999999999995" y1="467.79999999999995" x2="484.79999999999995" y2="287.6" stroke="#d98b3a" stroke-width="2.4" stroke-dasharray="7 5" opacity="0.85"/>
+<text x="476.29999999999995" y="374.7" fill="#ffcf8a" font-size="8.5" text-anchor="middle">🔒shard 1</text>
+<line x1="467.79999999999995" y1="467.79999999999995" x2="722.8" y2="484.79999999999995" stroke="#d98b3a" stroke-width="2.4" stroke-dasharray="7 5" opacity="0.85"/>
+<text x="595.3" y="473.29999999999995" fill="#ffcf8a" font-size="8.5" text-anchor="middle">🔒grapple</text>
+<line x1="467.79999999999995" y1="467.79999999999995" x2="464.4" y2="661.5999999999999" stroke="#d98b3a" stroke-width="2.4" stroke-dasharray="7 5" opacity="0.85"/>
+<text x="466.09999999999997" y="561.6999999999999" fill="#ffcf8a" font-size="8.5" text-anchor="middle">🔒hookshot</text>
+<line x1="484.79999999999995" y1="287.6" x2="467.79999999999995" y2="141.4" stroke="#d98b3a" stroke-width="2.4" stroke-dasharray="7 5" opacity="0.85"/>
+<text x="476.29999999999995" y="211.5" fill="#ffcf8a" font-size="8.5" text-anchor="middle">🔒firefrost</text>
+<line x1="467.79999999999995" y1="141.4" x2="525.6" y2="100.6" stroke="#5a6b4a" stroke-width="1.8"  opacity="0.85"/>
+<line x1="467.79999999999995" y1="467.79999999999995" x2="535.8" y2="450.79999999999995" stroke="#d98b3a" stroke-width="2.4" stroke-dasharray="7 5" opacity="0.85"/>
+<text x="501.79999999999995" y="456.29999999999995" fill="#ffcf8a" font-size="8.5" text-anchor="middle">🔒lantern</text>
+<line x1="212.8" y1="491.6" x2="158.4" y2="559.6" stroke="#5a6b4a" stroke-width="1.8"  opacity="0.85"/>
+<line x1="212.8" y1="491.6" x2="253.60000000000002" y2="430.4" stroke="#5a6b4a" stroke-width="1.8"  opacity="0.85"/>
+<line x1="212.8" y1="491.6" x2="294.4" y2="552.8" stroke="#5a6b4a" stroke-width="1.8"  opacity="0.85"/>
+<line x1="484.79999999999995" y1="287.6" x2="559.6" y2="226.39999999999998" stroke="#5a6b4a" stroke-width="1.8"  opacity="0.85"/>
+<line x1="484.79999999999995" y1="287.6" x2="586.8" y2="294.4" stroke="#d98b3a" stroke-width="2.4" stroke-dasharray="7 5" opacity="0.85"/>
+<text x="535.8" y="288" fill="#ffcf8a" font-size="8.5" text-anchor="middle">🔒grapple</text>
+<line x1="484.79999999999995" y1="287.6" x2="423.6" y2="328.4" stroke="#5a6b4a" stroke-width="1.8"  opacity="0.85"/>
+<line x1="484.79999999999995" y1="287.6" x2="389.6" y2="233.2" stroke="#5a6b4a" stroke-width="1.8"  opacity="0.85"/>
+<line x1="722.8" y1="484.79999999999995" x2="797.5999999999999" y2="566.4" stroke="#5a6b4a" stroke-width="1.8"  opacity="0.85"/>
+<line x1="722.8" y1="484.79999999999995" x2="695.5999999999999" y2="396.4" stroke="#5a6b4a" stroke-width="1.8"  opacity="0.85"/>
+<line x1="722.8" y1="484.79999999999995" x2="648" y2="573.2" stroke="#5a6b4a" stroke-width="1.8"  opacity="0.85"/>
+<line x1="464.4" y1="661.5999999999999" x2="467.79999999999995" y2="736.4000000000001" stroke="#5a6b4a" stroke-width="1.8"  opacity="0.85"/>
+<line x1="464.4" y1="661.5999999999999" x2="396.4" y2="729.5999999999999" stroke="#5a6b4a" stroke-width="1.8"  opacity="0.85"/>
+<line x1="722.8" y1="484.79999999999995" x2="648" y2="658.2" stroke="#7d6a3a" stroke-width="2.4" stroke-dasharray="7 5" opacity="0.85"/>
+<line x1="648" y1="658.2" x2="702.4000000000001" y2="709.2" stroke="#5a6b4a" stroke-width="1.8"  opacity="0.85"/>
+<line x1="648" y1="658.2" x2="464.4" y2="661.5999999999999" stroke="#7d6a3a" stroke-width="2.4" stroke-dasharray="7 5" opacity="0.85"/>
+<line x1="722.8" y1="484.79999999999995" x2="784" y2="777.2" stroke="#7d6a3a" stroke-width="2.4" stroke-dasharray="7 5" opacity="0.85"/>
+<line x1="784" y1="777.2" x2="838.4000000000001" y2="716" stroke="#5a6b4a" stroke-width="1.8"  opacity="0.85"/>
+<line x1="784" y1="777.2" x2="831.5999999999999" y2="818" stroke="#7d6a3a" stroke-width="2.4" stroke-dasharray="7 5" opacity="0.85"/>
+<line x1="784" y1="777.2" x2="729.5999999999999" y2="831.5999999999999" stroke="#5a6b4a" stroke-width="1.8"  opacity="0.85"/>
+<circle cx="467.79999999999995" cy="467.79999999999995" r="19" fill="#74b24e" stroke="#0a0e08" stroke-width="2" />
+<text x="467.79999999999995" y="497.79999999999995" fill="#eef3e6" font-size="11" font-weight="bold" text-anchor="middle" stroke="#0a0e08" stroke-width="3.5" paint-order="stroke">Greenhollow</text>
+<text x="467.79999999999995" y="508.79999999999995" fill="#9fb89a" font-size="8" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">64×52</text>
+<title>Greenhollow [town] 64×52 — M1-7·SG1-7·~13 NPC·7 interiors (the hub)</title>
+<circle cx="212.8" cy="491.6" r="19" fill="#56988c" stroke="#0a0e08" stroke-width="2" />
+<text x="212.8" y="521.6" fill="#eef3e6" font-size="11" font-weight="bold" text-anchor="middle" stroke="#0a0e08" stroke-width="3.5" paint-order="stroke">Mirefen</text>
+<text x="212.8" y="532.6" fill="#9fb89a" font-size="8" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">44×36</text>
+<title>Mirefen [town] 44×36 — M8·SA1·Yssa·bog hut-town (~6 NPC)</title>
+<circle cx="464.4" cy="661.5999999999999" r="19" fill="#d96f3c" stroke="#0a0e08" stroke-width="2" />
+<text x="464.4" y="691.5999999999999" fill="#eef3e6" font-size="11" font-weight="bold" text-anchor="middle" stroke="#0a0e08" stroke-width="3.5" paint-order="stroke">Caught Settlement</text>
+<text x="464.4" y="702.5999999999999" fill="#9fb89a" font-size="8" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">56×44</text>
+<title>Caught Settlement [town] 56×44 — M15·SE2 the split halves</title>
+<circle cx="484.79999999999995" cy="287.6" r="30" fill="#93a0b8" stroke="#0a0e08" stroke-width="2" stroke-dasharray="0"/>
+<text x="484.79999999999995" y="329.6" fill="#eef3e6" font-size="12" font-weight="bold" text-anchor="middle" stroke="#0a0e08" stroke-width="3.5" paint-order="stroke">STONEREACH</text>
+<text x="484.79999999999995" y="340.6" fill="#ffcf8a" font-size="8" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">96×80 ⇲sep</text>
+<title>STONEREACH [city] 96×80 — M11·SP1-3·miners/Mike Hunt·Order seat·mine office·terraced streets·~7 NPC</title>
+<circle cx="467.79999999999995" cy="141.4" r="30" fill="#bcaadf" stroke="#0a0e08" stroke-width="2" stroke-dasharray="0"/>
+<text x="467.79999999999995" y="183.4" fill="#eef3e6" font-size="12" font-weight="bold" text-anchor="middle" stroke="#0a0e08" stroke-width="3.5" paint-order="stroke">ORACLE CAPITAL</text>
+<text x="467.79999999999995" y="194.4" fill="#ffcf8a" font-size="8" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">104×88 ⇲sep</text>
+<title>ORACLE CAPITAL [city] 104×88 — M17·Sela seat·libraries/temples/ancient-texts·civic districts</title>
+<circle cx="722.8" cy="484.79999999999995" r="30" fill="#4a90cf" stroke="#0a0e08" stroke-width="2" stroke-dasharray="0"/>
+<text x="722.8" y="526.8" fill="#eef3e6" font-size="12" font-weight="bold" text-anchor="middle" stroke="#0a0e08" stroke-width="3.5" paint-order="stroke">SALTBREAK</text>
+<text x="722.8" y="537.8" fill="#ffcf8a" font-size="8" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">120×96 ⇲sep</text>
+<title>SALTBREAK [city] 120×96 — M13·ST1-5/ST8·Hugh Jass+Harbourmaster·docks/underworld/market/mansions·CAM3·the densest</title>
+<circle cx="648" cy="658.2" r="19" fill="#4a8a40" stroke="#0a0e08" stroke-width="2" />
+<text x="648" y="688.2" fill="#eef3e6" font-size="11" font-weight="bold" text-anchor="middle" stroke="#0a0e08" stroke-width="3.5" paint-order="stroke">Thornwell</text>
+<text x="648" y="699.2" fill="#9fb89a" font-size="8" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">50×40</text>
+<title>Thornwell [town] 50×40 — [exp] forest town·woodfolk</title>
+<circle cx="784" cy="777.2" r="19" fill="#d4ad6a" stroke="#0a0e08" stroke-width="2" />
+<text x="784" y="807.2" fill="#eef3e6" font-size="11" font-weight="bold" text-anchor="middle" stroke="#0a0e08" stroke-width="3.5" paint-order="stroke">Dustreach</text>
+<text x="784" y="818.2" fill="#9fb89a" font-size="8" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">48×38</text>
+<title>Dustreach [town] 48×38 — [exp] desert trade-outpost</title>
+<circle cx="294.4" cy="552.8" r="12" fill="#56988c" stroke="#0a0e08" stroke-width="2" />
+<text x="294.4" y="573.8" fill="#eef3e6" font-size="9" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3.5" paint-order="stroke">Fenwick</text>
+<text x="294.4" y="584.8" fill="#9fb89a" font-size="8" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">34×28</text>
+<title>Fenwick [village] 34×28 — [exp] marsh-edge fisherfolk</title>
+<circle cx="648" cy="573.2" r="12" fill="#4a90cf" stroke="#0a0e08" stroke-width="2" />
+<text x="648" y="594.2" fill="#eef3e6" font-size="9" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3.5" paint-order="stroke">Cribbins Cove</text>
+<text x="648" y="605.2" fill="#9fb89a" font-size="8" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">32×26</text>
+<title>Cribbins Cove [village] 32×26 — [exp] fishing village</title>
+<circle cx="389.6" cy="233.2" r="12" fill="#93a0b8" stroke="#0a0e08" stroke-width="2" />
+<text x="389.6" y="254.2" fill="#eef3e6" font-size="9" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3.5" paint-order="stroke">Cragfoot</text>
+<text x="389.6" y="265.2" fill="#9fb89a" font-size="8" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">30×24</text>
+<title>Cragfoot [village] 30×24 — [exp] mountain hamlet</title>
+<circle cx="838.4000000000001" cy="716" r="12" fill="#d4ad6a" stroke="#0a0e08" stroke-width="2" />
+<text x="838.4000000000001" y="737" fill="#eef3e6" font-size="9" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3.5" paint-order="stroke">Mirage Oasis</text>
+<text x="838.4000000000001" y="748" fill="#9fb89a" font-size="8" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">30×24</text>
+<title>Mirage Oasis [village] 30×24 — [exp] oasis village</title>
+<circle cx="729.5999999999999" cy="831.5999999999999" r="12" fill="#d4ad6a" stroke="#0a0e08" stroke-width="2" />
+<text x="729.5999999999999" y="852.5999999999999" fill="#eef3e6" font-size="9" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3.5" paint-order="stroke">Nomad Camp</text>
+<text x="729.5999999999999" y="863.5999999999999" fill="#9fb89a" font-size="8" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">26×22</text>
+<title>Nomad Camp [huttown] 26×22 — [exp] desert hut-town</title>
+<polygon points="158.4,542.6 175.4,559.6 158.4,576.6 141.4,559.6" fill="#56988c" stroke="#0a0e08" stroke-width="2"/>
+<text x="158.4" y="585.6" fill="#eef3e6" font-size="9" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3.5" paint-order="stroke">Sunken Shrine</text>
+<text x="158.4" y="596.6" fill="#ffcf8a" font-size="8" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">36×28 ×3F ⇲sep</text>
+<title>Sunken Shrine [dungeon] 36×28 ×3F — M9·Drowned Guardian·lantern·shard 1·+crypts(SA3)</title>
+<polygon points="559.6,209.39999999999998 576.6,226.39999999999998 559.6,243.39999999999998 542.6,226.39999999999998" fill="#93a0b8" stroke="#0a0e08" stroke-width="2"/>
+<text x="559.6" y="252.39999999999998" fill="#eef3e6" font-size="9" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3.5" paint-order="stroke">Cinder Keep</text>
+<text x="559.6" y="263.4" fill="#ffcf8a" font-size="8" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">40×32 ×3F ⇲sep</text>
+<title>Cinder Keep [dungeon] 40×32 ×3F — M12·Keep Sentinel·grapple·shard 2·records-library(SP1)</title>
+<polygon points="797.5999999999999,549.4 814.5999999999999,566.4 797.5999999999999,583.4 780.5999999999999,566.4" fill="#4a90cf" stroke="#0a0e08" stroke-width="2"/>
+<text x="797.5999999999999" y="592.4" fill="#eef3e6" font-size="9" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3.5" paint-order="stroke">Drowned Vault</text>
+<text x="797.5999999999999" y="603.4" fill="#ffcf8a" font-size="8" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">36×30 ×2F ⇲sep</text>
+<title>Drowned Vault [dungeon] 36×30 ×2F — M14·Tideward·hookshot·shard 3·+tide-caves(ST2)</title>
+<polygon points="467.79999999999995,719.4000000000001 484.79999999999995,736.4000000000001 467.79999999999995,753.4000000000001 450.79999999999995,736.4000000000001" fill="#d96f3c" stroke="#0a0e08" stroke-width="2"/>
+<text x="467.79999999999995" y="762.4000000000001" fill="#eef3e6" font-size="9" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3.5" paint-order="stroke">Ember Hollow</text>
+<text x="467.79999999999995" y="773.4000000000001" fill="#ffcf8a" font-size="8" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">38×30 ×2F ⇲sep</text>
+<title>Ember Hollow [dungeon] 38×30 ×2F — M16·Feverheart·fire/frost·shard 4·split altar</title>
+<polygon points="525.6,83.6 542.6,100.6 525.6,117.6 508.6,100.6" fill="#bcaadf" stroke="#0a0e08" stroke-width="2"/>
+<text x="525.6" y="126.6" fill="#eef3e6" font-size="9" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3.5" paint-order="stroke">The Hollow Spire</text>
+<text x="525.6" y="137.6" fill="#ffcf8a" font-size="8" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">44×36 ×4F ⇲sep</text>
+<title>The Hollow Spire [dungeon] 44×36 ×4F — M18-20·the Ascent·Binding Chamber·boss·shard 5·the finale</title>
+<polygon points="702.4000000000001,692.2 719.4000000000001,709.2 702.4000000000001,726.2 685.4000000000001,709.2" fill="#4a8a40" stroke="#0a0e08" stroke-width="2"/>
+<text x="702.4000000000001" y="735.2" fill="#eef3e6" font-size="9" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3.5" paint-order="stroke">Overgrown Ruin</text>
+<text x="702.4000000000001" y="746.2" fill="#ffcf8a" font-size="8" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">34×26 ×2F ⇲sep</text>
+<title>Overgrown Ruin [dungeon] 34×26 ×2F — [exp] lost-civilization texts</title>
+<polygon points="831.5999999999999,801 848.5999999999999,818 831.5999999999999,835 814.5999999999999,818" fill="#d4ad6a" stroke="#0a0e08" stroke-width="2"/>
+<text x="831.5999999999999" y="844" fill="#eef3e6" font-size="9" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3.5" paint-order="stroke">Sunken Temple</text>
+<text x="831.5999999999999" y="855" fill="#ffcf8a" font-size="8" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">36×28 ×2F ⇲sep</text>
+<title>Sunken Temple [dungeon] 36×28 ×2F — [exp] buried temple-library</title>
+<polygon points="535.8,440.79999999999995 545.8,450.79999999999995 535.8,460.79999999999995 525.8,450.79999999999995" fill="#74b24e" stroke="#0a0e08" stroke-width="2"/>
+<text x="535.8" y="469.79999999999995" fill="#eef3e6" font-size="9" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3.5" paint-order="stroke">Boarded Cave</text>
+<text x="535.8" y="480.79999999999995" fill="#ffcf8a" font-size="8" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">16×12 ⇲sep</text>
+<title>Boarded Cave [secret] 16×12 — M4·weeping-flame carving</title>
+<polygon points="396.4,719.5999999999999 406.4,729.5999999999999 396.4,739.5999999999999 386.4,729.5999999999999" fill="#d96f3c" stroke="#0a0e08" stroke-width="2"/>
+<text x="396.4" y="748.5999999999999" fill="#eef3e6" font-size="9" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3.5" paint-order="stroke">Weeping Tree</text>
+<text x="396.4" y="759.5999999999999" fill="#9fb89a" font-size="8" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">14×12</text>
+<title>Weeping Tree [secret] 14×12 — SE4·god-fragment·Liberator nudge</title>
+<polygon points="586.8,284.4 596.8,294.4 586.8,304.4 576.8,294.4" fill="#93a0b8" stroke="#0a0e08" stroke-width="2"/>
+<text x="586.8" y="313.4" fill="#eef3e6" font-size="9" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3.5" paint-order="stroke">High Pass</text>
+<text x="586.8" y="324.4" fill="#9fb89a" font-size="8" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">20×16</text>
+<title>High Pass [secret] 20×16 — SP4 grapple cache·SP2 Crag Beast</title>
+<circle cx="695.5999999999999" cy="396.4" r="11" fill="#4a90cf" stroke="#0a0e08" stroke-width="2" />
+<text x="695.5999999999999" y="416.4" fill="#eef3e6" font-size="9" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3.5" paint-order="stroke">The Lighthouse</text>
+<text x="695.5999999999999" y="427.4" fill="#ffcf8a" font-size="8" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">18×14 ×3F ⇲sep</text>
+<title>The Lighthouse [landmark] 18×14 ×3F — ST3 Holden·multi-floor</title>
+<circle cx="423.6" cy="328.4" r="11" fill="#93a0b8" stroke="#0a0e08" stroke-width="2" />
+<text x="423.6" y="348.4" fill="#eef3e6" font-size="9" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3.5" paint-order="stroke">Marble Hall</text>
+<text x="423.6" y="359.4" fill="#ffcf8a" font-size="8" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">20×16 ⇲sep</text>
+<title>Marble Hall [landmark] 20×16 — CAM1 the Cynic·a mansion</title>
+<polygon points="253.60000000000002,420.4 263.6,430.4 253.60000000000002,440.4 243.60000000000002,430.4" fill="#56988c" stroke="#0a0e08" stroke-width="2"/>
+<text x="253.60000000000002" y="449.4" fill="#eef3e6" font-size="9" font-weight="normal" text-anchor="middle" stroke="#0a0e08" stroke-width="3.5" paint-order="stroke">The Fen</text>
+<text x="253.60000000000002" y="460.4" fill="#9fb89a" font-size="8" text-anchor="middle" stroke="#0a0e08" stroke-width="3" paint-order="stroke">16×14</text>
+<title>The Fen [secret] 16×14 — SA4 the Frog·SA5 reeds</title>
+<text x="70" y="34" fill="#fff6df" font-size="20" font-weight="bold">EMBERFALL 2 — WORLD MAP PLAN (gridded, content-sized)</text>
+<text x="910" y="76" fill="#ffe9c2" font-size="13" font-weight="bold">LEGEND — circle size = content load</text>
+<text x="910" y="98" fill="#fff" font-size="11">● CITY (separate, multi-district)</text>
+<text x="910" y="115" fill="#cdd8c4" font-size="11">● town / village</text>
+<text x="910" y="132" fill="#cdd8c4" font-size="11">◆ dungeon (separate, ×N floors)</text>
+<text x="910" y="149" fill="#cdd8c4" font-size="11">◆ secret/landmark</text>
+<text x="910" y="166" fill="#d98b3a" font-size="11">— path · 🔒 = tool-gate</text>
+<text x="910" y="183" fill="#7d6a3a" font-size="11">— dashed grey = new biome</text>
+<text x="910" y="200" fill="#ffcf8a" font-size="11">⇲sep = a separate enterable scene</text>
+<text x="910" y="217" fill="#5a9fd6" font-size="11">tint = biome · blue = ocean/river</text>
+<text x="910" y="252" fill="#cdd8c4" font-size="11" font-weight="normal"></text>
+<text x="910" y="268" fill="#ffe9c2" font-size="12" font-weight="bold">DERIVED DIMENSIONS</text>
+<text x="910" y="284" fill="#cdd8c4" font-size="11" font-weight="normal">Overworld: 24×24 chunks</text>
+<text x="910" y="300" fill="#cdd8c4" font-size="11" font-weight="normal">   = 768×768 tiles (24576 px)</text>
+<text x="910" y="316" fill="#cdd8c4" font-size="11" font-weight="normal">   (now 20×20; ≤ engine streaming)</text>
+<text x="910" y="332" fill="#cdd8c4" font-size="11" font-weight="normal"></text>
+<text x="910" y="348" fill="#ffe9c2" font-size="11" font-weight="normal">SEPARATE enterable scenes:</text>
+<text x="910" y="364" fill="#cdd8c4" font-size="11" font-weight="normal">· 3 cities (multi-district)</text>
+<text x="910" y="380" fill="#cdd8c4" font-size="11" font-weight="normal">· ~10 dungeons (×2-4 floors)</text>
+<text x="910" y="396" fill="#cdd8c4" font-size="11" font-weight="normal">· ~30-50 interiors</text>
+<text x="910" y="412" fill="#ffe9c2" font-size="11" font-weight="normal">   → ~55-70 scenes total</text>
+<text x="910" y="428" fill="#cdd8c4" font-size="11" font-weight="normal"></text>
+<text x="910" y="444" fill="#cdd8c4" font-size="11" font-weight="normal">GH centred (chunk 12,12).</text>
+<text x="910" y="460" fill="#cdd8c4" font-size="11" font-weight="normal">Cities/dungeons = doors on</text>
+<text x="910" y="476" fill="#cdd8c4" font-size="11" font-weight="normal">the overworld → own maps.</text>
+<text x="1270" y="984" fill="#5b6b4f" font-size="10" text-anchor="end">26 places · sized from 66 quests / 30+ NPC / 40+ places · DESIGN — approve before building</text>
+</svg>
