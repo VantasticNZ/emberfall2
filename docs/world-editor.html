@@ -52,10 +52,10 @@
     <button id="m_select" class="on">▣ Select</button><button id="m_node">+ Node</button><button id="m_path">— Path</button><button id="m_zone">▭ Zone</button><button id="m_note">📌 Note</button>
   </div>
   <div class="grp">
-    <button id="t_dash">📊 Dashboard</button><button id="t_warn">⚠ Warnings</button>
+    <button id="t_dash">📊 Dashboard</button><button id="t_warn">⚠ Warnings</button><button id="t_sim">🧭 Traverse</button>
   </div>
   <div class="grp">
-    <button id="z_out">−</button><button id="z_in">+</button><button id="z_lock" title="Lock scale (no auto-fit)">🔒 scale</button>
+    <button id="z_out">−</button><button id="z_in">+</button><button id="z_fit">⤢ Fit</button><button id="z_lock" title="Lock scale (no auto-fit)">🔒 scale</button>
     <input class="search" id="search" placeholder="search place/quest/NPC…">
   </div>
   <div class="grp">
@@ -65,7 +65,7 @@
   <div class="grp" style="border:0"><span class="hint" id="counts"></span></div>
 </div>
 <div id="wrap">
-  <div id="cvwrap"><svg id="cv"></svg><div id="hintbar"></div><div id="dash" class="overlay" style="display:none"></div><div id="warn" class="overlay" style="display:none"></div></div>
+  <div id="cvwrap"><svg id="cv"></svg><div id="hintbar"></div><div id="dash" class="overlay" style="display:none"></div><div id="warn" class="overlay" style="display:none"></div><div id="simp" class="overlay" style="display:none;left:10px;top:auto;bottom:48px;max-width:240px"></div></div>
   <div id="side"><div id="layers"></div><div id="editor"></div></div>
 </div>
 <script>
@@ -76,6 +76,10 @@ const STAGES=['early','mid','late']; const STAGECOL={early:'#7fcf6a',mid:'#e0a23
 const VIAS=['walk','dash','cut','lantern','grapple','hookshot','firefrost','fire','ice','wind','electric','bridge','boat'];
 const ZONEKINDS=['terrain','music','nogo']; const ZONECOL={terrain:'#6fae4d',music:'#5a9fd6',nogo:'#c0392b'};
 const INTERIOR_TYPES=['house','shop','dungeon','secret','civic'];
+const ABILITIES=['walk','cut','dash','lantern','grapple','hookshot','firefrost','fire','ice','wind','electric'];
+const STAGE_KITS={early:['walk','cut','dash','lantern'],mid:['walk','cut','dash','lantern','grapple','hookshot'],late:ABILITIES.slice()};
+const ELEV={'-2':'#1c4a6e','-1':'#2e6e6a','0':'#4a7a3a','1':'#8a8a4a','2':'#9a7a4a','3':'#b8b0c0'}; // low→high tint
+const elevTint=e=>ELEV[String(Math.max(-2,Math.min(3,Math.round(e||0))))]||'#4a7a3a';
 
 const DEFAULT_WORLD={
  meta:{name:'Emberfall 2',grid:24,tileSize:32},
@@ -90,12 +94,12 @@ const DEFAULT_WORLD={
   {id:'z_nogo',kind:'nogo',label:'sea cliffs (no-go)',gx:16.2,gy:8.5,gw:0.4,gh:7}
  ],
  nodes:[
-  {id:'gh',label:'Greenhollow',tier:'town',region:'Greenhollow',w:64,h:52,gx:11.7,gy:11.7,population:'~120',terrain:'grass',music:'mus_green',enemies:[],unlock:'START (the hub).',interiors:{house:3,shop:2,civic:2},assets:{have:['LPC terrain','eliza furniture','7 interiors'],gap:['NPC portraits']},npcs:['Mara','Bram','Hodge','Tam','Phil McCracken','Fatley','Pem','Constable Wiremu (CAM7)','Old Sisyph (CAM2)'],quests:['M1–M7','SG1–7','GHUB','PH3','PH6'],items:['wooden→steel sword','leather','potions','3 caches']},
-  {id:'mirefen',label:'Mirefen',tier:'town',region:'Marsh',w:44,h:36,gx:4.2,gy:12.4,population:'~50',terrain:'bog',music:'',enemies:[{type:'bog-folk',level:1}],unlock:'walk from GH.',interiors:{house:2,civic:1},assets:{have:['bog tiles (terrain-v7)'],gap:['stilt-hut set']},npcs:['Elder Yssa','Hagga','Old Karl (CAM4)','Mother Vell (PH5)'],quests:['M8','M10','SA1–5','PH5','NIGHT1'],items:['epic blade (SA3)']},
+  {id:'gh',label:'Greenhollow',tier:'town',region:'Greenhollow',w:64,h:52,gx:11.7,gy:11.7,population:'~120',terrain:'grass',music:'mus_green',elev:1,soundRadius:4,secrets:['3 hidden caches'],enemies:[],unlock:'START (the hub).',interiors:{house:3,shop:2,civic:2},assets:{have:['LPC terrain','eliza furniture','7 interiors'],gap:['NPC portraits']},npcs:['Mara','Bram','Hodge','Tam','Phil McCracken','Fatley','Pem','Constable Wiremu (CAM7)','Old Sisyph (CAM2)'],quests:['M1–M7','SG1–7','GHUB','PH3','PH6'],items:['wooden→steel sword','leather','potions','3 caches']},
+  {id:'mirefen',label:'Mirefen',tier:'town',region:'Marsh',w:44,h:36,gx:4.2,gy:12.4,population:'~50',terrain:'bog',music:'marsh-dread',elev:-1,soundRadius:3,enemies:[{type:'bog-folk',level:1}],unlock:'walk from GH.',interiors:{house:2,civic:1},assets:{have:['bog tiles (terrain-v7)'],gap:['stilt-hut set']},npcs:['Elder Yssa','Hagga','Old Karl (CAM4)','Mother Vell (PH5)'],quests:['M8','M10','SA1–5','PH5','NIGHT1'],items:['epic blade (SA3)']},
   {id:'shrine',label:'Sunken Shrine',tier:'dungeon',region:'Marsh',w:36,h:28,gx:2.6,gy:14.6,terrain:'dungeon',music:'',enemies:[{type:'drowned',level:3},{type:'guardian',level:5}],unlock:'story M8.',interiors:{dungeon:3},assets:{have:['LPC dungeon tileset (imported)'],gap:[]},npcs:['Drowned Guardian (boss)'],quests:['M9','SA3'],items:['LANTERN','SHARD 1']},
   {id:'stonereach',label:'STONEREACH',tier:'city',region:'Peaks',w:96,h:80,gx:12.2,gy:6.4,population:'~300',terrain:'stone',music:'',enemies:[{type:'crag',level:4}],unlock:'gate shard_1 + M10.',interiors:{house:6,shop:3,civic:2},assets:{have:['cliff/stone tiles'],gap:['terraced-city set (Victorian)','mine interior']},npcs:['Miner','Mike Hunt','Stonewright','Bounty-Master','Lord Pellamy (CAM1)','Desperate Stranger (SP5)'],quests:['M11','SP1–5','PH1','CAM1','CAM3'],items:['Crag Maul','sky-iron charm']},
   {id:'keep',label:'Cinder Keep',tier:'dungeon',region:'Peaks',w:40,h:32,gx:14.6,gy:4.6,terrain:'dungeon',music:'',enemies:[{type:'sentinel',level:6}],unlock:'story M11.',interiors:{dungeon:3},assets:{have:['LPC dungeon tileset'],gap:['keep masonry (Castle pack)']},npcs:['Keep Sentinel (boss)'],quests:['M12','SP1 records'],items:['GRAPPLE','SHARD 2']},
-  {id:'saltbreak',label:'SALTBREAK',tier:'city',region:'Coast',w:120,h:96,gx:19.2,gy:12.2,population:'~400',terrain:'coast',music:'',enemies:[{type:'smuggler',level:5}],unlock:'gate grapple.',interiors:{house:8,shop:4,civic:1},assets:{have:['water/coast tiles'],gap:['city building set (Victorian)','docks tiles','mansion']},npcs:['Hugh Jass','Harbourmaster','Holden McGroin (ST3)','Big Sal (EDG1)','Shy Fisher (EDG2)','Old Crannock (PH2)','General Petibon (CAM3)'],quests:['M13','ST1–5','ST8','PH2','EDG1','EDG2'],items:['Tideglass Blade','pearl circlet']},
+  {id:'saltbreak',label:'SALTBREAK',tier:'city',region:'Coast',w:120,h:96,gx:19.2,gy:12.2,population:'~400',terrain:'coast',music:'storm-surf',elev:0,soundRadius:5,secrets:['smuggler stash','tide-cave hoard'],enemies:[{type:'smuggler',level:5}],unlock:'gate grapple.',interiors:{house:8,shop:4,civic:1},assets:{have:['water/coast tiles'],gap:['city building set (Victorian)','docks tiles','mansion']},npcs:['Hugh Jass','Harbourmaster','Holden McGroin (ST3)','Big Sal (EDG1)','Shy Fisher (EDG2)','Old Crannock (PH2)','General Petibon (CAM3)'],quests:['M13','ST1–5','ST8','PH2','EDG1','EDG2'],items:['Tideglass Blade','pearl circlet']},
   {id:'vault',label:'Drowned Vault',tier:'dungeon',region:'Coast',w:36,h:30,gx:21.6,gy:14.8,terrain:'dungeon',music:'',enemies:[{type:'tideward',level:7}],unlock:'story M13 + tide.',interiors:{dungeon:2},assets:{have:['LPC dungeon tileset'],gap:[]},npcs:['Tideward (boss)'],quests:['M14','ST2'],items:['HOOKSHOT','SHARD 3']},
   {id:'caught',label:'Caught Settlement',tier:'town',region:'Emberwood',w:56,h:44,gx:11.6,gy:17.4,population:'~60',terrain:'',music:'',enemies:[{type:'ember',level:6}],unlock:'gate hookshot.',interiors:{house:3,civic:1},assets:{have:[],gap:['fire/frost terrain','split-settlement set']},npcs:['the Settler','Elder Ash (PH4)','Vinizar (CAM6)'],quests:['M15','SE1–5','PH4'],items:['Emberfrost Band','Cinderhide Cloak']},
   {id:'hollow',label:'Ember Hollow',tier:'dungeon',region:'Emberwood',w:38,h:30,gx:11.7,gy:19.8,terrain:'dungeon',music:'',enemies:[{type:'feverheart',level:8}],unlock:'story M15.',interiors:{dungeon:2},assets:{have:['lava tiles (terrain-v7)'],gap:['split-altar art']},npcs:['Feverheart (boss)'],quests:['M16','SE3'],items:['FIRE/FROST','SHARD 4']},
@@ -112,7 +116,7 @@ const DEFAULT_WORLD={
   {id:'lighthouse',label:'The Lighthouse',tier:'landmark',region:'Coast',w:18,h:14,gx:18.3,gy:9.5,terrain:'coast',music:'',enemies:[],unlock:'mid.',interiors:{house:1},assets:{have:[],gap:['lighthouse interior']},npcs:['Holden McGroin'],quests:['ST3'],items:['ET2 echo']}
  ],
  paths:[
-  {id:'p1',a:'gh',b:'mirefen',via:'walk',gate:'',stage:'early',len:'18/26/34',bends:[],dots:[{id:'d1',type:'quest',label:'SA4 The Frog',detail:'Undefeatable frog — a PUZZLE not a fight.'},{id:'d2',type:'quest',label:'SA5 Drowned Letters',detail:'Carry the reed-letter to Mara.'},{id:'d3',type:'item',label:'Pem-mark (1/4)',detail:'A SG2 clue.'}]},
+  {id:'p1',a:'gh',b:'mirefen',via:'walk',gate:'',stage:'early',len:'18/26/34',width:3,bends:[],dots:[{id:'d1',type:'quest',label:'SA4 The Frog',detail:'Undefeatable frog — a PUZZLE not a fight.'},{id:'d2',type:'quest',label:'SA5 Drowned Letters',detail:'Carry the reed-letter to Mara.'},{id:'d3',type:'item',label:'Pem-mark (1/4)',detail:'A SG2 clue.'}]},
   {id:'p2',a:'gh',b:'cave',via:'lantern',gate:'lantern',stage:'early',len:'6/8/10',bends:[],dots:[{id:'d4',type:'quest',label:'M4 Boarded Cave',detail:'The weeping-flame carving.'}]},
   {id:'p3',a:'mirefen',b:'shrine',via:'walk',gate:'story M8',stage:'early',len:'10/14/18',bends:[],dots:[{id:'d5',type:'quest',label:'M9 Sunken Shrine',detail:'Lantern + Guardian + SHARD 1.'}]},
   {id:'p4',a:'gh',b:'stonereach',via:'walk',gate:'shard_1 + M10',stage:'early',len:'28/34/42',bends:[],dots:[{id:'d6',type:'quest',label:'SP2 Crag Beast',detail:'Optional → Crag Maul.'}]},
@@ -158,9 +162,16 @@ const DEFAULT_WORLD={
 };
 
 /* ===================== state ===================== */
-let W=clone(DEFAULT_WORLD), mode='select', view='map', sel=null, drag=null, pathStart=null, draftZone=null, lockScale=false;
-const layers={ city:1,town:1,village:1,dungeon:1,secret:1,landmark:1, early:1,mid:1,late:1, pathlabels:1, gating:1, terrain:1,music:1,nogo:1, quests:1,items:1,npcs:1, complete:1, notes:1, grid:1 };
-let show={dash:false,warn:false};
+let W=clone(DEFAULT_WORLD), mode='select', view='map', sel=null, drag=null, pathStart=null, draftZone=null, lockScale=false, panStart=null;
+const layers={ city:1,town:1,village:1,dungeon:1,secret:1,landmark:1, early:1,mid:1,late:1, pathlabels:1, gating:1, terrain:1,music:1,nogo:1, quests:1,items:1,npcs:1, complete:1, elevation:0, sound:0, secrets:1, notes:1, grid:1 };
+let show={dash:false,warn:false,sim:false};
+let sim={ abil:new Set(['walk']) };
+// the abilities a path REQUIRES = the ability-tokens in its via + gate (walk = free)
+function pathReqs(p){ const txt=((p.via||'')+' '+(p.gate||'')).toLowerCase(); return ABILITIES.filter(a=>a!=='walk' && txt.split(/[^a-z]+/).includes(a)); }
+function pathOpen(p){ return pathReqs(p).every(a=>sim.abil.has(a)); }
+// reachable nodes from the start hub given the current sim toolkit
+function reachable(){ const start=(W.nodes.find(n=>n.id==='gh')||W.nodes[0]); if(!start)return new Set(); const R=new Set([start.id]), q=[start.id];
+  while(q.length){ const cur=q.shift(); for(const p of W.paths){ if(!pathOpen(p))continue; const o=p.a===cur?p.b:p.b===cur?p.a:null; if(o&&!R.has(o)){R.add(o);q.push(o);} } } return R; }
 function clone(o){ return JSON.parse(JSON.stringify(o)); }
 function uid(p){ return p+Math.random().toString(36).slice(2,7); }
 const cv=document.getElementById('cv'), SVGNS='http://www.w3.org/2000/svg';
@@ -226,27 +237,38 @@ function render(){ if(view==='quests')return renderQuests(); fit(); while(cv.fir
     g.addEventListener('mousedown',ev=>{ if(mode==='select'){ev.stopPropagation();selectZone(z);drag={t:'zone',z,start:toGrid(ev),ox:z.gx,oy:z.gy};} });
   }
   if(layers.grid)for(let i=0;i<=GRID;i++){ const m=i%4===0; el('line',{x1:gx2px(i),y1:gx2px(0),x2:gx2px(i),y2:gx2px(GRID),stroke:'#1d2718','stroke-width':m?1:.5,opacity:m?.7:.35}); el('line',{x1:gx2px(0),y1:gx2px(i),x2:gx2px(GRID),y2:gx2px(i),stroke:'#1d2718','stroke-width':m?1:.5,opacity:m?.7:.35}); }
+  const R=show.sim?reachable():null;
   const seen={};
   for(const p of W.paths){ if(!layers[p.stage])continue; const a=nodeById(p.a),b=nodeById(p.b); if(!a||!b)continue;
     const k=[p.a,p.b].sort().join('|'); const off=(seen[k]=(seen[k]||0)+1)-1;
     const dx=gx2px(b.gy)-gx2px(a.gy), dy=-(gx2px(b.gx)-gx2px(a.gx)); const L=Math.hypot(dx,dy)||1; const ox=(p.bends&&p.bends.length)?0:dx/L*off*11, oy=(p.bends&&p.bends.length)?0:dy/L*off*11;
     const pts=[[gx2px(a.gx)+ox,gx2px(a.gy)+oy],...(p.bends||[]).map(bd=>[gx2px(bd.gx),gx2px(bd.gy)]),[gx2px(b.gx)+ox,gx2px(b.gy)+oy]];
     const d='M'+pts.map(q=>q.join(',')).join(' L');
+    const open=!show.sim||pathOpen(p); const w=(p.width||2)*1.0+0.8;   // WIDTH → line thickness
     const g=el('g',{class:'pathg'+(sel&&sel.t==='path'&&sel.id===p.id?' sel':'')});
-    el('path',{d,fill:'none',stroke:STAGECOL[p.stage]||'#888','stroke-width':2.4,opacity:.85,'stroke-dasharray':p.gate?'6 4':'0'},g);
-    if(layers.pathlabels){ const m=ptAt(pts,0.5); const t=el('text',{x:m[0],y:m[1]-3,fill:STAGECOL[p.stage],'font-size':8,'text-anchor':'middle',stroke:'#080b07','stroke-width':2.5,'paint-order':'stroke'},g); t.textContent=p.via+(layers.gating&&p.gate?' · 🔒'+p.gate:''); }
+    el('path',{d,fill:'none',stroke:STAGECOL[p.stage]||'#888','stroke-width':w,opacity:open?.9:.16,'stroke-dasharray':p.gate?'6 4':'0','stroke-linecap':'round','stroke-linejoin':'round'},g);
+    if(show.sim&&!open){ const m=ptAt(pts,0.5); const wt=el('text',{x:m[0],y:m[1]+10,fill:'#e0574a','font-size':7.5,'text-anchor':'middle',stroke:'#080b07','stroke-width':2,'paint-order':'stroke'},g); wt.textContent='needs '+pathReqs(p).join('+'); }
+    if(layers.pathlabels&&open){ const m=ptAt(pts,0.5); const t=el('text',{x:m[0],y:m[1]-3,fill:STAGECOL[p.stage],'font-size':8,'text-anchor':'middle',stroke:'#080b07','stroke-width':2.5,'paint-order':'stroke'},g); t.textContent=p.via+(layers.gating&&p.gate?' · 🔒'+p.gate:''); }
     g.addEventListener('mousedown',ev=>{ if(mode==='select'){ ev.stopPropagation(); if(sel&&sel.t==='path'&&sel.id===p.id){ const gp=toGrid(ev); (p.bends=p.bends||[]).push({gx:Math.round(gp.gx*2)/2,gy:Math.round(gp.gy*2)/2}); render(); editPath(p); } else selectPath(p); } });
     if(sel&&sel.t==='path'&&sel.id===p.id)(p.bends||[]).forEach((bd,bi)=>{ const bg=el('g',{class:'bend'}); el('circle',{cx:gx2px(bd.gx),cy:gx2px(bd.gy),r:5,fill:'#fff',stroke:STAGECOL[p.stage],'stroke-width':2},bg); bg.addEventListener('mousedown',ev=>{ev.stopPropagation();drag={t:'bend',bd,start:toGrid(ev),ox:bd.gx,oy:bd.gy};}); });
     (p.dots||[]).forEach((dt,i)=>{ const ok=dt.type==='item'?layers.items:dt.type==='note'?1:layers.quests; if(!ok)return; const q=ptAt(pts,(i+1)/(p.dots.length+1)); const dg=el('g',{class:'qdot'}); el('circle',{cx:q[0],cy:q[1],r:4.5,fill:dt.type==='item'?'#ffd36a':dt.type==='note'?'#cfc0e0':'#9fe08a',stroke:'#080b07','stroke-width':1.5},dg); dg.addEventListener('mousedown',ev=>{if(mode==='select'){ev.stopPropagation();selectDot(p,dt);}}); });
   }
   if(mode==='path'&&pathStart){ const a=nodeById(pathStart); el('circle',{cx:gx2px(a.gx),cy:gx2px(a.gy),r:Math.max(7,Math.sqrt(a.w*a.h)*0.26)+4,fill:'none',stroke:'#fff','stroke-dasharray':'3 3'}); }
+  // SOUND-RADIUS rings (behind nodes) — music range, draggable handle
+  if(layers.sound)for(const n of W.nodes){ if(!n.soundRadius||!n.music)continue; const px=gx2px(n.gx),py=gx2px(n.gy);
+    el('circle',{cx:px,cy:py,r:n.soundRadius*S,fill:'#5a9fd6','fill-opacity':.05,stroke:'#5a9fd6','stroke-opacity':.5,'stroke-dasharray':'5 4'});
+    const t=el('text',{x:px,y:py-n.soundRadius*S+12,fill:'#5a9fd6','font-size':9,'text-anchor':'middle',stroke:'#080b07','stroke-width':2,'paint-order':'stroke'}); t.textContent='♪ '+n.music;
+    if(sel&&sel.t==='node'&&sel.id===n.id){ const hg=el('g',{class:'bend'}); el('circle',{cx:px+n.soundRadius*S,cy:py,r:5,fill:'#5a9fd6',stroke:'#fff','stroke-width':1.5},hg); hg.addEventListener('mousedown',ev=>{ev.stopPropagation();drag={t:'radius',n,start:toGrid(ev),or:n.soundRadius};}); } }
   for(const n of W.nodes){ if(!layers[n.tier])continue; const r=Math.max(6,Math.sqrt(n.w*n.h)*0.26), px=gx2px(n.gx),py=gx2px(n.gy), col=TIERCOL[n.tier]||'#888';
-    const g=el('g',{class:'node'+(sel&&sel.t==='node'&&sel.id===n.id?' sel':'')});
+    const reach=!show.sim||R.has(n.id); const op=reach?1:.2;
+    const g=el('g',{class:'node'+(sel&&sel.t==='node'&&sel.id===n.id?' sel':''),opacity:op});
+    if(layers.elevation) el('circle',{cx:px,cy:py,r:r+4,fill:'none',stroke:elevTint(n.elev),'stroke-width':3,'stroke-opacity':.8}); // elevation ring
     if(n.tier==='dungeon'||n.tier==='secret') el('polygon',{points:`${px},${py-r} ${px+r},${py} ${px},${py+r} ${px-r},${py}`,fill:col,stroke:'#080b07','stroke-width':2},g);
     else el('circle',{cx:px,cy:py,r,fill:col,stroke:'#080b07','stroke-width':2},g);
     if(layers.complete){ const c=completeness(n); const cc=c.pct===100?'#7fcf6a':c.pct>=60?'#e0a23a':'#e0574a'; el('circle',{cx:px+r-2,cy:py-r+2,r:3.5,fill:cc,stroke:'#080b07','stroke-width':1},g); }
+    if(show.sim&&!reach){ const wy=el('text',{x:px,y:py-r-4,fill:'#e0574a','font-size':8,'text-anchor':'middle',stroke:'#080b07','stroke-width':2,'paint-order':'stroke'},g); wy.textContent='🔒 blocked'; }
     const fs=n.tier==='city'?12:n.tier==='town'?10:8.5; const t=el('text',{x:px,y:py+r+fs,fill:'#eef3e6','font-size':fs,'font-weight':(n.tier==='city'||n.tier==='town')?'bold':'normal','text-anchor':'middle',stroke:'#080b07','stroke-width':3,'paint-order':'stroke'},g); t.textContent=n.label;
-    const badges=[]; if(layers.npcs&&(n.npcs||[]).length)badges.push((n.npcs||[]).length+'👤'); if(layers.quests&&(n.quests||[]).length)badges.push((n.quests||[]).length+'❓'); if((n.enemies||[]).length)badges.push((n.enemies||[]).length+'⚔');
+    const badges=[]; if(layers.npcs&&(n.npcs||[]).length)badges.push((n.npcs||[]).length+'👤'); if(layers.quests&&(n.quests||[]).length)badges.push((n.quests||[]).length+'❓'); if((n.enemies||[]).length)badges.push((n.enemies||[]).length+'⚔'); if(layers.elevation&&n.elev)badges.push('⛰'+n.elev); if(layers.secrets&&(n.secrets||[]).length)badges.push((n.secrets||[]).length+'🗝');
     const st=el('text',{x:px,y:py+r+fs+10,fill:'#9fb89a','font-size':7.5,'text-anchor':'middle',stroke:'#080b07','stroke-width':2.5,'paint-order':'stroke'},g); st.textContent=n.w+'×'+n.h+(badges.length?'  '+badges.join(' '):'');
     g.addEventListener('mousedown',ev=>{ ev.stopPropagation(); if(mode==='select'){selectNode(n);drag={t:'node',n,start:toGrid(ev),ox:n.gx,oy:n.gy};} else if(mode==='path'){ if(!pathStart){pathStart=n.id;render();} else if(pathStart!==n.id){addPath(pathStart,n.id);pathStart=null;} } });
   }
@@ -288,7 +310,9 @@ function editNode(n){ const c=completeness(n);
    <label class=f>Name</label><input data-k="label" value="${esc(n.label)}">
    <div class="row"><div><label class=f>Tier</label><select data-k="tier">${TIERS.map(t=>`<option ${t===n.tier?'selected':''}>${t}</option>`).join('')}</select></div><div><label class=f>Region</label><input data-k="region" value="${esc(n.region||'')}"></div></div>
    <div class="row"><div><label class=f>W</label><input type=number data-k="w" value="${n.w}"></div><div><label class=f>H</label><input type=number data-k="h" value="${n.h}"></div><div><label class=f>Population</label><input data-k="population" value="${esc(n.population||'')}"></div></div>
-   <div class="row"><div><label class=f>Terrain</label><input data-k="terrain" value="${esc(n.terrain||'')}"></div><div><label class=f>Music</label><input data-k="music" value="${esc(n.music||'')}"></div></div>
+   <div class="row"><div><label class=f>Terrain</label><input data-k="terrain" value="${esc(n.terrain||'')}"></div><div><label class=f>Music track</label><input data-k="music" value="${esc(n.music||'')}"></div></div>
+   <div class="row"><div><label class=f>Elevation (−2…3)</label><input type=number data-k="elev" value="${n.elev||0}"></div><div><label class=f>Music radius (tiles)</label><input type=number step=0.5 data-k="soundRadius" value="${n.soundRadius||0}"></div></div>
+   <label class=f>Secrets (one per line)</label><textarea data-k="secrets" data-arr=1>${(n.secrets||[]).map(esc).join('\n')}</textarea>
    <label class=f>Unlock — when/how accessible</label><textarea data-k="unlock">${esc(n.unlock||'')}</textarea>
    <label class=f>Enemies (type:level, one per line)</label><textarea id="enemies">${(n.enemies||[]).map(e=>e.type+':'+(e.level||0)).join('\n')}</textarea>
    <label class=f>Enterable interiors (type:count)</label><textarea id="interiors">${Object.entries(n.interiors||{}).map(([k,v])=>k+':'+v).join('\n')}</textarea>
@@ -310,8 +334,8 @@ function editPath(p){ const a=nodeById(p.a),b=nodeById(p.b);
    <label class=f>Traversal (via)</label><select data-k="via">${VIAS.map(v=>`<option ${v===p.via?'selected':''}>${v}</option>`).join('')}</select>
    <label class=f>Gate</label><input data-k="gate" value="${esc(p.gate||'')}">
    <label class=f>Stage</label><select data-k="stage">${STAGES.map(s=>`<option ${s===p.stage?'selected':''}>${s}</option>`).join('')}</select>
-   <label class=f>Length</label><input data-k="len" value="${esc(p.len||'')}">
-   <div class="hint" style="margin-top:6px">Tip: with the path selected, CLICK the line to add a bend point; drag the white handles to shape it.</div>
+   <div class="row"><div><label class=f>Length</label><input data-k="len" value="${esc(p.len||'')}"></div><div><label class=f>Width (segments)</label><input type=number step=0.5 data-k="width" value="${p.width||2}"></div></div>
+   <div class="hint" style="margin-top:6px">Width sets the line thickness (a wide road vs a narrow trail). Tip: with the path selected, CLICK the line to add a bend point; drag the white handles to shape it (double it back / narrow / widen).</div>
    <button id="straight" style="margin-top:4px">Straighten (clear bends)</button>
    <label class=f>Dots on this path</label><div id="dots"></div><button id="adddot" style="margin-top:4px">+ add dot</button>
    <div style="margin-top:9px"><button class="danger" id="del">Delete path</button></div>`;
@@ -327,6 +351,7 @@ function editZone(z){ const idx=W.zones.indexOf(z); ed.innerHTML=`<h3>Zone</h3><
    <label class=f>Kind</label><select data-k="kind">${ZONEKINDS.map(k=>`<option ${k===z.kind?'selected':''}>${k}</option>`).join('')}</select>
    <label class=f>Label</label><input data-k="label" value="${esc(z.label||'')}"><label class=f>Colour</label><input data-k="color" value="${esc(z.color||ZONECOL[z.kind])}">
    <label class=f><input type=checkbox data-k="fade" ${z.fade?'checked':''}> fade / overlap halo</label>
+   <label class=f>Elevation (−2…3)</label><input type=number data-k="elev" value="${z.elev||0}">
    <div class="row"><div><label class=f>gx</label><input type=number step=0.5 data-k="gx" value="${z.gx}"></div><div><label class=f>gy</label><input type=number step=0.5 data-k="gy" value="${z.gy}"></div><div><label class=f>gw</label><input type=number step=0.5 data-k="gw" value="${z.gw}"></div><div><label class=f>gh</label><input type=number step=0.5 data-k="gh" value="${z.gh}"></div></div>
    <div class="row" style="margin-top:7px"><button id="back">⤓ send to back</button><button id="front">⤒ bring to front</button></div>
    <div style="margin-top:9px"><button class="danger" id="del">Delete zone</button></div>`;
@@ -352,12 +377,23 @@ function editQuest(q){ const others=(W.quests||[]).filter(x=>x.id!==q.id);
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 /* ===================== add / drag / events ===================== */
-function addNode(g){ const n={id:uid('n'),label:'New Place',tier:'village',region:'',w:30,h:24,gx:g.gx,gy:g.gy,terrain:'',music:'',unlock:'',interiors:{},enemies:[],assets:{have:[],gap:[]},npcs:[],quests:[],items:[]}; W.nodes.push(n); selectNode(n); }
+function addNode(g){ const n={id:uid('n'),label:'New Place',tier:'village',region:'',w:30,h:24,gx:g.gx,gy:g.gy,terrain:'',music:'',elev:0,soundRadius:0,secrets:[],unlock:'',interiors:{},enemies:[],assets:{have:[],gap:[]},npcs:[],quests:[],items:[]}; W.nodes.push(n); selectNode(n); }
 function addPath(a,b){ const p={id:uid('p'),a,b,via:'walk',gate:'',stage:'early',len:'',bends:[],dots:[]}; W.paths.push(p); selectPath(p); }
 function addNote(g){ const text=prompt('Note (Van’s suggestion / change):'); if(text==null)return; const nt={id:uid('n'),gx:g.gx,gy:g.gy,text}; W.notes.push(nt); selectNote(nt); render(); }
-cv.addEventListener('mousedown',e=>{ if(view==='quests')return; const g=toGrid(e); if(mode==='node')addNode(g); else if(mode==='note')addNote(g); else if(mode==='zone')draftZone={x0:g.gx,y0:g.gy,x1:g.gx,y1:g.gy}; else if(mode==='select'){sel=null;ed.innerHTML='<div class=hint>nothing selected.</div>';render();} });
-window.addEventListener('mousemove',e=>{ if(drag){ const g=toGrid(e); const o=drag.t==='node'?drag.n:drag.t==='zone'?drag.z:drag.t==='bend'?drag.bd:drag.nt; o.gx=Math.round((drag.ox+(g.gx-drag.start.gx))*2)/2; o.gy=Math.round((drag.oy+(g.gy-drag.start.gy))*2)/2; render(); } else if(draftZone){ const g=toGrid(e); draftZone.x1=g.gx; draftZone.y1=g.gy; render(); } });
-window.addEventListener('mouseup',()=>{ if(drag)drag=null; if(draftZone){ const z={id:uid('z'),kind:'terrain',label:'New Zone',gx:Math.min(draftZone.x0,draftZone.x1),gy:Math.min(draftZone.y0,draftZone.y1),gw:Math.abs(draftZone.x1-draftZone.x0)||2,gh:Math.abs(draftZone.y1-draftZone.y0)||2,color:ZONECOL.terrain,fade:true}; if(z.gw>0.3&&z.gh>0.3){W.zones.push(z);selectZone(z);} draftZone=null; render(); } });
+const cvwrap=document.getElementById('cvwrap');
+cv.addEventListener('mousedown',e=>{ if(view==='quests')return; const g=toGrid(e); if(mode==='node')addNode(g); else if(mode==='note')addNote(g); else if(mode==='zone')draftZone={x0:g.gx,y0:g.gy,x1:g.gx,y1:g.gy}; else if(mode==='select'){ panStart={x:e.clientX,y:e.clientY,sl:cvwrap.scrollLeft,st:cvwrap.scrollTop,moved:false}; } });
+window.addEventListener('mousemove',e=>{ if(drag){ const g=toGrid(e);
+    if(drag.t==='radius'){ drag.n.soundRadius=Math.max(0,Math.round((drag.or+(g.gx-drag.start.gx))*2)/2); render(); return; }
+    const o=drag.t==='node'?drag.n:drag.t==='zone'?drag.z:drag.t==='bend'?drag.bd:drag.nt; o.gx=Math.round((drag.ox+(g.gx-drag.start.gx))*2)/2; o.gy=Math.round((drag.oy+(g.gy-drag.start.gy))*2)/2; render(); }
+  else if(draftZone){ const g=toGrid(e); draftZone.x1=g.gx; draftZone.y1=g.gy; render(); }
+  else if(panStart){ panStart.moved=Math.abs(e.clientX-panStart.x)>3||Math.abs(e.clientY-panStart.y)>3; cvwrap.scrollLeft=panStart.sl-(e.clientX-panStart.x); cvwrap.scrollTop=panStart.st-(e.clientY-panStart.y); } });
+window.addEventListener('mouseup',()=>{ if(drag)drag=null;
+  if(panStart){ if(!panStart.moved){ sel=null; ed.innerHTML='<div class=hint>nothing selected.</div>'; render(); } panStart=null; }
+  if(draftZone){ const z={id:uid('z'),kind:'terrain',label:'New Zone',gx:Math.min(draftZone.x0,draftZone.x1),gy:Math.min(draftZone.y0,draftZone.y1),gw:Math.abs(draftZone.x1-draftZone.x0)||2,gh:Math.abs(draftZone.y1-draftZone.y0)||2,color:ZONECOL.terrain,fade:true,elev:0}; if(z.gw>0.3&&z.gh>0.3){W.zones.push(z);selectZone(z);} draftZone=null; render(); } });
+// WHEEL ZOOM (keep cursor point stable) + ARROW-KEY pan + FIT
+cvwrap.addEventListener('wheel',e=>{ if(view==='quests')return; e.preventDefault(); const r=cvwrap.getBoundingClientRect(); const mx=e.clientX-r.left+cvwrap.scrollLeft, my=e.clientY-r.top+cvwrap.scrollTop; const f=e.deltaY<0?1.12:0.893; const nS=Math.max(14,Math.min(90,S*f)); const k=nS/S; S=nS; render(); cvwrap.scrollLeft=mx*k-(e.clientX-r.left); cvwrap.scrollTop=my*k-(e.clientY-r.top); },{passive:false});
+window.addEventListener('keydown',e=>{ if(/INPUT|TEXTAREA/.test(document.activeElement.tagName))return; const d=40; if(e.key==='ArrowLeft')cvwrap.scrollLeft-=d; else if(e.key==='ArrowRight')cvwrap.scrollLeft+=d; else if(e.key==='ArrowUp')cvwrap.scrollTop-=d; else if(e.key==='ArrowDown')cvwrap.scrollTop+=d; });
+function fitView(){ const ns=W.nodes; if(!ns.length)return; const xs=ns.map(n=>n.gx),ys=ns.map(n=>n.gy); const span=Math.max(Math.max(...xs)-Math.min(...xs),Math.max(...ys)-Math.min(...ys))+4; S=Math.max(16,Math.min(70,(Math.min(cvwrap.clientWidth,cvwrap.clientHeight)-80)/span)); render(); cvwrap.scrollLeft=gx2px((Math.min(...xs)+Math.max(...xs))/2)-cvwrap.clientWidth/2; cvwrap.scrollTop=gx2px((Math.min(...ys)+Math.max(...ys))/2)-cvwrap.clientHeight/2; }
 window.addEventListener('keydown',e=>{ if((e.key==='Delete')&&sel&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){ const f={node:()=>{W.nodes=W.nodes.filter(x=>x.id!==sel.id);W.paths=W.paths.filter(p=>nodeById(p.a)&&nodeById(p.b));},path:()=>W.paths=W.paths.filter(x=>x.id!==sel.id),zone:()=>W.zones=W.zones.filter(x=>x.id!==sel.id),note:()=>W.notes=W.notes.filter(x=>x.id!==sel.id),quest:()=>W.quests=W.quests.filter(x=>x.id!==sel.id)}[sel.t]; f&&f(); sel=null; render(); } });
 
 /* ===================== toolbar / modes / view / IO / search / zoom ===================== */
@@ -367,7 +403,15 @@ function setView(){ document.getElementById('v_map').classList.toggle('on',view=
 document.getElementById('v_map').onclick=()=>{view='map';setView();}; document.getElementById('v_quests').onclick=()=>{view='quests';setView();};
 document.getElementById('t_dash').onclick=()=>{show.dash=!show.dash;document.getElementById('t_dash').classList.toggle('on',show.dash);renderDash();};
 document.getElementById('t_warn').onclick=()=>{show.warn=!show.warn;document.getElementById('t_warn').classList.toggle('on',show.warn);renderWarn();};
-document.getElementById('z_in').onclick=()=>{S=Math.min(80,S*1.18);render();}; document.getElementById('z_out').onclick=()=>{S=Math.max(16,S/1.18);render();};
+document.getElementById('t_sim').onclick=()=>{show.sim=!show.sim;document.getElementById('t_sim').classList.toggle('on',show.sim);renderSim();render();};
+function renderSim(){ const s=document.getElementById('simp'); if(!show.sim){s.style.display='none';return;} s.style.display='block'; const R=reachable();
+  s.innerHTML=`<h4>🧭 Traversal sim — toolkit</h4><div style="margin-bottom:5px">stage: ${['early','mid','late'].map(st=>`<button data-kit="${st}" style="padding:2px 6px">${st}</button>`).join(' ')}</div>
+   ${ABILITIES.map(a=>`<label style="display:inline-block;width:48%;font-size:11px"><input type=checkbox data-ab="${a}" ${sim.abil.has(a)?'checked':''}> ${a}</label>`).join('')}
+   <div style="margin-top:6px;color:#7fcf6a">reachable: <b>${R.size}/${W.nodes.length}</b> places</div><div class="hint">tick abilities → the world opens up; blocked paths show what they need.</div>`;
+  s.querySelectorAll('[data-ab]').forEach(c=>c.onchange=()=>{ if(c.checked)sim.abil.add(c.dataset.ab); else sim.abil.delete(c.dataset.ab); sim.abil.add('walk'); renderSim(); render(); });
+  s.querySelectorAll('[data-kit]').forEach(b=>b.onclick=()=>{ sim.abil=new Set(STAGE_KITS[b.dataset.kit]); renderSim(); render(); }); }
+document.getElementById('z_fit').onclick=()=>fitView();
+document.getElementById('z_in').onclick=()=>{S=Math.min(90,S*1.18);render();}; document.getElementById('z_out').onclick=()=>{S=Math.max(14,S/1.18);render();};
 document.getElementById('z_lock').onclick=()=>{lockScale=!lockScale;document.getElementById('z_lock').classList.toggle('on',lockScale);};
 document.getElementById('search').onkeydown=e=>{ if(e.key!=='Enter')return; const q=e.target.value.toLowerCase().trim(); if(!q)return;
   let hit=W.nodes.find(n=>n.label.toLowerCase().includes(q)) || W.nodes.find(n=>(n.npcs||[]).some(x=>x.toLowerCase().includes(q))||(n.quests||[]).some(x=>x.toLowerCase().includes(q)));
@@ -383,7 +427,8 @@ function buildLayers(){ const L=document.getElementById('layers'); const grp=(ti
   L.innerHTML=grp('Places (tier)',TIERS.map(t=>[t,t,TIERCOL[t]]))
     +grp('Paths (stage)',[['early','early',STAGECOL.early],['mid','mid',STAGECOL.mid],['late','late',STAGECOL.late],['pathlabels','labels'],['gating','gate labels']])
     +grp('Zones',[['terrain','terrain',ZONECOL.terrain],['music','music',ZONECOL.music],['nogo','no-go',ZONECOL.nogo]])
-    +grp('Overlays',[['quests','quests','#9fe08a'],['items','items','#ffd36a'],['npcs','NPC counts'],['complete','completeness'],['notes','notes','#ffe08a'],['grid','grid']]);
+    +grp('Overlays',[['quests','quests','#9fe08a'],['items','items','#ffd36a'],['npcs','NPC counts'],['complete','completeness'],['notes','notes','#ffe08a'],['grid','grid']])
+    +grp('Detail layers',[['elevation','elevation','#9a7a4a'],['sound','sound-radius','#5a9fd6'],['secrets','secrets','#ffd36a']]);
   L.querySelectorAll('[data-l]').forEach(c=>c.onchange=()=>{layers[c.dataset.l]=c.checked;render();}); }
 buildLayers(); setMode('select'); render();
 </script>
