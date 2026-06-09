@@ -6,71 +6,77 @@
 <title>World-Design Editor (game-agnostic · JSON in/out)</title>
 <style>
   :root{ --bg:#0b0f0a; --panel:#11160f; --ink:#e8efe0; --dim:#9fb89a; --line:#243018; --acc:#ffd9a0;
-    --early:#7fcf6a; --mid:#e0a23a; --late:#c873d8; --nogo:#c0392b; --music:#5a9fd6; --terr:#6fae4d; }
+    --early:#7fcf6a; --mid:#e0a23a; --late:#c873d8; --nogo:#c0392b; --music:#5a9fd6; --terr:#6fae4d;
+    --warn:#e0a23a; --err:#e0574a; --ok:#7fcf6a; }
   *{ box-sizing:border-box; } html,body{ height:100%; }
   body{ margin:0; background:var(--bg); color:var(--ink); font:13px/1.45 ui-monospace,Menlo,Consolas,monospace; overflow:hidden; }
-  #top{ display:flex; align-items:center; gap:6px; padding:6px 10px; border-bottom:1px solid var(--line); background:#0e140b; flex-wrap:wrap; }
-  #top b{ color:#fff6df; margin-right:8px; } .grp{ display:flex; gap:3px; align-items:center; padding:0 6px; border-right:1px solid var(--line); }
+  #top{ display:flex; align-items:center; gap:5px; padding:5px 9px; border-bottom:1px solid var(--line); background:#0e140b; flex-wrap:wrap; }
+  #top b{ color:#fff6df; margin-right:6px; } .grp{ display:flex; gap:3px; align-items:center; padding:0 5px; border-right:1px solid var(--line); }
   button,select,input,textarea{ font:inherit; }
-  button{ background:#1a2412; color:var(--ink); border:1px solid #2f3f1e; border-radius:5px; padding:4px 8px; cursor:pointer; }
+  button{ background:#1a2412; color:var(--ink); border:1px solid #2f3f1e; border-radius:5px; padding:3px 7px; cursor:pointer; }
   button:hover{ background:#243018; } button.on{ background:#3a5224; border-color:#5a7a34; color:#fff; }
   button.danger{ border-color:#5a2424; } button.danger:hover{ background:#3a1414; }
-  #wrap{ display:flex; height:calc(100vh - 42px); }
+  input.search{ background:#0c110a; color:var(--ink); border:1px solid #2a3520; border-radius:5px; padding:3px 7px; width:130px; }
+  #wrap{ display:flex; height:calc(100vh - 40px); }
   #cvwrap{ flex:1 1 auto; overflow:auto; position:relative; background:#080b07; }
   svg#cv{ display:block; } svg text{ user-select:none; }
-  #side{ flex:0 0 340px; background:var(--panel); border-left:1px solid var(--line); display:flex; flex-direction:column; }
-  #layers{ padding:8px 10px; border-bottom:1px solid var(--line); max-height:42%; overflow:auto; }
-  #layers h4{ margin:6px 0 3px; font-size:11px; color:var(--acc); text-transform:uppercase; letter-spacing:.5px; }
-  #layers label{ display:inline-flex; align-items:center; gap:4px; margin:1px 8px 1px 0; font-size:11px; cursor:pointer; }
-  #editor{ padding:10px 12px; overflow:auto; flex:1 1 auto; }
-  #editor h3{ margin:0 0 2px; font-size:15px; } #editor .sub{ color:var(--dim); font-size:11px; margin-bottom:8px; }
-  #editor label.f{ display:block; margin:7px 0 1px; font-size:11px; color:var(--acc); }
-  #editor input,#editor select,#editor textarea{ width:100%; background:#0c110a; color:var(--ink); border:1px solid #2a3520; border-radius:4px; padding:4px 6px; }
-  #editor textarea{ resize:vertical; min-height:46px; }
-  #editor .row{ display:flex; gap:6px; } #editor .row>*{ flex:1; }
-  #editor .hint{ color:var(--dim); } .pill{ display:inline-block; padding:1px 6px; border-radius:4px; font-size:10px; }
-  .node{ cursor:pointer; } .node.sel circle,.node.sel polygon,.zone.sel rect,.note.sel circle{ stroke:#fff !important; stroke-width:3 !important; }
-  .pathg{ cursor:pointer; } .pathg.sel line{ stroke-width:5 !important; }
-  .qdot,.note{ cursor:pointer; }
-  #hintbar{ position:absolute; left:8px; bottom:8px; background:#0e140bdd; border:1px solid var(--line); border-radius:6px; padding:5px 9px; font-size:11px; color:var(--dim); pointer-events:none; }
+  #side{ flex:0 0 350px; background:var(--panel); border-left:1px solid var(--line); display:flex; flex-direction:column; }
+  #layers{ padding:7px 10px; border-bottom:1px solid var(--line); max-height:34%; overflow:auto; }
+  #layers h4{ margin:5px 0 2px; font-size:11px; color:var(--acc); text-transform:uppercase; letter-spacing:.5px; }
+  #layers label{ display:inline-flex; align-items:center; gap:4px; margin:1px 7px 1px 0; font-size:11px; cursor:pointer; }
+  #editor{ padding:9px 12px; overflow:auto; flex:1 1 auto; }
+  #editor h3{ margin:0 0 2px; font-size:15px; } #editor .sub{ color:var(--dim); font-size:11px; margin-bottom:6px; }
+  #editor label.f{ display:block; margin:6px 0 1px; font-size:11px; color:var(--acc); }
+  #editor input,#editor select,#editor textarea{ width:100%; background:#0c110a; color:var(--ink); border:1px solid #2a3520; border-radius:4px; padding:3px 6px; }
+  #editor textarea{ resize:vertical; min-height:42px; } #editor .row{ display:flex; gap:6px; } #editor .row>*{ flex:1; }
+  .hint{ color:var(--dim); } .pill{ display:inline-block; padding:1px 6px; border-radius:4px; font-size:10px; }
+  .node{ cursor:pointer; } .node.sel circle,.node.sel polygon,.zone.sel rect,.note.sel circle,.qnode.sel rect{ stroke:#fff !important; stroke-width:3 !important; }
+  .pathg{ cursor:pointer; } .pathg.sel path{ stroke-width:5 !important; } .qdot,.note,.bend{ cursor:pointer; }
+  /* overlays */
+  .overlay{ position:absolute; top:10px; background:#0e140bf2; border:1px solid var(--line); border-radius:8px; padding:11px 13px; font-size:12px; max-width:300px; max-height:calc(100% - 24px); overflow:auto; box-shadow:0 4px 18px #000a; }
+  #dash{ left:10px; } #warn{ right:10px; }
+  .overlay h4{ margin:0 0 6px; color:var(--acc); font-size:13px; } .overlay table{ width:100%; border-collapse:collapse; }
+  .overlay td{ padding:1px 4px; } .overlay td.n{ text-align:right; color:#fff; }
+  .w-row{ padding:3px 5px; margin:3px 0; border-radius:5px; border-left:3px solid; } .w-err{ background:#2a14129a; border-color:var(--err); } .w-warn{ background:#2a24129a; border-color:var(--warn); } .w-ok{ color:var(--ok); }
+  #hintbar{ position:absolute; left:10px; bottom:10px; background:#0e140bdd; border:1px solid var(--line); border-radius:6px; padding:4px 9px; font-size:11px; color:var(--dim); pointer-events:none; }
+  .ck{ font-size:11px; } .ck .y{ color:var(--ok); } .ck .x{ color:var(--err); }
 </style>
 </head>
 <body>
 <div id="top">
   <b>WORLD EDITOR</b>
   <div class="grp">
-    <button id="m_select" class="on" title="Select / drag nodes + zones">▣ Select</button>
-    <button id="m_node" title="Click canvas to add a place">+ Node</button>
-    <button id="m_path" title="Click two nodes to link them">— Path</button>
-    <button id="m_zone" title="Drag a rectangle (zone)">▭ Zone</button>
-    <button id="m_note" title="Click to drop a note pin">📌 Note</button>
+    <button id="v_map" class="on">🗺 Map</button><button id="v_quests">🧩 Quests</button>
   </div>
   <div class="grp">
-    <button id="io_new">New</button>
-    <button id="io_import">Import JSON</button>
-    <button id="io_export">Export JSON</button>
+    <button id="m_select" class="on">▣ Select</button><button id="m_node">+ Node</button><button id="m_path">— Path</button><button id="m_zone">▭ Zone</button><button id="m_note">📌 Note</button>
+  </div>
+  <div class="grp">
+    <button id="t_dash">📊 Dashboard</button><button id="t_warn">⚠ Warnings</button>
+  </div>
+  <div class="grp">
+    <button id="z_out">−</button><button id="z_in">+</button><button id="z_lock" title="Lock scale (no auto-fit)">🔒 scale</button>
+    <input class="search" id="search" placeholder="search place/quest/NPC…">
+  </div>
+  <div class="grp">
+    <button id="io_new">New</button><button id="io_import">Import</button><button id="io_export">Export</button>
     <input id="file" type="file" accept="application/json" style="display:none">
   </div>
   <div class="grp" style="border:0"><span class="hint" id="counts"></span></div>
 </div>
 <div id="wrap">
-  <div id="cvwrap"><svg id="cv"></svg><div id="hintbar"></div></div>
-  <div id="side">
-    <div id="layers"></div>
-    <div id="editor"></div>
-  </div>
+  <div id="cvwrap"><svg id="cv"></svg><div id="hintbar"></div><div id="dash" class="overlay" style="display:none"></div><div id="warn" class="overlay" style="display:none"></div></div>
+  <div id="side"><div id="layers"></div><div id="editor"></div></div>
 </div>
 <script>
-/* ===================== game-agnostic data model =====================
-   World JSON: { meta, nodes[], paths[], zones[], notes[] }. Loads/saves any world. */
+/* ===================== game-agnostic data model ===================== */
 const TIERS=['city','town','village','dungeon','secret','landmark'];
 const TIERCOL={city:'#e0c068',town:'#74b24e',village:'#56988c',dungeon:'#b06ac8',secret:'#c8895a',landmark:'#9aa6c8'};
 const STAGES=['early','mid','late']; const STAGECOL={early:'#7fcf6a',mid:'#e0a23a',late:'#c873d8'};
 const VIAS=['walk','dash','cut','lantern','grapple','hookshot','firefrost','fire','ice','wind','electric','bridge','boat'];
 const ZONEKINDS=['terrain','music','nogo']; const ZONECOL={terrain:'#6fae4d',music:'#5a9fd6',nogo:'#c0392b'};
-const REGCOL={Greenhollow:'#74b24e',Marsh:'#56988c',Peaks:'#93a0b8',Coast:'#4a90cf',Emberwood:'#d96f3c',Spire:'#bcaadf',Forest:'#4a8a40',Desert:'#d4ad6a','':'#888'};
+const INTERIOR_TYPES=['house','shop','dungeon','secret','civic'];
 
-/* ---- DEFAULT world = MASTER-WORLD-SPEC (preloaded; editable; not hardcoded into logic) ---- */
 const DEFAULT_WORLD={
  meta:{name:'Emberfall 2',grid:24,tileSize:32},
  zones:[
@@ -84,221 +90,301 @@ const DEFAULT_WORLD={
   {id:'z_nogo',kind:'nogo',label:'sea cliffs (no-go)',gx:16.2,gy:8.5,gw:0.4,gh:7}
  ],
  nodes:[
-  {id:'gh',label:'Greenhollow',tier:'town',region:'Greenhollow',w:64,h:52,gx:11.7,gy:11.7,unlock:'START (the hub).',npcs:['Mara','Bram','Hodge','Tam','Phil McCracken','Fatley','Pem','Constable Wiremu (CAM7)','Old Sisyph (CAM2)'],quests:['M1–M7','SG1–7','GHUB','PH3','PH6'],items:['wooden→steel sword','leather','potions','3 caches'],buildings:['Tankard(+upstairs)','Pem’s Store','Forge','Chapel','Manor','2 cottages — 7 enterable']},
-  {id:'mirefen',label:'Mirefen',tier:'town',region:'Marsh',w:44,h:36,gx:4.2,gy:12.4,unlock:'walk from GH (West Belt).',npcs:['Elder Yssa','Hagga','Old Karl (CAM4)','Mother Vell (PH5)'],quests:['M8','M10','SA1–5','PH5','NIGHT1'],items:['epic blade (SA3)'],buildings:['Yssa’s longhouse','Hagga’s hut','→ Sunken Shrine ⇲']},
-  {id:'shrine',label:'Sunken Shrine',tier:'dungeon',region:'Marsh',w:36,h:28,gx:2.6,gy:14.6,unlock:'story M8.',npcs:['Drowned Guardian (boss)'],quests:['M9','SA3'],items:['LANTERN','SHARD 1'],buildings:['3 floors + crypts ⇲']},
-  {id:'stonereach',label:'STONEREACH',tier:'city',region:'Peaks',w:96,h:80,gx:12.2,gy:6.4,unlock:'gate shard_1 + story M10.',npcs:['Miner','Mike Hunt','Stonewright','Bounty-Master','Lord Pellamy (CAM1)','Desperate Stranger (SP5)'],quests:['M11','SP1–5','PH1','CAM1','CAM3'],items:['Crag Maul','sky-iron charm'],buildings:['town hall','mine office','Order seat','Marble Hall ⇲','4 districts']},
-  {id:'keep',label:'Cinder Keep',tier:'dungeon',region:'Peaks',w:40,h:32,gx:14.6,gy:4.6,unlock:'story M11.',npcs:['Keep Sentinel (boss)'],quests:['M12','SP1 records'],items:['GRAPPLE','SHARD 2'],buildings:['3 floors + records-library ⇲']},
-  {id:'saltbreak',label:'SALTBREAK',tier:'city',region:'Coast',w:120,h:96,gx:19.2,gy:12.2,unlock:'gate grapple (gorge).',npcs:['Hugh Jass','Harbourmaster','Holden McGroin (ST3)','Big Sal (EDG1)','Shy Fisher (EDG2)','Old Crannock (PH2)','General Petibon (CAM3)'],quests:['M13','ST1–5','ST8','PH2','EDG1','EDG2'],items:['Tideglass Blade','pearl circlet'],buildings:['docks','market','underworld','a mansion','tavern','Lighthouse ⇲ — 4 districts']},
-  {id:'vault',label:'Drowned Vault',tier:'dungeon',region:'Coast',w:36,h:30,gx:21.6,gy:14.8,unlock:'story M13 + tide.',npcs:['Tideward (boss)'],quests:['M14','ST2'],items:['HOOKSHOT','SHARD 3'],buildings:['2 floors (tide) + tide-caves ⇲']},
-  {id:'caught',label:'Caught Settlement',tier:'town',region:'Emberwood',w:56,h:44,gx:11.6,gy:17.4,unlock:'gate hookshot (chasm).',npcs:['the Settler','Elder Ash (PH4)','Vinizar (CAM6)'],quests:['M15','SE1–5','PH4'],items:['Emberfrost Band','Cinderhide Cloak'],buildings:['settlement halls','→ Ember Hollow ⇲','→ Weeping Tree']},
-  {id:'hollow',label:'Ember Hollow',tier:'dungeon',region:'Emberwood',w:38,h:30,gx:11.7,gy:19.8,unlock:'story M15.',npcs:['Feverheart (boss)'],quests:['M16','SE3'],items:['FIRE/FROST','SHARD 4'],buildings:['2 floors + split altar']},
-  {id:'capital',label:'ORACLE CAPITAL',tier:'city',region:'Spire',w:104,h:88,gx:11.7,gy:2.2,unlock:'gate firefrost + 4 shards + M17.',npcs:['Sela','librarians & clergy'],quests:['M17','ancient-texts depth'],items:['lore · keys'],buildings:['libraries','temples','oracle precinct','housing']},
-  {id:'spire',label:'The Hollow Spire',tier:'dungeon',region:'Spire',w:44,h:36,gx:13.6,gy:0.9,unlock:'story M17.',npcs:['Warden of the Binding (boss)','the CHICKEN (M18)'],quests:['M18','M19','M20 (5 endings)'],items:['SHARD 5'],buildings:['4 floors: Ascent · Binding Chamber']},
-  {id:'thornwell',label:'Thornwell',tier:'village',region:'Forest',w:34,h:28,gx:17,gy:17.3,unlock:'[exp] late — wind/cut from Saltbreak.',npcs:['woodfolk','gunhand / ninja-gran','the Wanderer (CAM5)'],quests:['exp side','Overgrown Ruin'],items:['minor loot'],buildings:['a forest inn ⇲']},
-  {id:'dustreach',label:'Dustreach',tier:'village',region:'Desert',w:32,h:26,gx:21,gy:20.8,unlock:'[exp] late — from Thornwell.',npcs:['traders','nomads'],quests:['exp side','Sunken Temple'],items:['minor loot'],buildings:['a trade post ⇲']},
-  {id:'fenwick',label:'Fenwick',tier:'village',region:'Marsh',w:28,h:24,gx:6.6,gy:14.4,unlock:'early — walk from Mirefen.',npcs:['fisherfolk'],quests:['side','Pem-mark'],items:['minor loot'],buildings:['a fishing shack ⇲']},
-  {id:'cribbins',label:'Cribbins Cove',tier:'village',region:'Coast',w:28,h:24,gx:17,gy:14.9,unlock:'mid — walk from Saltbreak.',npcs:['coast folk'],quests:['side'],items:['minor loot'],buildings:['a cove inn ⇲']},
-  {id:'cragfoot',label:'Cragfoot',tier:'village',region:'Peaks',w:26,h:22,gx:9.3,gy:4.9,unlock:'mid — walk from Stonereach.',npcs:['mountain folk'],quests:['side / rest'],items:['minor loot'],buildings:['a hamlet shop ⇲']},
-  {id:'cave',label:'Boarded Cave',tier:'secret',region:'Greenhollow',w:16,h:12,gx:13.8,gy:11.1,unlock:'early — lantern.',npcs:[],quests:['M4 (weeping-flame carving)'],items:['cave_lore'],buildings:['a small cave ⇲']},
-  {id:'highpass',label:'High Pass',tier:'secret',region:'Peaks',w:20,h:16,gx:15.4,gy:6.7,unlock:'mid — grapple.',npcs:['Crag Beast (SP2)'],quests:['SP4','SP2'],items:['sky-iron charm'],buildings:['a cache']},
-  {id:'weeping',label:'Weeping Tree',tier:'secret',region:'Emberwood',w:14,h:12,gx:9.5,gy:19.5,unlock:'mid — walk.',npcs:['a god-fragment'],quests:['SE4'],items:['ET11 card'],buildings:['a grove']},
-  {id:'lighthouse',label:'The Lighthouse',tier:'landmark',region:'Coast',w:18,h:14,gx:18.3,gy:9.5,unlock:'mid — walk from Saltbreak.',npcs:['Holden McGroin'],quests:['ST3'],items:['ET2 echo'],buildings:['a multi-floor lighthouse ⇲']}
+  {id:'gh',label:'Greenhollow',tier:'town',region:'Greenhollow',w:64,h:52,gx:11.7,gy:11.7,population:'~120',terrain:'grass',music:'mus_green',enemies:[],unlock:'START (the hub).',interiors:{house:3,shop:2,civic:2},assets:{have:['LPC terrain','eliza furniture','7 interiors'],gap:['NPC portraits']},npcs:['Mara','Bram','Hodge','Tam','Phil McCracken','Fatley','Pem','Constable Wiremu (CAM7)','Old Sisyph (CAM2)'],quests:['M1–M7','SG1–7','GHUB','PH3','PH6'],items:['wooden→steel sword','leather','potions','3 caches']},
+  {id:'mirefen',label:'Mirefen',tier:'town',region:'Marsh',w:44,h:36,gx:4.2,gy:12.4,population:'~50',terrain:'bog',music:'',enemies:[{type:'bog-folk',level:1}],unlock:'walk from GH.',interiors:{house:2,civic:1},assets:{have:['bog tiles (terrain-v7)'],gap:['stilt-hut set']},npcs:['Elder Yssa','Hagga','Old Karl (CAM4)','Mother Vell (PH5)'],quests:['M8','M10','SA1–5','PH5','NIGHT1'],items:['epic blade (SA3)']},
+  {id:'shrine',label:'Sunken Shrine',tier:'dungeon',region:'Marsh',w:36,h:28,gx:2.6,gy:14.6,terrain:'dungeon',music:'',enemies:[{type:'drowned',level:3},{type:'guardian',level:5}],unlock:'story M8.',interiors:{dungeon:3},assets:{have:['LPC dungeon tileset (imported)'],gap:[]},npcs:['Drowned Guardian (boss)'],quests:['M9','SA3'],items:['LANTERN','SHARD 1']},
+  {id:'stonereach',label:'STONEREACH',tier:'city',region:'Peaks',w:96,h:80,gx:12.2,gy:6.4,population:'~300',terrain:'stone',music:'',enemies:[{type:'crag',level:4}],unlock:'gate shard_1 + M10.',interiors:{house:6,shop:3,civic:2},assets:{have:['cliff/stone tiles'],gap:['terraced-city set (Victorian)','mine interior']},npcs:['Miner','Mike Hunt','Stonewright','Bounty-Master','Lord Pellamy (CAM1)','Desperate Stranger (SP5)'],quests:['M11','SP1–5','PH1','CAM1','CAM3'],items:['Crag Maul','sky-iron charm']},
+  {id:'keep',label:'Cinder Keep',tier:'dungeon',region:'Peaks',w:40,h:32,gx:14.6,gy:4.6,terrain:'dungeon',music:'',enemies:[{type:'sentinel',level:6}],unlock:'story M11.',interiors:{dungeon:3},assets:{have:['LPC dungeon tileset'],gap:['keep masonry (Castle pack)']},npcs:['Keep Sentinel (boss)'],quests:['M12','SP1 records'],items:['GRAPPLE','SHARD 2']},
+  {id:'saltbreak',label:'SALTBREAK',tier:'city',region:'Coast',w:120,h:96,gx:19.2,gy:12.2,population:'~400',terrain:'coast',music:'',enemies:[{type:'smuggler',level:5}],unlock:'gate grapple.',interiors:{house:8,shop:4,civic:1},assets:{have:['water/coast tiles'],gap:['city building set (Victorian)','docks tiles','mansion']},npcs:['Hugh Jass','Harbourmaster','Holden McGroin (ST3)','Big Sal (EDG1)','Shy Fisher (EDG2)','Old Crannock (PH2)','General Petibon (CAM3)'],quests:['M13','ST1–5','ST8','PH2','EDG1','EDG2'],items:['Tideglass Blade','pearl circlet']},
+  {id:'vault',label:'Drowned Vault',tier:'dungeon',region:'Coast',w:36,h:30,gx:21.6,gy:14.8,terrain:'dungeon',music:'',enemies:[{type:'tideward',level:7}],unlock:'story M13 + tide.',interiors:{dungeon:2},assets:{have:['LPC dungeon tileset'],gap:[]},npcs:['Tideward (boss)'],quests:['M14','ST2'],items:['HOOKSHOT','SHARD 3']},
+  {id:'caught',label:'Caught Settlement',tier:'town',region:'Emberwood',w:56,h:44,gx:11.6,gy:17.4,population:'~60',terrain:'',music:'',enemies:[{type:'ember',level:6}],unlock:'gate hookshot.',interiors:{house:3,civic:1},assets:{have:[],gap:['fire/frost terrain','split-settlement set']},npcs:['the Settler','Elder Ash (PH4)','Vinizar (CAM6)'],quests:['M15','SE1–5','PH4'],items:['Emberfrost Band','Cinderhide Cloak']},
+  {id:'hollow',label:'Ember Hollow',tier:'dungeon',region:'Emberwood',w:38,h:30,gx:11.7,gy:19.8,terrain:'dungeon',music:'',enemies:[{type:'feverheart',level:8}],unlock:'story M15.',interiors:{dungeon:2},assets:{have:['lava tiles (terrain-v7)'],gap:['split-altar art']},npcs:['Feverheart (boss)'],quests:['M16','SE3'],items:['FIRE/FROST','SHARD 4']},
+  {id:'capital',label:'ORACLE CAPITAL',tier:'city',region:'Spire',w:104,h:88,gx:11.7,gy:2.2,population:'~350',terrain:'',music:'sacral',enemies:[],unlock:'gate firefrost + 4 shards + M17.',interiors:{civic:5,house:4},assets:{have:[],gap:['temple/library set (Castle pack)','sacral terrain']},npcs:['Sela','librarians & clergy'],quests:['M17'],items:['lore · keys']},
+  {id:'spire',label:'The Hollow Spire',tier:'dungeon',region:'Spire',w:44,h:36,gx:13.6,gy:0.9,terrain:'',music:'sacral',enemies:[{type:'warden',level:10}],unlock:'story M17.',interiors:{dungeon:4},assets:{have:[],gap:['spire ascent set','binding-chamber art']},npcs:['Warden of the Binding (boss)','the CHICKEN (M18)'],quests:['M18','M19','M20 (5 endings)'],items:['SHARD 5']},
+  {id:'thornwell',label:'Thornwell',tier:'village',region:'Forest',w:34,h:28,gx:17,gy:17.3,terrain:'forest',music:'',enemies:[{type:'beast',level:5}],unlock:'[exp] late.',interiors:{house:2},assets:{have:['forest tiles'],gap:['woodfolk set']},npcs:['woodfolk','gunhand / ninja-gran','the Wanderer (CAM5)'],quests:['exp side'],items:['minor loot']},
+  {id:'dustreach',label:'Dustreach',tier:'village',region:'Desert',w:32,h:26,gx:21,gy:20.8,terrain:'desert',music:'',enemies:[],unlock:'[exp] late.',interiors:{house:2},assets:{have:['sand tiles (terrain-v7)'],gap:['adobe building set']},npcs:['traders','nomads'],quests:['exp side'],items:['minor loot']},
+  {id:'fenwick',label:'Fenwick',tier:'village',region:'Marsh',w:28,h:24,gx:6.6,gy:14.4,terrain:'bog',music:'',enemies:[],unlock:'early.',interiors:{house:1},assets:{have:[],gap:[]},npcs:['fisherfolk'],quests:['side'],items:['minor loot']},
+  {id:'cribbins',label:'Cribbins Cove',tier:'village',region:'Coast',w:28,h:24,gx:17,gy:14.9,terrain:'coast',music:'',enemies:[],unlock:'mid.',interiors:{house:1},assets:{have:[],gap:[]},npcs:['coast folk'],quests:['side'],items:['minor loot']},
+  {id:'cragfoot',label:'Cragfoot',tier:'village',region:'Peaks',w:26,h:22,gx:9.3,gy:4.9,terrain:'stone',music:'',enemies:[],unlock:'mid.',interiors:{house:1},assets:{have:[],gap:[]},npcs:['mountain folk'],quests:['side'],items:['minor loot']},
+  {id:'cave',label:'Boarded Cave',tier:'secret',region:'Greenhollow',w:16,h:12,gx:13.8,gy:11.1,terrain:'dungeon',music:'',enemies:[],unlock:'early — lantern.',interiors:{secret:1},assets:{have:['LPC dungeon tileset'],gap:[]},npcs:[],quests:['M4'],items:['cave_lore']},
+  {id:'highpass',label:'High Pass',tier:'secret',region:'Peaks',w:20,h:16,gx:15.4,gy:6.7,terrain:'stone',music:'',enemies:[{type:'crag-beast',level:6}],unlock:'mid — grapple.',interiors:{secret:1},assets:{have:[],gap:[]},npcs:['Crag Beast (SP2)'],quests:['SP4','SP2'],items:['sky-iron charm']},
+  {id:'weeping',label:'Weeping Tree',tier:'secret',region:'Emberwood',w:14,h:12,gx:9.5,gy:19.5,terrain:'forest',music:'',enemies:[],unlock:'mid.',interiors:{secret:1},assets:{have:[],gap:[]},npcs:['a god-fragment'],quests:['SE4'],items:['ET11 card']},
+  {id:'lighthouse',label:'The Lighthouse',tier:'landmark',region:'Coast',w:18,h:14,gx:18.3,gy:9.5,terrain:'coast',music:'',enemies:[],unlock:'mid.',interiors:{house:1},assets:{have:[],gap:['lighthouse interior']},npcs:['Holden McGroin'],quests:['ST3'],items:['ET2 echo']}
  ],
  paths:[
-  {id:'p1',a:'gh',b:'mirefen',via:'walk',gate:'',stage:'early',len:'18/26/34',dots:[{id:'d1',type:'quest',label:'SA4 The Frog',detail:'Undefeatable frog — a PUZZLE not a fight.'},{id:'d2',type:'quest',label:'SA5 Drowned Letters',detail:'Carry the reed-letter to Mara (callback).'},{id:'d3',type:'item',label:'Pem-mark (1/4)',detail:'A SG2 clue.'}]},
-  {id:'p2',a:'gh',b:'cave',via:'lantern',gate:'lantern',stage:'early',len:'6/8/10',dots:[{id:'d4',type:'quest',label:'M4 Boarded Cave',detail:'The weeping-flame carving.'}]},
-  {id:'p3',a:'mirefen',b:'shrine',via:'walk',gate:'story M8',stage:'early',len:'10/14/18',dots:[{id:'d5',type:'quest',label:'M9 Sunken Shrine',detail:'Lantern + Drowned Guardian + SHARD 1.'}]},
-  {id:'p4',a:'gh',b:'stonereach',via:'walk',gate:'shard_1 + M10',stage:'early',len:'28/34/42',dots:[{id:'d6',type:'quest',label:'SP2 Crag Beast',detail:'Optional bounty → Crag Maul.'}]},
-  {id:'p5',a:'gh',b:'saltbreak',via:'grapple',gate:'grapple',stage:'mid',len:'30/38/48',dots:[{id:'d7',type:'quest',label:'ST4 Wreck Wraith',detail:'→ Tideglass Blade.'},{id:'d8',type:'item',label:'ST8 bottle',detail:'4th Pem-mark.'}]},
-  {id:'p6',a:'stonereach',b:'keep',via:'grapple',gate:'M11',stage:'mid',len:'8/12/16',dots:[{id:'d9',type:'quest',label:'M12 Cinder Keep',detail:'Grapple + SHARD 2 + the Order’s lie.'}]},
-  {id:'p7',a:'gh',b:'caught',via:'hookshot',gate:'hookshot',stage:'mid',len:'26/32/40',dots:[{id:'d10',type:'quest',label:'SE5 Cinder Stag',detail:'→ Cinderhide Cloak.'}]},
-  {id:'p8',a:'saltbreak',b:'vault',via:'hookshot',gate:'hookshot + tide',stage:'mid',len:'10/14/20',dots:[{id:'d11',type:'quest',label:'M14 Drowned Vault',detail:'Hookshot + SHARD 3.'}]},
-  {id:'p9',a:'stonereach',b:'saltbreak',via:'grapple',gate:'grapple',stage:'mid',len:'24/30/38',dots:[{id:'d12',type:'note',label:'2nd inter-region route',detail:'Grapple ridge Peaks↔Coast — the world interconnects.'}]},
-  {id:'p10',a:'stonereach',b:'capital',via:'firefrost',gate:'firefrost + 4 shards + M17',stage:'late',len:'16/22/30',dots:[{id:'d13',type:'quest',label:'M17 Sela’s Design',detail:'Permanent: trust / oppose / go alone.'}]},
-  {id:'p11',a:'capital',b:'spire',via:'walk',gate:'M17',stage:'late',len:'12/16/22',dots:[{id:'d14',type:'quest',label:'M18 — THE CHICKEN',detail:'The 4-tool gauntlet; the chicken returns.'}]},
-  {id:'p12',a:'caught',b:'hollow',via:'fire',gate:'M15',stage:'mid',len:'8/10/14',dots:[{id:'d15',type:'quest',label:'M16 Ember Hollow',detail:'Fire/frost + SHARD 4; mercy/seize/take.'}]},
-  {id:'p13',a:'gh',b:'stonereach',via:'electric',gate:'electric spell',stage:'late',len:'14',dots:[{id:'d16',type:'note',label:'PROGRESSIVE: electric N-gate',detail:'Electric switch opens a 2nd, direct GH↔Peaks route.'}]},
-  {id:'p14',a:'gh',b:'saltbreak',via:'ice',gate:'ice spell',stage:'late',len:'22',dots:[{id:'d17',type:'note',label:'PROGRESSIVE: ice river-crossing',detail:'Freeze the river → a 2nd GH↔Coast route.'}]},
-  {id:'p15',a:'saltbreak',b:'thornwell',via:'wind',gate:'wind / cut',stage:'late',len:'12/16/22',dots:[{id:'d18',type:'note',label:'PROGRESSIVE: the Forest opens',detail:'Wind-gap / cut → the expansion. [D-geo]'}]},
-  {id:'p16',a:'thornwell',b:'dustreach',via:'walk',gate:'',stage:'late',len:'4/8/12',dots:[]},
-  {id:'p17',a:'saltbreak',b:'caught',via:'bridge',gate:'bridge quest',stage:'late',len:'20/24/30',dots:[{id:'d19',type:'note',label:'PROGRESSIVE: a story bridge',detail:'Repair the bridge → a 2nd Coast↔Emberwood route.'}]},
-  {id:'p18',a:'mirefen',b:'fenwick',via:'walk',gate:'',stage:'early',len:'4/8/12',dots:[]},
-  {id:'p19',a:'saltbreak',b:'cribbins',via:'walk',gate:'',stage:'mid',len:'4/8/12',dots:[]},
-  {id:'p20',a:'saltbreak',b:'lighthouse',via:'walk',gate:'',stage:'mid',len:'6/10/14',dots:[{id:'d20',type:'quest',label:'ST3 Lighthouse Keeper',detail:'Holden’s grief mirrors Bram.'}]},
-  {id:'p21',a:'stonereach',b:'cragfoot',via:'walk',gate:'',stage:'mid',len:'4/8/12',dots:[]},
-  {id:'p22',a:'caught',b:'weeping',via:'walk',gate:'',stage:'mid',len:'4/8/12',dots:[{id:'d21',type:'quest',label:'SE4 Weeping Tree',detail:'+Purity; Liberator nudge.'}]},
-  {id:'p23',a:'stonereach',b:'highpass',via:'grapple',gate:'grapple',stage:'mid',len:'8/12/16',dots:[{id:'d22',type:'quest',label:'SP4 High-Pass Climb',detail:'→ sky-iron charm.'}]}
+  {id:'p1',a:'gh',b:'mirefen',via:'walk',gate:'',stage:'early',len:'18/26/34',bends:[],dots:[{id:'d1',type:'quest',label:'SA4 The Frog',detail:'Undefeatable frog — a PUZZLE not a fight.'},{id:'d2',type:'quest',label:'SA5 Drowned Letters',detail:'Carry the reed-letter to Mara.'},{id:'d3',type:'item',label:'Pem-mark (1/4)',detail:'A SG2 clue.'}]},
+  {id:'p2',a:'gh',b:'cave',via:'lantern',gate:'lantern',stage:'early',len:'6/8/10',bends:[],dots:[{id:'d4',type:'quest',label:'M4 Boarded Cave',detail:'The weeping-flame carving.'}]},
+  {id:'p3',a:'mirefen',b:'shrine',via:'walk',gate:'story M8',stage:'early',len:'10/14/18',bends:[],dots:[{id:'d5',type:'quest',label:'M9 Sunken Shrine',detail:'Lantern + Guardian + SHARD 1.'}]},
+  {id:'p4',a:'gh',b:'stonereach',via:'walk',gate:'shard_1 + M10',stage:'early',len:'28/34/42',bends:[],dots:[{id:'d6',type:'quest',label:'SP2 Crag Beast',detail:'Optional → Crag Maul.'}]},
+  {id:'p5',a:'gh',b:'saltbreak',via:'grapple',gate:'grapple',stage:'mid',len:'30/38/48',bends:[],dots:[{id:'d7',type:'quest',label:'ST4 Wreck Wraith',detail:'→ Tideglass Blade.'},{id:'d8',type:'item',label:'ST8 bottle',detail:'4th Pem-mark.'}]},
+  {id:'p6',a:'stonereach',b:'keep',via:'grapple',gate:'M11',stage:'mid',len:'8/12/16',bends:[],dots:[{id:'d9',type:'quest',label:'M12 Cinder Keep',detail:'Grapple + SHARD 2.'}]},
+  {id:'p7',a:'gh',b:'caught',via:'hookshot',gate:'hookshot',stage:'mid',len:'26/32/40',bends:[],dots:[{id:'d10',type:'quest',label:'SE5 Cinder Stag',detail:'→ Cinderhide Cloak.'}]},
+  {id:'p8',a:'saltbreak',b:'vault',via:'hookshot',gate:'hookshot + tide',stage:'mid',len:'10/14/20',bends:[],dots:[{id:'d11',type:'quest',label:'M14 Drowned Vault',detail:'Hookshot + SHARD 3.'}]},
+  {id:'p9',a:'stonereach',b:'saltbreak',via:'grapple',gate:'grapple',stage:'mid',len:'24/30/38',bends:[],dots:[{id:'d12',type:'note',label:'2nd inter-region route',detail:'Grapple ridge Peaks↔Coast.'}]},
+  {id:'p10',a:'stonereach',b:'capital',via:'firefrost',gate:'firefrost + 4 shards + M17',stage:'late',len:'16/22/30',bends:[],dots:[{id:'d13',type:'quest',label:'M17 Sela’s Design',detail:'Permanent choice.'}]},
+  {id:'p11',a:'capital',b:'spire',via:'walk',gate:'M17',stage:'late',len:'12/16/22',bends:[],dots:[{id:'d14',type:'quest',label:'M18 — THE CHICKEN',detail:'The gauntlet; the chicken returns.'}]},
+  {id:'p12',a:'caught',b:'hollow',via:'fire',gate:'M15',stage:'mid',len:'8/10/14',bends:[],dots:[{id:'d15',type:'quest',label:'M16 Ember Hollow',detail:'Fire/frost + SHARD 4.'}]},
+  {id:'p13',a:'gh',b:'stonereach',via:'electric',gate:'electric spell',stage:'late',len:'14',bends:[{gx:13.5,gy:9}],dots:[{id:'d16',type:'note',label:'PROGRESSIVE: electric N-gate',detail:'A 2nd, direct GH↔Peaks route.'}]},
+  {id:'p14',a:'gh',b:'saltbreak',via:'ice',gate:'ice spell',stage:'late',len:'22',bends:[{gx:15.5,gy:13.5}],dots:[{id:'d17',type:'note',label:'PROGRESSIVE: ice river-crossing',detail:'A 2nd GH↔Coast route.'}]},
+  {id:'p15',a:'saltbreak',b:'thornwell',via:'wind',gate:'wind / cut',stage:'late',len:'12/16/22',bends:[],dots:[{id:'d18',type:'note',label:'PROGRESSIVE: the Forest opens',detail:'Wind-gap / cut → the expansion. [D-geo]'}]},
+  {id:'p16',a:'thornwell',b:'dustreach',via:'walk',gate:'',stage:'late',len:'4/8/12',bends:[],dots:[]},
+  {id:'p17',a:'saltbreak',b:'caught',via:'bridge',gate:'bridge quest',stage:'late',len:'20/24/30',bends:[],dots:[{id:'d19',type:'note',label:'PROGRESSIVE: a story bridge',detail:'A 2nd Coast↔Emberwood route.'}]},
+  {id:'p18',a:'mirefen',b:'fenwick',via:'walk',gate:'',stage:'early',len:'4/8/12',bends:[],dots:[]},
+  {id:'p19',a:'saltbreak',b:'cribbins',via:'walk',gate:'',stage:'mid',len:'4/8/12',bends:[],dots:[]},
+  {id:'p20',a:'saltbreak',b:'lighthouse',via:'walk',gate:'',stage:'mid',len:'6/10/14',bends:[],dots:[{id:'d20',type:'quest',label:'ST3 Lighthouse Keeper',detail:'Holden’s grief mirrors Bram.'}]},
+  {id:'p21',a:'stonereach',b:'cragfoot',via:'walk',gate:'',stage:'mid',len:'4/8/12',bends:[],dots:[]},
+  {id:'p22',a:'caught',b:'weeping',via:'walk',gate:'',stage:'mid',len:'4/8/12',bends:[],dots:[{id:'d21',type:'quest',label:'SE4 Weeping Tree',detail:'+Purity.'}]},
+  {id:'p23',a:'stonereach',b:'highpass',via:'grapple',gate:'grapple',stage:'mid',len:'8/12/16',bends:[],dots:[{id:'d22',type:'quest',label:'SP4 High-Pass Climb',detail:'→ sky-iron charm.'}]}
+ ],
+ quests:[
+  {id:'M1-7',label:'M1–M7 Childhood→Return',node:'gh',type:'main',prereqs:[]},
+  {id:'M8',label:'M8 Into the Marsh',node:'mirefen',type:'main',prereqs:['M1-7']},
+  {id:'M9',label:'M9 Sunken Shrine (lantern·shard1)',node:'shrine',type:'main',prereqs:['M8']},
+  {id:'M10',label:'M10 Hagga’s Truth',node:'mirefen',type:'main',prereqs:['M9']},
+  {id:'M11',label:'M11 Sundered Peaks',node:'stonereach',type:'main',prereqs:['M10']},
+  {id:'M12',label:'M12 Cinder Keep (grapple·shard2)',node:'keep',type:'main',prereqs:['M11']},
+  {id:'M13',label:'M13 Tidewreck Coast',node:'saltbreak',type:'main',prereqs:['M12']},
+  {id:'M14',label:'M14 Drowned Vault (hookshot·shard3)',node:'vault',type:'main',prereqs:['M13']},
+  {id:'M15',label:'M15 Emberwood',node:'caught',type:'main',prereqs:['M14']},
+  {id:'M16',label:'M16 Ember Hollow (firefrost·shard4)',node:'hollow',type:'main',prereqs:['M15']},
+  {id:'M17',label:'M17 Sela’s Design',node:'capital',type:'main',prereqs:['M16']},
+  {id:'M18-20',label:'M18–20 Spire finale (shard5)',node:'spire',type:'main',prereqs:['M17']},
+  {id:'SG2',label:'SG2 Pem hunt (4 marks)',node:'gh',type:'side',prereqs:['M1-7']},
+  {id:'SA3',label:'SA3 Sunken Dead',node:'shrine',type:'side',prereqs:['M9']},
+  {id:'SP3',label:'SP3 Stubborn Miner',node:'stonereach',type:'side',prereqs:['M11']},
+  {id:'SE4',label:'SE4 Weeping Tree',node:'weeping',type:'side',prereqs:['M15']}
  ],
  notes:[ {id:'n1',gx:20.5,gy:6,text:'Van: does Saltbreak (120×96) feel too big vs Stonereach? maybe 110×88.'} ]
 };
 
 /* ===================== state ===================== */
-let W=clone(DEFAULT_WORLD), mode='select', sel=null, drag=null, pathStart=null, draftZone=null;
-const layers={ city:1,town:1,village:1,dungeon:1,secret:1,landmark:1, early:1,mid:1,late:1, pathlabels:1, gating:1, terrain:1,music:1,nogo:1, quests:1,items:1,npcs:1, notes:1, grid:1 };
+let W=clone(DEFAULT_WORLD), mode='select', view='map', sel=null, drag=null, pathStart=null, draftZone=null, lockScale=false;
+const layers={ city:1,town:1,village:1,dungeon:1,secret:1,landmark:1, early:1,mid:1,late:1, pathlabels:1, gating:1, terrain:1,music:1,nogo:1, quests:1,items:1,npcs:1, complete:1, notes:1, grid:1 };
+let show={dash:false,warn:false};
 function clone(o){ return JSON.parse(JSON.stringify(o)); }
 function uid(p){ return p+Math.random().toString(36).slice(2,7); }
-
 const cv=document.getElementById('cv'), SVGNS='http://www.w3.org/2000/svg';
-let GRID=W.meta.grid, O=44, S=40; // px per grid unit
+let GRID=W.meta.grid, O=44, S=40;
 function fit(){ GRID=W.meta.grid; const px=GRID*S+O*2; cv.setAttribute('width',px); cv.setAttribute('height',px); cv.setAttribute('viewBox',`0 0 ${px} ${px}`); }
 const gx2px=g=>O+g*S;
 function toGrid(e){ const pt=cv.createSVGPoint(); pt.x=e.clientX; pt.y=e.clientY; const l=pt.matrixTransform(cv.getScreenCTM().inverse()); return {gx:(l.x-O)/S,gy:(l.y-O)/S}; }
 function el(n,a,parent){ const e=document.createElementNS(SVGNS,n); for(const k in a)e.setAttribute(k,a[k]); (parent||cv).appendChild(e); return e; }
 const nodeById=id=>W.nodes.find(n=>n.id===id);
+const questById=id=>(W.quests||[]).find(q=>q.id===id);
 
-/* ===================== render ===================== */
-function render(){
-  fit(); while(cv.firstChild) cv.removeChild(cv.firstChild);
-  // zones (terrain/music/nogo) — fade = a lighter halo behind
+/* ===================== completeness + dashboard + warnings ===================== */
+function completeness(n){ const isSettle=['city','town','village'].includes(n.tier);
+  const ck={ NPCs:(n.npcs||[]).length>0, quests:(n.quests||[]).length>0, terrain:!!n.terrain, music:isSettle?!!n.music:true, assets:!n.assets||(n.assets.gap||[]).length===0 };
+  const vals=Object.values(ck); return { ck, pct:Math.round(100*vals.filter(Boolean).length/vals.length) }; }
+function dashStats(){ const t={}; TIERS.forEach(x=>t[x]=0); let npc=0,quest=0,items=0,interiors=0,gaps=0; const itype={}, enemies={}, intByType={};
+  for(const n of W.nodes){ t[n.tier]++; npc+=(n.npcs||[]).length; quest+=(n.quests||[]).length; items+=(n.items||[]).length;
+    (n.items||[]).forEach(()=>{}); (n.enemies||[]).forEach(e=>enemies[e.type]=Math.max(enemies[e.type]||0,e.level||0));
+    if(n.interiors)for(const k in n.interiors){ interiors+=n.interiors[k]; intByType[k]=(intByType[k]||0)+n.interiors[k]; }
+    if(n.assets)gaps+=(n.assets.gap||[]).length; }
+  const qtotal=(W.quests&&W.quests.length)||quest; const hours=Math.round((qtotal*0.45 + W.nodes.length*0.25)*10)/10;
+  return {t,npc,quest:qtotal,items,interiors,intByType,enemies,gaps,hours}; }
+function renderDash(){ const d=document.getElementById('dash'); if(!show.dash){d.style.display='none';return;} d.style.display='block'; const s=dashStats();
+  const row=(k,v)=>`<tr><td>${k}</td><td class="n">${v}</td></tr>`;
+  d.innerHTML=`<h4>📊 World Summary</h4><table>
+   ${TIERS.map(x=>row('· '+x, s.t[x])).join('')}
+   <tr><td colspan=2><hr style="border-color:#243018"></td></tr>
+   ${row('quests (graph)',s.quest)}${row('NPCs',s.npc)}${row('items (entries)',s.items)}${row('enterable interiors',s.interiors)}
+   ${Object.entries(s.intByType).map(([k,v])=>row('&nbsp;&nbsp;'+k,v)).join('')}
+   ${row('enemy archetypes',Object.keys(s.enemies).length)}
+   ${row('asset GAPs flagged',s.gaps)}
+   <tr><td colspan=2><hr style="border-color:#243018"></td></tr>
+   ${row('<b>est. hours</b>','<b>'+s.hours+'h</b>')}</table>
+   <div class="hint" style="margin-top:5px">enemy tiers: ${Object.entries(s.enemies).map(([k,v])=>k+' L'+v).join(' · ')||'—'}</div>`; }
+function computeWarnings(){ const out=[]; const ref=new Set(); W.paths.forEach(p=>{ref.add(p.a);ref.add(p.b);});
+  for(const n of W.nodes){ if(n.id!=='gh'&&!ref.has(n.id)) out.push({lvl:'err',msg:`“${n.label}” has NO route in/out (unreachable).`,sel:{t:'node',id:n.id}});
+    const isSettle=['city','town','village'].includes(n.tier);
+    if(isSettle&&!n.terrain) out.push({lvl:'warn',msg:`“${n.label}” has no TERRAIN assigned.`,sel:{t:'node',id:n.id}});
+    if(isSettle&&!n.music) out.push({lvl:'warn',msg:`“${n.label}” has no MUSIC assigned.`,sel:{t:'node',id:n.id}});
+    if(n.assets&&(n.assets.gap||[]).length) out.push({lvl:'warn',msg:`“${n.label}” has ${n.assets.gap.length} asset GAP(s): ${n.assets.gap.join(', ')}.`,sel:{t:'node',id:n.id}});
+  }
+  for(const p of W.paths){ if(!nodeById(p.a)||!nodeById(p.b)) out.push({lvl:'err',msg:`orphan path ${p.id} (missing endpoint).`,sel:{t:'path',id:p.id}}); }
+  for(const q of (W.quests||[])){ if(q.node&&!nodeById(q.node)) out.push({lvl:'err',msg:`quest “${q.label}” has no valid home node (${q.node}).`,sel:null});
+    for(const pr of (q.prereqs||[])){ if(!questById(pr)) out.push({lvl:'err',msg:`quest “${q.label}” needs missing prereq ${pr}.`,sel:null}); }
+    if((q.prereqs||[]).includes(q.id)) out.push({lvl:'err',msg:`quest “${q.label}” is its own prereq (cycle / soft-lock).`,sel:null}); }
+  // soft-lock heuristic: a place whose ONLY inbound path is gated by an item that the place ITSELF grants
+  for(const n of W.nodes){ const ins=W.paths.filter(p=>p.b===n.id||p.a===n.id); if(!ins.length)continue;
+    const allGated=ins.every(p=>p.gate); if(allGated){ const grants=(n.items||[]).join(' ').toLowerCase();
+      if(ins.some(p=>p.gate&&grants&&p.gate.toLowerCase().split(/[^a-z0-9]+/).some(tok=>tok.length>3&&grants.includes(tok))))
+        out.push({lvl:'warn',msg:`possible SOFT-LOCK: “${n.label}” is gated by an item it grants — check the key is earned earlier.`,sel:{t:'node',id:n.id}}); } }
+  return out; }
+function renderWarn(){ const w=document.getElementById('warn'); if(!show.warn){w.style.display='none';return;} w.style.display='block'; const ws=computeWarnings();
+  w.innerHTML=`<h4>⚠ Warnings (${ws.length})</h4>`+(ws.length?ws.map((x,i)=>`<div class="w-row w-${x.lvl}" data-wi="${i}" style="cursor:pointer">${x.lvl==='err'?'⛔':'⚠'} ${x.msg}</div>`).join(''):'<div class="w-ok">✓ no issues found.</div>');
+  w._ws=ws; w.querySelectorAll('[data-wi]').forEach(d=>d.onclick=()=>{ const x=ws[+d.dataset.wi]; if(x.sel){ if(x.sel.t==='node')selectNode(nodeById(x.sel.id)); else if(x.sel.t==='path')selectPath(W.paths.find(p=>p.id===x.sel.id)); } }); }
+
+/* ===================== render (map | quests) ===================== */
+function render(){ if(view==='quests')return renderQuests(); fit(); while(cv.firstChild)cv.removeChild(cv.firstChild);
   for(const z of W.zones){ if(!layers[z.kind])continue; const col=z.color||ZONECOL[z.kind];
     if(z.fade) el('rect',{x:gx2px(z.gx)-6,y:gx2px(z.gy)-6,width:z.gw*S+12,height:z.gh*S+12,rx:16,fill:col,opacity:.06});
     const g=el('g',{class:'zone'+(sel&&sel.t==='zone'&&sel.id===z.id?' sel':'')});
-    const r=el('rect',{x:gx2px(z.gx),y:gx2px(z.gy),width:z.gw*S,height:z.gh*S,rx:10,fill:col,'fill-opacity':z.kind==='nogo'?.18:.13,stroke:col,'stroke-opacity':.55,'stroke-width':z.kind==='nogo'?2:1.2,'stroke-dasharray':z.kind==='nogo'?'3 4':z.kind==='music'?'8 5':'0'},g);
-    const t=el('text',{x:gx2px(z.gx)+6,y:gx2px(z.gy)+15,fill:col,'font-size':11,'font-weight':'bold',opacity:.85},g); t.textContent=(z.kind==='music'?'♪ ':z.kind==='nogo'?'⛔ ':'')+ (z.label||z.kind);
-    g.addEventListener('mousedown',ev=>{ if(mode==='select'){ ev.stopPropagation(); selectZone(z); drag={t:'zone',z,start:toGrid(ev),ox:z.gx,oy:z.gy}; }});
+    el('rect',{x:gx2px(z.gx),y:gx2px(z.gy),width:z.gw*S,height:z.gh*S,rx:10,fill:col,'fill-opacity':z.kind==='nogo'?.18:.13,stroke:col,'stroke-opacity':.6,'stroke-width':z.kind==='nogo'?2.5:1.6,'stroke-dasharray':z.kind==='nogo'?'3 4':z.kind==='music'?'9 5':'0'},g);
+    const t=el('text',{x:gx2px(z.gx)+6,y:gx2px(z.gy)+15,fill:col,'font-size':11,'font-weight':'bold',opacity:.9},g); t.textContent=(z.kind==='music'?'♪ ':z.kind==='nogo'?'⛔ ':'▦ ')+(z.label||z.kind);
+    g.addEventListener('mousedown',ev=>{ if(mode==='select'){ev.stopPropagation();selectZone(z);drag={t:'zone',z,start:toGrid(ev),ox:z.gx,oy:z.gy};} });
   }
-  // grid
-  if(layers.grid) for(let i=0;i<=GRID;i++){ const m=i%4===0; el('line',{x1:gx2px(i),y1:gx2px(0),x2:gx2px(i),y2:gx2px(GRID),stroke:'#1d2718','stroke-width':m?1:.5,opacity:m?.7:.35}); el('line',{x1:gx2px(0),y1:gx2px(i),x2:gx2px(GRID),y2:gx2px(i),stroke:'#1d2718','stroke-width':m?1:.5,opacity:m?.7:.35}); if(m){const t=el('text',{x:gx2px(i),y:gx2px(0)-5,fill:'#4b5b3f','font-size':8,'text-anchor':'middle'});t.textContent=i;} }
-  // paths
+  if(layers.grid)for(let i=0;i<=GRID;i++){ const m=i%4===0; el('line',{x1:gx2px(i),y1:gx2px(0),x2:gx2px(i),y2:gx2px(GRID),stroke:'#1d2718','stroke-width':m?1:.5,opacity:m?.7:.35}); el('line',{x1:gx2px(0),y1:gx2px(i),x2:gx2px(GRID),y2:gx2px(i),stroke:'#1d2718','stroke-width':m?1:.5,opacity:m?.7:.35}); }
   const seen={};
   for(const p of W.paths){ if(!layers[p.stage])continue; const a=nodeById(p.a),b=nodeById(p.b); if(!a||!b)continue;
     const k=[p.a,p.b].sort().join('|'); const off=(seen[k]=(seen[k]||0)+1)-1;
-    const dx=gx2px(b.gy)-gx2px(a.gy), dy=-(gx2px(b.gx)-gx2px(a.gx)); const L=Math.hypot(dx,dy)||1; const ox=dx/L*off*11, oy=dy/L*off*11;
-    const x1=gx2px(a.gx)+ox,y1=gx2px(a.gy)+oy,x2=gx2px(b.gx)+ox,y2=gx2px(b.gy)+oy;
+    const dx=gx2px(b.gy)-gx2px(a.gy), dy=-(gx2px(b.gx)-gx2px(a.gx)); const L=Math.hypot(dx,dy)||1; const ox=(p.bends&&p.bends.length)?0:dx/L*off*11, oy=(p.bends&&p.bends.length)?0:dy/L*off*11;
+    const pts=[[gx2px(a.gx)+ox,gx2px(a.gy)+oy],...(p.bends||[]).map(bd=>[gx2px(bd.gx),gx2px(bd.gy)]),[gx2px(b.gx)+ox,gx2px(b.gy)+oy]];
+    const d='M'+pts.map(q=>q.join(',')).join(' L');
     const g=el('g',{class:'pathg'+(sel&&sel.t==='path'&&sel.id===p.id?' sel':'')});
-    el('line',{x1,y1,x2,y2,stroke:STAGECOL[p.stage]||'#888','stroke-width':2.4,opacity:.85,'stroke-dasharray':p.gate?'6 4':'0'},g);
-    if(layers.pathlabels){ const t=el('text',{x:(x1+x2)/2,y:(y1+y2)/2-3,fill:STAGECOL[p.stage],'font-size':8,'text-anchor':'middle',stroke:'#080b07','stroke-width':2.5,'paint-order':'stroke'},g); t.textContent=p.via+(layers.gating&&p.gate?' · 🔒'+p.gate:''); }
-    g.addEventListener('mousedown',ev=>{ if(mode==='select'){ev.stopPropagation();selectPath(p);} });
-    // quest/item/note dots on the path
-    (p.dots||[]).forEach((d,i)=>{ const layerOk = d.type==='item'?layers.items : d.type==='note'?1 : layers.quests; if(!layerOk)return;
-      const f=(i+1)/(p.dots.length+1), qx=x1+(x2-x1)*f, qy=y1+(y2-y1)*f;
-      const dg=el('g',{class:'qdot'}); el('circle',{cx:qx,cy:qy,r:4.5,fill:d.type==='item'?'#ffd36a':d.type==='note'?'#cfc0e0':'#9fe08a',stroke:'#080b07','stroke-width':1.5},dg);
-      dg.addEventListener('mousedown',ev=>{ if(mode==='select'){ev.stopPropagation();selectDot(p,d);} });
-    });
+    el('path',{d,fill:'none',stroke:STAGECOL[p.stage]||'#888','stroke-width':2.4,opacity:.85,'stroke-dasharray':p.gate?'6 4':'0'},g);
+    if(layers.pathlabels){ const m=ptAt(pts,0.5); const t=el('text',{x:m[0],y:m[1]-3,fill:STAGECOL[p.stage],'font-size':8,'text-anchor':'middle',stroke:'#080b07','stroke-width':2.5,'paint-order':'stroke'},g); t.textContent=p.via+(layers.gating&&p.gate?' · 🔒'+p.gate:''); }
+    g.addEventListener('mousedown',ev=>{ if(mode==='select'){ ev.stopPropagation(); if(sel&&sel.t==='path'&&sel.id===p.id){ const gp=toGrid(ev); (p.bends=p.bends||[]).push({gx:Math.round(gp.gx*2)/2,gy:Math.round(gp.gy*2)/2}); render(); editPath(p); } else selectPath(p); } });
+    if(sel&&sel.t==='path'&&sel.id===p.id)(p.bends||[]).forEach((bd,bi)=>{ const bg=el('g',{class:'bend'}); el('circle',{cx:gx2px(bd.gx),cy:gx2px(bd.gy),r:5,fill:'#fff',stroke:STAGECOL[p.stage],'stroke-width':2},bg); bg.addEventListener('mousedown',ev=>{ev.stopPropagation();drag={t:'bend',bd,start:toGrid(ev),ox:bd.gx,oy:bd.gy};}); });
+    (p.dots||[]).forEach((dt,i)=>{ const ok=dt.type==='item'?layers.items:dt.type==='note'?1:layers.quests; if(!ok)return; const q=ptAt(pts,(i+1)/(p.dots.length+1)); const dg=el('g',{class:'qdot'}); el('circle',{cx:q[0],cy:q[1],r:4.5,fill:dt.type==='item'?'#ffd36a':dt.type==='note'?'#cfc0e0':'#9fe08a',stroke:'#080b07','stroke-width':1.5},dg); dg.addEventListener('mousedown',ev=>{if(mode==='select'){ev.stopPropagation();selectDot(p,dt);}}); });
   }
-  // path-draw helper line
   if(mode==='path'&&pathStart){ const a=nodeById(pathStart); el('circle',{cx:gx2px(a.gx),cy:gx2px(a.gy),r:Math.max(7,Math.sqrt(a.w*a.h)*0.26)+4,fill:'none',stroke:'#fff','stroke-dasharray':'3 3'}); }
-  // nodes (true relative scale)
-  for(const n of W.nodes){ if(!layers[n.tier])continue; const r=Math.max(6,Math.sqrt(n.w*n.h)*0.26), px=gx2px(n.gx),py=gx2px(n.gy);
-    const col=TIERCOL[n.tier]||REGCOL[n.region]||'#888';
+  for(const n of W.nodes){ if(!layers[n.tier])continue; const r=Math.max(6,Math.sqrt(n.w*n.h)*0.26), px=gx2px(n.gx),py=gx2px(n.gy), col=TIERCOL[n.tier]||'#888';
     const g=el('g',{class:'node'+(sel&&sel.t==='node'&&sel.id===n.id?' sel':'')});
     if(n.tier==='dungeon'||n.tier==='secret') el('polygon',{points:`${px},${py-r} ${px+r},${py} ${px},${py+r} ${px-r},${py}`,fill:col,stroke:'#080b07','stroke-width':2},g);
     else el('circle',{cx:px,cy:py,r,fill:col,stroke:'#080b07','stroke-width':2},g);
+    if(layers.complete){ const c=completeness(n); const cc=c.pct===100?'#7fcf6a':c.pct>=60?'#e0a23a':'#e0574a'; el('circle',{cx:px+r-2,cy:py-r+2,r:3.5,fill:cc,stroke:'#080b07','stroke-width':1},g); }
     const fs=n.tier==='city'?12:n.tier==='town'?10:8.5; const t=el('text',{x:px,y:py+r+fs,fill:'#eef3e6','font-size':fs,'font-weight':(n.tier==='city'||n.tier==='town')?'bold':'normal','text-anchor':'middle',stroke:'#080b07','stroke-width':3,'paint-order':'stroke'},g); t.textContent=n.label;
-    const st=el('text',{x:px,y:py+r+fs+10,fill:'#9fb89a','font-size':7.5,'text-anchor':'middle',stroke:'#080b07','stroke-width':2.5,'paint-order':'stroke'},g); st.textContent=n.w+'×'+n.h+(layers.npcs&&n.npcs.length?'  ·  '+n.npcs.length+' NPC':'');
-    g.addEventListener('mousedown',ev=>{ ev.stopPropagation();
-      if(mode==='select'){ selectNode(n); drag={t:'node',n,start:toGrid(ev),ox:n.gx,oy:n.gy}; }
-      else if(mode==='path'){ if(!pathStart){pathStart=n.id;render();} else if(pathStart!==n.id){ addPath(pathStart,n.id); pathStart=null; } }
-    });
+    const badges=[]; if(layers.npcs&&(n.npcs||[]).length)badges.push((n.npcs||[]).length+'👤'); if(layers.quests&&(n.quests||[]).length)badges.push((n.quests||[]).length+'❓'); if((n.enemies||[]).length)badges.push((n.enemies||[]).length+'⚔');
+    const st=el('text',{x:px,y:py+r+fs+10,fill:'#9fb89a','font-size':7.5,'text-anchor':'middle',stroke:'#080b07','stroke-width':2.5,'paint-order':'stroke'},g); st.textContent=n.w+'×'+n.h+(badges.length?'  '+badges.join(' '):'');
+    g.addEventListener('mousedown',ev=>{ ev.stopPropagation(); if(mode==='select'){selectNode(n);drag={t:'node',n,start:toGrid(ev),ox:n.gx,oy:n.gy};} else if(mode==='path'){ if(!pathStart){pathStart=n.id;render();} else if(pathStart!==n.id){addPath(pathStart,n.id);pathStart=null;} } });
   }
-  // notes
-  if(layers.notes) for(const nt of W.notes){ const g=el('g',{class:'note'+(sel&&sel.t==='note'&&sel.id===nt.id?' sel':'')});
-    el('circle',{cx:gx2px(nt.gx),cy:gx2px(nt.gy),r:8,fill:'#ffe08a',stroke:'#7a5a10','stroke-width':2},g);
-    const t=el('text',{x:gx2px(nt.gx),y:gx2px(nt.gy)+4,'text-anchor':'middle','font-size':11,fill:'#3a2a00'},g); t.textContent='📌';
-    g.addEventListener('mousedown',ev=>{ if(mode==='select'){ev.stopPropagation();selectNote(nt);drag={t:'note',nt,start:toGrid(ev),ox:nt.gx,oy:nt.gy};} });
-  }
-  // draft zone preview
+  if(layers.notes)for(const nt of W.notes){ const g=el('g',{class:'note'+(sel&&sel.t==='note'&&sel.id===nt.id?' sel':'')}); el('circle',{cx:gx2px(nt.gx),cy:gx2px(nt.gy),r:8,fill:'#ffe08a',stroke:'#7a5a10','stroke-width':2},g); const t=el('text',{x:gx2px(nt.gx),y:gx2px(nt.gy)+4,'text-anchor':'middle','font-size':11,fill:'#3a2a00'},g); t.textContent='📌'; g.addEventListener('mousedown',ev=>{if(mode==='select'){ev.stopPropagation();selectNote(nt);drag={t:'note',nt,start:toGrid(ev),ox:nt.gx,oy:nt.gy};}}); }
   if(draftZone){ el('rect',{x:gx2px(Math.min(draftZone.x0,draftZone.x1)),y:gx2px(Math.min(draftZone.y0,draftZone.y1)),width:Math.abs(draftZone.x1-draftZone.x0)*S,height:Math.abs(draftZone.y1-draftZone.y0)*S,fill:'#fff','fill-opacity':.1,stroke:'#fff','stroke-dasharray':'4 4'}); }
-  document.getElementById('counts').textContent=`${W.nodes.length} nodes · ${W.paths.length} paths · ${W.zones.length} zones · ${W.notes.length} notes`;
+  document.getElementById('counts').textContent=`${W.nodes.length} nodes · ${W.paths.length} paths · ${W.zones.length} zones · ${(W.quests||[]).length} quests · ${W.notes.length} notes`;
+  renderDash(); renderWarn();
+}
+function ptAt(pts,f){ let tot=0,seg=[]; for(let i=0;i<pts.length-1;i++){const d=Math.hypot(pts[i+1][0]-pts[i][0],pts[i+1][1]-pts[i][1]);seg.push(d);tot+=d;} let target=f*tot; for(let i=0;i<seg.length;i++){ if(target<=seg[i]){const t=seg[i]?target/seg[i]:0;return [pts[i][0]+(pts[i+1][0]-pts[i][0])*t,pts[i][1]+(pts[i+1][1]-pts[i][1])*t];} target-=seg[i]; } return pts[pts.length-1]; }
+
+/* ===================== QUEST GRAPH ===================== */
+function questDepth(q,memo){ if(memo[q.id]!=null)return memo[q.id]; memo[q.id]=0; const ds=(q.prereqs||[]).map(pr=>{const p=questById(pr);return p?1+questDepth(p,memo):0;}); memo[q.id]=ds.length?Math.max(...ds):0; return memo[q.id]; }
+function renderQuests(){ const qs=W.quests||[]; const memo={}, byDepth={}; qs.forEach(q=>{const d=questDepth(q,memo);(byDepth[d]=byDepth[d]||[]).push(q);});
+  const maxD=Math.max(0,...Object.keys(byDepth).map(Number)); const colW=210, rowH=54, px=O+ (maxD+1)*colW, py=O+ Math.max(...Object.values(byDepth).map(a=>a.length),1)*rowH+40;
+  cv.setAttribute('width',px+40); cv.setAttribute('height',py); cv.setAttribute('viewBox',`0 0 ${px+40} ${py}`); while(cv.firstChild)cv.removeChild(cv.firstChild);
+  el('text',{x:O,y:24,fill:'#fff6df','font-size':14,'font-weight':'bold'}).textContent='QUEST FLOW — prereq → quest → unlocks (critical path bold · sides dim)';
+  const pos={}; for(const d in byDepth)byDepth[d].forEach((q,i)=>pos[q.id]={x:O+30+d*colW,y:O+30+i*rowH});
+  for(const q of qs)for(const pr of (q.prereqs||[])){ const a=pos[pr],b=pos[q.id]; if(!a||!b)continue; const main=q.type==='main'&&questById(pr)&&questById(pr).type==='main';
+    el('line',{x1:a.x+150,y1:a.y+13,x2:b.x,y2:b.y+13,stroke:main?'#e0c068':'#5a6b4a','stroke-width':main?2.5:1.4,opacity:.8,'marker-end':''}); el('polygon',{points:`${b.x},${b.y+13} ${b.x-7},${b.y+9} ${b.x-7},${b.y+17}`,fill:main?'#e0c068':'#5a6b4a'}); }
+  for(const q of qs){ const p=pos[q.id]; const g=el('g',{class:'qnode'+(sel&&sel.t==='quest'&&sel.id===q.id?' sel':'')}); const c=q.type==='main'?'#e0c068':'#56988c';
+    el('rect',{x:p.x,y:p.y,width:150,height:26,rx:5,fill:c,'fill-opacity':q.type==='main'?.95:.55,stroke:'#080b07','stroke-width':1.5},g);
+    const t=el('text',{x:p.x+7,y:p.y+17,fill:'#0a0e08','font-size':9.5,'font-weight':q.type==='main'?'bold':'normal'},g); t.textContent=q.label.length>22?q.label.slice(0,21)+'…':q.label;
+    g.style.cursor='pointer'; g.onclick=()=>selectQuest(q); }
+  renderDash(); renderWarn(); document.getElementById('counts').textContent=`${qs.length} quests · critical path = ${qs.filter(q=>q.type==='main').length}`;
 }
 
-/* ===================== selection + editor panel ===================== */
-function selectNode(n){ sel={t:'node',id:n.id}; render(); editNode(n); }
+/* ===================== selection + editor ===================== */
+function selectNode(n){ sel={t:'node',id:n.id}; if(view!=='map'){view='map';setView();} render(); editNode(n); }
 function selectPath(p){ sel={t:'path',id:p.id}; render(); editPath(p); }
 function selectZone(z){ sel={t:'zone',id:z.id}; render(); editZone(z); }
 function selectNote(nt){ sel={t:'note',id:nt.id}; render(); editNote(nt); }
-function selectDot(p,d){ sel={t:'path',id:p.id}; render(); editDot(p,d); }
+function selectDot(p,d){ sel={t:'path',id:p.id}; render(); editPath(p); }
+function selectQuest(q){ sel={t:'quest',id:q.id}; render(); editQuest(q); }
 const ed=document.getElementById('editor');
-const linesArea=(label,val,on)=>`<label class=f>${label}</label><textarea data-k="${on}">${(val||[]).join('\n')}</textarea>`;
-function bindInputs(obj,after){ ed.querySelectorAll('[data-k]').forEach(inp=>{ inp.oninput=()=>{ const k=inp.dataset.k; const v=inp.tagName==='TEXTAREA'&&inp.dataset.arr?inp.value.split('\n').filter(x=>x.trim()!==''):(inp.type==='number'?+inp.value:inp.value); obj[k]=v; render(); after&&after(); }; }); }
-function editNode(n){
-  ed.innerHTML=`<h3 style="color:${TIERCOL[n.tier]}">${n.label}</h3><div class="sub">place · id ${n.id}</div>
+function bindInputs(obj){ ed.querySelectorAll('[data-k]').forEach(inp=>{ inp.oninput=()=>{ const k=inp.dataset.k; let v=inp.type==='number'?+inp.value:inp.value; if(inp.dataset.arr)v=inp.value.split('\n').filter(x=>x.trim()!==''); if(inp.type==='checkbox')v=inp.checked; obj[k]=v; render(); }; }); }
+function editNode(n){ const c=completeness(n);
+  ed.innerHTML=`<h3 style="color:${TIERCOL[n.tier]}">${n.label}</h3><div class="sub">place · id ${n.id} · <b style="color:${c.pct===100?'#7fcf6a':c.pct>=60?'#e0a23a':'#e0574a'}">${c.pct}% complete</b></div>
+   <div class="ck">${Object.entries(c.ck).map(([k,v])=>`<span class="${v?'y':'x'}">${v?'✓':'✗'} ${k}</span>`).join(' &nbsp;')}</div>
    <label class=f>Name</label><input data-k="label" value="${esc(n.label)}">
-   <div class="row"><div><label class=f>Tier</label><select data-k="tier">${TIERS.map(t=>`<option ${t===n.tier?'selected':''}>${t}</option>`).join('')}</select></div>
-   <div><label class=f>Region</label><input data-k="region" value="${esc(n.region||'')}"></div></div>
-   <div class="row"><div><label class=f>W (tiles)</label><input type=number data-k="w" value="${n.w}"></div><div><label class=f>H</label><input type=number data-k="h" value="${n.h}"></div></div>
+   <div class="row"><div><label class=f>Tier</label><select data-k="tier">${TIERS.map(t=>`<option ${t===n.tier?'selected':''}>${t}</option>`).join('')}</select></div><div><label class=f>Region</label><input data-k="region" value="${esc(n.region||'')}"></div></div>
+   <div class="row"><div><label class=f>W</label><input type=number data-k="w" value="${n.w}"></div><div><label class=f>H</label><input type=number data-k="h" value="${n.h}"></div><div><label class=f>Population</label><input data-k="population" value="${esc(n.population||'')}"></div></div>
+   <div class="row"><div><label class=f>Terrain</label><input data-k="terrain" value="${esc(n.terrain||'')}"></div><div><label class=f>Music</label><input data-k="music" value="${esc(n.music||'')}"></div></div>
    <label class=f>Unlock — when/how accessible</label><textarea data-k="unlock">${esc(n.unlock||'')}</textarea>
-   <label class=f>NPCs (one per line)</label><textarea data-k="npcs" data-arr=1>${(n.npcs||[]).map(esc).join('\n')}</textarea>
+   <label class=f>Enemies (type:level, one per line)</label><textarea id="enemies">${(n.enemies||[]).map(e=>e.type+':'+(e.level||0)).join('\n')}</textarea>
+   <label class=f>Enterable interiors (type:count)</label><textarea id="interiors">${Object.entries(n.interiors||{}).map(([k,v])=>k+':'+v).join('\n')}</textarea>
+   <label class=f>NPCs</label><textarea data-k="npcs" data-arr=1>${(n.npcs||[]).map(esc).join('\n')}</textarea>
    <label class=f>Quests / events</label><textarea data-k="quests" data-arr=1>${(n.quests||[]).map(esc).join('\n')}</textarea>
    <label class=f>Items / loot</label><textarea data-k="items" data-arr=1>${(n.items||[]).map(esc).join('\n')}</textarea>
-   <label class=f>Buildings (⇲ = enterable)</label><textarea data-k="buildings" data-arr=1>${(n.buildings||[]).map(esc).join('\n')}</textarea>
-   <div style="margin-top:10px"><button class="danger" id="del">Delete place</button></div>`;
+   <label class=f>Assets HAVE</label><textarea id="ahave">${((n.assets||{}).have||[]).map(esc).join('\n')}</textarea>
+   <label class=f>Assets GAP (sourcing checklist)</label><textarea id="agap">${((n.assets||{}).gap||[]).map(esc).join('\n')}</textarea>
+   <div style="margin-top:9px"><button class="danger" id="del">Delete place</button></div>`;
   bindInputs(n);
+  document.getElementById('enemies').oninput=e=>{ n.enemies=e.target.value.split('\n').filter(x=>x.trim()).map(l=>{const[t,lv]=l.split(':');return{type:(t||'').trim(),level:+lv||1};}); render(); };
+  document.getElementById('interiors').oninput=e=>{ n.interiors={}; e.target.value.split('\n').filter(x=>x.trim()).forEach(l=>{const[t,c]=l.split(':');n.interiors[(t||'').trim()]=+c||1;}); render(); };
+  document.getElementById('ahave').oninput=e=>{ n.assets=n.assets||{have:[],gap:[]}; n.assets.have=e.target.value.split('\n').filter(x=>x.trim()); render(); };
+  document.getElementById('agap').oninput=e=>{ n.assets=n.assets||{have:[],gap:[]}; n.assets.gap=e.target.value.split('\n').filter(x=>x.trim()); render(); };
   document.getElementById('del').onclick=()=>{ W.nodes=W.nodes.filter(x=>x!==n); W.paths=W.paths.filter(p=>p.a!==n.id&&p.b!==n.id); sel=null; render(); ed.innerHTML='<div class=hint>deleted.</div>'; };
 }
 function editPath(p){ const a=nodeById(p.a),b=nodeById(p.b);
-  ed.innerHTML=`<h3>${a.label} ↔ ${b.label}</h3><div class="sub">path · id ${p.id}</div>
+  ed.innerHTML=`<h3>${a.label} ↔ ${b.label}</h3><div class="sub">path · id ${p.id} · ${(p.bends||[]).length} bend(s)</div>
    <label class=f>Traversal (via)</label><select data-k="via">${VIAS.map(v=>`<option ${v===p.via?'selected':''}>${v}</option>`).join('')}</select>
-   <label class=f>Gate (ability / story)</label><input data-k="gate" value="${esc(p.gate||'')}">
-   <label class=f>Progression stage</label><select data-k="stage">${STAGES.map(s=>`<option ${s===p.stage?'selected':''}>${s}</option>`).join('')}</select>
-   <label class=f>Length (min/avg/max)</label><input data-k="len" value="${esc(p.len||'')}">
-   <label class=f>Quest / item / note dots on this path</label><div id="dots"></div>
-   <button id="adddot" style="margin-top:4px">+ add dot</button>
-   <div style="margin-top:10px"><button class="danger" id="del">Delete path</button></div>`;
+   <label class=f>Gate</label><input data-k="gate" value="${esc(p.gate||'')}">
+   <label class=f>Stage</label><select data-k="stage">${STAGES.map(s=>`<option ${s===p.stage?'selected':''}>${s}</option>`).join('')}</select>
+   <label class=f>Length</label><input data-k="len" value="${esc(p.len||'')}">
+   <div class="hint" style="margin-top:6px">Tip: with the path selected, CLICK the line to add a bend point; drag the white handles to shape it.</div>
+   <button id="straight" style="margin-top:4px">Straighten (clear bends)</button>
+   <label class=f>Dots on this path</label><div id="dots"></div><button id="adddot" style="margin-top:4px">+ add dot</button>
+   <div style="margin-top:9px"><button class="danger" id="del">Delete path</button></div>`;
   bindInputs(p); renderDots(p);
+  document.getElementById('straight').onclick=()=>{ p.bends=[]; render(); editPath(p); };
   document.getElementById('adddot').onclick=()=>{ (p.dots=p.dots||[]).push({id:uid('d'),type:'quest',label:'new dot',detail:''}); render(); renderDots(p); };
   document.getElementById('del').onclick=()=>{ W.paths=W.paths.filter(x=>x!==p); sel=null; render(); ed.innerHTML='<div class=hint>deleted.</div>'; };
 }
-function renderDots(p){ const box=document.getElementById('dots'); box.innerHTML='';
-  (p.dots||[]).forEach(d=>{ const div=document.createElement('div'); div.style.cssText='border:1px solid #2a3520;border-radius:5px;padding:5px;margin:4px 0';
-    div.innerHTML=`<div class=row><select data-dk="type"><option ${d.type==='quest'?'selected':''}>quest</option><option ${d.type==='item'?'selected':''}>item</option><option ${d.type==='note'?'selected':''}>note</option></select><input data-dk="label" value="${esc(d.label)}"></div><textarea data-dk="detail" style="margin-top:3px">${esc(d.detail||'')}</textarea><button class="danger" data-del="1" style="margin-top:3px;padding:2px 6px">remove</button>`;
-    div.querySelectorAll('[data-dk]').forEach(i=>i.oninput=()=>{ d[i.dataset.dk]=i.value; render(); });
-    div.querySelector('[data-del]').onclick=()=>{ p.dots=p.dots.filter(x=>x!==d); render(); renderDots(p); };
-    box.appendChild(div); });
-}
-function editDot(p,d){ editPath(p); }
-function editZone(z){ ed.innerHTML=`<h3>Zone</h3><div class="sub">${z.kind} · id ${z.id}</div>
+function renderDots(p){ const box=document.getElementById('dots'); box.innerHTML=''; (p.dots||[]).forEach(d=>{ const div=document.createElement('div'); div.style.cssText='border:1px solid #2a3520;border-radius:5px;padding:5px;margin:4px 0';
+  div.innerHTML=`<div class=row><select data-dk="type"><option ${d.type==='quest'?'selected':''}>quest</option><option ${d.type==='item'?'selected':''}>item</option><option ${d.type==='note'?'selected':''}>note</option></select><input data-dk="label" value="${esc(d.label)}"></div><textarea data-dk="detail" style="margin-top:3px">${esc(d.detail||'')}</textarea><button class="danger" data-del="1" style="margin-top:3px;padding:2px 6px">remove</button>`;
+  div.querySelectorAll('[data-dk]').forEach(i=>i.oninput=()=>{d[i.dataset.dk]=i.value;render();}); div.querySelector('[data-del]').onclick=()=>{p.dots=p.dots.filter(x=>x!==d);render();renderDots(p);}; box.appendChild(div); }); }
+function editZone(z){ const idx=W.zones.indexOf(z); ed.innerHTML=`<h3>Zone</h3><div class="sub">${z.kind} · id ${z.id} · layer ${idx+1}/${W.zones.length}</div>
    <label class=f>Kind</label><select data-k="kind">${ZONEKINDS.map(k=>`<option ${k===z.kind?'selected':''}>${k}</option>`).join('')}</select>
-   <label class=f>Label</label><input data-k="label" value="${esc(z.label||'')}">
-   <label class=f>Colour</label><input data-k="color" value="${esc(z.color||ZONECOL[z.kind])}">
+   <label class=f>Label</label><input data-k="label" value="${esc(z.label||'')}"><label class=f>Colour</label><input data-k="color" value="${esc(z.color||ZONECOL[z.kind])}">
    <label class=f><input type=checkbox data-k="fade" ${z.fade?'checked':''}> fade / overlap halo</label>
-   <div class="row"><div><label class=f>gx</label><input type=number step=0.5 data-k="gx" value="${z.gx}"></div><div><label class=f>gy</label><input type=number step=0.5 data-k="gy" value="${z.gy}"></div></div>
-   <div class="row"><div><label class=f>gw</label><input type=number step=0.5 data-k="gw" value="${z.gw}"></div><div><label class=f>gh</label><input type=number step=0.5 data-k="gh" value="${z.gh}"></div></div>
-   <div style="margin-top:10px"><button class="danger" id="del">Delete zone</button></div>`;
+   <div class="row"><div><label class=f>gx</label><input type=number step=0.5 data-k="gx" value="${z.gx}"></div><div><label class=f>gy</label><input type=number step=0.5 data-k="gy" value="${z.gy}"></div><div><label class=f>gw</label><input type=number step=0.5 data-k="gw" value="${z.gw}"></div><div><label class=f>gh</label><input type=number step=0.5 data-k="gh" value="${z.gh}"></div></div>
+   <div class="row" style="margin-top:7px"><button id="back">⤓ send to back</button><button id="front">⤒ bring to front</button></div>
+   <div style="margin-top:9px"><button class="danger" id="del">Delete zone</button></div>`;
   ed.querySelectorAll('[data-k]').forEach(i=>i.oninput=()=>{ z[i.dataset.k]=i.type==='checkbox'?i.checked:(i.type==='number'?+i.value:i.value); render(); });
+  document.getElementById('back').onclick=()=>{ W.zones=W.zones.filter(x=>x!==z); W.zones.unshift(z); render(); editZone(z); };
+  document.getElementById('front').onclick=()=>{ W.zones=W.zones.filter(x=>x!==z); W.zones.push(z); render(); editZone(z); };
   document.getElementById('del').onclick=()=>{ W.zones=W.zones.filter(x=>x!==z); sel=null; render(); ed.innerHTML='<div class=hint>deleted.</div>'; };
 }
-function editNote(nt){ ed.innerHTML=`<h3>📌 Note</h3><div class="sub">id ${nt.id} · @ (${nt.gx.toFixed(1)},${nt.gy.toFixed(1)})</div>
-   <label class=f>Van’s note (Claude Code reads this back)</label><textarea data-k="text" style="min-height:120px">${esc(nt.text||'')}</textarea>
-   <div style="margin-top:10px"><button class="danger" id="del">Delete note</button></div>`;
-  ed.querySelector('[data-k]').oninput=e=>{ nt.text=e.target.value; };
-  document.getElementById('del').onclick=()=>{ W.notes=W.notes.filter(x=>x!==nt); sel=null; render(); ed.innerHTML='<div class=hint>deleted.</div>'; };
+function editNote(nt){ ed.innerHTML=`<h3>📌 Note</h3><div class="sub">id ${nt.id} · @ (${nt.gx.toFixed(1)},${nt.gy.toFixed(1)})</div><label class=f>Van’s note (Claude Code reads this back)</label><textarea data-k="text" style="min-height:120px">${esc(nt.text||'')}</textarea><div style="margin-top:9px"><button class="danger" id="del">Delete note</button></div>`;
+  ed.querySelector('[data-k]').oninput=e=>{nt.text=e.target.value;}; document.getElementById('del').onclick=()=>{ W.notes=W.notes.filter(x=>x!==nt); sel=null; render(); ed.innerHTML='<div class=hint>deleted.</div>'; }; }
+function editQuest(q){ const others=(W.quests||[]).filter(x=>x.id!==q.id);
+  ed.innerHTML=`<h3>${q.label}</h3><div class="sub">quest · id ${q.id} · ${q.type}</div>
+   <label class=f>Label</label><input data-k="label" value="${esc(q.label)}">
+   <div class="row"><div><label class=f>Type</label><select data-k="type"><option ${q.type==='main'?'selected':''}>main</option><option ${q.type==='side'?'selected':''}>side</option></select></div>
+   <div><label class=f>Home node</label><select data-k="node"><option value="">—</option>${W.nodes.map(n=>`<option value="${n.id}" ${n.id===q.node?'selected':''}>${n.label}</option>`).join('')}</select></div></div>
+   <label class=f>Prereqs (the quests that must come first)</label>
+   <div id="pre">${others.map(o=>`<label style="display:block"><input type=checkbox data-pre="${o.id}" ${(q.prereqs||[]).includes(o.id)?'checked':''}> ${esc(o.label)}</label>`).join('')}</div>
+   <div style="margin-top:9px"><button class="danger" id="del">Delete quest</button></div>`;
+  ed.querySelectorAll('[data-k]').forEach(i=>i.oninput=()=>{q[i.dataset.k]=i.value;render();});
+  ed.querySelectorAll('[data-pre]').forEach(i=>i.onchange=()=>{ q.prereqs=q.prereqs||[]; const id=i.dataset.pre; if(i.checked){if(!q.prereqs.includes(id))q.prereqs.push(id);}else q.prereqs=q.prereqs.filter(x=>x!==id); render(); });
+  document.getElementById('del').onclick=()=>{ W.quests=W.quests.filter(x=>x!==q); W.quests.forEach(x=>x.prereqs=(x.prereqs||[]).filter(p=>p!==q.id)); sel=null; render(); ed.innerHTML='<div class=hint>deleted.</div>'; };
 }
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-/* ===================== add / drag / canvas events ===================== */
-function addNode(g){ const n={id:uid('n'),label:'New Place',tier:'village',region:'',w:30,h:24,gx:g.gx,gy:g.gy,unlock:'',npcs:[],quests:[],items:[],buildings:[]}; W.nodes.push(n); selectNode(n); }
-function addPath(a,b){ const p={id:uid('p'),a,b,via:'walk',gate:'',stage:'early',len:'',dots:[]}; W.paths.push(p); selectPath(p); }
+/* ===================== add / drag / events ===================== */
+function addNode(g){ const n={id:uid('n'),label:'New Place',tier:'village',region:'',w:30,h:24,gx:g.gx,gy:g.gy,terrain:'',music:'',unlock:'',interiors:{},enemies:[],assets:{have:[],gap:[]},npcs:[],quests:[],items:[]}; W.nodes.push(n); selectNode(n); }
+function addPath(a,b){ const p={id:uid('p'),a,b,via:'walk',gate:'',stage:'early',len:'',bends:[],dots:[]}; W.paths.push(p); selectPath(p); }
 function addNote(g){ const text=prompt('Note (Van’s suggestion / change):'); if(text==null)return; const nt={id:uid('n'),gx:g.gx,gy:g.gy,text}; W.notes.push(nt); selectNote(nt); render(); }
-cv.addEventListener('mousedown',e=>{ const g=toGrid(e);
-  if(mode==='node'){ addNode(g); }
-  else if(mode==='note'){ addNote(g); }
-  else if(mode==='zone'){ draftZone={x0:g.gx,y0:g.gy,x1:g.gx,y1:g.gy}; }
-  else if(mode==='select'){ sel=null; ed.innerHTML='<div class=hint>nothing selected.</div>'; render(); }
-});
-window.addEventListener('mousemove',e=>{ if(drag){ const g=toGrid(e); const o=drag.t==='node'?drag.n:drag.t==='zone'?drag.z:drag.nt; o.gx=Math.round((drag.ox+(g.gx-drag.start.gx))*2)/2; o.gy=Math.round((drag.oy+(g.gy-drag.start.gy))*2)/2; render(); }
-  else if(draftZone){ const g=toGrid(e); draftZone.x1=g.gx; draftZone.y1=g.gy; render(); } });
-window.addEventListener('mouseup',e=>{ if(drag)drag=null;
-  if(draftZone){ const z={id:uid('z'),kind:'terrain',label:'New Zone',gx:Math.min(draftZone.x0,draftZone.x1),gy:Math.min(draftZone.y0,draftZone.y1),gw:Math.abs(draftZone.x1-draftZone.x0)||2,gh:Math.abs(draftZone.y1-draftZone.y0)||2,color:ZONECOL.terrain,fade:true}; if(z.gw>0.3&&z.gh>0.3){W.zones.push(z);selectZone(z);} draftZone=null; render(); } });
-window.addEventListener('keydown',e=>{ if((e.key==='Delete'||e.key==='Backspace')&&sel&&document.activeElement.tagName!=='TEXTAREA'&&document.activeElement.tagName!=='INPUT'){ const c={node:()=>W.nodes=W.nodes.filter(x=>x.id!==sel.id),path:()=>W.paths=W.paths.filter(x=>x.id!==sel.id),zone:()=>W.zones=W.zones.filter(x=>x.id!==sel.id),note:()=>W.notes=W.notes.filter(x=>x.id!==sel.id)}[sel.t]; c&&c(); if(sel.t==='node')W.paths=W.paths.filter(p=>nodeById(p.a)&&nodeById(p.b)); sel=null; render(); } });
+cv.addEventListener('mousedown',e=>{ if(view==='quests')return; const g=toGrid(e); if(mode==='node')addNode(g); else if(mode==='note')addNote(g); else if(mode==='zone')draftZone={x0:g.gx,y0:g.gy,x1:g.gx,y1:g.gy}; else if(mode==='select'){sel=null;ed.innerHTML='<div class=hint>nothing selected.</div>';render();} });
+window.addEventListener('mousemove',e=>{ if(drag){ const g=toGrid(e); const o=drag.t==='node'?drag.n:drag.t==='zone'?drag.z:drag.t==='bend'?drag.bd:drag.nt; o.gx=Math.round((drag.ox+(g.gx-drag.start.gx))*2)/2; o.gy=Math.round((drag.oy+(g.gy-drag.start.gy))*2)/2; render(); } else if(draftZone){ const g=toGrid(e); draftZone.x1=g.gx; draftZone.y1=g.gy; render(); } });
+window.addEventListener('mouseup',()=>{ if(drag)drag=null; if(draftZone){ const z={id:uid('z'),kind:'terrain',label:'New Zone',gx:Math.min(draftZone.x0,draftZone.x1),gy:Math.min(draftZone.y0,draftZone.y1),gw:Math.abs(draftZone.x1-draftZone.x0)||2,gh:Math.abs(draftZone.y1-draftZone.y0)||2,color:ZONECOL.terrain,fade:true}; if(z.gw>0.3&&z.gh>0.3){W.zones.push(z);selectZone(z);} draftZone=null; render(); } });
+window.addEventListener('keydown',e=>{ if((e.key==='Delete')&&sel&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){ const f={node:()=>{W.nodes=W.nodes.filter(x=>x.id!==sel.id);W.paths=W.paths.filter(p=>nodeById(p.a)&&nodeById(p.b));},path:()=>W.paths=W.paths.filter(x=>x.id!==sel.id),zone:()=>W.zones=W.zones.filter(x=>x.id!==sel.id),note:()=>W.notes=W.notes.filter(x=>x.id!==sel.id),quest:()=>W.quests=W.quests.filter(x=>x.id!==sel.id)}[sel.t]; f&&f(); sel=null; render(); } });
 
-/* ===================== modes + toolbar + IO + layers ===================== */
-function setMode(m){ mode=m; pathStart=null; ['select','node','path','zone','note'].forEach(x=>document.getElementById('m_'+x).classList.toggle('on',x===m));
-  document.getElementById('hintbar').textContent={select:'Drag a node to move it (lines follow) · click to edit · Delete key removes',node:'Click the canvas to add a place',path:'Click node A then node B to link them',zone:'Drag a rectangle to make a zone',note:'Click anywhere to drop a note pin'}[m]; }
+/* ===================== toolbar / modes / view / IO / search / zoom ===================== */
+function setMode(m){ mode=m; pathStart=null; ['select','node','path','zone','note'].forEach(x=>document.getElementById('m_'+x).classList.toggle('on',x===m)); document.getElementById('hintbar').textContent={select:'Drag nodes/zones/bends · click a place/path/quest to edit · Delete removes',node:'Click the canvas to add a place',path:'Click node A then B to link',zone:'Drag a rectangle',note:'Click to drop a note'}[m]; }
 ['select','node','path','zone','note'].forEach(m=>document.getElementById('m_'+m).onclick=()=>setMode(m));
+function setView(){ document.getElementById('v_map').classList.toggle('on',view==='map'); document.getElementById('v_quests').classList.toggle('on',view==='quests'); render(); }
+document.getElementById('v_map').onclick=()=>{view='map';setView();}; document.getElementById('v_quests').onclick=()=>{view='quests';setView();};
+document.getElementById('t_dash').onclick=()=>{show.dash=!show.dash;document.getElementById('t_dash').classList.toggle('on',show.dash);renderDash();};
+document.getElementById('t_warn').onclick=()=>{show.warn=!show.warn;document.getElementById('t_warn').classList.toggle('on',show.warn);renderWarn();};
+document.getElementById('z_in').onclick=()=>{S=Math.min(80,S*1.18);render();}; document.getElementById('z_out').onclick=()=>{S=Math.max(16,S/1.18);render();};
+document.getElementById('z_lock').onclick=()=>{lockScale=!lockScale;document.getElementById('z_lock').classList.toggle('on',lockScale);};
+document.getElementById('search').onkeydown=e=>{ if(e.key!=='Enter')return; const q=e.target.value.toLowerCase().trim(); if(!q)return;
+  let hit=W.nodes.find(n=>n.label.toLowerCase().includes(q)) || W.nodes.find(n=>(n.npcs||[]).some(x=>x.toLowerCase().includes(q))||(n.quests||[]).some(x=>x.toLowerCase().includes(q)));
+  let qq=(W.quests||[]).find(x=>x.label.toLowerCase().includes(q));
+  if(hit){ view='map'; setView(); selectNode(hit); const wrap=document.getElementById('cvwrap'); wrap.scrollTo({left:gx2px(hit.gx)-wrap.clientWidth/2,top:gx2px(hit.gy)-wrap.clientHeight/2,behavior:'smooth'}); }
+  else if(qq){ view='quests'; setView(); selectQuest(qq); }
+  else document.getElementById('hintbar').textContent='no match for “'+q+'”'; };
 document.getElementById('io_export').onclick=()=>{ const blob=new Blob([JSON.stringify(W,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=(W.meta.name||'world').replace(/\W+/g,'-').toLowerCase()+'.world.json'; a.click(); };
 document.getElementById('io_import').onclick=()=>document.getElementById('file').click();
-document.getElementById('file').onchange=e=>{ const f=e.target.files[0]; if(!f)return; const rd=new FileReader(); rd.onload=()=>{ try{ const j=JSON.parse(rd.result); if(!j.nodes)throw 0; W=j; W.zones=W.zones||[];W.notes=W.notes||[];W.meta=W.meta||{grid:24}; sel=null; render(); ed.innerHTML='<div class=hint>imported '+(W.meta.name||'world')+'.</div>'; }catch(err){ alert('Not a valid world JSON.'); } }; rd.readAsText(f); e.target.value=''; };
-document.getElementById('io_new').onclick=()=>{ if(!confirm('Start a blank world? (export first to keep this one)'))return; W={meta:{name:'New World',grid:24,tileSize:32},nodes:[],paths:[],zones:[],notes:[]}; sel=null; render(); ed.innerHTML='<div class=hint>blank world. Add nodes with + Node.</div>'; };
-function buildLayers(){ const L=document.getElementById('layers');
-  const grp=(title,keys)=>`<h4>${title}</h4>${keys.map(([k,lab,c])=>`<label><input type=checkbox data-l="${k}" ${layers[k]?'checked':''}> <span style="color:${c||'#cdd8c4'}">${lab}</span></label>`).join('')}`;
-  L.innerHTML=grp('Places (filter by tier)',TIERS.map(t=>[t,t,TIERCOL[t]]))
-    +grp('Paths (progression stage)',[['early','early',STAGECOL.early],['mid','mid',STAGECOL.mid],['late','late',STAGECOL.late],['pathlabels','labels'],['gating','gate labels']])
+document.getElementById('file').onchange=e=>{ const f=e.target.files[0]; if(!f)return; const rd=new FileReader(); rd.onload=()=>{ try{ const j=JSON.parse(rd.result); if(!j.nodes)throw 0; W=j; ['zones','notes','paths','quests'].forEach(k=>W[k]=W[k]||[]); W.meta=W.meta||{grid:24}; sel=null; render(); ed.innerHTML='<div class=hint>imported '+(W.meta.name||'world')+'.</div>'; }catch(err){ alert('Not a valid world JSON.'); } }; rd.readAsText(f); e.target.value=''; };
+document.getElementById('io_new').onclick=()=>{ if(!confirm('Start a blank world? (export first to keep this one)'))return; W={meta:{name:'New World',grid:24,tileSize:32},nodes:[],paths:[],zones:[],quests:[],notes:[]}; sel=null; render(); ed.innerHTML='<div class=hint>blank world.</div>'; };
+function buildLayers(){ const L=document.getElementById('layers'); const grp=(title,keys)=>`<h4>${title}</h4>${keys.map(([k,lab,c])=>`<label><input type=checkbox data-l="${k}" ${layers[k]?'checked':''}> <span style="color:${c||'#cdd8c4'}">${lab}</span></label>`).join('')}`;
+  L.innerHTML=grp('Places (tier)',TIERS.map(t=>[t,t,TIERCOL[t]]))
+    +grp('Paths (stage)',[['early','early',STAGECOL.early],['mid','mid',STAGECOL.mid],['late','late',STAGECOL.late],['pathlabels','labels'],['gating','gate labels']])
     +grp('Zones',[['terrain','terrain',ZONECOL.terrain],['music','music',ZONECOL.music],['nogo','no-go',ZONECOL.nogo]])
-    +grp('Overlays',[['quests','quests', '#9fe08a'],['items','items','#ffd36a'],['npcs','NPC counts'],['notes','notes','#ffe08a'],['grid','grid']]);
-  L.querySelectorAll('[data-l]').forEach(c=>c.onchange=()=>{ layers[c.dataset.l]=c.checked; render(); });
-}
+    +grp('Overlays',[['quests','quests','#9fe08a'],['items','items','#ffd36a'],['npcs','NPC counts'],['complete','completeness'],['notes','notes','#ffe08a'],['grid','grid']]);
+  L.querySelectorAll('[data-l]').forEach(c=>c.onchange=()=>{layers[c.dataset.l]=c.checked;render();}); }
 buildLayers(); setMode('select'); render();
 </script>
 </body>
