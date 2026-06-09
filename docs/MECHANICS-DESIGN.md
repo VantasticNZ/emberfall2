@@ -170,6 +170,8 @@ The archetype is the *mechanic*; the **skin is the biome** (`enemies.js` already
 *(Coast/Emberwood/Spire rosters are not yet placed — a content task, design-noted here.)*
 
 ### 3.4 MORALITY — deepened, Fable-style (the soul of the game) [RATIFIED]
+> **The FULL two-sided system (transformation, NPC-harm, the consequence web, no-soft-lock) is
+> specified in `docs/ALIGNMENT-SYSTEM.md`.** This section is the basis; that doc is the spec.
 Morality is not a combat stat; it is **how the world remembers what kind of person you are**, read on
 the existing **Morality + Purity** HUD axes (`Karma.js`) and paid off in **NPC reactions, world state,
 and the 5 endings**. The deepened rule set:
