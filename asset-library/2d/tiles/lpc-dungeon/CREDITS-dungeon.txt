@@ -1,0 +1,14 @@
+[LPC] Dungeon Elements — crypt/dungeon interior tileset (brick walls, dirt floor, a prison
+cell + barred door/gate, skeletons & bones, cobwebs, a cauldron, filth/blood stains,
+animated fire). For the Sunken Shrine / Cinder Keep / crypt interiors.
+
+  ARTIST:      Sharm (Lanea Zimmerman) — graphic artist
+  CONTRIBUTOR: William.Thompsonj (commissioned the set "out of the goodness of my heart")
+  SOURCE:      https://opengameart.org/content/lpc-dungeon-elements
+  LICENCE:     OGA-BY 3.0  (the OGA page also offers CC-BY 4.0 / CC-BY 3.0 / GPL 3.0 / GPL 2.0)
+  FORMAT:      32px LPC. dungeon10.png 512x384, dungeonex.png 320x320 (both 32-divisible);
+               + boil.png / fire.png (animated cauldron/fire strips).
+  AI-SAFE:     yes — no NC / ND / no-redistribute / anti-AI clause on the OGA page.
+  ATTRIBUTION: link the OGA page + credit "Sharm" (graphics) and "William.Thompsonj"
+               (contributor), per the bundled credit.txt.
+  FETCHED:     2026-06-09, autonomously (curl), licence-vetted + conform-checked (viewed).
