@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Emberfall 2 — World Design Map (planning view)</title>
+<style>
+  :root{ --early:#7fcf6a; --mid:#e0a23a; --late:#c873d8; --nogo:#c0392b; --bg:#0b0f0a; --panel:#11160f; --ink:#e8efe0; --dim:#9fb89a; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--bg); color:var(--ink); font:13px/1.45 ui-monospace,Menlo,Consolas,monospace; }
+  header{ padding:10px 16px; border-bottom:1px solid #243018; background:#0e140b; }
+  header h1{ margin:0; font-size:16px; color:#fff6df; }
+  header .sub{ color:var(--dim); font-size:11px; margin-top:2px; }
+  #wrap{ display:flex; gap:0; height:calc(100vh - 52px); }
+  #mapcol{ flex:1 1 auto; position:relative; overflow:auto; }
+  #map{ display:block; }
+  #panel{ flex:0 0 380px; background:var(--panel); border-left:1px solid #243018; padding:14px 16px; overflow:auto; }
+  #panel h2{ margin:0 0 2px; font-size:16px; }
+  #panel .tier{ color:var(--dim); font-size:11px; margin-bottom:10px; text-transform:uppercase; letter-spacing:.5px; }
+  #panel h3{ margin:12px 0 4px; font-size:12px; color:#ffd9a0; border-bottom:1px solid #2a3520; padding-bottom:2px; }
+  #panel ul{ margin:4px 0; padding-left:18px; } #panel li{ margin:1px 0; }
+  #panel .hint{ color:var(--dim); }
+  #legend{ position:absolute; left:12px; bottom:12px; background:#0e140bdd; border:1px solid #2a3520; border-radius:8px; padding:10px 12px; font-size:11px; max-width:340px; }
+  #legend b{ color:#ffe9c2; } #legend .row{ margin:3px 0; display:flex; align-items:center; gap:6px; }
+  #legend .sw{ width:22px; height:0; border-top:3px solid; display:inline-block; }
+  .place{ cursor:pointer; } .place:hover circle, .place.sel circle, .place.sel polygon{ stroke:#fff; stroke-width:3; }
+  .place:hover polygon{ stroke:#fff; stroke-width:3; }
+  .conn{ cursor:pointer; } .conn:hover line, .conn.sel line{ stroke-width:5 !important; opacity:1 !important; }
+  .qdot{ cursor:pointer; } .qdot:hover circle{ stroke:#fff; stroke-width:2; }
+  text{ pointer-events:none; user-select:none; }
+  .badge{ display:inline-block; padding:1px 6px; border-radius:4px; font-size:10px; margin-right:4px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>EMBERFALL 2 — World Design Map <span style="color:#9fb89a;font-weight:normal;font-size:12px">· planning view (from MASTER-WORLD-SPEC, the SSOT) · click a place, a path, or a ◦ quest-dot</span></h1>
+  <div class="sub">circle/◆ size = TRUE tile-scale · path colour = progression stage (early / mid / late) · dashed = ability/story GATE · red = no-go barrier · overworld 24×24 chunks = 768×768 tiles</div>
+</header>
+<div id="wrap">
+  <div id="mapcol">
+    <svg id="map" width="1000" height="1000" viewBox="0 0 1000 1000"></svg>
+    <div id="legend">
+      <b>LEGEND</b>
+      <div class="row"><span class="sw" style="border-color:var(--early)"></span> EARLY — walk · lantern · cut · dash</div>
+      <div class="row"><span class="sw" style="border-color:var(--mid)"></span> MID — grapple · hookshot</div>
+      <div class="row"><span class="sw" style="border-color:var(--late)"></span> LATE — firefrost · spells · story</div>
+      <div class="row"><span class="sw" style="border-color:var(--late);border-top-style:dashed"></span> dashed = ability/story gate</div>
+      <div class="row"><span class="sw" style="border-color:var(--nogo)"></span> no-go barrier (cliffs / deep water / ocean)</div>
+      <div class="row" style="margin-top:6px;color:#9fb89a">spell-routes open NEW links: ⚡electric-switch · ❄ice-bridge · 🔥fire-melt · 🌀wind-gap · 🪵 repaired bridge — the world OPENS UP as the toolkit grows.</div>
+    </div>
+  </div>
+  <div id="panel"><div class="hint">Click a <b>place</b>, a <b>path</b>, or a <b>◦ quest/item dot</b> to see its full contents from the spec.</div></div>
+</div>
+<script>
+const STAGE={early:'#7fcf6a',mid:'#e0a23a',late:'#c873d8'};
+const REG={Greenhollow:'#74b24e',Marsh:'#56988c',Peaks:'#93a0b8',Coast:'#4a90cf',Emberwood:'#d96f3c',Spire:'#bcaadf',Forest:'#4a8a40',Desert:'#d4ad6a'};
+const BIOMES=[['Spire',9,0.5,6,3.5],['Peaks',8.5,4,7.5,5],['Greenhollow',9,9.5,6.5,5],['Marsh',1.5,9,6.5,6],['Coast',16.5,8.5,6.5,7],['Emberwood',8.5,15,6.5,5.5],['Forest',15,15,5,4.5],['Desert',18.5,18.5,5,5]];
+// PLACES — all data from MASTER-WORLD-SPEC §1–§2
+const PLACES=[
+ {id:'gh',label:'Greenhollow',region:'Greenhollow',tier:'town',w:64,h:52,gx:11.7,gy:11.7,unlock:'START (the hub).',
+  npcs:['Mara','Bram','Hodge','Tam','Phil McCracken','Fatley','Pem','Constable Wiremu (jandal-cop, CAM7)','Ben Dover & Dixie (GAG1)','Old Sisyph (CAM2)'],
+  quests:['M1–M7 (childhood → the burning → return)','SG1–SG7 side','GHUB vignette','PH3 Grandfather’s Axe','PH6 Buridan’s Mule','CAM2 · CAM7 · GAG1'],
+  items:['wooden → steel sword','leather armour','potions','3 hidden caches (40/25/15g)'],
+  buildings:['Copper Tankard (+upstairs)','Pem’s Store','Hodge’s Forge','Chapel','Manor','2 cottages — 7 ENTERABLE (built)']},
+ {id:'mirefen',label:'Mirefen',region:'Marsh',tier:'town',w:44,h:36,gx:4.2,gy:12.4,unlock:'WALK from Greenhollow (West Belt) — open from start.',
+  npcs:['Elder Yssa','Hagga (exiled oracle)','Old Karl (CAM4)','Mother Vell (PH5)'],
+  quests:['M8 Into the Ashen Marsh','M10 Hagga’s Truth (permanent choice)','SA1–SA5 side','PH5 Experience Stone','NIGHT1 Things in the Dark'],
+  items:['(lantern + shard 1 earned at the Shrine)','epic blade (SA3)'],
+  buildings:['Yssa’s longhouse','Hagga’s hut','→ Sunken Shrine ⇲']},
+ {id:'shrine',label:'Sunken Shrine',region:'Marsh',tier:'dungeon',w:36,h:28,gx:2.6,gy:14.6,unlock:'STORY M8 (from Mirefen).',
+  npcs:['Drowned Guardian (boss)'],quests:['M9 The Sunken Shrine','SA3 The Sunken Dead (crypts)'],
+  items:['LANTERN (tool)','SHARD 1','drowned-lord hoard'],buildings:['3 floors + side-crypts ⇲ (lantern-gated)']},
+ {id:'stonereach',label:'STONEREACH',region:'Peaks',tier:'city',w:96,h:80,gx:12.2,gy:6.4,unlock:'GATE shard_1 (the rockfall) + story M10.',
+  npcs:['Miner','Mike Hunt (mine owner)','Stonewright','Bounty-Master','Lord Pellamy (CAM1 mansion)','Desperate Stranger (SP5)'],
+  quests:['M11 The Sundered Peaks','SP1–SP5 side','PH1 The Runaway Cart (trolley)','CAM1 the Cynic · CAM3'],
+  items:['(grapple + shard 2 earned at the Keep)','Crag Maul (SP2)','sky-iron charm (SP4)'],
+  buildings:['town hall','mine office','the Order seat','Marble Hall (CAM1) ⇲','terraced streets — 4 districts']},
+ {id:'keep',label:'Cinder Keep',region:'Peaks',tier:'dungeon',w:40,h:32,gx:14.6,gy:4.6,unlock:'STORY M11 (from Stonereach).',
+  npcs:['Keep Sentinel (boss)'],quests:['M12 Cinder Keep','SP1 the Order’s records'],
+  items:['GRAPPLE (tool)','SHARD 2','the Order’s records-library'],buildings:['3 floors + records-library ⇲']},
+ {id:'saltbreak',label:'SALTBREAK',region:'Coast',tier:'city',w:120,h:96,gx:19.2,gy:12.2,unlock:'GATE grapple (the river-gorge).',
+  npcs:['Hugh Jass (smuggler)','Harbourmaster','Holden McGroin (ST3 lighthouse)','Big Sal & Widow Gusset (EDG1)','Shy Fisher (EDG2)','Old Crannock (PH2)','General Petibon (CAM3)'],
+  quests:['M13 The Tidewreck Coast','ST1–ST5 + ST8 side','PH2 The Barber','EDG1 Midnight Raid · EDG2 Flowers'],
+  items:['(hookshot + shard 3 earned at the Vault)','Tideglass Blade (ST4)','pearl circlet (ST2)'],
+  buildings:['docks district','market district','underworld quarter','a mansion','tavern','Lighthouse ⇲ — the densest place, 4 districts']},
+ {id:'vault',label:'Drowned Vault',region:'Coast',tier:'dungeon',w:36,h:30,gx:21.6,gy:14.8,unlock:'STORY M13 + a tide window.',
+  npcs:['Tideward (boss)'],quests:['M14 The Drowned Vault','ST2 Tide-Cave Treasures'],
+  items:['HOOKSHOT (tool)','SHARD 3'],buildings:['2 floors (tide-timed) + tide-caves ⇲']},
+ {id:'caught',label:'Caught Settlement',region:'Emberwood',tier:'town',w:56,h:44,gx:11.6,gy:17.4,unlock:'GATE hookshot (the ashen chasm).',
+  npcs:['the Settler','Elder Ash (PH4)','Vinizar the Glad (CAM6)'],
+  quests:['M15 The Emberwood','SE1–SE5 side (SE2 the split halves)','PH4 The Veil'],
+  items:['(fire/frost + shard 4 earned at the Hollow)','Emberfrost Band (SE3)','Cinderhide Cloak (SE5)'],
+  buildings:['settlement halls (split fire/frost)','→ Ember Hollow ⇲','→ Weeping Tree']},
+ {id:'hollow',label:'Ember Hollow',region:'Emberwood',tier:'dungeon',w:38,h:30,gx:11.7,gy:19.8,unlock:'STORY M15 (from the settlement).',
+  npcs:['Feverheart (boss)'],quests:['M16 Ember Hollow (permanent: mercy / seize / take)','SE3 Ashen Relics'],
+  items:['FIRE/FROST (tool)','SHARD 4'],buildings:['2 floors + the split altar of ember & ice']},
+ {id:'capital',label:'ORACLE CAPITAL',region:'Spire',tier:'city',w:104,h:88,gx:11.7,gy:2.2,unlock:'GATE firefrost + all 4 shards + story M17.',
+  npcs:['Sela (the oracle)','librarians & clergy'],quests:['M17 Sela’s Design (permanent: trust / oppose / go alone)','the civic / ancient-texts depth'],
+  items:['lore · keys'],buildings:['libraries','temples','the oracle precinct','housing — the civic/civilization depth']},
+ {id:'spire',label:'The Hollow Spire',region:'Spire',tier:'dungeon',w:44,h:36,gx:13.6,gy:0.9,unlock:'STORY M17 (from the Capital).',
+  npcs:['Warden of the Binding (boss)','the kicked CHICKEN (M18 callback)'],
+  quests:['M18 The Long Ascent (4-tool gauntlet)','M19 The Binding Chamber','M20 The Choice (5 endings)'],
+  items:['SHARD 5'],buildings:['4 floors: the Ascent · the Binding Chamber']},
+ {id:'thornwell',label:'Thornwell',region:'Forest',tier:'village',w:34,h:28,gx:17,gy:17.3,unlock:'[exp] LATE — wind-gap / cut from Saltbreak.',
+  npcs:['woodfolk','the gunhand / ninja-gran standouts (Hunter’s Cache)','the Wanderer (CAM5, roams all)'],
+  quests:['expansion side-content','an Overgrown-Ruin dungeon (lost-civilization texts)'],items:['minor loot'],buildings:['a forest inn/shop ⇲']},
+ {id:'dustreach',label:'Dustreach',region:'Desert',tier:'village',w:32,h:26,gx:21,gy:20.8,unlock:'[exp] LATE — from Thornwell (walk).',
+  npcs:['desert traders','nomads'],quests:['expansion side-content','a Sunken-Temple dungeon (temple-library)'],items:['minor loot'],buildings:['a trade post ⇲','→ Oasis · Nomad Camp']},
+ {id:'fenwick',label:'Fenwick',region:'Marsh',tier:'village',w:28,h:24,gx:6.6,gy:14.4,unlock:'EARLY — walk from Mirefen.',
+  npcs:['fisherfolk'],quests:['side infill','a Pem-mark (SG2)'],items:['minor loot'],buildings:['a fishing shack ⇲']},
+ {id:'cribbins',label:'Cribbins Cove',region:'Coast',tier:'village',w:28,h:24,gx:17,gy:14.9,unlock:'MID — walk from Saltbreak.',
+  npcs:['coast folk'],quests:['side infill'],items:['minor loot'],buildings:['a cove inn ⇲']},
+ {id:'cragfoot',label:'Cragfoot',region:'Peaks',tier:'village',w:26,h:22,gx:9.3,gy:4.9,unlock:'MID — walk from Stonereach.',
+  npcs:['mountain folk'],quests:['side infill / rest'],items:['minor loot'],buildings:['a hamlet shop ⇲']},
+ {id:'cave',label:'Boarded Cave',region:'Greenhollow',tier:'secret',w:16,h:12,gx:13.8,gy:11.1,unlock:'EARLY — lantern (it’s too dark without).',
+  npcs:[],quests:['M4 (the weeping-flame carving — ending-A seed)'],items:['cave_lore deed'],buildings:['a small cave ⇲']},
+ {id:'highpass',label:'High Pass',region:'Peaks',tier:'secret',w:20,h:16,gx:15.4,gy:6.7,unlock:'MID — grapple (the spire-climb).',
+  npcs:['the Crag Beast (SP2 bounty)'],quests:['SP4 High-Pass Climb','SP2 bounty'],items:['sky-iron charm'],buildings:['a cache']},
+ {id:'weeping',label:'Weeping Tree',region:'Emberwood',tier:'secret',w:14,h:12,gx:9.5,gy:19.5,unlock:'MID — walk from the settlement.',
+  npcs:['a god-fragment (silent)'],quests:['SE4 The Weeping Tree (+Purity; Liberator nudge)'],items:['(ET11 epilogue card)'],buildings:['a grove']},
+ {id:'lighthouse',label:'The Lighthouse',region:'Coast',tier:'landmark',w:18,h:14,gx:18.3,gy:9.5,unlock:'MID — walk from Saltbreak.',
+  npcs:['Holden McGroin (the grief mirror to Bram)'],quests:['ST3 The Lighthouse Keeper'],items:['(ET2 echo)'],buildings:['a multi-floor lighthouse ⇲']},
+];
+// CONNECTIONS — all from MASTER-WORLD-SPEC §3–§4. via=traversal means · gate · stage · len · dots=quests/items between
+const CONNS=[
+ {a:'gh',b:'mirefen',stage:'early',via:'walk (West Belt)',gate:null,len:'18/26/34',dots:[{t:'quest',label:'SA4 The Frog',d:'An undefeatable ox-sized frog — a PUZZLE not a fight (escape via apple / kiss / lead away). Teaches "not all by force."'},{t:'quest',label:'SA5 Drowned Letters',d:'A corpse in the reeds; carry the letter to Mara in Greenhollow (long-range callback to SG4).'},{t:'item',label:'Pem-mark (1 of 4)',d:'"PEM WOZ ERE" scratched here — one of 4 marks across regions → SG2 finds the hidden Pem.'}]},
+ {a:'gh',b:'cave',stage:'early',via:'lantern',gate:'🔒 lantern',len:'6/8/10',dots:[{t:'quest',label:'M4 The Boarded Cave',d:'The weeping-flame carving inside (the first seed of the god’s truth). Lantern-gated.'}]},
+ {a:'mirefen',b:'shrine',stage:'early',via:'walk → lantern inside',gate:'story M8',len:'10/14/18',dots:[{t:'quest',label:'M9 The Sunken Shrine',d:'Earn the LANTERN, defeat the Drowned Guardian, claim SHARD 1.'}]},
+ {a:'gh',b:'stonereach',stage:'early',via:'walk (Foothill)',gate:'🔒 shard_1 + story M10',len:'28/34/42',dots:[{t:'quest',label:'SP2 Crag Beast',d:'A tough optional bounty on the high ridges → the Crag Maul.'},{t:'item',label:'High Pass cache (SP4)',d:'Grapple-reachable cache on the spires → sky-iron charm.'}]},
+ {a:'gh',b:'saltbreak',stage:'mid',via:'grapple (the gorge)',gate:'🔒 grapple',len:'30/38/48',dots:[{t:'quest',label:'EDG1/EDG2 the headland',d:'The midnight-raid farce (EDG1) + gathering flowers for a shy suitor (EDG2).'},{t:'quest',label:'ST4 the Wreck Wraith',d:'Hunt the drowned guardian among the wrecks → Tideglass Blade.'},{t:'item',label:'ST8 message in a bottle',d:'Washed up on the strand — the 4th Pem-mark (final SG2 clue).'}]},
+ {a:'stonereach',b:'highpass',stage:'mid',via:'grapple',gate:'🔒 grapple',len:'8/12/16',dots:[{t:'quest',label:'SP4 High-Pass Climb',d:'Traverse the High-Pass spires to the cache.'}]},
+ {a:'stonereach',b:'keep',stage:'mid',via:'walk → grapple',gate:'story M11',len:'8/12/16',dots:[{t:'quest',label:'M12 Cinder Keep',d:'Earn the GRAPPLE, defeat the Keep Sentinel, claim SHARD 2; read the Order’s records (they knew + chose the lie).'}]},
+ {a:'gh',b:'caught',stage:'mid',via:'hookshot (the ashen chasm)',gate:'🔒 hookshot',len:'26/32/40',dots:[{t:'quest',label:'SE1 the burn/freeze seam',d:'Walk the seam of burning + freezing; understand the god’s fever.'},{t:'quest',label:'SE5 Cinder Stag',d:'Hunt the fire-stag across the burning ridges → Cinderhide Cloak.'}]},
+ {a:'saltbreak',b:'vault',stage:'mid',via:'hookshot (tide-timed)',gate:'🔒 hookshot + tide',len:'10/14/20',dots:[{t:'quest',label:'M14 The Drowned Vault',d:'Tide-timed entry; earn the HOOKSHOT, defeat the Tideward, claim SHARD 3.'},{t:'quest',label:'ST2 Tide-Cave Treasures',d:'Hookshot-gated caves between the tides → pearl circlet.'}]},
+ {a:'stonereach',b:'saltbreak',stage:'mid',via:'⛓ grapple ridge (2nd inter-region route)',gate:'🔒 grapple',len:'24/30/38',dots:[{t:'note',label:'2nd route',d:'A grapple ridge links Peaks ↔ Coast directly once you have the grapple — the world begins to interconnect.'}]},
+ {a:'stonereach',b:'capital',stage:'late',via:'firefrost + all 4 shards (the ascent)',gate:'🔒 firefrost + 4 shards + M17',len:'16/22/30',dots:[{t:'quest',label:'M17 Sela’s Design',d:'Permanent decision: TRUST Sela / OPPOSE (with Hagga) / GO ALONE.'}]},
+ {a:'capital',b:'spire',stage:'late',via:'walk (the ascent)',gate:'story M17',len:'12/16/22',dots:[{t:'quest',label:'M18 The Long Ascent — THE CHICKEN',d:'The 4-tool gauntlet; on the final landing stands the chicken you booted 30 years ago. It has not forgotten.'}]},
+ {a:'caught',b:'hollow',stage:'mid',via:'walk → 🔥 fire-melt the ice-seal',gate:'story M15',len:'8/10/14',dots:[{t:'quest',label:'M16 Ember Hollow',d:'Earn FIRE/FROST, defeat Feverheart, claim SHARD 4; the permanent mercy/seize/take choice.'}]},
+ {a:'gh',b:'stonereach',stage:'late',via:'⚡ electric-switch → a direct N gate (SHORTCUT)',gate:'electric spell',len:'14 (shortcut)',dots:[{t:'note',label:'PROGRESSIVE: 2nd GH↔Peaks route',d:'Once you earn the ELECTRIC spell, a switch opens a direct north gate — a shortcut that didn’t exist early. The same overworld reveals a new link.'}]},
+ {a:'gh',b:'saltbreak',stage:'late',via:'❄ ice-freeze the river → foot-crossing',gate:'ice spell',len:'22 (alt route)',dots:[{t:'note',label:'PROGRESSIVE: 2nd GH↔Coast route',d:'Freeze the river with the ICE spell and cross on foot — a second way to the Coast that bypasses the grapple-gorge.'}]},
+ {a:'saltbreak',b:'thornwell',stage:'late',via:'🌀 wind-gap / cut the overgrowth',gate:'wind spell OR cut',len:'12/16/22',dots:[{t:'note',label:'PROGRESSIVE: the Forest opens',d:'Wind across the gap (or cut the overgrowth) → the expansion Forest. [D-geo: adopt into gating.js]'}]},
+ {a:'thornwell',b:'dustreach',stage:'late',via:'walk',gate:null,len:'4/8/12',dots:[{t:'quest',label:'expansion content',d:'The Forest → Desert expansion (Overgrown Ruin + Sunken Temple, lost-civilization texts).'}]},
+ {a:'saltbreak',b:'caught',stage:'late',via:'🪵 repaired bridge (a side-quest)',gate:'story (bridge quest)',len:'20/24/30',dots:[{t:'note',label:'PROGRESSIVE: a story bridge',d:'Complete the bridge side-quest → a direct Coast↔Emberwood link opens (a 2nd route to the Caught Settlement).'}]},
+ {a:'mirefen',b:'fenwick',stage:'early',via:'walk',gate:null,len:'4/8/12',dots:[]},
+ {a:'saltbreak',b:'cribbins',stage:'mid',via:'walk',gate:null,len:'4/8/12',dots:[]},
+ {a:'saltbreak',b:'lighthouse',stage:'mid',via:'walk',gate:null,len:'6/10/14',dots:[{t:'quest',label:'ST3 The Lighthouse Keeper',d:'Stay + listen to old Holden’s grief — it mirrors Bram. (ET2 echo.)'}]},
+ {a:'stonereach',b:'cragfoot',stage:'mid',via:'walk',gate:null,len:'4/8/12',dots:[]},
+ {a:'caught',b:'weeping',stage:'mid',via:'walk',gate:null,len:'4/8/12',dots:[{t:'quest',label:'SE4 The Weeping Tree',d:'Witness the silent god-fragment weeping embers (+Purity; nudges the Liberator/secret ending).'}]},
+];
+// NO-GO barriers (illustrative) — geography that shapes the routes
+const NOGO=[ {x1:16.5,y1:0,x2:16.5,y2:8.5,label:'ocean edge'}, {x1:16.3,y1:8.5,x2:16.3,y2:15.5,label:'sea cliffs'} ];
+
+const SVGNS='http://www.w3.org/2000/svg', GRID=24, O=40, S=(1000-2*O)/GRID;
+const cx=g=>O+g*S, byId=Object.fromEntries(PLACES.map(p=>[p.id,p]));
+const map=document.getElementById('map'), panel=document.getElementById('panel');
+const el=(n,a)=>{const e=document.createElementNS(SVGNS,n);for(const k in a)e.setAttribute(k,a[k]);return e;};
+function add(n,a){const e=el(n,a);map.appendChild(e);return e;}
+
+// background ocean + biomes + grid
+add('rect',{x:cx(16.5),y:cx(0),width:cx(24)-cx(16.5),height:cx(24)-cx(0),fill:'#0e2740',opacity:.5});
+for(const[r,gx,gy,gw,gh] of BIOMES){ add('rect',{x:cx(gx),y:cx(gy),width:gw*S,height:gh*S,rx:12,fill:REG[r],opacity:.12,stroke:REG[r],'stroke-opacity':.4}); const t=add('text',{x:cx(gx)+5,y:cx(gy)+14,fill:REG[r],'font-size':10,'font-weight':'bold',opacity:.8});t.textContent=r.toUpperCase(); }
+for(let i=0;i<=GRID;i++){const m=i%4===0; add('line',{x1:cx(i),y1:cx(0),x2:cx(i),y2:cx(GRID),stroke:'#2a3528','stroke-width':m?1:.5,opacity:m?.6:.3}); add('line',{x1:cx(0),y1:cx(i),x2:cx(GRID),y2:cx(i),stroke:'#2a3528','stroke-width':m?1:.5,opacity:m?.6:.3}); if(m){const t=add('text',{x:cx(i),y:cx(0)-4,fill:'#5b6b4f','font-size':8,'text-anchor':'middle'});t.textContent=i;}}
+// no-go
+for(const z of NOGO){ add('line',{x1:cx(z.x1),y1:cx(z.y1),x2:cx(z.x2),y2:cx(z.y2),stroke:'#c0392b','stroke-width':4,opacity:.6,'stroke-dasharray':'2 4'}); }
+
+// connections (offset duplicates so 2nd/3rd routes are visible)
+const seen={};
+for(const c of CONNS){
+  const a=byId[c.a],b=byId[c.b]; const k=[c.a,c.b].sort().join('|'); const off=(seen[k]=(seen[k]||0)+1)-1;
+  const dx=cx(b.gy)-cx(a.gy), dy=-(cx(b.gx)-cx(a.gx)); const L=Math.hypot(dx,dy)||1; const ox=dx/L*off*10, oy=dy/L*off*10;
+  const x1=cx(a.gx)+ox,y1=cx(a.gy)+oy,x2=cx(b.gx)+ox,y2=cx(b.gy)+oy;
+  const g=add('g',{class:'conn'}); g.appendChild(el('line',{x1,y1,x2,y2,stroke:STAGE[c.stage],'stroke-width':2.4,opacity:.85,'stroke-dasharray':c.gate?'6 4':'0'}));
+  const mx=(x1+x2)/2,my=(y1+y2)/2; const lt=el('text',{x:mx,y:my-3,fill:STAGE[c.stage],'font-size':8,'text-anchor':'middle',stroke:'#0a0e08','stroke-width':2.5,'paint-order':'stroke'}); lt.textContent=c.via+(c.gate?' · '+c.gate:''); g.appendChild(lt);
+  g.onclick=()=>showConn(c); map.appendChild(g);
+  // quest/item dots along the path
+  (c.dots||[]).forEach((d,i)=>{ const f=(i+1)/((c.dots.length)+1); const qx=x1+(x2-x1)*f, qy=y1+(y2-y1)*f;
+    const dg=add('g',{class:'qdot'}); const col=d.t==='item'?'#ffd36a':d.t==='note'?'#cfc0e0':'#9fe08a';
+    dg.appendChild(el('circle',{cx:qx,cy:qy,r:4.5,fill:col,stroke:'#0a0e08','stroke-width':1.5}));
+    dg.onclick=(e)=>{e.stopPropagation();showDot(d,c);}; });
+}
+// places (true-scale)
+for(const p of PLACES){ const r=Math.max(6,Math.sqrt(p.w*p.h)*0.26), px=cx(p.gx),py=cx(p.gy),col=REG[p.region];
+  const g=add('g',{class:'place',id:'pl_'+p.id});
+  if(p.tier==='dungeon'||p.tier==='secret') g.appendChild(el('polygon',{points:`${px},${py-r} ${px+r},${py} ${px},${py+r} ${px-r},${py}`,fill:col,stroke:'#0a0e08','stroke-width':2}));
+  else g.appendChild(el('circle',{cx:px,cy:py,r,fill:col,stroke:'#0a0e08','stroke-width':2}));
+  const fs=p.tier==='city'?12:p.tier==='town'?10:8.5; const t=el('text',{x:px,y:py+r+fs,fill:'#eef3e6','font-size':fs,'font-weight':(p.tier==='city'||p.tier==='town')?'bold':'normal','text-anchor':'middle',stroke:'#0a0e08','stroke-width':3,'paint-order':'stroke'}); t.textContent=p.label; g.appendChild(t);
+  const st=el('text',{x:px,y:py+r+fs+10,fill:'#9fb89a','font-size':7.5,'text-anchor':'middle',stroke:'#0a0e08','stroke-width':2.5,'paint-order':'stroke'}); st.textContent=p.w+'×'+p.h; g.appendChild(st);
+  g.onclick=()=>showPlace(p);
+}
+// panel renderers
+function sel(id){ document.querySelectorAll('.place').forEach(e=>e.classList.remove('sel')); if(id)document.getElementById('pl_'+id)?.classList.add('sel'); }
+const list=(title,arr)=> arr&&arr.length? `<h3>${title}</h3><ul>${arr.map(x=>'<li>'+x+'</li>').join('')}</ul>`:'';
+function showPlace(p){ sel(p.id);
+  const conns=CONNS.filter(c=>c.a===p.id||c.b===p.id).map(c=>{const o=byId[c.a===p.id?c.b:c.a]; return `<li><span class="badge" style="background:${STAGE[c.stage]}33;color:${STAGE[c.stage]}">${c.stage}</span> ${o.label} — <b>${c.via}</b>${c.gate?' · '+c.gate:''}</li>`;}).join('');
+  panel.innerHTML=`<h2 style="color:${REG[p.region]}">${p.label}</h2><div class="tier">${p.tier} · ${p.region} · ${p.w}×${p.h} tiles</div>
+   <h3>Unlock — when/how accessible</h3><div>${p.unlock}</div>
+   ${list('NPCs (incl. standouts)',p.npcs)} ${list('Quests / events',p.quests)} ${list('Items / loot',p.items)} ${list('Buildings (⇲ = enterable interior)',p.buildings)}
+   <h3>Connections</h3><ul>${conns||'<li class=hint>—</li>'}</ul>`;
+}
+function showConn(c){ sel(null); const a=byId[c.a],b=byId[c.b];
+  panel.innerHTML=`<h2>${a.label} ↔ ${b.label}</h2><div class="tier"><span class="badge" style="background:${STAGE[c.stage]}33;color:${STAGE[c.stage]}">${c.stage} stage</span></div>
+   <h3>Traversal</h3><div><b>${c.via}</b></div>
+   <h3>Gate</h3><div>${c.gate||'<span class=hint>none — open</span>'}</div>
+   <h3>Path length (tiles, min/avg/max)</h3><div>${c.len}</div>
+   ${c.dots&&c.dots.length?'<h3>On this path</h3><ul>'+c.dots.map(d=>`<li><b>${d.label}</b> — ${d.d}</li>`).join('')+'</ul>':''}`;
+}
+function showDot(d,c){ sel(null); const a=byId[c.a],b=byId[c.b];
+  panel.innerHTML=`<h2>${d.label}</h2><div class="tier">${d.t} · on the ${a.label} ↔ ${b.label} route (${c.stage})</div><div>${d.d}</div>
+   <h3>The route it sits on</h3><div><b>${c.via}</b>${c.gate?' · '+c.gate:''}</div>`;
+}
+// default
+showPlace(byId.gh);
+</script>
+</body>
+</html>
