@@ -643,11 +643,20 @@ function interiorRegion(spec) {
 export const TANKARD_F1 = interiorRegion({
   key: 'tankard_f1', otx: 520, oty: 520, W: 14, H: 10, floor: 'dirt', mapColor: 0x6b4a2e, spawn: { tx: 3, ty: 8 },
   doors: [{ tx: 2, ty: 8, to: 'back', label: 'Leave (back outside)' }, { tx: 11, ty: 2, to: 'tankard_f2', label: 'Upstairs →' }],
+  furniture: [
+    { tx: 1, ty: 1, key: 'prop_fireplace', solid: true, dy: -6 },   // the hearth
+    { tx: 4, ty: 3, key: 'prop_table', solid: true, scale: 0.8 }, { tx: 8, ty: 6, key: 'prop_table', solid: true, scale: 0.8 },   // tavern tables
+    { tx: 12, ty: 1, key: 'prop_barrel', solid: true }, { tx: 12, ty: 2, key: 'prop_barrel', solid: true, scale: 0.9 },   // the bar's casks
+  ],
   chests: [{ tx: 7, ty: 5, id: 'tankard_f1_chest', gold: 20 }],
 });
 export const TANKARD_F2 = interiorRegion({
   key: 'tankard_f2', otx: 590, oty: 520, W: 14, H: 10, floor: 'dirt', mapColor: 0x7a5638, spawn: { tx: 11, ty: 2 },
   doors: [{ tx: 10, ty: 2, to: 'back', label: 'Downstairs ↓' }],
+  furniture: [
+    { tx: 1, ty: 1, key: 'prop_bed', solid: true, dy: -2 }, { tx: 1, ty: 5, key: 'prop_bed', solid: true, dy: -2 },   // the rooms upstairs
+    { tx: 4, ty: 7, key: 'prop_table', solid: true, scale: 0.75 }, { tx: 12, ty: 6, key: 'prop_dresser', solid: true, dy: -6 },
+  ],
   chests: [{ tx: 6, ty: 5, id: 'tankard_f2_chest', gold: 30 }],
 });
 export const TEST_CAVE_F1 = interiorRegion({
@@ -727,8 +736,8 @@ export const GH_FORGE = interiorRegion({
   key: 'gh_forge', otx: 440, oty: 615, W: 12, H: 9, floor: 'dirt', mapColor: 0x4a3a2e, spawn: { tx: 6, ty: 7 },
   doors: [{ tx: 6, ty: 7, to: 'back', label: 'Leave the forge' }],
   furniture: [
-    { tx: 2, ty: 1, key: 'prop_fountain', solid: true, scale: 0.85, tint: 0x6a6258 },   // the furnace/anvil basin (FLAG: a real anvil/forge interior sprite is an art need)
-    { tx: 3, ty: 1, key: 'prop_barrel', solid: true, scale: 0.85, tint: 0x8a7a6a },
+    { tx: 2, ty: 1, key: 'prop_anvil', solid: true, dy: 4 },   // a REAL anvil (was the fountain-basin)
+    { tx: 4, ty: 1, key: 'prop_table', solid: true, scale: 0.8, dy: -2 },   // the smith's workbench
     { tx: 9, ty: 1, key: 'prop_barrel', solid: true }, { tx: 10, ty: 2, key: 'prop_barrel', solid: true, scale: 0.9 },
     { tx: 1, ty: 4, key: 'prop_fence', solid: true }, { tx: 1, ty: 5, key: 'prop_fence', solid: true },
   ],
@@ -749,7 +758,7 @@ export const GH_CHAPEL = interiorRegion({
   key: 'gh_chapel', otx: 500, oty: 615, W: 11, H: 12, floor: 'dirt', mapColor: 0x4a4658, spawn: { tx: 5, ty: 10 },
   doors: [{ tx: 5, ty: 10, to: 'back', label: 'Leave the chapel' }],
   furniture: [
-    { tx: 5, ty: 1, key: 'prop_fountain', solid: true, scale: 0.85, tint: 0xc8c0a0 },   // the font/altar at the head of the nave
+    { tx: 5, ty: 1, key: 'prop_altar', solid: true, dy: -10 },   // a REAL stone shrine/altar at the head of the nave (was the fountain)
     { tx: 2, ty: 4, key: 'prop_fence', solid: true }, { tx: 3, ty: 4, key: 'prop_fence', solid: true }, { tx: 7, ty: 4, key: 'prop_fence', solid: true }, { tx: 8, ty: 4, key: 'prop_fence', solid: true },  // pews
     { tx: 2, ty: 6, key: 'prop_fence', solid: true }, { tx: 3, ty: 6, key: 'prop_fence', solid: true }, { tx: 7, ty: 6, key: 'prop_fence', solid: true }, { tx: 8, ty: 6, key: 'prop_fence', solid: true },
     { tx: 1, ty: 1, key: 'prop_bush', solid: false, scale: 0.6 }, { tx: 9, ty: 1, key: 'prop_bush', solid: false, scale: 0.6 },
@@ -760,8 +769,10 @@ export const GH_HOME1 = interiorRegion({
   key: 'gh_home1', otx: 530, oty: 615, W: 10, H: 8, floor: 'dirt', mapColor: 0x5a4636, spawn: { tx: 5, ty: 6 },
   doors: [{ tx: 5, ty: 6, to: 'back', label: 'Step outside' }],
   furniture: [
-    { tx: 1, ty: 1, key: 'prop_barrel', solid: true, scale: 0.85 }, { tx: 8, ty: 1, key: 'prop_fountain', solid: true, scale: 0.7, tint: 0xb08a6a },   // a hearth-ish basin (FLAG: bed/table art)
-    { tx: 2, ty: 4, key: 'prop_fence', solid: true }, { tx: 3, ty: 4, key: 'prop_fence', solid: true }, { tx: 7, ty: 5, key: 'prop_bush', solid: false, scale: 0.55 },
+    { tx: 1, ty: 1, key: 'prop_bed', solid: true, dy: -2 },   // a REAL bed
+    { tx: 8, ty: 1, key: 'prop_fireplace', solid: true, dy: -6 },   // a REAL hearth
+    { tx: 3, ty: 4, key: 'prop_table', solid: true, scale: 0.8 }, { tx: 6, ty: 1, key: 'prop_dresser', solid: true, dy: -6 },
+    { tx: 7, ty: 5, key: 'prop_bush', solid: false, scale: 0.55 },
   ],
   chests: [{ tx: 8, ty: 5, id: 'gh_home1_chest', gold: 18 }],
 });
@@ -769,8 +780,9 @@ export const GH_HOME2 = interiorRegion({
   key: 'gh_home2', otx: 560, oty: 615, W: 10, H: 8, floor: 'dirt', mapColor: 0x4e4a38, spawn: { tx: 5, ty: 6 },
   doors: [{ tx: 5, ty: 6, to: 'back', label: 'Step outside' }],
   furniture: [
-    { tx: 8, ty: 1, key: 'prop_barrel', solid: true }, { tx: 1, ty: 1, key: 'prop_barrel', solid: true, scale: 0.8, tint: 0xc0b088 },
-    { tx: 6, ty: 4, key: 'prop_fence', solid: true }, { tx: 2, ty: 5, key: 'prop_bush', solid: false, scale: 0.6 },
+    { tx: 8, ty: 1, key: 'prop_bed', solid: true, dy: -2 }, { tx: 1, ty: 1, key: 'prop_fireplace', solid: true, dy: -6 },
+    { tx: 3, ty: 4, key: 'prop_table', solid: true, scale: 0.8 }, { tx: 6, ty: 1, key: 'prop_dresser', solid: true, dy: -6 },
+    { tx: 2, ty: 5, key: 'prop_bush', solid: false, scale: 0.6 },
   ],
   chests: [{ tx: 8, ty: 5, id: 'gh_home2_chest', gold: 16 }],
 });

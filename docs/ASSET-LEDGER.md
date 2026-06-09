@@ -39,6 +39,7 @@ public/audio/       | Kenney RPG Audio + Kenney Interface Sounds (kenney.nl)    
 public/audio/music/ | OpenGameArt CC0 region music beds — "Peasant Theme" (nihilocrat, Greenhollow/belt) + "Cave Theme" (Brandon Morris "Brandon75689", Sundered Peaks; dual CC0/OGA-BY → used under CC0) | CC0-1.0 | yes | music (per-region loop beds)
 public/art/monsters/| [LPC] Monsters — CharlesGabriel, bagzie, bluecarrot16 (OpenGameArt) | CC-BY-SA-3.0 / GPL-3.0       | yes | enemy creatures (snake/bat/worm/eyeball/ghost/slime/pumpking/man-eater)
 public/art/structures/| ElizaWy LPC (github.com/ElizaWy/LPC) structure + objects     | OGA-BY-3.0                        | yes | buildings + village props (houses/fountain/chest/barrel/fence)
+public/art/furniture/| single-sprite CROPS from ElizaWy LPC Objects (anvil/bed/table/dresser/fireplace) + [LPC] Statues (altar) — same ledgered sources as asset-library/2d/items | OGA-BY-3.0 / CC-BY-3.0 / CC-BY-SA-3.0 | yes | interior furniture (altar/anvil/bed/table/dresser/fireplace)
 ```
 
 > Share-alike note: CC-BY-SA / GPL assets are copyleft — a commercial ship keeps

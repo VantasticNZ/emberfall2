@@ -38,6 +38,9 @@ export const IX_CLASS = {
   prop_fence: { solid: true },
   prop_barrel: { solid: true, searchable: 'loot_barrel' },
   prop_chest: { solid: true },                  // chests use their own permanence path
+  // interior furniture (solid scenery — collision via the interiorRegion nav-carve)
+  prop_altar: { solid: true }, prop_anvil: { solid: true }, prop_bed: { solid: true },
+  prop_table: { solid: true }, prop_dresser: { solid: true }, prop_fireplace: { solid: true },
   prop_sign: { solid: false, readable: true },  // a sign/waypost/notice board — press-E to READ its `text`
 
   // --- SPEC'd-but-GAP assets (Van's table; art not in repo — class DEFINED + ready) --
