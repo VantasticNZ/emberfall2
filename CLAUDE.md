@@ -12,6 +12,12 @@ until you know which plan step you are on.
 - **`docs/QUALITY-BIBLE.md`** — the quality bar + DoD gates (A–N) + Part 2.5
   Presentation & Feel DoD + the Regression / Save-Versioning rules. Nothing is "done"
   until it passes its gates to the owner's eye.
+- **`docs/DONE-DEFINITION.md`** — the **SSOT for "done"**: the RUNTIME, eyes-on checklist
+  (walkability · containment walk+dash · doors-as-doorways · no-farm · designed==built ·
+  per-settlement identity · no-false-green · honest checklist). **Apply it before claiming
+  anything done.** `docs/PROCESS-RETRO.md` — why gates went green while the game was broken +
+  the meta-rules. `docs/DEFERRED.md` — the living deferred-work tracker (log every deferral
+  with when-to-build; clear rows when you build them).
 - **`src/constants/{deeds,flags,items,endings}.js`** — the SSOT for every canonical
   id (import these, never hardcode). `scripts/verify.mjs` fails on drift.
 - **Governance:** `docs/ADR.md` (why settled decisions stand), `docs/STYLE-GUIDE.md`
@@ -71,5 +77,15 @@ Karma + deed-memory engine. Tests are plain Node + `node:assert` (`npm test`).
     (d) End with the DoD self-check and, for visual work, a screenshot (HARD RULE 9).
     Standards: reuse the canonical tuning constants in `src/constants/standards.js`
     (e.g. `INTERACTION_RADIUS`) — never re-hardcode them; see `docs/STANDARDS.md`.
+11. **GATES ARE PROXIES — the running game is the truth (PROCESS-RETRO).** Every verify gate
+    tests DATA or a flood-fill simulation, NOT real physics/render — so the runtime/visual
+    failure classes (void-escape, dash-tunnel, door-rendered-wrong, exploit-farm) are caught
+    ONLY by eyes-on. Therefore: (a) **a green test that contradicts Van's eyes means the TEST
+    is wrong** — fix the test, don't trust the green; (b) **"working" requires exercising it
+    with REAL input at runtime** (walk it, dash it, cut it, enter it) — present/data-correct ≠
+    proven; (c) before claiming "done", run the **`docs/DONE-DEFINITION.md` runtime checklist**
+    (it is the SSOT for done); (d) **designed ≠ built** — the running world must match the
+    locked map (the `designed-vs-built` verify gate shows the gap); (e) **deferred ≠ dropped** —
+    log every deferral in `docs/DEFERRED.md` with a when-to-build milestone; never silently drop.
 
 The owner is Van (NZ). Be concise, honest, willing to push back; no emoji.

@@ -403,6 +403,28 @@ const tile = (px) => Math.round(px / TILE);
   else ok(`entrance coherence: ${builtEnt.length} built entrances handshake + gates match gating.js + all ${regionKeys.size} regions reachable from Greenhollow`);
 }
 
+// 16) DESIGNED-VS-BUILT — the running world should match the locked design (PROCESS-RETRO: "designed
+//     locked but never built" went unchecked for sessions). HARD FAIL on a mislink (a door → a
+//     non-existent region — the "design references something unbuilt" class). Otherwise INFORMATIONAL:
+//     prints how many settlements are on the WALKABLE OVERWORLD vs still board/scene-only, so the
+//     designed-vs-built gap is visible every run (and tracked in DEFERRED.md) — it can't hide.
+{
+  const settlements = REGIONS.filter((r) => r.settlement || (r.interior && /^(town_|vil_|dgn_|city_|lost_)/.test(r.key)));
+  const allKeys = new Set(REGIONS.map((r) => r.key));
+  const mislinks = [];
+  for (const R of REGIONS) for (const o of (R.interactables || [])) {
+    if (o.via === 'door' && o.to && o.to !== 'back' && !o.to.startsWith('__') && !allKeys.has(o.to)) mislinks.push(`${R.key} → '${o.to}' (no such region)`);
+  }
+  // a settlement is "on the walkable overworld" if reached by a door in an overworld region OTHER than
+  // Greenhollow (the GH notice-board is fast-travel, NOT a spatial placement — exclude it).
+  const owTargets = new Set();
+  for (const R of REGIONS.filter((r) => !r.settlement && !r.interior && r.key !== 'Greenhollow')) for (const o of (R.interactables || [])) if (o.via === 'door') owTargets.add(o.to);
+  const onWorld = settlements.filter((s) => owTargets.has(s.key)).map((s) => s.key);
+  const boardOnly = settlements.filter((s) => !owTargets.has(s.key));
+  if (mislinks.length) fail('DESIGNED-VS-BUILT: door(s) link a region that does not exist (mislink):\n' + mislinks.map((m) => '      ' + m).join('\n'));
+  else ok(`designed-vs-built: ${settlements.length} settlements built — ${onWorld.length} on the walkable overworld (${onWorld.join(', ') || 'none'}); ${boardOnly.length} still board/scene-only (must be relocated per DEFERRED.md)`);
+}
+
 // --- summary ------------------------------------------------------------------
 if (fails.length) {
   console.error('\nVERIFY FAILED ✗\n' + fails.map((f) => '  ✗ ' + f).join('\n') + '\n');

@@ -7,6 +7,11 @@
 > Sits over `QUALITY-SPEC.md` (the locked look bar) + `QUALITY-BIBLE` Part 2.5/2.6 (the DoD
 > gates). The headline rule: **a region is "done" only when all factor-DoDs are green AND
 > all cross-checks pass AND Van's feel-verdict is yes** (§7). Doc-only.
+>
+> **⚠ "Done" is gated by `docs/DONE-DEFINITION.md`** — the RUNTIME, eyes-on checklist (the SSOT for
+> done; walkability · containment walk+dash · doors · no-farm · designed==built · honesty). The
+> factor-DoDs below are the *content* bar; DONE-DEFINITION is the *runtime-truth* bar. Both must pass.
+> See `docs/PROCESS-RETRO.md` for why (gates went green while the game was broken).
 
 ---
 
