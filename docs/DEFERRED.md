@@ -55,7 +55,7 @@
 | **Wire Victorian/Colonial buildings into GH composition** | GH is Phase-2 quality | a finished GH look | POLISH |
 | **Bog-tile terrain** (true mud/black-water vs tinted grass) | bog-tile gap | the Marsh reads as mud not grass | POLISH |
 | **Doorway sprite placement on GH buildings** (freestanding in yards) | trigger-tile compromise | doors look attached to buildings | POLISH |
-| **M-map settlement pins** (in-region entrances as map nodes) | map renders regions not sub-entrances | the M-map matches Van's node graph | POLISH/M2 |
+| ~~M-map settlement pins~~ | ✅ **DONE** — the M-map now pins each settlement at its live overworld-entrance position (matches the walkable world) | — | done |
 | **Bespoke boss/god-reveal VFX** | art polish | the finale's unique look | M3/POLISH |
 
 ## MILESTONE GATES (must pass before advancing)

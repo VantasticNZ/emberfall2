@@ -433,6 +433,20 @@ const tile = (px) => Math.round(px / TILE);
   for (let i = 0; i < scenes.length; i++) for (let j = i + 1; j < scenes.length; j++) if (ov(scenes[i], scenes[j])) clashes.push(`${scenes[i].key} ∩ ${scenes[j].key}`);
   if (clashes.length) fail('NO-OVERLAPPING-SCENES: enterable scenes overlap → an entrance lands you in the WRONG area:\n' + clashes.map((c) => '      ' + c).join('\n'));
   else ok(`no-overlapping-scenes: all ${scenes.length} enterable scenes (settlements + interiors) occupy distinct bounds — no wrong-area entry`);
+
+  // 18) RENDERED-VS-BUILT / NO-DUPLICATE-ENTRANCES — when settlements were relocated to the overworld but
+  //     the old GH notice-board doors were NOT removed, the player SEES a door-board AND the new
+  //     entrances (data-correct, presentation-stale — PROCESS-RETRO). Assert no settlement is reachable
+  //     via BOTH the GH board AND a relocated overworld entrance. (The M-map pins settlements from the
+  //     SAME live entrance data, so map == walkable world by construction.)
+  const settKeys = new Set(scenes.filter((r) => r.settlement || /^(town_|vil_|dgn_|city_|lost_)/.test(r.key)).map((r) => r.key));
+  const gh = REGIONS.find((r) => r.key === 'Greenhollow');
+  const ghDoors = new Set(), owDoors = new Set();
+  for (const o of (gh?.interactables || [])) if (o.via === 'door' && settKeys.has(o.to)) ghDoors.add(o.to);
+  for (const R of REGIONS.filter((r) => !r.settlement && !r.interior && r.key !== 'Greenhollow')) for (const o of (R.interactables || [])) if (o.via === 'door' && settKeys.has(o.to)) owDoors.add(o.to);
+  const dupes = [...ghDoors].filter((k) => owDoors.has(k));
+  if (dupes.length) fail('RENDERED-VS-BUILT (duplicate entrances): settlement(s) reachable via BOTH the GH board AND a relocated overworld entrance — remove the stale board door so the player sees ONE world, not a door-board + new entrances:\n' + dupes.map((d) => '      ' + d).join('\n'));
+  else ok(`rendered-vs-built: no duplicate entrances (GH-board fast-travel: ${ghDoors.size}; relocated overworld: ${owDoors.size}) — the visible presentation matches the built world; the M-map pins from the same live entrance data`);
 }
 
 // --- summary ------------------------------------------------------------------

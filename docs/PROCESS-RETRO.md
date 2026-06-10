@@ -20,6 +20,7 @@ was applied inconsistently and sometimes rubber-stamped.**
 | **Bush instant-respawn farm** | loot granted every cut + 12 s respawn → infinite farm | no gate models the **economy/exploit loop**; data looked fine | **Exploit-class items (loot, respawn, shops) require an explicit anti-farm runtime test** in the DoD. |
 | **Doors rendered mid-floor / as a sign** | door TILE was data-correct (edge) but the SPRITE rendered centered on the floor, and the marker was a `prop_sign` | gates check the door's TILE + handshake, never **what the door looks like** | **Visual correctness is a DoD item, eyes-on only.** "Data-correct" ≠ "reads correctly." |
 | **Designed map never built** | Van's edited map sat as a locked doc while the game ran the OLD layout for many sessions | there was **no "designed == built" check** — a locked design and the running game could diverge silently | **A designed-vs-built reconciliation gate** (added below) + the DoD item "designed==built" + `DEFERRED.md` tracking. |
+| **What Van SEES ≠ what's built** (stale M-map + door-clutter) | settlements were relocated to the overworld (gates said 10/11 built), but the **M-map still rendered the old skeleton + a text list** (not pins at the built positions) and the **old GH notice-board doors were never removed** → Van saw the old presentation: a door-board + an unchanged map | **gates + walkability checked DATA, never PRESENTATION** — the M-map's data source (stale list vs live world) and on-screen clutter (old board + new entrances both showing) had no check; "designed==built" passed while the *rendered* world was stale/duplicated | **The M-map must DERIVE from the live world data** (pin settlements at their real entrance positions, not a hardcoded list) + **remove the superseded presentation** (the board) when you add the new one. Gate: **rendered-vs-built / no-duplicate-entrances**. DoD: "the M-map + visible world match the build, eyes-on." |
 | **"Done" claimed before true** | quality/“finished” asserted while greybox/broken | the DoD existed but was applied **inconsistently**; green tests gave false confidence | **One unambiguous runtime DoD checklist** (`DONE-DEFINITION`) that MUST be eyes-on-true before "done"; and the meta-rule that a green test contradicting Van's eyes is a TEST BUG. |
 
 ## META-RULES (the extracted laws — apply every session)
@@ -37,6 +38,11 @@ was applied inconsistently and sometimes rubber-stamped.**
 7. **No self-referential / tautological tests.** Assert against an independent oracle.
 8. **Honest checklists.** Every requested item ends ✅ (proven) or ❌ (with reason); "done" is not
    claimed until the runtime DoD is eyes-on-true. Under-claim, never over-claim.
+9. **What the player SEES must match what's built — PRESENTATION is part of the DoD, not just data +
+   walkability.** Views (the M-map, HUD, overlays) must DERIVE from the live world data, never a
+   hardcoded/stale list. When you replace a feature (a relocated entrance), **remove the superseded
+   presentation** (the old door/board) — never leave both showing. "Data-correct + walkable" is not done
+   if the on-screen world (map + clutter) still reads as the old layout.
 
 ## GATE AUDIT — does each verify gate test RUNTIME or just DATA?
 **Every gate below is DATA-static or flood-fill SIMULATION — runtime/physics/render is covered ONLY by the
@@ -58,7 +64,9 @@ navGate flood-fill (partial) + eyes-on (HARD RULE 9).** That gap is the root cau
 | 13 | prop-key-integrity | keys | DATA | no missing art keys | ok |
 | 14 | entrance-coherence | door handshake | DATA | doors link valid regions | **proxy** — doesn't test you can WALK the entrance; pair w/ navGate |
 | 15 | **navGate (interiors.test): reachability + containment (walk + dash inputs)** | flood-fill + clamp inputs | **SIMULATION** | body can walk spawn→exits; perimeter sealed | **best we have, still not real physics** (no swept-dodge, no render) — eyes-on remains required |
-| 16 | **designed-vs-built (NEW)** | locked map vs built regions | DATA | every designed place is built or tracked | catches "design never built" / mislinked entrance |
+| 16 | **designed-vs-built** | locked map vs built regions | DATA | every designed place is built or tracked | catches "design never built" / mislinked entrance |
+| 17 | **no-overlapping-scenes** | scene bounds | DATA | an entrance lands you in the RIGHT area | catches overlapping far-band scenes (the thornwell→stonereach wrong-entry bug) |
+| 18 | **rendered-vs-built (NEW)** | board vs overworld entrances | DATA | the player SEES one world, not a stale board + new entrances | catches the not-removed-old-presentation class; the M-map pins from the same live entrance data |
 
 **Strengthened this pass:** added the **designed-vs-built** gate (#16); the **containment gate** now also
 asserts the dash-clamp inputs (sealed walls + interior flag + bounds) — added in the door/void bugfix.

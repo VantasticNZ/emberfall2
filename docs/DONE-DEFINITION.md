@@ -17,6 +17,7 @@ Exercise it as a player would; a screenshot per visual item. "Present/data-corre
 - [ ] **Doors as doorways** — every door reads as a **door embedded in the wall** (not a sign, not mid-floor); the door tile is the ONLY passable gap; walking onto it enters, walking **beside** it does not; no snag at the boundary.
 - [ ] **No exploit-farm** — any loot/respawn/shop loop is tested for abuse: cut/loot/buy once, can't repeat to farm; regrow/restock only on the intended cooldown/condition.
 - [ ] **Visual correctness** — the area READS as intended (composition/art-direction/palette), screenshot at normal zoom + self-checked against the look bar. No greybox/placeholder claimed as finished.
+- [ ] **Presentation matches the build (M-map + clutter)** — press **M**: the world-map reflects the REAL current layout (settlements pinned at their built positions, derived from live data — not a stale list/skeleton). The on-screen world has **no superseded/duplicate presentation** (e.g. an old door-board left beside the new entrances). What Van SEES = what's built. (rendered-vs-built gate.)
 - [ ] **Audio** — region music + ambient actually play (ears-on / verified routing), not just registered.
 - [ ] **Interaction/feel** — collision, depth-sort, interaction-classes, walk-in transitions all behave with real input.
 - [ ] **Perf** — fps holds (≥ ~55) with the area + NPCs loaded.

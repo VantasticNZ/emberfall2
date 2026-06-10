@@ -73,18 +73,11 @@ export const GREENHOLLOW = {
     { via: 'door', key: 'prop_door', solid: false, x: gx(19) + TILE / 2, y: gy(15) + TILE / 2, to: 'gh_chapel', prompt: 'Enter the chapel' },   // FIX: was gy(11) — buried under the 5×5 chapel; now the walkable front step
     { via: 'door', key: 'prop_door', solid: false, x: gx(34) + TILE / 2, y: gy(28) + TILE / 2, to: 'gh_home1', prompt: 'Enter the cottage' },
     { via: 'door', key: 'prop_door', solid: false, x: gx(41) + TILE / 2, y: gy(31) + TILE / 2, to: 'gh_home2', prompt: 'Enter the cottage' },
-    // WORLD-LAYOUT board (the halved-scope world — content-sized greybox places, walk each to approve)
-    { via: 'door', key: 'prop_door', solid: false, x: gx(7) + TILE / 2, y: gy(37) + TILE / 2, to: 'city_saltbreak', prompt: '→ SALTBREAK (the city)' },
-    { via: 'door', key: 'prop_door', solid: false, x: gx(11) + TILE / 2, y: gy(37) + TILE / 2, to: 'town_stonereach', prompt: '→ Stonereach (town)' },
-    { via: 'door', key: 'prop_door', solid: false, x: gx(15) + TILE / 2, y: gy(37) + TILE / 2, to: 'town_mirefen', prompt: '→ Mirefen (town)' },
-    { via: 'door', key: 'prop_door', solid: false, x: gx(19) + TILE / 2, y: gy(37) + TILE / 2, to: 'vil_fenwick', prompt: '→ Fenwick (village)' },
-    { via: 'door', key: 'prop_door', solid: false, x: gx(17) + TILE / 2, y: gy(37) + TILE / 2, to: 'lost_cemetery', prompt: '→ The Lost Cemetery' },
-    { via: 'door', key: 'prop_door', solid: false, x: gx(23) + TILE / 2, y: gy(37) + TILE / 2, to: 'vil_cribbins', prompt: '→ Cribbins Cove (village)' },
-    { via: 'door', key: 'prop_door', solid: false, x: gx(27) + TILE / 2, y: gy(37) + TILE / 2, to: 'vil_cragfoot', prompt: '→ Cragfoot (village)' },
-    { via: 'door', key: 'prop_door', solid: false, x: gx(31) + TILE / 2, y: gy(37) + TILE / 2, to: 'vil_oasis', prompt: '→ Mirage Oasis (village)' },
-    { via: 'door', key: 'prop_door', solid: false, x: gx(35) + TILE / 2, y: gy(37) + TILE / 2, to: 'vil_thornwell', prompt: '→ Thornwell (village)' },
-    { via: 'door', key: 'prop_door', solid: false, x: gx(39) + TILE / 2, y: gy(37) + TILE / 2, to: 'dgn_shrine', prompt: '→ Sunken Shrine (dungeon)' },
-    { via: 'door', key: 'prop_door', solid: false, x: gx(43) + TILE / 2, y: gy(37) + TILE / 2, to: 'dgn_keep', prompt: '→ Cinder Keep (dungeon)' },
+    // The old WORLD-LAYOUT notice-board (a scatter of doors south of GH) is RETIRED — the settlements are
+    // now WALKABLE at their map positions (Marsh W · Peaks N · Coast E · Emberwood S). Only Mirage Oasis
+    // stays here as a single fast-travel marker until it gets a desert region (DEFERRED M3). No duplicate
+    // board+overworld entrances (the no-duplicate-entrances gate enforces this; the clutter is gone).
+    { via: 'door', key: 'prop_door', solid: false, x: gx(31) + TILE / 2, y: gy(37) + TILE / 2, to: 'vil_oasis', prompt: '→ Mirage Oasis (fast-travel — not yet on the overworld)' },
   ],
   // Phase-3 ART (restore discrete-v3 gold standard on the overworld; RESIDENT atlas):
   widthTiles: WORLD.widthTiles, heightTiles: WORLD.heightTiles,

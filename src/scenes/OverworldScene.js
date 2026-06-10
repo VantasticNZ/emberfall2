@@ -1126,12 +1126,21 @@ export class OverworldScene extends Phaser.Scene {
     this._fullMap.add(fg);
     const lbl = (x, y, t, sz, col, oy2 = 0.5) => this._fullMap.add(this.add.text(x, y, t, { fontFamily: 'monospace', fontSize: sz + 'px', color: col, fontStyle: 'bold', stroke: '#05070b', strokeThickness: 4 }).setOrigin(0.5, oy2).setScrollFactor(0));
     for (const R of REGIONS) { if (R.interior) continue; lbl(mX(R.bounds.x + R.bounds.w / 2), mY(R.bounds.y + R.bounds.h / 2), R.key, R.greybox ? 11 : 13, R.greybox ? '#ffd9a0' : '#fff6df'); }
-    // the content-sized WORLD-LAYOUT places (separate door-entered scenes) — listed on the map
-    const layout = REGIONS.filter((R) => R.settlement);
-    if (layout.length) {
-      this._fullMap.add(this.add.text(fx + 6, fy + 8, 'CONTENT-SIZED PLACES (door-entered scenes):', { fontFamily: 'monospace', fontSize: '10px', color: '#ffe9c2', fontStyle: 'bold' }).setScrollFactor(0));
-      layout.forEach((R, i) => this._fullMap.add(this.add.text(fx + 8, fy + 22 + i * 13, `• ${R.label}  ${R.widthTiles}×${R.heightTiles}`, { fontFamily: 'monospace', fontSize: '10px', color: '#cdd8c4' }).setScrollFactor(0)));
+    // SETTLEMENT PINS — each settlement at its OVERWORLD-ENTRANCE position (where you actually walk to
+    // it), derived from the LIVE region interactables — so the map MATCHES the built/walkable world, not
+    // a stale text list. (rendered==built: the M-map reads from the same data the player walks.)
+    const entranceOf = {};
+    for (const R of REGIONS) { if (R.settlement || R.interior) continue;
+      for (const o of (R.interactables || [])) if (o.via === 'door' && o.to && !o.to.startsWith('__') && o.to !== 'back') entranceOf[o.to] ||= { x: o.x, y: o.y }; }
+    const offWorld = [];
+    for (const R of REGIONS.filter((r) => r.settlement)) {
+      const e = entranceOf[R.key];
+      if (!e) { offWorld.push(R.label || R.key); continue; }
+      const px = mX(e.x), py = mY(e.y);
+      fg.fillStyle(0x6fd0ff, 1); fg.fillCircle(px, py, 3); fg.lineStyle(1, 0x05070b, 1); fg.strokeCircle(px, py, 3);
+      lbl(px, py - 9, R.label || R.key, 9, '#bfe6ff', 1);
     }
+    if (offWorld.length) this._fullMap.add(this.add.text(fx + 6, fy + 8, 'fast-travel only (not yet on the overworld): ' + offWorld.join(', '), { fontFamily: 'monospace', fontSize: '10px', color: '#ffcf9a' }).setScrollFactor(0));
     const seen = new Set();
     for (const e of ENTRANCES) {
       if (e.reserved || !e.gate) continue; const k = [e.region, e.to].sort().join('|'); if (seen.has(k)) continue; seen.add(k);
