@@ -28,7 +28,7 @@ import { REGIONS, TILE } from '../src/data/worldmap.js';
 import { PROPS, solidBox } from '../src/data/assets.js';
 import { OPAQUE_BOUNDS } from '../src/data/opaqueBounds.js';
 import { IX_CLASS } from '../src/data/interactionClasses.js';
-import { GATES, TEASES } from '../src/data/gating.js';
+import { GATES, TEASES, ABILITY_GATES } from '../src/data/gating.js';
 import { ENTRANCES } from '../src/data/entrances.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -187,6 +187,21 @@ const tile = (px) => Math.round(px / TILE);
   if (order.length !== GATES.length) issues.push(`CIRCULAR GATE — topo-sort covered ${order.length}/${GATES.length} areas; a requires/grants cycle exists`);
   if (issues.length) fail('NO-SOFT-LOCK / gating violation(s):\n' + issues.map((s) => '      ' + s).join('\n'));
   else ok(`no soft-locks: ${GATES.length} gated areas + ${TEASES.length} teases — every key obtainable, acyclic, no key-behind-itself`);
+}
+
+// 7b) ABILITY-COVERAGE — VAN'S RULE: every traversal ability gates ≥1 path/area (no decorative
+//     abilities). Each ability is REQUIRED somewhere = a GATES tool-requirement, a TEASE key, or an
+//     ABILITY_GATES placement (the 4 tools gate the spine; cut/dash/spells/bomb gate optional secrets).
+{
+  const ABILITIES = ['cut', 'dash', 'lantern', 'grapple', 'hookshot', 'firefrost', 'fire', 'ice', 'wind', 'electric', 'bomb']; // walk = the trivial default (every region) — excluded
+  const gated = new Set();
+  const tool2ab = (k) => String(k).replace(/^tool_/, '');               // tool_lantern → lantern
+  GATES.forEach((g) => g.requires.forEach((k) => gated.add(tool2ab(k))));
+  TEASES.forEach((t) => gated.add(tool2ab(t.key)));
+  ABILITY_GATES.forEach((a) => gated.add(a.ability));
+  const missing = ABILITIES.filter((a) => !gated.has(a));
+  if (missing.length) fail(`ABILITY-COVERAGE: these traversal abilities gate NOTHING (decorative — add a required gate in gating.js ABILITY_GATES): ${missing.join(', ')}`);
+  else ok(`ability coverage: every traversal ability (${ABILITIES.length}) gates ≥1 path/area (GATES tools + TEASES + ${ABILITY_GATES.length} ability-gates) — no decorative abilities`);
 }
 
 // 8) CHANNELLED-NOT-OPEN — a `route:true` region must not contain a large open

@@ -33,6 +33,28 @@ DAG (verify's no-soft-locks gate). Van's spell-routes are **additive shortcuts/s
 **The two flags** (Fenwick ⚡-only, Lighthouse 🌀-only) shift *side* content later — Van's call to keep
 or add an early walk-spur.
 
+### 1b. ABILITY-COVERAGE 🔒 — VAN'S RULE: every traversal ability is REQUIRED ≥1 place (no decorative)
+Locked in `gating.js` + enforced by the new verify **ability-coverage** gate (every ability gates ≥1, or
+verify fails → can't regress). The 4 TOOLS gate the critical spine; the non-tool abilities gate
+**optional secrets/spurs** (additive → no soft-lock). *Added this pass: cut · dash · fire · bomb (the 4
+that gated nothing).*
+| Ability | Required where (the key to a place reachable no other way) | M-stage |
+|---|---|---|
+| **walk** | the start + GH↔Mirefen (the default — every region) | M1 |
+| **lantern** | the Boarded Cave (M4) + the Sunken Shrine puzzle | M1 |
+| **dash** ➕ | Marsh — the **broken boardwalk gap** → a reed-islet cache | M1 |
+| **cut** ➕ | Greenhollow — the **orchard bramble corner** → a cache | M1 |
+| **electric** | Marsh — **Mirefen→Fenwick** (the ONLY route, Van) | M1 |
+| **bomb** ➕ | Sunken Shrine — a **cracked crypt wall** → the drowned-lord's vault (SA3) | M1 |
+| **grapple** | Tidewreck Coast gate + Cinder Keep + High Pass | M2 |
+| **hookshot** | Emberwood gate + the Belt pond-island (PH5) + tide-caves | M2 |
+| **fire** ➕ | Sundered Peaks — a **frozen alcove** (fire-melt) → the sky-iron cache | M2 |
+| **wind** | Coast — **Saltbreak→Lighthouse** (the ONLY route, Van) | M2 |
+| **firefrost** | the Hollow Spire ascent gate (+ shards) | M2 |
+| **ice** | Desert — **Thornwell→Dustreach** ice-bridge (the ONLY route, Van) | M3 |
+**Every ability gates ≥1 ✅** (verify-enforced). 4 of the added gates (dash/cut/bomb in M1, + electric
+already) land in **Milestone 1** → built alongside the Marsh/Shrine.
+
 ## 2. SETTLEMENT IDENTITY — music + terrain + elevation (Van's rule: each gets all three)
 | Settlement | Tier | Music | Terrain | Elev | Audio HAVE/GAP |
 |---|---|---|---|---|---|
@@ -81,6 +103,9 @@ Each region built to the **EXCELLENCE region-DoD** on the **proven pipeline** (t
 3. **The Sunken Shrine** (⇲ dungeon, now N at chunk 5.5,10) — lpc-dungeon + cavern-ruins tiles · the
    lantern light-puzzle · the **Drowned Guardian** (humanoid boss) · shard 1 · crypts (SA3). *Gap:
    `dungeon-tension` bed.*
+   *(+ the M1 ABILITY-GATE secrets — §1b: **cut** the GH orchard brambles · **dash** the Marsh boardwalk
+   gap · **bomb** the Shrine's cracked crypt wall (SA3) · **electric** the Mirefen→Fenwick switch — all
+   optional caches/spurs, no soft-lock.)*
    → **MILESTONE 1 = the 5h game shippable** (M1→M10 + the Marsh, on current assets + ~3 tiny grabs).
 
 ### MILESTONE 2 — replicate the regions (the full spine)
@@ -103,6 +128,15 @@ Each region built to the **EXCELLENCE region-DoD** on the **proven pipeline** (t
    assets · the spell-route shortcuts (electric/ice/wind/fire/firefrost per §1) open the **interconnected
    web** + the late spurs (Fenwick/Lighthouse). exp side-content + CAM5 the Wanderer.
    → **MILESTONE 3 = the full 30-40h interconnected world.**
+
+## 4b. 🚩 MILESTONE GATE (planned, NOT now) — post-M1 TRIPLE-CHECK cohesiveness pass
+**After Milestone 1 is BUILT** (2-3 real regions: Greenhollow + Ashen Marsh + the Sunken Shrine), run
+the full **TRIPLE-CHECK cohesiveness + EXCELLENCE-build-plan pass against the BUILT game** — not paper.
+*Paper cohesion is largely done (this spec + cross-check); REAL cohesion is judged on built regions:*
+- play GH→Marsh→Shrine end-to-end; judge pacing/feel/difficulty/audio/transitions on the real build;
+- re-run the EXCELLENCE region-DoD + the cross-check matrix against what's actually rendered;
+- adversarially verify no soft-lock / no dead-end / the ability-gates actually pay off in play;
+- only then lock Milestone 2's region build order. **Record: this gate must pass before M2 scales up.**
 
 ## 5. FEEL-LAYERS (build-phase, region-agnostic — after the regions)
 - **Door-knock / morality entrance** (Van): walking into a home/shop reacts to your **Morality/Purity**
