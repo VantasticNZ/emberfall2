@@ -447,6 +447,19 @@ const tile = (px) => Math.round(px / TILE);
   const dupes = [...ghDoors].filter((k) => owDoors.has(k));
   if (dupes.length) fail('RENDERED-VS-BUILT (duplicate entrances): settlement(s) reachable via BOTH the GH board AND a relocated overworld entrance — remove the stale board door so the player sees ONE world, not a door-board + new entrances:\n' + dupes.map((d) => '      ' + d).join('\n'));
   else ok(`rendered-vs-built: no duplicate entrances (GH-board fast-travel: ${ghDoors.size}; relocated overworld: ${owDoors.size}) — the visible presentation matches the built world; the M-map pins from the same live entrance data`);
+
+  // 19) SEAMLESS-OVERWORLD (LOCKED, Van option B) — settlements (town/village/city) must be WALK-THROUGH
+  //     overworld TERRAIN, not separate enter-scenes. A town with an overworld ENTER-door is still a scene.
+  //     Tracks the conversion + GUARDS regression (a town marked converted must keep NO enter-door). Target:
+  //     every town/village/city inline (0 enter-doors). Dungeons (dgn_*) + secrets + interiors stay scenes.
+  const SEAMLESS_DONE = ['town_mirefen'];   // converted to inline overworld terrain — GROW as towns convert
+  const townKeys = REGIONS.filter((r) => /^(town_|vil_|city_|lost_)/.test(r.key)).map((r) => r.key);
+  const enterDoorTo = new Set();
+  for (const R of REGIONS.filter((r) => !r.settlement && !r.interior)) for (const o of (R.interactables || [])) if (o.via === 'door' && /^(town_|vil_|city_|lost_)/.test(o.to || '')) enterDoorTo.add(o.to);
+  const regressed = SEAMLESS_DONE.filter((k) => enterDoorTo.has(k));
+  const stillScene = townKeys.filter((k) => enterDoorTo.has(k));
+  if (regressed.length) fail('SEAMLESS-OVERWORLD regression: town(s) marked CONVERTED still have an overworld enter-door (must be inline walk-through terrain, no door):\n' + regressed.map((r) => '      ' + r).join('\n'));
+  else ok(`seamless-overworld: ${townKeys.length - stillScene.length}/${townKeys.length} town/village/city are inline walk-through (no enter-door); ${stillScene.length} still enter-scenes (DEFERRED → target 0): ${stillScene.join(', ') || 'none'}`);
 }
 
 // --- summary ------------------------------------------------------------------

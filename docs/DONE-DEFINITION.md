@@ -23,6 +23,12 @@ Exercise it as a player would; a screenshot per visual item. "Present/data-corre
 - [ ] **Perf** — fps holds (≥ ~55) with the area + NPCs loaded.
 
 ## C. DESIGN — designed == built
+- [ ] 🔒 **SEAMLESS OVERWORLD (LOCKED, Van option B)** — the overworld is **ONE seamless continuous map**
+  matching `world-map-vanedit.json`; **settlements are walk-through TERRAIN** (you walk into/through a
+  town's streets with **NO door / NO scene-transition** to enter a settlement). **Only building interiors,
+  dungeons, and secrets are separate scenes.** A settlement implemented as a separate enter-scene (with an
+  overworld door into it) **violates the DoD** (gate #19 seamless-overworld tracks this → target: 0
+  town/village/city enter-doors).
 - [ ] **Designed==built** — the area sits at its **locked-map position** (Van's `world-map-vanedit.json` / MASTER-WORLD-SPEC) with its **planned terrain + music + elevation + connections**; the running world matches the locked design (designed-vs-built gate #16 + the M-map).
 - [ ] **Per-settlement identity** — its own terrain + music zone + elevation are applied (not inherited-by-accident).
 - [ ] **Cross-check** — verified AGAINST quests/assets/audio/enemies/difficulty/cohesion (PROCESS-RETRO "standing cross-check"), not in isolation.

@@ -112,27 +112,46 @@ export const ASHEN_MARSH = {
     { key: 'prop_sign', x: mx(6) + TILE / 2, y: my(13) + TILE / 2, solid: true, tint: 0x9a8f6a, text: 'MIREFEN — the bog-town. Elder Yssa keeps the moot-hall.' },
     { key: 'prop_sign', x: mx(10) + TILE / 2, y: my(4) + TILE / 2, solid: true, tint: 0x9a8f6a, text: 'THE LOST CEMETERY — they buried the drowned here.' },
     { key: 'prop_sign', x: mx(34) + TILE / 2, y: my(20) + TILE / 2, solid: true, tint: 0x9a8f6a, text: 'FENWICK — a marsh-edge village.' },
+    // ── MIREFEN, INLINE (seamless option B) — the bog-town's buildings placed AS overworld terrain in the
+    //    Marsh's west (Van's map position); you walk THROUGH its streets with NO door/transition. Solid
+    //    (the bog between is the walkable street). Yssa's hut is a building INTERIOR (its door stays).
+    { key: 'prop_house_b', x: mx(3) + TILE / 2, y: my(9) + TILE / 2, solid: true, tint: 0x78816c, dy: -6 },
+    { key: 'prop_house_paneled', x: mx(9) + TILE / 2, y: my(9) + TILE / 2, solid: true, tint: 0x6e7860, dy: -6 },
+    { key: 'prop_house_a', x: mx(15) + TILE / 2, y: my(9) + TILE / 2, solid: true, tint: 0x747c68, dy: -8 },
+    { key: 'prop_house_b', x: mx(3) + TILE / 2, y: my(15) + TILE / 2, solid: true, tint: 0x76806a, dy: -6 },
+    { key: 'prop_house_b', x: mx(15) + TILE / 2, y: my(15) + TILE / 2, solid: true, tint: 0x6c7458, dy: -6 },
+    { key: 'prop_house_a', x: mx(3) + TILE / 2, y: my(20) + TILE / 2, solid: true, tint: 0x727a66, dy: -8 },
+    { key: 'prop_house_b', x: mx(9) + TILE / 2, y: my(20) + TILE / 2, solid: true, tint: 0x788066, dy: -6 },
+    { key: 'prop_house_paneled', x: mx(15) + TILE / 2, y: my(20) + TILE / 2, solid: true, tint: 0x707860, dy: -6 },
+    { key: 'prop_barrel', x: mx(7) + TILE / 2, y: my(16) + TILE / 2, solid: true, tint: 0x8a7a6a },
+    { key: 'prop_sign', x: mx(9) + TILE / 2, y: my(11) + TILE / 2, solid: true, tint: 0x9a8f6a, text: 'MIREFEN — walk her muddy streets; the moot-hall stands at the square. Elder Yssa keeps the fire.' },
   ],
-  npcs: MARSH.npcs.map((n) => ({
-    ...n, x: mx(n.tx), y: my(n.ty),
-    schedule: (n.schedule || []).map((s) => ({ ...s, tx: s.tx + MARSH_OT.x, ty: s.ty + MARSH_OT.y })),
-  })),
+  npcs: [
+    ...MARSH.npcs.map((n) => ({
+      ...n, x: mx(n.tx), y: my(n.ty),
+      schedule: (n.schedule || []).map((s) => ({ ...s, tx: s.tx + MARSH_OT.x, ty: s.ty + MARSH_OT.y })),
+    })),
+    // MIREFEN townsfolk — INLINE in the streets (no enter-scene)
+    { name: 'Marsh-wife Bett', x: mx(6) + TILE / 2, y: my(12) + TILE / 2, facing: 'down', speed: 36, expression: 'neutral', parts: MARSH.haggaParts },
+    { name: 'Fisher Coll', x: mx(12) + TILE / 2, y: my(12) + TILE / 2, facing: 'down', speed: 36, expression: 'neutral', parts: MARSH.base },
+    { name: 'Reed-boy Tam', x: mx(7) + TILE / 2, y: my(18) + TILE / 2, facing: 'down', speed: 50, expression: 'happy', parts: MARSH.base },
+  ],
   chests: [],
-  // CONNECTED-OVERWORLD ENTRANCES (Van's map) — you WALK WEST from Greenhollow into the Marsh and reach
-  // each settlement AT ITS map position (W→E: Mirefen far-W · Shrine W · Cemetery NW · Fenwick E). The
-  // built town content is reused (enter here). The GH notice-board is kept only as optional fast-travel.
+  // SEAMLESS OVERWORLD (Van option B) — Mirefen is now INLINE terrain (walk through its streets, no door);
+  // only Yssa's HUT (a building interior) + the DUNGEONS (Shrine) + the not-yet-converted villages stay as
+  // enter-scenes. Mirefen's enter-door is REMOVED (gate #19). Cemetery/Fenwick doors are DEFERRED.
   interactables: [
-    { via: 'door', key: 'prop_door', solid: false, x: mx(5) + TILE / 2, y: my(13) + TILE / 2, to: 'town_mirefen', prompt: 'Enter Mirefen' },
-    { via: 'door', key: 'prop_door', solid: false, x: mx(4) + TILE / 2, y: my(8) + TILE / 2, to: 'dgn_shrine', prompt: 'The Sunken Shrine' },
-    { via: 'door', key: 'prop_door', solid: false, x: mx(9) + TILE / 2, y: my(4) + TILE / 2, to: 'lost_cemetery', prompt: 'The Lost Cemetery' },
-    { via: 'door', key: 'prop_door', solid: false, x: mx(35) + TILE / 2, y: my(20) + TILE / 2, to: 'vil_fenwick', prompt: 'Enter Fenwick' },
+    { via: 'door', key: 'prop_door', solid: false, x: mx(9) + TILE / 2, y: my(14) + TILE / 2, to: 'mirefen_hut', prompt: "Enter Yssa's hut" },
+    { via: 'door', key: 'prop_door', solid: false, x: mx(4) + TILE / 2, y: my(8) + TILE / 2, to: 'dgn_shrine', prompt: 'The Sunken Shrine (dungeon)' },
+    { via: 'door', key: 'prop_door', solid: false, x: mx(9) + TILE / 2, y: my(4) + TILE / 2, to: 'lost_cemetery', prompt: 'The Lost Cemetery (village — not yet inline)' },
+    { via: 'door', key: 'prop_door', solid: false, x: mx(35) + TILE / 2, y: my(20) + TILE / 2, to: 'vil_fenwick', prompt: 'Fenwick (village — not yet inline)' },
   ],
   // COMBAT — enemy placements at ABSOLUTE WORLD TILES so EnemyController.spawn (tx*TILE)
   // lands them in world-coords; stable placeId per placement for kill-deltas.
   combat: {
     enabled: true,
     enemies: MARSH.enemies.map((e) => ({ id: e.id, tx: e.tx + MARSH_OT.x, ty: e.ty + MARSH_OT.y, placeId: `marsh_${e.id}_${e.tx}_${e.ty}` })),
-    safe: { x: mx(MARSH.combatSpawn ? 20 : 20), y: my(17), r: 6 * TILE },   // Mirefen hub (around Yssa)
+    safe: { x: mx(9), y: my(14), r: 9 * TILE },   // Mirefen INLINE town = a no-aggro hub (its streets are safe)
     bossSpawn: { tx: MARSH.bossSpawn.tx + MARSH_OT.x, ty: MARSH.bossSpawn.ty + MARSH_OT.y },
     spawn: { x: mx(MARSH.combatSpawn.tx), y: my(MARSH.combatSpawn.ty) },
   },

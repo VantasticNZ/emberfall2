@@ -7,6 +7,22 @@
 > the 6-region spine + 5 endings · **M3** = expansion + spell-route web · **ABIL** = the abilities-mechanics
 > session (a prerequisite) · **POLISH** = anytime quality.
 
+## 🔒 SEAMLESS OVERWORLD (Van option B, LOCKED) — convert towns to inline terrain (gate #19)
+**Target: every town/village/city is inline walk-through terrain (0 enter-scenes).** Proven pattern:
+**Mirefen is DONE** (inline in the Marsh — buildings + NPCs + the hut interior-door, no enter-door; walk
+through its streets seamlessly). Apply the SAME pattern to the rest.
+| Town to convert (still enter-scene) | Host overworld region | When |
+|---|---|---|
+| **Fenwick · Lost Cemetery** | Marsh (W) | next pass |
+| **Stonereach · Cragfoot** | Peaks (N) | next pass |
+| **Saltbreak · Cribbins** | Coast (E) | next pass |
+| **Thornwell** | Emberwood (S) | next pass |
+| **Mirage Oasis** | needs a Desert region (M3) | M3 |
+*Each: place the built buildings/NPCs/interior-doors INLINE in the host region at the map position;
+remove the enter-door; add to gate #19 `SEAMLESS_DONE`; make the town a no-aggro safe hub; navGate + perf
++ eyes-on walk-through.* **Polish:** widen the inline streets (Mirefen's are navigable but tight); the
+old griddedSettlement town SCENES become orphaned once inline (clean them up).
+
 ## BLOCKERS / PREREQUISITES (build these to unblock others)
 | Item | Why deferred | Unblocks | When |
 |---|---|---|---|

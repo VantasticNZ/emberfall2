@@ -1,3 +1,17 @@
+# PLAN-UNDERSTANDING
+
+## 🔒 LOCKED 2026-06-10 — Van's FIRM decision: OPTION B (seamless). Restated + confirmed:
+**ONE seamless continuous overworld.** The player walks the ENTIRE world continuously, exactly matching
+Van's edited map (`world-map-vanedit.json`, → `emberfall-2_world.json` when he saves it). **Settlements
+(towns/villages/cities) ARE overworld terrain** — you walk **into and through their streets with NO
+door / NO scene-transition**. **Separate scenes ONLY for: building interiors, dungeons, secrets.** The
+previous **hybrid (towns as door-entered scenes) is REPLACED** — every settlement-enter door + the GH
+fast-travel board is removed; the world is fully walkable. The M-map renders this one seamless world.
+*This is my understanding and I am building to it. (Dungeons + house interiors + secrets stay enter-scenes
+— Van confirmed only those.)*
+
+---
+
 # PLAN-UNDERSTANDING — CC states the "one map" plan back for Van to confirm/correct
 
 > **Read this and tell me "yes, that's what I mean" or correct it BEFORE I build more.** Per Van's
