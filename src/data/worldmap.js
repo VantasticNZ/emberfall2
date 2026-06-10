@@ -61,18 +61,13 @@ export const GREENHOLLOW = {
       solid: true, tint: 0x4b4a55, prompt: 'The boarded cave', locked: 'tool_lantern', grantsDeeds: ['cave_lore'],
       lockedLine: "The cave mouth is boarded and black inside. A plank hangs loose — but it's far too dark to go further without a light.",
       lines: ["You squeeze the lantern through the loose plank. Inside it's cold and far too quiet — and there, scratched deep into the stone: a flame, weeping, tears running down the rock. The first seed of the god's truth. You understood nothing as a child. You understand more now."] },
-    // PHASE-0 interior doors (the area-transition test): enter buildings/caves → separate interiors.
-    { via: 'door', key: 'prop_door', solid: false, x: gx(33) + TILE / 2, y: gy(15) + TILE / 2, to: 'tankard_f1', prompt: 'Enter the Copper Tankard' },
-    { via: 'door', key: 'prop_door', marker: 'prop_rock_crag', tint: 0x5a5650, solid: false, x: gx(38) + TILE / 2, y: gy(20) + TILE / 2, to: 'cave_f1', prompt: 'Enter the cave' },   // a CAVE-MOUTH (rock), not a floating door
-    // PHASE-1 generator doors (re-roll a fresh, navGate-validated dungeon/cave on each entry)
+    // The town's ENTERABLE BUILDINGS (forge/store/chapel/tavern/cottages) carry their door ON the building
+    // prop (`door:'<interior>'` in world.js) → the DOOR-SYSTEM carves an inset doorway you walk INTO; no
+    // separate door interactable here. Only the CAVE / generator entrances (terrain, no building) remain —
+    // rendered as a rock cave-mouth MARKER (not a floating door).
+    { via: 'door', key: 'prop_door', marker: 'prop_rock_crag', tint: 0x5a5650, solid: false, x: gx(38) + TILE / 2, y: gy(20) + TILE / 2, to: 'cave_f1', prompt: 'Enter the cave' },
     { via: 'door', key: 'prop_door', marker: 'prop_rock_crag', tint: 0x55504a, solid: false, x: gx(33) + TILE / 2, y: gy(20) + TILE / 2, to: '__gendungeon', prompt: 'Enter a GENERATED dungeon' },
     { via: 'door', key: 'prop_door', marker: 'prop_rock_crag', tint: 0x5a5650, solid: false, x: gx(28) + TILE / 2, y: gy(20) + TILE / 2, to: '__gencave', prompt: 'Enter a GENERATED cave' },
-    // PHASE-2 building doors — the town's enterable interiors (front-of-building, walkable tile)
-    { via: 'door', key: 'prop_door', solid: false, x: gx(10) + TILE / 2, y: gy(26) + TILE / 2, to: 'gh_forge', prompt: "Enter Hodge's forge" },
-    { via: 'door', key: 'prop_door', solid: false, x: gx(13) + TILE / 2, y: gy(17) + TILE / 2, to: 'gh_store', prompt: "Enter Pem's store" },
-    { via: 'door', key: 'prop_door', solid: false, x: gx(19) + TILE / 2, y: gy(15) + TILE / 2, to: 'gh_chapel', prompt: 'Enter the chapel' },   // FIX: was gy(11) — buried under the 5×5 chapel; now the walkable front step
-    { via: 'door', key: 'prop_door', solid: false, x: gx(34) + TILE / 2, y: gy(28) + TILE / 2, to: 'gh_home1', prompt: 'Enter the cottage' },
-    { via: 'door', key: 'prop_door', solid: false, x: gx(41) + TILE / 2, y: gy(31) + TILE / 2, to: 'gh_home2', prompt: 'Enter the cottage' },
     // The old WORLD-LAYOUT notice-board is RETIRED, and its last orphan (the Mirage Oasis fast-travel
     // door floating on the south meadow) is now REMOVED — there must be ZERO free-standing doors on open
     // ground (the no-floating-doors gate). Oasis returns when it gets a desert region (DEFERRED M3).

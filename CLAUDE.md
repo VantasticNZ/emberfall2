@@ -19,8 +19,9 @@ until you know which plan step you are on.
   the meta-rules (incl. **#10: VERIFY IN VAN'S EXACT STATE** — cleared save + full reload + the
   build he loads; a check in any other state is invalid). `docs/GATE-AUDIT.md` — the 20-gate
   audit (runtime vs data, the eyes-on-only gaps) + the live CONNECTED-STATE of the world.
-  `docs/RPG-FEEL-STANDARD.md` — the open-world-but-gated bar (6 pillars). `docs/DEFERRED.md` —
-  the living deferred-work tracker (log every deferral with when-to-build; clear rows when built).
+  `docs/RPG-FEEL-STANDARD.md` — the open-world-but-gated bar (6 pillars). `docs/DOOR-SYSTEM.md` —
+  the door/entrance SET standard (inset doorways you walk INTO; OPEN/CLOSED/LOCKED states).
+  `docs/DEFERRED.md` — the living deferred-work tracker (log every deferral with when-to-build; clear when built).
 - **`src/constants/{deeds,flags,items,endings}.js`** — the SSOT for every canonical
   id (import these, never hardcode). `scripts/verify.mjs` fails on drift.
 - **Governance:** `docs/ADR.md` (why settled decisions stand), `docs/STYLE-GUIDE.md`

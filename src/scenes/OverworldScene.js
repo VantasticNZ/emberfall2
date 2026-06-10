@@ -168,6 +168,7 @@ export class OverworldScene extends Phaser.Scene {
     this._activeRegions = list.slice();
     this._regionObjs = []; this._chestSprites = []; this._npcByQuest = {}; this._cuttables = [];
     this._cutBushes ||= new Map();   // PERSISTS across region (re)loads: bush world-tile id → cut timestamp (anti-farm)
+    this._buildingDoors = [];        // DOOR-SYSTEM: walk-into-the-doorway triggers generated from buildings with `door`
     Interaction.reset();
     this.npcLife = new NpcLife(this);
     for (const R of list) this._buildRegion(R);
@@ -205,8 +206,22 @@ export class OverworldScene extends Phaser.Scene {
       // (bushes honour their placement's small-vs-big flag; everything else = its class).
       let rect = null;
       if (isSolid(p.key, p.solid)) {
-        rect = this.add.rectangle(p.x + offX * sc, p.y + b.offY * sc, Math.max(8, b.w * sc), Math.max(8, b.h * sc), 0x000000, 0).setVisible(false);
-        this.physics.add.existing(rect, true); this.solids.add(rect); this._regionObjs.push(rect);
+        const cw = Math.max(8, b.w * sc), ch = Math.max(8, b.h * sc), ccx = p.x + offX * sc, ccy = p.y + b.offY * sc;
+        if (p.door) {
+          // DOOR-SYSTEM pillar 1 — carve ONE inset doorway gap in the FRONT (centre) of the solid base-band:
+          // left + right colliders with a ~1.1-tile walkable gap. You walk UP INTO the dark threshold to
+          // enter (the doorway tile is the trigger), not from the path in front. The rest stays solid.
+          const gap = TILE * 1.1, sideW = Math.max(8, (cw - gap) / 2);
+          const left = this.add.rectangle(ccx - (gap / 2 + sideW / 2), ccy, sideW, ch, 0x000000, 0).setVisible(false);
+          const right = this.add.rectangle(ccx + (gap / 2 + sideW / 2), ccy, sideW, ch, 0x000000, 0).setVisible(false);
+          for (const r of [left, right]) { this.physics.add.existing(r, true); this.solids.add(r); this._regionObjs.push(r); }
+          const opening = this.add.rectangle(ccx, ccy + 1, TILE * 0.86, TILE * 0.92, 0x0b0d12, 0.94).setDepth(DEPTH.FLOOR + 6);   // the dark INSET threshold
+          this._regionObjs.push(opening);
+          this._buildingDoors.push({ tx: Math.round(ccx / TILE), ty: Math.round(ccy / TILE), to: p.door });   // walk-into trigger = the doorway tile
+        } else {
+          rect = this.add.rectangle(ccx, ccy, cw, ch, 0x000000, 0).setVisible(false);
+          this.physics.add.existing(rect, true); this.solids.add(rect); this._regionObjs.push(rect);
+        }
         spr.setData('solidKey', p.key);   // pixel-truth test hook: marks this sprite as a tested solid
       }
       // CUTTABLE from the class — every cuttable asset is cut by the sword swing in EVERY region
@@ -342,11 +357,15 @@ export class OverworldScene extends Phaser.Scene {
     const reg = this.region; const T = TILE;
     const ptx = Math.floor(this.player.x / T), pty = Math.floor(this.player.y / T), last = this._lastTile;
     const moved = !(last && last.tx === ptx && last.ty === pty);
-    if (moved && reg && reg.interactables) {
-      for (const o of reg.interactables) {
-        if (o.via !== 'door') continue;
-        if (Math.round((o.x - T / 2) / T) === ptx && Math.round((o.y - T / 2) / T) === pty) { this._enterArea(o.to); return; }
+    if (moved) {
+      if (reg && reg.interactables) {
+        for (const o of reg.interactables) {
+          if (o.via !== 'door') continue;
+          if (Math.round((o.x - T / 2) / T) === ptx && Math.round((o.y - T / 2) / T) === pty) { this._enterArea(o.to); return; }
+        }
       }
+      // DOOR-SYSTEM: building doorways (carved into a building's front wall) — walk INTO the threshold tile
+      for (const d of (this._buildingDoors || [])) if (d.tx === ptx && d.ty === pty) { this._enterArea(d.to); return; }
     }
     this._lastTile = { tx: ptx, ty: pty };
   }

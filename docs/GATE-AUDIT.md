@@ -30,6 +30,19 @@
 | 19 | seamless-overworld | town enter-doors | DATA | tracking + regression-guard | towns are walk-through terrain | by-design tracking during transition; the "walk through with no transition" is eyes-on |
 | 20 | no-floating-doors | door marker/building-adjacency | DATA | hard | ZERO doors on open terrain | **visual truth via data** — "0 floating doors visible" still eyes-on (meta-rule 10 caught it, not the gate) |
 
+| 21 | **doorway-geometry (NEW)** | door targets + building-interior reachability | DATA | hard | no un-enterable holes / door-to-nowhere | the runtime CARVE (trigger sits in the inset gap) is eyes-on + the visual-screenshot check below |
+
+## 🆕 VISUAL-TRUTH CHECK PATTERN (closing the eyes-on-only gap)
+The door-system pass introduced the **automated visual check** — turning "eyes-on-only" into a repeatable,
+captured proof (toward the gaps below):
+1. Playwright, **fresh cleared save + full reload** (meta-rule 10), drive **real input** (walk INTO each
+   doorway), assert the runtime outcome programmatically (entered the right interior; the doorway tile is
+   walkable) — **real-physics truth**, not a data proxy.
+2. **Capture a screenshot** at each artifact into the report so the RENDER is checked + archived
+   (`door-system-chapel-doorway.png`).
+3. Where cheap, a **region/pixel assertion** (e.g. rendered dark-threshold rects == #building doors). Use
+   this pattern to start closing audio-plays / feel / cohesion (the gaps below).
+
 ## THE GAPS — cross-checks with NO automated gate (eyes-on-only)
 These are exercised by **eyes-on review only** — no gate. Strengthen by adding gates where checkable, and
 ALWAYS eyes-on per meta-rule 10:

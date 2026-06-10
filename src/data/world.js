@@ -94,13 +94,15 @@ export const WORLD = {
     { key: 'prop_barrel', tx: 23, ty: 16, solid: true }, { key: 'prop_barrel', tx: 24, ty: 16, solid: true }, // market stalls (FLAG: a bench sprite would suit better)
 
     // ---- buildings FRONTING the plaza (enclosure) ----
-    { key: 'prop_house_paneled', tx: 19, ty: 9, solid: true, tint: 0xc4c4d0 },  // CHAPEL — N side, fronts S
-    { key: 'prop_house_paneled', tx: 29, ty: 15, solid: true },                 // TAVERN — E side, fronts W
-    { key: 'prop_house_b', tx: 13, ty: 14, solid: true, tint: 0xd8c8a0 },       // Pem's STORE — W side, fronts E
-    { key: 'prop_house_a', tx: 41, ty: 11, solid: true },                       // the MANOR — NE, set apart with grounds
+    // DOOR-SYSTEM (docs/DOOR-SYSTEM.md): an enterable building carries `door:'<interior>'` — its front
+    // wall gets ONE inset doorway gap (carved out of the solid base-band) + a dark threshold you walk INTO.
+    { key: 'prop_house_paneled', tx: 19, ty: 9, solid: true, tint: 0xc4c4d0, door: 'gh_chapel' },   // CHAPEL — fronts S
+    { key: 'prop_house_paneled', tx: 29, ty: 15, solid: true, door: 'tankard_f1' },                 // TAVERN — fronts S
+    { key: 'prop_house_b', tx: 13, ty: 14, solid: true, tint: 0xd8c8a0, door: 'gh_store' },         // Pem's STORE — fronts S
+    { key: 'prop_house_a', tx: 41, ty: 11, solid: true },                       // the MANOR — NE, set apart with grounds (no interior)
 
     // ---- the SMITHY district (set apart, W — heat + noise) ----
-    { key: 'prop_forge', tx: 10, ty: 24, solid: true },
+    { key: 'prop_forge', tx: 10, ty: 24, solid: true, door: 'gh_forge' },
     { key: 'prop_barrel', tx: 8, ty: 26, solid: true }, { key: 'prop_barrel', tx: 13, ty: 25, solid: true },
 
     // ---- DISTRICT DIVIDERS (Pillar 1: barriers create places) — short hedges in the
@@ -113,8 +115,8 @@ export const WORLD = {
     ...hedge(35, 31, 3),         // homes ↔ farm margin (a low planting break, SE)
 
     // ---- the HOMES district (SE), cottages fronting the curved lane, BACKING onto fenced yards ----
-    { key: 'prop_house_b', tx: 34, ty: 24, solid: true },                       // cottage (red brick)
-    { key: 'prop_house_b', tx: 41, ty: 28, solid: true, tint: 0xb8c8e0 },       // cottage (whitewashed blue)
+    { key: 'prop_house_b', tx: 34, ty: 24, solid: true, door: 'gh_home1' },     // cottage (red brick)
+    { key: 'prop_house_b', tx: 41, ty: 28, solid: true, tint: 0xb8c8e0, door: 'gh_home2' },       // cottage (whitewashed blue)
     { key: 'prop_house_b', tx: 46, ty: 23, solid: true, tint: 0xc8b890 },       // cottage (tan)
     ...fenceRun(32, 27, 4), ...fenceRun(44, 26, 4),                              // back-yard fences
 

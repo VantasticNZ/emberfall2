@@ -89,6 +89,14 @@ Van's map exactly — then roll the same to every corridor.
 | **Density-with-purpose (pillar 5)** — every ~24-tile stretch has a POI/tease/resource | extend the density-floor check to *purpose* | per-region |
 | **Ambient life / responsive audio (pillar 6)** | NPC schedules exist; wildlife + per-place audio crossfades to refine | POLISH |
 
+## DOOR / ENTRANCE SYSTEM (`DOOR-SYSTEM.md`) — roll out + the morality states
+| Item | Status | When |
+|---|---|---|
+| Inset doorways you walk INTO (carve + threshold) | ✅ BUILT for the 6 GH buildings + gate #21 | done |
+| **CLOSED + LOCKED door states** (knock / try-handle / pick / FORCE + morality hits + guard alarm) | 🔢 SPEC'd — the morality-entrance build-out; add `entered_uninvited`/`forced_entry` to the deed SSOT | feature pass |
+| **Other regions' building doorways** roll out the same carve | inline Mirefen + village buildings still use simple/marker doors | per-region |
+| Door VISUAL polish (closed-door sprite + lock glyph; threshold depth vs the building wall) | the dark inset rect is drawn under the building's painted door | POLISH |
+
 ## POLISH — anytime quality
 | Item | Why deferred | Need | When |
 |---|---|---|---|

@@ -478,6 +478,22 @@ const tile = (px) => Math.round(px / TILE);
   }
   if (floaters.length) fail('NO-FLOATING-DOORS: free-standing door(s) on open terrain (give it a marker or a building, or remove it):\n' + floaters.map((f) => '      ' + f).join('\n'));
   else ok('no-floating-doors: every overworld door is a building entrance (no sprite) or carries a cave/waypost marker — ZERO free-standing doors on open ground');
+
+  // 21) DOORWAY-GEOMETRY (DOOR-SYSTEM) — every enterable building-interior has a WAY IN (a building `door`
+  //     spec or a door interactable) + every door leads to a REAL interior. Catches "a building interior
+  //     with no door" (an un-enterable hole) + "a door to nowhere". (The runtime CARVE correctness — the
+  //     trigger sits in the inset doorway gap, footprint otherwise solid — is eyes-on + the visual check.)
+  const allKeys2 = new Set(REGIONS.map((r) => r.key));
+  const doorTargets = new Set();
+  for (const R of REGIONS) {
+    for (const p of (R.props || [])) if (p.door) doorTargets.add(p.door);
+    for (const o of (R.interactables || [])) if (o.via === 'door' && o.to && !o.to.startsWith('__') && o.to !== 'back') doorTargets.add(o.to);
+  }
+  const deadDoors = [...doorTargets].filter((t) => !allKeys2.has(t));
+  const buildingInteriors = REGIONS.filter((r) => r.interior && /^(gh_|tankard_f1|cave_f1|mirefen_hut|fenwick_home)/.test(r.key)).map((r) => r.key);
+  const orphanInteriors = buildingInteriors.filter((k) => !doorTargets.has(k));
+  if (deadDoors.length || orphanInteriors.length) fail('DOORWAY-GEOMETRY: ' + [...deadDoors.map((d) => 'door → ' + d + ' (no such interior)'), ...orphanInteriors.map((o) => o + ' (building interior with NO door in — un-enterable)')].map((s) => '\n      ' + s).join(''));
+  else ok(`doorway-geometry: ${doorTargets.size} door targets all resolve; ${buildingInteriors.length} front-door building-interiors all have a way in (no un-enterable holes)`);
 }
 
 // --- summary ------------------------------------------------------------------
