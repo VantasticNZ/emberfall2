@@ -57,9 +57,14 @@ for (const R of WORLD_LAYOUT) {
     for (let x = 0; x < W; x++) { if (walkable[0][x]) escapes.push([x, 0]); if (walkable[H - 1][x]) escapes.push([x, H - 1]); }
     for (let y = 0; y < H; y++) { if (walkable[y][0]) escapes.push([0, y]); if (walkable[y][W - 1]) escapes.push([W - 1, y]); }
     assert.equal(escapes.length, 0, `${R.key}: ${escapes.length} walkable PERIMETER tile(s) — the player can walk into the void (${escapes.slice(0, 3).map((t) => t.join(',')).join(' ')})`);
+    // DASH-CONTAINMENT: the wall ring blocks WALK (above) + the swept-dodge checks the same colliders, and
+    // the runtime hard-clamps the player to interior bounds — so a dash cannot breach into the void. Assert
+    // the clamp's inputs exist: interior flag + valid bounds matching the nav grid.
+    assert.ok(R.interior === true, `${R.key}: not flagged interior — the dash containment clamp won't apply`);
+    assert.ok(R.bounds && R.bounds.w === W * TILE && R.bounds.h === H * TILE, `${R.key}: bounds don't match the nav grid — clamp would be wrong`);
     checked++;
   }
-  pass(`containment: all ${checked} interiors/settlements fully enclosed — no walkable perimeter tile (no void-walking)`);
+  pass(`containment: all ${checked} interiors/settlements fully enclosed — no walkable perimeter (walk) + sealed walls & bounds-clamp (dash) → no void-breach`);
 }
 
 console.log(`interiors.test: ${n} interiors + settlements reachability-proven`);

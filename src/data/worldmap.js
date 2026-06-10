@@ -609,6 +609,13 @@ export const HOLLOW_SPIRE = greyboxRegion({
 // floors are just more interior regions reached by stairs. `interior:true` enclosed rooms (walls all
 // round, walkable inside), greybox (a floor patch — Phase 2/3 art them). spawn = where you appear inside.
 // =============================================================================
+// DOOR SPRITE OFFSET — push a door's VISUAL one tile toward its room's nearest wall so it reads as a
+// doorway IN the wall (not free-standing mid-floor). The walk-trigger tile (door.x/y) is unchanged.
+function doorWallOffset(tx, ty, W, H) {
+  const toL = tx, toR = (W - 1) - tx, toT = ty, toB = (H - 1) - ty, m = Math.min(toL, toR, toT, toB);
+  if (m === toB) return { spriteDy: TILE }; if (m === toT) return { spriteDy: -TILE };
+  if (m === toR) return { spriteDx: TILE }; return { spriteDx: -TILE };
+}
 function interiorRegion(spec) {
   const { key, otx, oty, W, H, doors = [], chests = [], furniture = [], npcs = [], spawn, floor = 'dirt', mapColor = 0x2a2620, groundTint = null } = spec;
   const ox = otx * TILE, oy = oty * TILE;
@@ -628,7 +635,7 @@ function interiorRegion(spec) {
     props.push({ key: f.key, x: wx, y: wy + (f.dy || 0), solid: false, scale: f.scale || 1, tint: f.tint });
     if (f.solid) { walkable[f.ty][f.tx] = 0; colliders.push({ x: wx, y: wy, w: TILE, h: TILE }); }
   }
-  const interactables = doors.map((d) => ({ via: 'door', key: 'prop_door', solid: false, x: ox + d.tx * TILE + TILE / 2, y: oy + d.ty * TILE + TILE / 2, to: d.to, prompt: d.label || 'Go' }));
+  const interactables = doors.map((d) => ({ via: 'door', key: 'prop_door', solid: false, x: ox + d.tx * TILE + TILE / 2, y: oy + d.ty * TILE + TILE / 2, to: d.to, prompt: d.label || 'Go', ...doorWallOffset(d.tx, d.ty, W, H) }));
   const chestData = chests.map((c) => ({ id: c.id, x: ox + c.tx * TILE + TILE / 2, y: oy + c.ty * TILE + TILE / 2, gold: c.gold || 15 }));
   return {
     key, origin: { x: ox, y: oy }, widthTiles: W, heightTiles: H, bounds: { x: ox, y: oy, w: W * TILE, h: H * TILE },
@@ -702,7 +709,7 @@ function griddedSettlement(spec) {
   // REAL buildings dressed onto the block footprints (visual — the block tiles already collide) + decor.
   for (const b of buildings) props.push({ key: b.key, x: ox + b.tx * TILE + TILE / 2, y: oy + b.ty * TILE + TILE / 2 + (b.dy || 0), solid: false, scale: b.scale || 1, tint: b.tint });
   for (const d of dressing) props.push({ key: d.key, x: ox + d.tx * TILE + TILE / 2, y: oy + d.ty * TILE + TILE / 2 + (d.dy || 0), solid: false, scale: d.scale || 1, tint: d.tint });
-  const interactables = doors.map((d) => ({ via: 'door', key: 'prop_door', solid: false, x: ox + d.tx * TILE + TILE / 2, y: oy + d.ty * TILE + TILE / 2, to: d.to, prompt: d.label || 'Go' }));
+  const interactables = doors.map((d) => ({ via: 'door', key: 'prop_door', solid: false, x: ox + d.tx * TILE + TILE / 2, y: oy + d.ty * TILE + TILE / 2, to: d.to, prompt: d.label || 'Go', ...doorWallOffset(d.tx, d.ty, W, H) }));
   const chestData = chests.map((c) => ({ id: c.id, x: ox + c.tx * TILE + TILE / 2, y: oy + c.ty * TILE + TILE / 2, gold: c.gold || 20 }));
   const sp = spawnTile || { tx: 1, ty: 1 };
   return {

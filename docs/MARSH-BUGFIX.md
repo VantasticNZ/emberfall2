@@ -1,3 +1,47 @@
+# BUGFIX PASS 2 — door placement + dash-into-void + bush-farm (+ overworld reality) (2026-06-10)
+
+Three bugs + one diagnosis. Each fix verified with REAL input (incl. real dash + real cut-swings). 14
+gates + 23 navGate/containment suites GREEN; 0 console errors.
+
+## 1. Interior door in the MIDDLE of the floor — FIXED
+- **Cause:** the door sprite was centered on the walkable trigger tile (1 tile in from the wall), so it
+  floated with a strip of floor *below* it before the wall — read as mid-floor (`cemetery-door-position`).
+- **Fix:** `doorWallOffset()` pushes the door **sprite one tile toward its room's nearest wall**
+  (`spriteDy=+32` for a bottom exit), so it sits **in the wall** as a doorway — while the walk-trigger
+  stays on the walkable tile. **Verified:** the cemetery door now sits in the wall (`door-fixed-in-wall`).
+
+## 2. Dash into the void — FIXED (definitive backstop)
+- **Cause:** could not reproduce via the swept-dodge alone (it checks the same wall colliders and contained
+  the player in every live test). To make a void-breach **impossible** regardless of cause:
+- **Fix:** a **hard interior containment clamp** in `update()` — when in an `interior`, the player center is
+  clamped inside the region bounds (the void is beyond bounds); a breach snaps back + cancels the dodge.
+  **+ the CONTAINMENT navGate extended** to assert dash-containment inputs (sealed walls + interior flag +
+  bounds match the nav grid). **Verified:** real dash L/R/U into the cemetery walls → all contained inside
+  bounds (the "down" exit was the legitimate door, not a breach).
+
+## 3. Bush instant-respawn (infinite-farm exploit) — FIXED
+- **Cause:** `_cutSwing` granted loot every cut and `delayedCall(12000)` **respawned the bush in-area** →
+  re-cut every 12 s for infinite loot.
+- **Fix:** a cut bush is recorded in `_cutBushes` (world-tile id → timestamp), **disabled with NO in-area
+  respawn**; on area **re-entry** the props loop regrows it **only after `CUT_REGROW_MS` (3 min)**.
+  **Verified (real swings):** cut → stays gone, re-cut grants nothing (`noFarm`), tracked; and a timestamp
+  set >3 min ago → the bush **regrows** on re-entry (`regrew=true`).
+
+## DIAGNOSIS — overworld vs board reality (the truth, no build)
+**Confirmed: the connected west-walking world from Van's map is NOT built.**
+- The **streamed overworld** is the OLD 8-region skeleton (re-centred): Greenhollow (tile 288), **Marsh**
+  (238, west of GH), Belt, Peaks, Foothill, Coast, Emberwood, Spire — walk-between geometry.
+- **Mirefen (tile 442), Fenwick (480), the Lost Cemetery (430)** live in the **far-band reserved corner**
+  (`interior/settlement:true`) — they are **separate board-door scenes**, reachable **only** via the
+  Greenhollow notice-board doors, **NOT** by walking west on the overworld to where Van placed them.
+- Walking **west** from GH reaches the streamed **Marsh** region (the bog), **not** Mirefen/Fenwick.
+- **Van's edited map (`world-map-vanedit.json`) was never built into the overworld** — it's design data.
+- **Next session:** build the connected overworld FROM Van's map (place Mirefen/Fenwick/Cemetery as
+  walk-to overworld locations at his coordinates, west of GH), so the world is traversable, not a hub of
+  separate scenes.
+
+---
+
 # BUGFIX PASS — doors + interior containment + Fenwick visibility (2026-06-10)
 
 Four bugs Van hit, each diagnosed + fixed + verified with REAL input (eyes-on). 14 gates + 23 navGate/

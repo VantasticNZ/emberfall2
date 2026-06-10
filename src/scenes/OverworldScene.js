@@ -47,6 +47,7 @@ import { generateDungeon, generateCave } from '../data/gen/index.js';
 const FACE_VEC = { up: { x: 0, y: -1 }, down: { x: 0, y: 1 }, left: { x: -1, y: 0 }, right: { x: 1, y: 0 } };
 
 const LOAD_RING = 2, UNLOAD_RING = 3;
+const CUT_REGROW_MS = 180000;   // a cut bush regrows only after you LEAVE the area + ~3 min (anti-farm)
 const HERO = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_chestnut', 'shirt_blue', 'pants_black', 'shoes_brown'];
 const cidOf = (x, y) => [Math.floor(x / CHUNK_PX), Math.floor(y / CHUNK_PX)];
 
@@ -162,6 +163,7 @@ export class OverworldScene extends Phaser.Scene {
   _loadRegions(list) {
     this._activeRegions = list.slice();
     this._regionObjs = []; this._chestSprites = []; this._npcByQuest = {}; this._cuttables = [];
+    this._cutBushes ||= new Map();   // PERSISTS across region (re)loads: bush world-tile id → cut timestamp (anti-farm)
     Interaction.reset();
     this.npcLife = new NpcLife(this);
     for (const R of list) this._buildRegion(R);
@@ -206,7 +208,17 @@ export class OverworldScene extends Phaser.Scene {
       // CUTTABLE from the class — every cuttable asset is cut by the sword swing in EVERY region
       // (the "cut works in GH not Peaks" fix). Tracked here; the swing tests this list (_cutSwing).
       const ic = ixClass(p.key);
-      if (ic.cuttable) this._cuttables.push({ spr, rect, key: p.key, loot: ic.loot });
+      if (ic.cuttable) {
+        // ANTI-FARM: a bush cut THIS area-visit stays cut; it only regrows after you LEAVE + a cooldown
+        // passes (checked here on area re-entry). Keyed by world-tile so it's stable across reloads.
+        const bushId = `${Math.round(p.x / TILE)},${Math.round(p.y / TILE)}`, cutAt = this._cutBushes.get(bushId);
+        if (cutAt != null && (this.time.now - cutAt) < CUT_REGROW_MS) {   // still on cooldown → spawn ALREADY-CUT (hidden, no collider, not cuttable)
+          spr.setVisible(false); if (rect) { rect.body.enable = false; this.solids.remove(rect); }
+        } else {
+          if (cutAt != null) this._cutBushes.delete(bushId);   // cooldown elapsed → it has regrown
+          this._cuttables.push({ spr, rect, key: p.key, loot: ic.loot, bushId });
+        }
+      }
       // READABLE (signs/notice boards/waystones) — press-E to read the placement's `text`. Consistent
       // in every region; no more walk-through-can't-read white squares.
       if (ic.readable && p.text) Interaction.register({ x: p.x, y: p.y + 8, prompt: 'Read the sign', onInteract: () => this._startGreeting('', Array.isArray(p.text) ? p.text : [p.text]) });
@@ -427,7 +439,9 @@ export class OverworldScene extends Phaser.Scene {
   _buildInteractable(o) {
     const d = PROPS[o.key]; if (!d) return;
     const sc = o.scale || 1, b = solidBox(o.key, d);
-    const spr = this.add.sprite(o.x, o.y, o.key).setOrigin(0.5, 0.5);
+    // a door SPRITE is pushed one tile toward its room's wall (spriteDx/Dy) so it reads as a doorway IN
+    // the wall, not free-standing mid-floor; the walk-TRIGGER stays on the walkable tile (o.x/o.y).
+    const spr = this.add.sprite(o.x + (o.spriteDx || 0), o.y + (o.spriteDy || 0), o.key).setOrigin(0.5, 0.5);
     if (o.scale) spr.setScale(o.scale);
     if (o.tint != null) spr.setTint(o.tint);
     let rect = null;
@@ -627,8 +641,10 @@ export class OverworldScene extends Phaser.Scene {
       if (Math.hypot(c.spr.x - ax, c.spr.y - ay) > INTERACTION_RADIUS) continue;
       const res = cutObject({ loot: c.loot }, { inv: this.inv, rng: Math.random, mem: { has: () => false, record: () => {} }, key: c.key });
       this._sfx('sfx_hit', 0.4); this._grantLootFeedback(res.granted, c.spr.x, c.spr.y);
-      c.spr.setVisible(false); if (c.rect) c.rect.body.enable = false;
-      this.time.delayedCall(12000, () => { if (c.spr.active) { c.spr.setVisible(true); if (c.rect) c.rect.body.enable = true; } });   // bushes respawn
+      // ANTI-FARM: record the cut (persists across area visits) + DISABLE this bush — NO in-area respawn.
+      // It regrows only when you LEAVE + re-enter after CUT_REGROW_MS (handled in the props loop on re-entry).
+      this._cutBushes.set(c.bushId, this.time.now);
+      c.spr.setVisible(false).setActive(false); if (c.rect) { c.rect.body.enable = false; this.solids.remove(c.rect); }  // hidden+inactive → the top-of-loop guard skips it (no re-cut this swing)
       return true;
     }
     return false;
@@ -1026,6 +1042,14 @@ export class OverworldScene extends Phaser.Scene {
     if (this.npcLife.has()) this.npcLife.update(dt, dlgOpen);
     if (this.combat) this.combat.update(dt, this.player);   // enemies behave (no-op when none spawned)
     if (this.uiCamera) this._reconcileCameras();   // keep this frame's new streamed/combat objects off the HUD camera (before render)
+    // HARD INTERIOR CONTAINMENT — even if a dash/swept-dodge tunnels a 1-tile wall, snap the player back
+    // inside the interior's bounds (the void is BEYOND the bounds). A backstop behind the wall colliders.
+    if (this.region && this.region.interior && !this._areaT) {
+      const bd = this.region.bounds, ins = TILE * 0.5;
+      const nx = Math.min(Math.max(this.player.x, bd.x + ins), bd.x + bd.w - ins);
+      const ny = Math.min(Math.max(this.player.y, bd.y + ins), bd.y + bd.h - ins);
+      if (nx !== this.player.x || ny !== this.player.y) { this.player.x = nx; this.player.y = ny; this.player.body.reset(nx, ny); this.pc.dodgeMoveUntil = 0; }
+    }
     this._checkDoorWalk();   // WALK-IN / WALK-OUT building + interior + stairs transitions
     Interaction.update(this.player);
     this._updatePlayerVisual(now);
