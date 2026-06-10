@@ -297,11 +297,29 @@ export class OverworldScene extends Phaser.Scene {
       this.player.x = R.spawn.x; this.player.y = R.spawn.y; this._inInterior = true;
     }
     this.player.body.reset(this.player.x, this.player.y);
+    this._lastTile = { tx: Math.floor(this.player.x / TILE), ty: Math.floor(this.player.y / TILE) };  // WALK-THROUGH: spawn ON the door tile → don't re-fire until the player steps OFF then back ON
     this._unloadAllRegions(); this._maybeToggleRegion(true); this._restream(true);
     this.cameras.main.centerOn(this.player.x, this.player.y);
     this._setInteriorView(this._inInterior);
     this._banner(this._inInterior ? (this.region ? 'Entered ' + this.region.key : 'Inside') : 'Back outside', 1100);
-    this.time.delayedCall(160, () => { this._areaT = false; });
+    this.time.delayedCall(180, () => { this._areaT = false; });
+  }
+
+  // WALK-IN / WALK-OUT — doors/stairs are walk-trigger zones (genre standard, not press-E). Fires on the
+  // RISING EDGE (player just stepped onto a door tile), so spawning on a door tile doesn't re-trigger.
+  // Reads the current region's `via:'door'` interactables; reuses _enterArea (return-stack + persistence).
+  _checkDoorWalk() {
+    if (this._dlg || this._areaT) return;
+    const reg = this.region; const T = TILE;
+    const ptx = Math.floor(this.player.x / T), pty = Math.floor(this.player.y / T), last = this._lastTile;
+    const moved = !(last && last.tx === ptx && last.ty === pty);
+    if (moved && reg && reg.interactables) {
+      for (const o of reg.interactables) {
+        if (o.via !== 'door') continue;
+        if (Math.round((o.x - T / 2) / T) === ptx && Math.round((o.y - T / 2) / T) === pty) { this._enterArea(o.to); return; }
+      }
+    }
+    this._lastTile = { tx: ptx, ty: pty };
   }
 
   // GENERATE a fresh dungeon/cave (Phase 1), validate via navGates inside generate(), and inject it
@@ -465,8 +483,8 @@ export class OverworldScene extends Phaser.Scene {
         this._sfx('sfx_hit', 0.4);
       } });
     } else if (o.via === 'door') {
-      // AREA-TRANSITION (Phase 0): a door/stairs → enter an interior region (or 'back' = exit/descend).
-      Interaction.register({ x: o.x, y: o.y + 6, prompt: o.prompt || 'Enter', onInteract: () => this._enterArea(o.to) });
+      // WALK-THROUGH transition: doors/stairs are walk-trigger ZONES (handled in update → _checkDoorWalk),
+      // NOT press-E interactables — walk onto the doorway tile to enter/exit (genre standard).
     }
   }
 
@@ -1007,6 +1025,7 @@ export class OverworldScene extends Phaser.Scene {
     if (this.npcLife.has()) this.npcLife.update(dt, dlgOpen);
     if (this.combat) this.combat.update(dt, this.player);   // enemies behave (no-op when none spawned)
     if (this.uiCamera) this._reconcileCameras();   // keep this frame's new streamed/combat objects off the HUD camera (before render)
+    this._checkDoorWalk();   // WALK-IN / WALK-OUT building + interior + stairs transitions
     Interaction.update(this.player);
     this._updatePlayerVisual(now);
     DepthSort.update();
