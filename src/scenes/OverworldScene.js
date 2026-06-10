@@ -450,10 +450,22 @@ export class OverworldScene extends Phaser.Scene {
   }
 
   _buildInteractable(o) {
+    // DOORS — NEVER a free-standing prop_door on open ground (the "floating doors" bug). The walk-trigger
+    // is data-driven (_checkDoorWalk); the VISUAL is: (a) the building's OWN painted door for an overworld
+    // building entrance → render NO sprite; (b) a MARKER (cave-mouth / waypost) for a cave/dungeon/town
+    // entrance on open terrain (o.marker); (c) the EMBEDDED interior-wall door for an interior EXIT
+    // (it carries spriteDx/Dy from doorWallOffset → render the prop_door inside the wall).
+    if (o.via === 'door') {
+      const embedded = (o.spriteDx != null || o.spriteDy != null);
+      if (!o.marker && !embedded) return;                       // building entrance → invisible trigger (the building's door is the cue)
+      const dk = o.marker || o.key, dd = PROPS[dk]; if (!dd) return;
+      const dspr = this.add.sprite(o.x + (o.spriteDx || 0), o.y + (o.spriteDy || 0), dk).setOrigin(0.5, 0.5);
+      if (o.scale) dspr.setScale(o.scale); if (o.tint != null) dspr.setTint(o.tint);
+      const db = solidBox(dk, dd); DepthSort.track(dspr, (db.offY + db.h / 2) * (o.scale || 1)); this._regionObjs.push(dspr);
+      return;
+    }
     const d = PROPS[o.key]; if (!d) return;
     const sc = o.scale || 1, b = solidBox(o.key, d);
-    // a door SPRITE is pushed one tile toward its room's wall (spriteDx/Dy) so it reads as a doorway IN
-    // the wall, not free-standing mid-floor; the walk-TRIGGER stays on the walkable tile (o.x/o.y).
     const spr = this.add.sprite(o.x + (o.spriteDx || 0), o.y + (o.spriteDy || 0), o.key).setOrigin(0.5, 0.5);
     if (o.scale) spr.setScale(o.scale);
     if (o.tint != null) spr.setTint(o.tint);

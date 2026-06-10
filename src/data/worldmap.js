@@ -63,21 +63,19 @@ export const GREENHOLLOW = {
       lines: ["You squeeze the lantern through the loose plank. Inside it's cold and far too quiet — and there, scratched deep into the stone: a flame, weeping, tears running down the rock. The first seed of the god's truth. You understood nothing as a child. You understand more now."] },
     // PHASE-0 interior doors (the area-transition test): enter buildings/caves → separate interiors.
     { via: 'door', key: 'prop_door', solid: false, x: gx(33) + TILE / 2, y: gy(15) + TILE / 2, to: 'tankard_f1', prompt: 'Enter the Copper Tankard' },
-    { via: 'door', key: 'prop_door', solid: false, x: gx(38) + TILE / 2, y: gy(20) + TILE / 2, to: 'cave_f1', prompt: 'Enter the cave' },
+    { via: 'door', key: 'prop_door', marker: 'prop_rock_crag', tint: 0x5a5650, solid: false, x: gx(38) + TILE / 2, y: gy(20) + TILE / 2, to: 'cave_f1', prompt: 'Enter the cave' },   // a CAVE-MOUTH (rock), not a floating door
     // PHASE-1 generator doors (re-roll a fresh, navGate-validated dungeon/cave on each entry)
-    { via: 'door', key: 'prop_door', solid: false, x: gx(33) + TILE / 2, y: gy(20) + TILE / 2, to: '__gendungeon', prompt: 'Enter a GENERATED dungeon' },
-    { via: 'door', key: 'prop_door', solid: false, x: gx(28) + TILE / 2, y: gy(20) + TILE / 2, to: '__gencave', prompt: 'Enter a GENERATED cave' },
+    { via: 'door', key: 'prop_door', marker: 'prop_rock_crag', tint: 0x55504a, solid: false, x: gx(33) + TILE / 2, y: gy(20) + TILE / 2, to: '__gendungeon', prompt: 'Enter a GENERATED dungeon' },
+    { via: 'door', key: 'prop_door', marker: 'prop_rock_crag', tint: 0x5a5650, solid: false, x: gx(28) + TILE / 2, y: gy(20) + TILE / 2, to: '__gencave', prompt: 'Enter a GENERATED cave' },
     // PHASE-2 building doors — the town's enterable interiors (front-of-building, walkable tile)
     { via: 'door', key: 'prop_door', solid: false, x: gx(10) + TILE / 2, y: gy(26) + TILE / 2, to: 'gh_forge', prompt: "Enter Hodge's forge" },
     { via: 'door', key: 'prop_door', solid: false, x: gx(13) + TILE / 2, y: gy(17) + TILE / 2, to: 'gh_store', prompt: "Enter Pem's store" },
     { via: 'door', key: 'prop_door', solid: false, x: gx(19) + TILE / 2, y: gy(15) + TILE / 2, to: 'gh_chapel', prompt: 'Enter the chapel' },   // FIX: was gy(11) — buried under the 5×5 chapel; now the walkable front step
     { via: 'door', key: 'prop_door', solid: false, x: gx(34) + TILE / 2, y: gy(28) + TILE / 2, to: 'gh_home1', prompt: 'Enter the cottage' },
     { via: 'door', key: 'prop_door', solid: false, x: gx(41) + TILE / 2, y: gy(31) + TILE / 2, to: 'gh_home2', prompt: 'Enter the cottage' },
-    // The old WORLD-LAYOUT notice-board (a scatter of doors south of GH) is RETIRED — the settlements are
-    // now WALKABLE at their map positions (Marsh W · Peaks N · Coast E · Emberwood S). Only Mirage Oasis
-    // stays here as a single fast-travel marker until it gets a desert region (DEFERRED M3). No duplicate
-    // board+overworld entrances (the no-duplicate-entrances gate enforces this; the clutter is gone).
-    { via: 'door', key: 'prop_door', solid: false, x: gx(31) + TILE / 2, y: gy(37) + TILE / 2, to: 'vil_oasis', prompt: '→ Mirage Oasis (fast-travel — not yet on the overworld)' },
+    // The old WORLD-LAYOUT notice-board is RETIRED, and its last orphan (the Mirage Oasis fast-travel
+    // door floating on the south meadow) is now REMOVED — there must be ZERO free-standing doors on open
+    // ground (the no-floating-doors gate). Oasis returns when it gets a desert region (DEFERRED M3).
   ],
   // Phase-3 ART (restore discrete-v3 gold standard on the overworld; RESIDENT atlas):
   widthTiles: WORLD.widthTiles, heightTiles: WORLD.heightTiles,
@@ -153,11 +151,14 @@ export const ASHEN_MARSH = {
   // SEAMLESS OVERWORLD (Van option B) — Mirefen is now INLINE terrain (walk through its streets, no door);
   // only Yssa's HUT (a building interior) + the DUNGEONS (Shrine) + the not-yet-converted villages stay as
   // enter-scenes. Mirefen's enter-door is REMOVED (gate #19). Cemetery/Fenwick doors are DEFERRED.
+  // No floating prop_doors on open terrain — Yssa's hut is a building entrance (the moot-hall's own door,
+  // no sprite); the Shrine reads as a ruin/cave-mouth (marker); the not-yet-inline villages read as a
+  // signpost waypost (marker), not a door. (no-floating-doors gate.)
   interactables: [
-    { via: 'door', key: 'prop_door', solid: false, x: mx(9) + TILE / 2, y: my(14) + TILE / 2, to: 'mirefen_hut', prompt: "Enter Yssa's hut" },
-    { via: 'door', key: 'prop_door', solid: false, x: mx(4) + TILE / 2, y: my(8) + TILE / 2, to: 'dgn_shrine', prompt: 'The Sunken Shrine (dungeon)' },
-    { via: 'door', key: 'prop_door', solid: false, x: mx(9) + TILE / 2, y: my(4) + TILE / 2, to: 'lost_cemetery', prompt: 'The Lost Cemetery (village — not yet inline)' },
-    { via: 'door', key: 'prop_door', solid: false, x: mx(35) + TILE / 2, y: my(20) + TILE / 2, to: 'vil_fenwick', prompt: 'Fenwick (village — not yet inline)' },
+    { via: 'door', key: 'prop_door', solid: false, x: mx(9) + TILE / 2, y: my(13) + TILE / 2, to: 'mirefen_hut', prompt: "Enter Yssa's hut" },
+    { via: 'door', key: 'prop_door', marker: 'prop_rock_crag', tint: 0x4a5650, solid: false, x: mx(4) + TILE / 2, y: my(8) + TILE / 2, to: 'dgn_shrine', prompt: 'The Sunken Shrine (dungeon)' },
+    { via: 'door', key: 'prop_door', marker: 'prop_sign', tint: 0x9a8f6a, solid: false, x: mx(9) + TILE / 2, y: my(4) + TILE / 2, to: 'lost_cemetery', prompt: 'The Lost Cemetery (village — not yet inline)' },
+    { via: 'door', key: 'prop_door', marker: 'prop_sign', tint: 0x9a8f6a, solid: false, x: mx(35) + TILE / 2, y: my(20) + TILE / 2, to: 'vil_fenwick', prompt: 'Fenwick (village — not yet inline)' },
   ],
   // COMBAT — enemy placements at ABSOLUTE WORLD TILES so EnemyController.spawn (tx*TILE)
   // lands them in world-coords; stable placeId per placement for kill-deltas.
@@ -429,9 +430,9 @@ export const SUNDERED_PEAKS = {
     // Peaks scatter + GH hedges are all cuttable); no per-placement via:'cut' needed.
     // CONNECTED-OVERWORLD ENTRANCES (Van's N layout) — walk N into the Peaks → the settlements at their
     // map positions (Stonereach N-centre · Cragfoot W · Cinder Keep NE). Reuse the built town content.
-    { via: 'door', key: 'prop_door', solid: false, x: 311 * TILE + TILE / 2, y: 231 * TILE + TILE / 2, to: 'town_stonereach', prompt: 'Enter Stonereach' },
-    { via: 'door', key: 'prop_door', solid: false, x: 295 * TILE + TILE / 2, y: 231 * TILE + TILE / 2, to: 'vil_cragfoot', prompt: 'Enter Cragfoot' },
-    { via: 'door', key: 'prop_door', solid: false, x: 325 * TILE + TILE / 2, y: 225 * TILE + TILE / 2, to: 'dgn_keep', prompt: 'Cinder Keep' },
+    { via: 'door', key: 'prop_door', marker: 'prop_sign', tint: 0x9a8f6a, solid: false, x: 311 * TILE + TILE / 2, y: 231 * TILE + TILE / 2, to: 'town_stonereach', prompt: 'Enter Stonereach' },
+    { via: 'door', key: 'prop_door', marker: 'prop_sign', tint: 0x9a8f6a, solid: false, x: 295 * TILE + TILE / 2, y: 231 * TILE + TILE / 2, to: 'vil_cragfoot', prompt: 'Enter Cragfoot' },
+    { via: 'door', key: 'prop_door', marker: 'prop_rock_crag', tint: 0x55504a, solid: false, x: 325 * TILE + TILE / 2, y: 225 * TILE + TILE / 2, to: 'dgn_keep', prompt: 'Cinder Keep' },
   ],
   combat: {
     enabled: true,
@@ -636,11 +637,11 @@ export const EMBERWOOD = greyboxRegion({
 // attach them here (walkable spine tiles, reusing the built town content). Coast (E): Saltbreak harbour
 // + Cribbins Cove. Emberwood (S): Thornwell (fever-grove spur). Doors are walk-in; on the connected world.
 TIDEWRECK_COAST.interactables = [
-  { via: 'door', key: 'prop_door', solid: false, x: 352 * TILE + TILE / 2, y: 294 * TILE + TILE / 2, to: 'city_saltbreak', prompt: 'Enter Saltbreak' },
-  { via: 'door', key: 'prop_door', solid: false, x: 355 * TILE + TILE / 2, y: 305 * TILE + TILE / 2, to: 'vil_cribbins', prompt: 'Enter Cribbins Cove' },
+  { via: 'door', key: 'prop_door', marker: 'prop_sign', tint: 0x9a8f6a, solid: false, x: 352 * TILE + TILE / 2, y: 294 * TILE + TILE / 2, to: 'city_saltbreak', prompt: 'Enter Saltbreak' },
+  { via: 'door', key: 'prop_door', marker: 'prop_sign', tint: 0x9a8f6a, solid: false, x: 355 * TILE + TILE / 2, y: 305 * TILE + TILE / 2, to: 'vil_cribbins', prompt: 'Enter Cribbins Cove' },
 ];
 EMBERWOOD.interactables = [
-  { via: 'door', key: 'prop_door', solid: false, x: 317 * TILE + TILE / 2, y: 343 * TILE + TILE / 2, to: 'vil_thornwell', prompt: 'Enter Thornwell' },
+  { via: 'door', key: 'prop_door', marker: 'prop_sign', tint: 0x9a8f6a, solid: false, x: 317 * TILE + TILE / 2, y: 343 * TILE + TILE / 2, to: 'vil_thornwell', prompt: 'Enter Thornwell' },
 ];
 
 // --- HOLLOW SPIRE (N of the Peaks; seam Peaks.N tile 218; firefrost+4-shard ascent) ----------

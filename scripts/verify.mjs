@@ -460,6 +460,24 @@ const tile = (px) => Math.round(px / TILE);
   const stillScene = townKeys.filter((k) => enterDoorTo.has(k));
   if (regressed.length) fail('SEAMLESS-OVERWORLD regression: town(s) marked CONVERTED still have an overworld enter-door (must be inline walk-through terrain, no door):\n' + regressed.map((r) => '      ' + r).join('\n'));
   else ok(`seamless-overworld: ${townKeys.length - stillScene.length}/${townKeys.length} town/village/city are inline walk-through (no enter-door); ${stillScene.length} still enter-scenes (DEFERRED → target 0): ${stillScene.join(', ') || 'none'}`);
+
+  // 20) NO-FLOATING-DOORS — a door must NEVER be a free-standing prop_door on open ground (Van's bug:
+  //     orphaned settlement doors + building doors rendered on terrain). In an OVERWORLD region, an
+  //     entrance door must EITHER carry a `marker` (a cave-mouth / waypost — its own visual) OR be a
+  //     BUILDING entrance (a building prop within ~5 tiles → the building's own door is the cue, render
+  //     no sprite). A marker-less door with no building near it = an orphaned/floating door → FAIL.
+  const T2 = TILE, R5 = 5 * T2, R7 = 7 * T2;
+  const floaters = [];
+  for (const R of REGIONS.filter((r) => !r.interior && !r.settlement)) {
+    const buildings = (R.props || []).filter((p) => /house|forge|tavern|chapel|paneled|structure/.test(p.key)).map((p) => [p.x, p.y]);
+    for (const o of (R.interactables || [])) {
+      if (o.via !== 'door' || o.marker) continue;
+      const near = buildings.some(([bx, by]) => Math.abs(bx - o.x) <= R5 && o.y - by <= R7 && by - o.y <= R5);
+      if (!near) floaters.push(`${R.key} → ${o.to} @(${Math.round(o.x / T2)},${Math.round(o.y / T2)}) — no building, no marker`);
+    }
+  }
+  if (floaters.length) fail('NO-FLOATING-DOORS: free-standing door(s) on open terrain (give it a marker or a building, or remove it):\n' + floaters.map((f) => '      ' + f).join('\n'));
+  else ok('no-floating-doors: every overworld door is a building entrance (no sprite) or carries a cave/waypost marker — ZERO free-standing doors on open ground');
 }
 
 // --- summary ------------------------------------------------------------------
