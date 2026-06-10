@@ -166,6 +166,13 @@ export const PROPS = {
   prop_dresser:   { src: 'art/furniture/dresser.png',   width: 64, height: 96,  footprint: null }, // a dresser (homes)
   prop_fireplace: { src: 'art/furniture/fireplace.png', width: 64, height: 96,  footprint: null }, // a hearth (homes / tavern)
 
+  // CEMETERY markers (LPC Grave Markers Rework, bluecarrot16 — CC-BY-SA 3.0 / GPL 3.0) — the Lost Cemetery.
+  prop_grave_headstone: { src: 'art/furniture/grave_headstone.png', width: 32, height: 40, footprint: null }, // a rounded headstone
+  prop_grave_cross:     { src: 'art/furniture/grave_cross.png',     width: 32, height: 54, footprint: null }, // a stone cross
+  prop_grave_woodcross: { src: 'art/furniture/grave_woodcross.png', width: 32, height: 50, footprint: null }, // a wooden cross on a mound
+  prop_grave_open:      { src: 'art/furniture/grave_open.png',      width: 64, height: 96, footprint: null }, // a freshly-dug open grave
+  prop_grave_large:     { src: 'art/furniture/grave_large.png',     width: 96, height: 96, footprint: null }, // a large ornate headstone (the founder's grave)
+
   // ROCK / CLIFF props (ElizaWy eliza-terrain crops, OGA-BY 3.0) — the Sundered Peaks
   // mountain mass: a tall cliff face frames routes + the riven cleft; boulders/scree
   // give rocky density. Solid at the base; y-sort like tall props. (FLAG: snow-cap +

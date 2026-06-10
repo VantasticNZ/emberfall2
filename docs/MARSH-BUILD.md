@@ -1,3 +1,30 @@
+# ASHEN MARSH — build report (Milestone 1, step 2 + 2b)
+
+## STEP 2b (2026-06-10) — the Lost Cemetery (FINISHED) + a furnished Mirefen interior
+**Done + eyes-on (0 errors, 156 fps, 21 navGate suites + 14 gates GREEN):**
+- ✅ **THE LOST CEMETERY — finished new region.** Vetted + extracted **LPC Grave Markers Rework**
+  (bluecarrot16, **CC-BY-SA 3.0 / GPL 3.0**, bundled licence) → cropped **5 grave props** (headstone ·
+  stone cross · wooden cross · open grave · large founder's stone) into `public/art/furniture/`,
+  ledgered. Built `lost_cemetery` (22×16 walled graveyard, **eerie dark floor tint**, the founder's
+  ornate stone + two mourning angels, rows of varied graves, a **fresh open grave** with **Mother Cray**
+  the gravekeeper tending it, an offering chest, the lych-gate inscription) — **`mus_marsh` dread bed**,
+  walk-in from the GH board. Reads clearly as a finished, mournful cemetery. (`cemetery-eerie.png`)
+- ✅ **Yssa's Hut — a furnished Mirefen interior.** Wired a walk-in door from the Mirefen street →
+  `mirefen_hut` (a weathered marsh home: bed · hearth · table · dresser, **Elder Yssa** by the fire,
+  a chest). Proven crop→furniture→interiorRegion pipeline. (`mirefen-hut-furnished.png`)
+- ✅ **Engine support added (write-once):** `interiorRegion` now takes **`npcs`** (cemetery/hut NPCs) +
+  **`groundTint`** (themed interior floors, applied to the floor renderTexture) — reusable for all regions.
+**🟡 PARTIAL / ❌ NOT done (honest, HARD RULE 10):**
+- 🟡 **Mirefen TOWN overworld** — still the **greybox street grid** (`mirefen-town.png`); a furnished
+  interior + Yssa are in, but the town's **real marsh-buildings + finish** remain (the griddedSettlement→
+  built-town pipeline is a focused next pass).
+- ❌ **Fenwick** — still greybox (not built this pass).
+- ❌ **Deep M8–M10 wiring** (the Mirefen→Marsh→Shrine quest flow beyond the existing M8 hook).
+- ❌ **DASH + ELECTRIC ability-gates** — still **engine-blocked** (dash-leap-over-gap mechanic + the
+  electric ability don't exist) — per the abilities-mechanics session. **Frog reskin** — pairs with that.
+
+---
+
 # ASHEN MARSH — build report (Milestone 1, step 2)
 
 > M1 step 2 per `BUILD-PLAN`. This session delivered the **ATMOSPHERE slice** of the Marsh build — the

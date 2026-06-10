@@ -521,6 +521,7 @@ export class OverworldScene extends Phaser.Scene {
         if (frame != null) rt.drawFrame('lpc_terrain', frame, x * TILE, y * TILE);
       }
     }
+    if (R.groundTint != null) rt.setTint(R.groundTint);   // eerie/themed interior floors (e.g. the Lost Cemetery)
     this._regionObjs.push(rt);
   }
   // the brook (banked pool) — pond corner/edge tiles, world-coords
@@ -750,7 +751,7 @@ export class OverworldScene extends Phaser.Scene {
   _musicForRegion(R) {
     if (!R) return 'mus_green';                                   // the belt/foothill = the green pastoral
     if (R.mountain) return 'mus_peaks';
-    if (R.key === 'AshenMarsh' || R.marsh || R.bog || R.key === 'Marsh') return 'mus_marsh';
+    if (R.key === 'AshenMarsh' || R.marsh || R.bog || R.key === 'Marsh' || R.key === 'lost_cemetery') return 'mus_marsh';
     return 'mus_green';
   }
   _setMusic(key) {

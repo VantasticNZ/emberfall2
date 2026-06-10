@@ -78,6 +78,7 @@ export const GREENHOLLOW = {
     { via: 'door', key: 'prop_sign', solid: false, x: gx(11) + TILE / 2, y: gy(37) + TILE / 2, to: 'town_stonereach', prompt: '→ Stonereach (town)' },
     { via: 'door', key: 'prop_sign', solid: false, x: gx(15) + TILE / 2, y: gy(37) + TILE / 2, to: 'town_mirefen', prompt: '→ Mirefen (town)' },
     { via: 'door', key: 'prop_sign', solid: false, x: gx(19) + TILE / 2, y: gy(37) + TILE / 2, to: 'vil_fenwick', prompt: '→ Fenwick (village)' },
+    { via: 'door', key: 'prop_sign', solid: false, x: gx(17) + TILE / 2, y: gy(37) + TILE / 2, to: 'lost_cemetery', prompt: '→ The Lost Cemetery' },
     { via: 'door', key: 'prop_sign', solid: false, x: gx(23) + TILE / 2, y: gy(37) + TILE / 2, to: 'vil_cribbins', prompt: '→ Cribbins Cove (village)' },
     { via: 'door', key: 'prop_sign', solid: false, x: gx(27) + TILE / 2, y: gy(37) + TILE / 2, to: 'vil_cragfoot', prompt: '→ Cragfoot (village)' },
     { via: 'door', key: 'prop_sign', solid: false, x: gx(31) + TILE / 2, y: gy(37) + TILE / 2, to: 'vil_oasis', prompt: '→ Mirage Oasis (village)' },
@@ -609,7 +610,7 @@ export const HOLLOW_SPIRE = greyboxRegion({
 // round, walkable inside), greybox (a floor patch — Phase 2/3 art them). spawn = where you appear inside.
 // =============================================================================
 function interiorRegion(spec) {
-  const { key, otx, oty, W, H, doors = [], chests = [], furniture = [], spawn, floor = 'dirt', mapColor = 0x2a2620 } = spec;
+  const { key, otx, oty, W, H, doors = [], chests = [], furniture = [], npcs = [], spawn, floor = 'dirt', mapColor = 0x2a2620, groundTint = null } = spec;
   const ox = otx * TILE, oy = oty * TILE;
   const walkable = [], gated = [], colliders = [], props = [];
   for (let ty = 0; ty < H; ty++) {
@@ -631,9 +632,11 @@ function interiorRegion(spec) {
   const chestData = chests.map((c) => ({ id: c.id, x: ox + c.tx * TILE + TILE / 2, y: oy + c.ty * TILE + TILE / 2, gold: c.gold || 15 }));
   return {
     key, origin: { x: ox, y: oy }, widthTiles: W, heightTiles: H, bounds: { x: ox, y: oy, w: W * TILE, h: H * TILE },
-    route: true, interior: true, mapColor,
+    route: true, interior: true, mapColor, groundTint,
     terrain: { patches: [{ set: floor, rects: [[1, 1, W - 2, H - 2]] }] },
-    colliders, props, npcs: [], chests: chestData, interactables,
+    colliders, props,
+    npcs: npcs.map((n) => ({ ...n, x: ox + n.tx * TILE + TILE / 2, y: oy + n.ty * TILE + TILE / 2 })),
+    chests: chestData, interactables,
     spawn: { x: ox + spawn.tx * TILE + TILE / 2, y: oy + spawn.ty * TILE + TILE / 2 },
     nav: { walkable, gated, W, H },
   };
@@ -714,7 +717,24 @@ export const CITY_SALTBREAK = griddedSettlement({ key: 'city_saltbreak', label: 
 export const TOWN_STONEREACH = griddedSettlement({ key: 'town_stonereach', label: 'Stonereach (town)', otx: 400, oty: 446, W: 36, H: 28, pitch: 8, street: 2, mapColor: 0x8a93a8,
   doors: [{ tx: 1, ty: 1, to: 'back', label: 'Leave Stonereach' }], chests: [{ tx: 8, ty: 8, id: 'stonereach_hall', gold: 30 }, { tx: 24, ty: 16, id: 'stonereach_mine', gold: 25 }] });
 export const TOWN_MIREFEN = griddedSettlement({ key: 'town_mirefen', label: 'Mirefen (town)', otx: 442, oty: 446, W: 34, H: 26, pitch: 8, street: 2, mapColor: 0x56988c,
-  doors: [{ tx: 1, ty: 1, to: 'back', label: 'Leave Mirefen' }], chests: [{ tx: 8, ty: 8, id: 'mirefen_elder', gold: 22 }] });
+  doors: [{ tx: 1, ty: 1, to: 'back', label: 'Leave Mirefen' }, { tx: 9, ty: 9, to: 'mirefen_hut', label: "Enter Yssa's hut" }], chests: [{ tx: 8, ty: 8, id: 'mirefen_elder', gold: 22 }] });
+// A FURNISHED Mirefen home (Elder Yssa's hut) — the proven interiorRegion+furniture pipeline, marsh-themed
+// (weathered, dim). Walk in from the Mirefen street; walk out returns to the town (return-stack).
+const YSSA_HUT = ['body_fem', 'head_fem', 'brows_chestnut', 'hair_parted_gray', 'shirt_forest', 'pants_brown', 'shoes_brown_fem'];
+export const MIREFEN_HUT = interiorRegion({
+  key: 'mirefen_hut', otx: 490, oty: 560, W: 11, H: 9, floor: 'dirt', mapColor: 0x3a4640, groundTint: 0x8a9088, spawn: { tx: 5, ty: 7 },
+  doors: [{ tx: 5, ty: 7, to: 'back', label: 'Step outside' }],
+  furniture: [
+    { tx: 1, ty: 1, key: 'prop_bed', solid: true, dy: -2 }, { tx: 9, ty: 1, key: 'prop_fireplace', solid: true, dy: -6 },
+    { tx: 4, ty: 4, key: 'prop_table', solid: true, scale: 0.8 }, { tx: 7, ty: 1, key: 'prop_dresser', solid: true, dy: -6 },
+    { tx: 2, ty: 6, key: 'prop_bush', solid: false, scale: 0.6, tint: 0x6b7560 },   // a hanging herb bundle (dressing)
+  ],
+  npcs: [
+    { tx: 6, ty: 5, facing: 'down', name: 'Elder Yssa', speed: 0, expression: 'sad', parts: YSSA_HUT,
+      greeting: ['Sit, if you must. The fire is more honest than most folk. Hagga waits across the black water — mind it.'] },
+  ],
+  chests: [{ tx: 9, ty: 5, id: 'mirefen_hut_chest', gold: 18 }],
+});
 const village = (key, label, otx, oty, color) => griddedSettlement({ key, label, otx, oty, W: 20, H: 16, pitch: 9, street: 2, mapColor: color, doors: [{ tx: 1, ty: 1, to: 'back', label: 'Leave ' + label }], chests: [{ tx: 9, ty: 9, id: key + '_chest', gold: 16 }] });
 export const VILLAGE_1 = village('vil_fenwick', 'Fenwick', 480, 446, 0x6e9a7a);
 export const VILLAGE_2 = village('vil_cribbins', 'Cribbins Cove', 504, 446, 0x4a90cf);
@@ -787,7 +807,39 @@ export const GH_HOME2 = interiorRegion({
   chests: [{ tx: 8, ty: 5, id: 'gh_home2_chest', gold: 16 }],
 });
 
-export const INTERIORS = [TANKARD_F1, TANKARD_F2, TEST_CAVE_F1, TEST_CAVE_F2, GH_FORGE, GH_STORE, GH_CHAPEL, GH_HOME1, GH_HOME2, ...WORLD_LAYOUT];
+// THE LOST CEMETERY (Van's new node, MASTER-WORLD-SPEC §0.5) — the Marsh's grief/night vignette. An
+// enclosed walled graveyard (eerie murky tint) of grave markers (LPC Grave Markers Rework, CC-BY-SA/GPL)
+// + the founder's ornate stone + the angel statue; a fresh OPEN grave with a mourner tending it. Entered
+// by walking through the lych-gate from the GH world-board (a Marsh-band place). navGate-validated.
+const MOURNER = ['body_fem', 'head_fem', 'brows_chestnut', 'hair_parted_gray', 'shirt_leather', 'pants_brown', 'shoes_brown_fem'];
+export const LOST_CEMETERY = interiorRegion({
+  key: 'lost_cemetery', otx: 430, oty: 560, W: 22, H: 16, floor: 'dirt', mapColor: 0x2a2e2a, groundTint: 0x6a7068,
+  spawn: { tx: 11, ty: 14 },
+  doors: [{ tx: 11, ty: 14, to: 'back', label: 'Leave the cemetery' }],
+  furniture: [
+    // the founder's grave + two mourning angels at the head
+    { tx: 10, ty: 2, key: 'prop_grave_large', solid: true, dy: -10 },
+    { tx: 5, ty: 2, key: 'prop_altar', solid: true, dy: -8, tint: 0x9aa0a0 }, { tx: 16, ty: 2, key: 'prop_altar', solid: true, dy: -8, tint: 0x9aa0a0 },
+    // rows of headstones (aisles between)
+    { tx: 3, ty: 5, key: 'prop_grave_headstone', solid: true, dy: -4 }, { tx: 6, ty: 5, key: 'prop_grave_cross', solid: true, dy: -8 },
+    { tx: 9, ty: 5, key: 'prop_grave_headstone', solid: true, dy: -4 }, { tx: 12, ty: 5, key: 'prop_grave_cross', solid: true, dy: -8 },
+    { tx: 15, ty: 5, key: 'prop_grave_headstone', solid: true, dy: -4 }, { tx: 18, ty: 5, key: 'prop_grave_woodcross', solid: true, dy: -6 },
+    { tx: 4, ty: 8, key: 'prop_grave_cross', solid: true, dy: -8 }, { tx: 8, ty: 8, key: 'prop_grave_headstone', solid: true, dy: -4 },
+    { tx: 12, ty: 8, key: 'prop_grave_woodcross', solid: true, dy: -6 }, { tx: 16, ty: 8, key: 'prop_grave_headstone', solid: true, dy: -4 },
+    { tx: 3, ty: 11, key: 'prop_grave_woodcross', solid: true, dy: -6 }, { tx: 7, ty: 11, key: 'prop_grave_headstone', solid: true, dy: -4 },
+    // the fresh OPEN grave (the vignette) — a mourner kneels beside it
+    { tx: 17, ty: 10, key: 'prop_grave_open', solid: true, dy: -8 },
+    { tx: 19, ty: 12, key: 'prop_bush', solid: false, scale: 0.6, tint: 0x6b7560 }, { tx: 2, ty: 3, key: 'prop_bush', solid: false, scale: 0.6, tint: 0x6b7560 },
+    { tx: 11, ty: 13, key: 'prop_sign', solid: false, text: 'THE LOST CEMETERY — they buried the drowned here, before Mirefen forgot their names. Tread softly; the marsh keeps its own.' },
+  ],
+  npcs: [
+    { tx: 15, ty: 11, facing: 'right', name: 'Mother Cray', speed: 0, expression: 'sad', parts: MOURNER,
+      greeting: ['Another name the water took. I dig the graves now — no one else remembers how. Stay if you like. The dead are poor company, but honest.'] },
+  ],
+  chests: [{ tx: 19, ty: 4, id: 'cemetery_offering', gold: 22 }],
+});
+
+export const INTERIORS = [TANKARD_F1, TANKARD_F2, TEST_CAVE_F1, TEST_CAVE_F2, GH_FORGE, GH_STORE, GH_CHAPEL, GH_HOME1, GH_HOME2, LOST_CEMETERY, MIREFEN_HUT, ...WORLD_LAYOUT];
 
 export const REGIONS = [GREENHOLLOW, ASHEN_MARSH, WEST_BELT, SUNDERED_PEAKS, FOOTHILL_ROUTE, TIDEWRECK_COAST, EMBERWOOD, HOLLOW_SPIRE, ...INTERIORS];
 const inBounds = (b, x, y) => x >= b.x && x < b.x + b.w && y >= b.y && y < b.y + b.h;
