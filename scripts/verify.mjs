@@ -485,15 +485,21 @@ const tile = (px) => Math.round(px / TILE);
   //     trigger sits in the inset doorway gap, footprint otherwise solid — is eyes-on + the visual check.)
   const allKeys2 = new Set(REGIONS.map((r) => r.key));
   const doorTargets = new Set();
+  const badStates = [];
+  const VALID_STATE = new Set(['open', 'closed', 'locked']);
   for (const R of REGIONS) {
-    for (const p of (R.props || [])) if (p.door) doorTargets.add(p.door);
+    for (const p of (R.props || [])) if (p.door) {
+      const dd = (typeof p.door === 'string') ? { to: p.door, state: 'open' } : p.door;     // string = OPEN; object = {to,state}
+      if (dd.to) doorTargets.add(dd.to);
+      if (dd.state && !VALID_STATE.has(dd.state)) badStates.push(`${R.key}:${dd.to} invalid state '${dd.state}'`);
+    }
     for (const o of (R.interactables || [])) if (o.via === 'door' && o.to && !o.to.startsWith('__') && o.to !== 'back') doorTargets.add(o.to);
   }
   const deadDoors = [...doorTargets].filter((t) => !allKeys2.has(t));
   const buildingInteriors = REGIONS.filter((r) => r.interior && /^(gh_|tankard_f1|cave_f1|mirefen_hut|fenwick_home)/.test(r.key)).map((r) => r.key);
   const orphanInteriors = buildingInteriors.filter((k) => !doorTargets.has(k));
-  if (deadDoors.length || orphanInteriors.length) fail('DOORWAY-GEOMETRY: ' + [...deadDoors.map((d) => 'door → ' + d + ' (no such interior)'), ...orphanInteriors.map((o) => o + ' (building interior with NO door in — un-enterable)')].map((s) => '\n      ' + s).join(''));
-  else ok(`doorway-geometry: ${doorTargets.size} door targets all resolve; ${buildingInteriors.length} front-door building-interiors all have a way in (no un-enterable holes)`);
+  if (deadDoors.length || orphanInteriors.length || badStates.length) fail('DOORWAY-GEOMETRY: ' + [...deadDoors.map((d) => 'door → ' + d + ' (no such interior)'), ...orphanInteriors.map((o) => o + ' (building interior with NO door in — un-enterable)'), ...badStates].map((s) => '\n      ' + s).join(''));
+  else ok(`doorway-geometry: ${doorTargets.size} door targets all resolve; ${buildingInteriors.length} front-door building-interiors all have a way in (no un-enterable holes); all door states valid (open/closed/locked)`);
 }
 
 // --- summary ------------------------------------------------------------------

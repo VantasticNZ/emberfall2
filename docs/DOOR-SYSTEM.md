@@ -6,30 +6,35 @@
 > SPEC'd here for build-out (the morality-entrance hook). Reconciles `RPG-FEEL-STANDARD` pillar 1 +
 > `no-floating-doors` (#20) + the new `doorway-geometry` gate (#21).
 
-## 1. DOORWAY GEOMETRY (the standard — BUILT)
-- A building is a **SOLID footprint** (its base-band collider) with **ONE doorway GAP carved in the front
-  wall** (centre). The gap is ~1.1 tiles wide — left + right colliders flank it; everything else is solid.
-- The **doorway tile** (the dark inset opening) is the **only walkable gap** in the front wall → you can
-  only reach it by **stepping INTO the opening**, not from the path/grass in front.
-- The **TRIGGER = the doorway tile itself.** Walk up into the threshold → enter. (NOT a tile in the yard.)
-- The opening renders as a **dark inset threshold** under the building's own painted door — so it reads
-  as walking *into* the building (the building's porch/door + the carved gap + the dark threshold).
-- **Implementation:** a building prop carries `door:'<interior>'` (`world.js`); the region build
-  (`_buildRegion`) carves the base-band into left+right colliders, draws the dark threshold, and
-  registers the walk-trigger at the doorway tile (`this._buildingDoors`, read by `_checkDoorWalk`). No
-  free-standing `prop_door` sprite (gate #20). Reusable for every building in every region.
+## 1. DOORWAY GEOMETRY (the standard — BUILT, EXACT TILE-ALIGNED)
+- A building is a **SOLID footprint** (its base-band collider) with **ONE doorway carved in the front
+  wall** = **exactly ONE clean TILE-ALIGNED walkable tile** (NOT an approximate float gap). The base-band
+  is split into **tile-aligned** left + right solids around that tile; everything else is solid.
+- **Why tile-aligned (the consistency fix):** the old ~1.1-tile float gap could leave the walkable gap and
+  the trigger tile (`round(ccx/TILE)`) **mis-registered** — the trigger sometimes sat partly under a
+  collider → "enters on some buildings, not others" + a **sub-tile sliver to snag on**. Snapping the
+  doorway to a whole tile (`dCol=round((ccx-TILE/2)/TILE)`, solids end exactly at `dCol*TILE` /
+  `(dCol+1)*TILE`) makes entry **identical on every building** and the gap unambiguous.
+- The **doorway tile** is the **only walkable gap** → you reach it only by **stepping INTO the opening**,
+  not from the path in front. The **TRIGGER = that tile.** Walk up into the threshold → enter.
+- The opening renders as a **dark inset threshold** under the building's painted door (open state).
+- **Implementation:** a building prop carries `door:'<interior>'` **or** `door:{to,state,owner}`
+  (`world.js`); `_buildRegion` computes the tile-aligned doorway, builds the flanking solids, draws the
+  threshold, and registers the trigger at the doorway tile (`this._buildingDoors{tx,ty,dcx,dcy,to,state}`,
+  read by `_checkDoorWalk`). No free-standing `prop_door` sprite (gate #20). Identical for every building.
 
-## 2. DOOR STATES — collision · interaction · visual (OPEN built; CLOSED/LOCKED spec'd)
-| State | Collision (passable?) | Interaction (walk-into) | Visual |
-|---|---|---|---|
-| **OPEN doorway** ✅ BUILT | the doorway tile is **walkable**; step in → enter | **no prompt** — walking into the threshold enters | dark inset opening under the building's painted door |
-| **CLOSED door** 🔢 SPEC | doorway tile **blocked by the door**; walking in opens a CHOICE | choice prompt: **KNOCK** (an NPC may answer / open) · **TRY HANDLE** (may be unlocked → enter; *uninvited entry = small morality hit* `entered_uninvited`) · **FORCE** (morality hit `forced_entry` + a chance of a guard/own­er alarm) | a **closed-door sprite** in the doorway (panelled door) |
-| **LOCKED door** 🔢 SPEC | blocked | **KNOCK** · **PICK** (if `lockpick`/able → enter, *trespass morality hit*) · **FORCE** (bigger morality hit + alarm) | closed door + a **lock indicator** (a keyhole/padlock glyph) |
-- **The morality-entrance hook:** CLOSED/LOCKED states tie entry to Karma — invited/knock = clean; try-
-  handle/pick/force = escalating Morality/Purity hits (reuse the canonical deed ids; FLAG: add
-  `entered_uninvited`/`forced_entry` to the SSOT when built). A cruel hero finds doors barred; a trusted
-  one is welcomed. (This is the long-planned "door-knock / morality entrance" feel-layer.)
-- **Per-building config (when built):** `door:{ to, state:'open'|'closed'|'locked', owner, alarm? }`.
+## 2. DOOR STATES — collision · interaction · visual (ALL BUILT)
+| State | Walk-into behaviour | Choice (always consistent) | Consequence | Visual |
+|---|---|---|---|---|
+| **OPEN** ✅ | step into the threshold → enter | none | none | dark inset threshold |
+| **CLOSED** ✅ | walking in ALWAYS opens the choice | **KNOCK** (no answer here yet) · **TRY THE HANDLE** → enter · **(Step away)** | try-handle = `entered_uninvited`, **−3 morality / −2 purity** | **closed-door sprite** in the doorway |
+| **LOCKED** ✅ | walking in ALWAYS opens the choice | **KNOCK** · **TRY THE HANDLE** → "locked" → **BREAK IT DOWN** → enter · **(Step away)** | break = `forced_entry`, **−10 morality / −6 purity** + a "someone will have heard" alarm beat (sfx + banner) | closed door + a **lock glyph** |
+- **The morality-entrance hook (LIVE):** invited/knock = clean; try-handle = a small hit; force/break = a
+  big hit. Wired to Karma via `karma.commit({deed, morality, purity})` (the deeds `entered_uninvited` /
+  `forced_entry` are now in the SSOT). A cruel hero racks up trespass; a courteous one knocks.
+- **Config:** `door:{ to, state:'open'|'closed'|'locked', owner }` on the building prop. Every closed/
+  locked door behaves identically (the choice is generated, not per-door). FLAG: KNOCK answering (an NPC
+  opens) + the guard/alarm spawn are stubs (flavor beat only) — deepen in the social pass.
 
 ## 3. INTERIOR EXIT doors (BUILT)
 - Embedded in the interior **wall**, **inset** (the `doorWallOffset` pushes the door sprite into the wall,
@@ -45,10 +50,13 @@
   pure-geometry gate can't see — see PROCESS-RETRO on the visual-check pattern).
 
 ## ✅ STATUS
-- **BUILT + verified (fresh cleared save, build current):** the **6 GH buildings** (chapel · tavern ·
-  store · forge · 2 cottages) each carve an **inset doorway you walk INTO** — all enter correctly; no
-  un-enterable holes; the chapel doorway reads as a recessed porch/threshold
-  (`door-system-chapel-doorway.png`). Gate #21 passes.
-- **SPEC'd / DEFERRED:** the CLOSED + LOCKED states (knock/try-handle/pick/force + the morality hits +
-  guard alarm) — the morality-entrance build-out; per-building `door` config; the other regions' building
-  doorways roll out the same carve. Tracked in `DEFERRED.md`.
+- **BUILT + verified (fresh cleared save, meta-rule 10):** the **6 GH buildings** each have an **exact
+  tile-aligned inset doorway you walk INTO** — all enter **consistently**; the doorway tile is walkable
+  on every one; **exit lands cleanly in the yard (NO stuck-on-the-line)** in + out. The **4 open** doors
+  walk-in; **gh_home1 = CLOSED** (knock/try-handle → −3 morality) and **gh_home2 = LOCKED** (try → break
+  → −10 morality + alarm) demonstrate the states; the deeds `entered_uninvited`/`forced_entry` fire.
+  States read visually (closed-door sprite + lock glyph — `door-states-closed-locked.png`). Gates #20+#21
+  pass; 0 console errors.
+- **DEFERRED / FLAG:** KNOCK answering (an NPC opens) + a real guard/alarm spawn (currently a flavor beat);
+  the lock glyph could be more prominent (polish); the other regions' building doorways roll out the same
+  carve; PICK (lockpick item) as an alternative to FORCE. Tracked in `DEFERRED.md`.

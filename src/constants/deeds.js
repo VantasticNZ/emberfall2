@@ -29,4 +29,6 @@ export const DEEDS = ids(
   'wanderer_met', 'weapon_wooden_sword', 'weeping_tree', 'wreck_wraith_slain',
   // social-system demo deeds (CHA haggle / Insight reveal / Trust-gated option)
   'haggled_bram', 'hagga_hidden_truth', 'miner_secret_pass',
+  // DOOR-SYSTEM — morality-entrance (walking uninvited through a closed / locked door)
+  'entered_uninvited', 'forced_entry',
 );

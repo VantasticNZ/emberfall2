@@ -92,10 +92,12 @@ Van's map exactly — then roll the same to every corridor.
 ## DOOR / ENTRANCE SYSTEM (`DOOR-SYSTEM.md`) — roll out + the morality states
 | Item | Status | When |
 |---|---|---|
-| Inset doorways you walk INTO (carve + threshold) | ✅ BUILT for the 6 GH buildings + gate #21 | done |
-| **CLOSED + LOCKED door states** (knock / try-handle / pick / FORCE + morality hits + guard alarm) | 🔢 SPEC'd — the morality-entrance build-out; add `entered_uninvited`/`forced_entry` to the deed SSOT | feature pass |
+| Inset doorways you walk INTO (EXACT tile-aligned carve + threshold) | ✅ BUILT for the 6 GH buildings, consistent + no-stuck + gate #21 | done |
+| **CLOSED + LOCKED door states** (knock / try-handle / FORCE + morality hits) | ✅ BUILT (gh_home1 closed, gh_home2 locked; `entered_uninvited` −3 / `forced_entry` −10 in the SSOT) | done |
+| KNOCK answering (an NPC opens) + a real guard/alarm spawn on FORCE | 🔧 currently a flavor beat (sfx+banner); deepen in the social pass | social pass |
+| PICK (a lockpick item) as an alternative to FORCE on a LOCKED door | not built (no lockpick item yet) | feature pass |
 | **Other regions' building doorways** roll out the same carve | inline Mirefen + village buildings still use simple/marker doors | per-region |
-| Door VISUAL polish (closed-door sprite + lock glyph; threshold depth vs the building wall) | the dark inset rect is drawn under the building's painted door | POLISH |
+| Lock glyph more prominent (6×7px now) + threshold depth polish | functional but small | POLISH |
 
 ## POLISH — anytime quality
 | Item | Why deferred | Need | When |

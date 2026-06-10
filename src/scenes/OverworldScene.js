@@ -208,16 +208,20 @@ export class OverworldScene extends Phaser.Scene {
       if (isSolid(p.key, p.solid)) {
         const cw = Math.max(8, b.w * sc), ch = Math.max(8, b.h * sc), ccx = p.x + offX * sc, ccy = p.y + b.offY * sc;
         if (p.door) {
-          // DOOR-SYSTEM pillar 1 — carve ONE inset doorway gap in the FRONT (centre) of the solid base-band:
-          // left + right colliders with a ~1.1-tile walkable gap. You walk UP INTO the dark threshold to
-          // enter (the doorway tile is the trigger), not from the path in front. The rest stays solid.
-          const gap = TILE * 1.1, sideW = Math.max(8, (cw - gap) / 2);
-          const left = this.add.rectangle(ccx - (gap / 2 + sideW / 2), ccy, sideW, ch, 0x000000, 0).setVisible(false);
-          const right = this.add.rectangle(ccx + (gap / 2 + sideW / 2), ccy, sideW, ch, 0x000000, 0).setVisible(false);
-          for (const r of [left, right]) { this.physics.add.existing(r, true); this.solids.add(r); this._regionObjs.push(r); }
-          const opening = this.add.rectangle(ccx, ccy + 1, TILE * 0.86, TILE * 0.92, 0x0b0d12, 0.94).setDepth(DEPTH.FLOOR + 6);   // the dark INSET threshold
+          // DOOR-SYSTEM — EXACT TILE-ALIGNED DOORWAY (identical on every building → consistent entry, no
+          // sub-tile sliver to snag on): the doorway is ONE clean walkable TILE (the only gap, carrying the
+          // trigger); the solid base-band is split into TILE-ALIGNED left + right rects around it. You walk
+          // UP INTO the dark threshold tile to enter.
+          const dCol = Math.round((ccx - TILE / 2) / TILE), dRow = Math.round((ccy - TILE / 2) / TILE);
+          const bandL = ccx - cw / 2, bandR = ccx + cw / 2, gapL = dCol * TILE, gapR = (dCol + 1) * TILE;
+          const mkSolid = (x0, x1) => { if (x1 - x0 < 4) return; const r = this.add.rectangle((x0 + x1) / 2, ccy, x1 - x0, ch, 0x000000, 0).setVisible(false); this.physics.add.existing(r, true); this.solids.add(r); this._regionObjs.push(r); };
+          mkSolid(bandL, gapL); mkSolid(gapR, bandR);                       // tile-aligned solids flanking the doorway tile
+          const dcx = dCol * TILE + TILE / 2, dcy = dRow * TILE + TILE / 2;
+          const door = (typeof p.door === 'string') ? { to: p.door, state: 'open' } : { state: 'open', ...p.door };
+          const opening = this.add.rectangle(dcx, dcy, TILE, TILE, door.state === 'open' ? 0x0b0d12 : 0x000000, door.state === 'open' ? 0.9 : 0).setDepth(DEPTH.FLOOR + 6);
           this._regionObjs.push(opening);
-          this._buildingDoors.push({ tx: Math.round(ccx / TILE), ty: Math.round(ccy / TILE), to: p.door });   // walk-into trigger = the doorway tile
+          if (door.state !== 'open') this._buildClosedDoorVisual(dcx, dcy, door.state);   // closed-door sprite / lock glyph
+          this._buildingDoors.push({ tx: dCol, ty: dRow, dcx, dcy, ...door });            // walk-into trigger = the doorway tile
         } else {
           rect = this.add.rectangle(ccx, ccy, cw, ch, 0x000000, 0).setVisible(false);
           this.physics.add.existing(rect, true); this.solids.add(rect); this._regionObjs.push(rect);
@@ -327,7 +331,7 @@ export class OverworldScene extends Phaser.Scene {
   // `to` = an interior region key (enter, pushing the current spot) OR 'back' (pop → exit/descend).
   // Reuses the proven streaming (interiors are REGIONS in a far corner) + SaveManager deltas, so a
   // looted interior chest stays looted, tools/quests/karma persist, and navGates validate interiors.
-  _enterArea(to) {
+  _enterArea(to, returnPos = null) {
     if (this._areaT) return; this._areaT = true;                     // debounce mid-transition
     if (to === '__gendungeon' || to === '__gencave') { to = this._generateAndInject(to === '__gencave' ? 'cave' : 'dungeon'); if (!to) { this._areaT = false; return; } }
     if (to === 'back') {
@@ -337,7 +341,9 @@ export class OverworldScene extends Phaser.Scene {
     } else {
       const R = REGIONS.find((r) => r.key === to && r.interior);
       if (!R || !R.spawn) { this._areaT = false; return; }
-      (this._areaStack = this._areaStack || []).push({ x: this.player.x, y: this.player.y, interior: !!this._inInterior });
+      // NO-STUCK-ON-LINE: store the RETURN squarely on a clean walkable tile (the yard below the doorway,
+      // not the threshold line) so walking back out lands the avatar centred in walkable space.
+      (this._areaStack = this._areaStack || []).push({ x: returnPos ? returnPos.x : this.player.x, y: returnPos ? returnPos.y : this.player.y, interior: !!this._inInterior });
       this.player.x = R.spawn.x; this.player.y = R.spawn.y; this._inInterior = true;
     }
     this.player.body.reset(this.player.x, this.player.y);
@@ -364,8 +370,13 @@ export class OverworldScene extends Phaser.Scene {
           if (Math.round((o.x - T / 2) / T) === ptx && Math.round((o.y - T / 2) / T) === pty) { this._enterArea(o.to); return; }
         }
       }
-      // DOOR-SYSTEM: building doorways (carved into a building's front wall) — walk INTO the threshold tile
-      for (const d of (this._buildingDoors || [])) if (d.tx === ptx && d.ty === pty) { this._enterArea(d.to); return; }
+      // DOOR-SYSTEM: building doorways (carved into a building's front wall) — walk INTO the threshold tile.
+      // OPEN → enter (clean yard return); CLOSED/LOCKED → the knock/try/break choice (the morality entrance).
+      for (const d of (this._buildingDoors || [])) if (d.tx === ptx && d.ty === pty) {
+        if (d.state && d.state !== 'open') this._openDoorChoice(d);
+        else this._enterArea(d.to, { x: d.dcx, y: d.dcy + TILE });
+        return;
+      }
     }
     this._lastTile = { tx: ptx, ty: pty };
   }
@@ -856,7 +867,56 @@ export class OverworldScene extends Phaser.Scene {
   // DIALOGUE (minimal but real — reuses the Dialogue engine + Social gating;
   // the polished box/portrait is RegionScene's, deferred to the polish pass)
   // ===========================================================================
-  _dlgCtx() { return { inv: this.inv, karma: this.karma, quests: this.quests }; }
+  _dlgCtx() { return { inv: this.inv, karma: this.karma, quests: this.quests, onSet: (cmd) => this._onDlgSet(cmd) }; }
+  _onDlgSet(cmd) { if (typeof cmd === 'string' && cmd.startsWith('door:')) this._doorAction(cmd.slice(5)); }
+
+  // DOOR-SYSTEM — the CLOSED / LOCKED entry choice (the morality entrance). Walking into a shut door ALWAYS
+  // offers KNOCK / TRY-THE-HANDLE; a LOCKED one then offers BREAK-IT-DOWN. Try-uninvited = a small morality
+  // hit; force = a bigger hit + an alarm. Built on the Dialogue option system (deeds + the onSet action).
+  _openDoorChoice(d) {
+    this._pendingDoor = d;
+    const who = d.owner ? `${d.owner}'s ` : 'The ';
+    const enter = (mode) => `door:${mode}:${d.to}`;     // onSet command → _doorAction
+    let nodes;
+    if (d.state === 'locked') {
+      nodes = {
+        d0: { speaker: '', text: `${who}door is locked tight.`, options: [
+          { label: 'Knock', to: 'knock' },
+          { label: 'Try the handle', to: 'locked' },
+          { label: '(Step away.)', end: true },
+        ] },
+        knock: { speaker: '', text: 'You knock. Silence within — no one comes.', options: [{ label: '(Back.)', to: 'd0' }] },
+        locked: { speaker: '', text: "It won't budge — locked fast.", options: [
+          { label: 'Break it down (force)', set: enter('force'), end: true },
+          { label: '(Leave it.)', end: true },
+        ] },
+      };
+    } else {
+      nodes = {
+        d0: { speaker: '', text: `${who}door is shut.`, options: [
+          { label: 'Knock', to: 'knock' },
+          { label: 'Try the handle (let yourself in)', set: enter('uninvited'), end: true },
+          { label: '(Step away.)', end: true },
+        ] },
+        knock: { speaker: '', text: 'You knock. No one answers — the house is empty.', options: [{ label: '(Back.)', to: 'd0' }] },
+      };
+    }
+    this._activeQuest = null; this._dlg = new Dialogue({ start: 'd0', nodes }, this._dlgCtx()); this._openDlg();
+  }
+  _doorAction(cmd) {
+    const [mode, area] = cmd.split(':');                 // 'uninvited:gh_home1' | 'force:gh_home1'
+    const d = this._pendingDoor; this._pendingDoor = null;
+    if (mode === 'uninvited') { this.karma.commit({ deed: 'entered_uninvited', morality: -3, purity: -2 }); this._banner('You let yourself in, uninvited.', 1500); }
+    else if (mode === 'force') { this.karma.commit({ deed: 'forced_entry', morality: -10, purity: -6 }); this._sfx('sfx_deny', 0.6); this._banner('You force the door — wood splinters. Someone will have heard.', 1900); }
+    const ret = d ? { x: d.dcx, y: d.dcy + TILE } : null;
+    this.time.delayedCall(70, () => this._enterArea(area, ret));   // after the dialogue closes
+  }
+  // closed/locked doors SHOW a closed-door sprite (+ a lock glyph) IN the doorway → the state reads at a glance
+  _buildClosedDoorVisual(dcx, dcy, state) {
+    const door = this.add.sprite(dcx, dcy - 3, 'prop_door').setDepth(DEPTH.FLOOR + 7); door.setDisplaySize(TILE * 0.92, TILE * 1.15); this._regionObjs.push(door);
+    if (state === 'locked') { const lock = this.add.rectangle(dcx, dcy - 2, 6, 7, 0xf2c14e).setStrokeStyle(1, 0x6b4f12).setDepth(DEPTH.FLOOR + 8); this._regionObjs.push(lock); }
+  }
+
   _startGreeting(name, lines) {
     const nodes = {};
     lines.forEach((t, i) => { const last = i === lines.length - 1; nodes[`g${i}`] = { speaker: name, text: t, options: [last ? { label: '(Step away.)', end: true } : { label: '(Listen.)', to: `g${i + 1}` }] }; });
