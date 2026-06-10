@@ -45,3 +45,12 @@ const game = new Phaser.Game(config);
 
 // Dev aid: expose the game for live verification / gate testing in the browser.
 if (import.meta.env.DEV) window.__EMBER = game;
+
+// STALE-SCENE PREVENTATIVE (dev only) — Phaser scenes do NOT hot-reload; a long-lived tab would keep
+// running OLD code while Vite re-injects a fresh build stamp (PROCESS-RETRO: "new stamp, old world").
+// Force a FULL page reload on ANY HMR update so the running scene is ALWAYS recreated from the current
+// build — you can never silently run a stale scene. (No effect in a production build.)
+if (import.meta.hot) {
+  import.meta.hot.on('vite:afterUpdate', () => window.location.reload());
+  import.meta.hot.accept(() => window.location.reload());
+}

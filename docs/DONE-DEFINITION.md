@@ -12,6 +12,10 @@
 
 ## B. RUNTIME — eyes-on, REAL input (the part that was missed)
 Exercise it as a player would; a screenshot per visual item. "Present/data-correct" does NOT count.
+- [ ] 🔴 **VERIFIED IN THE USER'S EXACT STATE** — the eyes-on check is done with a **cleared save**
+  (`localStorage.clear()`) **+ a full page reload** (recreate the scene — NOT a stale tab) **+ the build
+  Van loads**. A fix "verified" in Playwright's default/fresh-scene-only state is **INVALID** — that's a
+  state Van never sees. *Van's eyes on a hard-reset fresh state are the truth.* (PROCESS-RETRO meta-rule 10.)
 - [ ] **Walkability** — the body walks the whole area with real movement (not just the flood-fill); reaches every intended spot.
 - [ ] **Containment (walk AND dash)** — walk into every edge AND **dash** into every wall → the player is **contained**; cannot reach the black void. (The bug class that slipped twice.)
 - [ ] **Doors as doorways** — every door reads as a **door embedded in the wall** (not a sign, not mid-floor); the door tile is the ONLY passable gap; walking onto it enters, walking **beside** it does not; no snag at the boundary.

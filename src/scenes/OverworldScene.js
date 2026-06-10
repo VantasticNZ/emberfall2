@@ -70,7 +70,10 @@ export class OverworldScene extends Phaser.Scene {
     this.save = new SaveManager({ slot: 'overworld', storage: defaultStorage() })
       .link('karma', this.karma).link('inv', this.inv).link('quests', this.quests).link('time', this.tod);
     const hadSave = this.save.load();
-    const start = hadSave ? this.save.getPosition() : { ...GREENHOLLOW.player };
+    // WORLD-VERSION guard: a save from an OLD world layout has a stale position → spawn at Greenhollow
+    // (its progress is kept; only the coords are reset). Prevents loading into a void / old-world spot.
+    const start = (hadSave && !this.save.worldReset) ? this.save.getPosition() : { ...GREENHOLLOW.player };
+    if (this.save.worldReset) this._worldResetNotice = true;
 
     this.player = new Character(this, start.x, start.y, { parts: HERO, facing: 'down', speed: 150 });
     this.player.isAdult = true; this.player.isMinor = false;
@@ -102,7 +105,7 @@ export class OverworldScene extends Phaser.Scene {
 
     this.auto = false; this._autoT = 0; this._lastSaveMs = 0; this._lastLoadMs = 0; this._resetPerf();
     this._buildWorldHud();
-    this._helpText = this.add.text(8, 412, 'WASD move · SHIFT run · E talk · J attack · Space dodge · C block · M map · T quests · H hide HUD · Esc settings · F5/F9 save/load', { fontFamily: 'monospace', fontSize: '10px', color: '#9fb89a', backgroundColor: '#000a', padding: { x: 4, y: 2 } }).setScrollFactor(0).setDepth(DEPTH.OVERLAY + 10);
+    this._helpText = this.add.text(8, 412, 'WASD move · SHIFT run · E talk · J attack · Space dodge · C block · M map · T quests · H hide HUD · Esc settings · F5/F9 save/load · F8 fresh game', { fontFamily: 'monospace', fontSize: '10px', color: '#9fb89a', backgroundColor: '#000a', padding: { x: 4, y: 2 } }).setScrollFactor(0).setDepth(DEPTH.OVERLAY + 10);
 
     this._restream(true);
     this._maybeToggleRegion(true);
@@ -158,6 +161,7 @@ export class OverworldScene extends Phaser.Scene {
     this.region = regionAt(this.player.x, this.player.y);   // primary (or null = belt) — refresh each call
     this._setAmbient((this.region?.mountain || this.region?.bog) ? 'amb_wind' : 'amb_birds');   // Peaks/Marsh = a desolate wind (no birds in the bog); green = birds
     this._setMusic(this._musicForRegion(this.region));                    // region music bed (crossfade), layered over ambient
+    if (this._worldResetNotice) this.time.delayedCall(600, () => this._banner('The world changed since your last save — returned to Greenhollow (your progress is kept).', 3400));
   }
 
   _loadRegions(list) {
@@ -920,6 +924,7 @@ export class OverworldScene extends Phaser.Scene {
     this.input.keyboard.on('keydown-SPACE', () => { if (this._canAct()) this._tryDodge(); });                              // dodge-roll
     this.input.keyboard.on('keydown-F5', () => this.saveGame());
     this.input.keyboard.on('keydown-F9', () => this.loadGame());
+    this.input.keyboard.on('keydown-F8', () => this.newGame());   // FRESH GAME — clear the save + reload (stale-save preventative)
     // HUD toggles (control SSOT: O map · T quests · H hide HUD · Esc settings)
     const toggleMap = () => { if (!this._dlg) this._fullMap.setVisible(!this._fullMap.visible); };
     this.input.keyboard.on('keydown-O', toggleMap);
@@ -1020,6 +1025,13 @@ export class OverworldScene extends Phaser.Scene {
 
   // ---- save / load -----------------------------------------------------------
   saveGame() { const t = performance.now(); this.save.setPosition(this.player.x, this.player.y).setArea('overworld').setTimeFrac(this.tod.frac ? this.tod.frac() : 0).save(); this._lastSaveMs = performance.now() - t; return this._lastSaveMs; }
+  // FRESH GAME — wipe the save + reload (the stale-save preventative; F8). Confirms via a banner first
+  // press, then acts on a second press within 2.5s, so it can't be triggered by accident.
+  newGame() {
+    if (!this._newGameArmed || this.time.now > this._newGameArmed) { this._newGameArmed = this.time.now + 2500; this._banner('Press F8 again to START A FRESH GAME (clears your save).', 2400); return; }
+    this.save.clear();   // wipe the save via the storage adapter (the persistence backend stays isolated in storage.js)
+    if (typeof location !== 'undefined' && location.reload) location.reload();
+  }
   loadGame() {
     const t = performance.now();
     if (!this.save.load()) { this._lastLoadMs = performance.now() - t; return false; }

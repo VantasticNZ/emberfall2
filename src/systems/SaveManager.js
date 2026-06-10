@@ -20,6 +20,14 @@ import { defaultStorage } from './storage.js';
 
 export const SAVE_VERSION = 3;   // v1 = legacy per-system saves; v2 = unified world save; v3 = world RE-CENTRED (Blueprint decision B)
 
+// WORLD STRUCTURE VERSION — separate from the save SCHEMA version. BUMP this whenever the world LAYOUT
+// changes (settlements relocated / made inline / corridors moved). On load, if the saved world-version
+// ≠ current, the saved POSITION is STALE (it points into the OLD layout — you'd spawn in a void or a
+// now-different place) → reset position to the default spawn. PROGRESS (karma/inv/quests/chunk-deltas)
+// is kept (coordinate-independent). Kills the "old save loads an old world over a new build" class
+// (PROCESS-RETRO). Last bumped: the seamless-overworld + relocations + floating-door pass.
+export const WORLD_VERSION = 4;
+
 // WORLD-BLUEPRINT decision B re-centred Greenhollow from chunk (5,5) → (9,9): a uniform
 // +4-chunk shift on both axes. A v2 (pre-recentre) save's world position + chunk-delta keys
 // are in the OLD coords, so v2→v3 migration shifts them by exactly this — the playthrough is
@@ -38,7 +46,7 @@ export class SaveManager {
   }
 
   _key() { return `emberfall:world:${this.slot}`; }
-  _empty() { return { v: SAVE_VERSION, pos: { x: 0, y: 0 }, area: null, interior: null, timeFrac: 0, chunks: {}, systems: {} }; }
+  _empty() { return { v: SAVE_VERSION, wv: WORLD_VERSION, pos: { x: 0, y: 0 }, area: null, interior: null, timeFrac: 0, chunks: {}, systems: {} }; }
 
   // ---- world position + meta -------------------------------------------------
   setPosition(x, y) { this.state.pos = { x: Math.round(x), y: Math.round(y) }; return this; }
@@ -96,11 +104,22 @@ export class SaveManager {
     if (!s.v || s.v < 2) s = this._migrateToV2(s);            // legacy → v2 (no overworld coords to shift)
     else if (s.v === 2) s = this._migrateV2ToV3(s);          // pre-recentre overworld save → shift coords
     const base = this._empty();
+    // WORLD-VERSION GUARD — if the saved world LAYOUT version is stale, the saved POSITION points into
+    // the OLD world (you'd spawn in a void / a now-different place). Drop pos+area (spawn at default);
+    // KEEP progress (chunks/systems are coordinate-independent or harmless). Flag it so the scene can
+    // spawn at GH instead of the saved coords.
+    // Reset position only when the save carries a wv that's OLDER than current (a known later layout
+    // change). Legacy saves WITHOUT wv fall through to the schema migration (which preserves/shifts the
+    // position) — they predate this guard, so we don't yank them. Saves from now carry wv → future
+    // layout bumps invalidate their stale position.
+    const worldStale = (s.wv != null) && (+s.wv !== WORLD_VERSION);
+    this.worldReset = worldStale;
     return {
       v: SAVE_VERSION,
-      pos: { ...base.pos, ...(s.pos || {}) },
-      area: s.area ?? null,
-      interior: s.interior ?? null,
+      wv: WORLD_VERSION,
+      pos: worldStale ? { ...base.pos } : { ...base.pos, ...(s.pos || {}) },
+      area: worldStale ? null : (s.area ?? null),
+      interior: worldStale ? null : (s.interior ?? null),
       timeFrac: +s.timeFrac || 0,
       chunks: s.chunks && typeof s.chunks === 'object' ? s.chunks : {},
       systems: s.systems && typeof s.systems === 'object' ? s.systems : {},

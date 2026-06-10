@@ -16,8 +16,11 @@ until you know which plan step you are on.
   (walkability · containment walk+dash · doors-as-doorways · no-farm · designed==built ·
   per-settlement identity · no-false-green · honest checklist). **Apply it before claiming
   anything done.** `docs/PROCESS-RETRO.md` — why gates went green while the game was broken +
-  the meta-rules. `docs/DEFERRED.md` — the living deferred-work tracker (log every deferral
-  with when-to-build; clear rows when you build them).
+  the meta-rules (incl. **#10: VERIFY IN VAN'S EXACT STATE** — cleared save + full reload + the
+  build he loads; a check in any other state is invalid). `docs/GATE-AUDIT.md` — the 20-gate
+  audit (runtime vs data, the eyes-on-only gaps) + the live CONNECTED-STATE of the world.
+  `docs/RPG-FEEL-STANDARD.md` — the open-world-but-gated bar (6 pillars). `docs/DEFERRED.md` —
+  the living deferred-work tracker (log every deferral with when-to-build; clear rows when built).
 - **`src/constants/{deeds,flags,items,endings}.js`** — the SSOT for every canonical
   id (import these, never hardcode). `scripts/verify.mjs` fails on drift.
 - **Governance:** `docs/ADR.md` (why settled decisions stand), `docs/STYLE-GUIDE.md`
