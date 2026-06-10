@@ -33,6 +33,17 @@ Exercise it as a player would; a screenshot per visual item. "Present/data-corre
 - [ ] **Per-settlement identity** — its own terrain + music zone + elevation are applied (not inherited-by-accident).
 - [ ] **Cross-check** — verified AGAINST quests/assets/audio/enemies/difficulty/cohesion (PROCESS-RETRO "standing cross-check"), not in isolation.
 
+## E. PROFESSIONAL FEEL — the open-world-but-gated bar (`RPG-FEEL-STANDARD.md`, eyes-on)
+A region/corridor/gate is NOT done unless it delivers the 6 pillars (eyes-on):
+- [ ] **Legible, tantalizing gating** — every gate **reads as its ability** (a grapple-anchor looks
+  grappleable; a bombable wall is cracked; an ice wall is pale-blue; a dark mouth needs the lantern) +
+  a one-line inspect names it. **No invisible/unexplained walls.** (per-ability visual language in the standard.)
+- [ ] **See-it-before-you-reach-it** — ≥1 visible-but-not-yet-reachable tease per region (pays off later).
+- [ ] **Backtrack rewards** — revisiting with a new tool opens ≥1 reward/shortcut/secret; revisiting isn't tedious.
+- [ ] **Soft guidance** — funnelled by sightlines/landmarks/light/terrain (not invisible corridors, not directionless).
+- [ ] **Density with purpose** — no empty dead space; every ~24-tile stretch has a POI/tease/resource/NPC/landmark.
+- [ ] **Moment-to-moment polish** — responsive controls · readable hit/feedback · smooth transitions · ambient life · responsive audio · consistent art.
+
 ## D. HONESTY — the close-out
 - [ ] **Per-item checklist** — every requested item ✅ (with proof) or ❌ (with reason). A dropped/deferred item is ❌, never omitted.
 - [ ] **Deferrals logged** — anything not done is in `DEFERRED.md` with what-unblocks-it + when-to-build.

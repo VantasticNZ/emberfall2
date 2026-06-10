@@ -266,6 +266,17 @@ export class OverworldScene extends Phaser.Scene {
   // with the rockfall colliders + a diegetic "inspect" prompt explaining the key. Once
   // borne, the pass is simply open (no collider) — gating.js declares this; no soft-lock
   // (shard_1 is earned in the ungated Marsh, so the key always precedes the gate).
+  // RPG-FEEL-STANDARD pillar 1 — a gate must READ as its ability (not a generic grey rockfall). Color +
+  // prompt are keyed to the gate's deed so a grapple-gorge ≠ a hookshot-chasm ≠ a rockfall at a glance.
+  // (Bespoke per-ability gate SPRITES — cracked-wall/ice-block/grapple-anchor — are DEFERRED art; tint +
+  // an ability-named inspect deliver the legibility now.)
+  static GATE_LOOK = {
+    tool_grapple:   { tint: 0x9a6a3a, prompt: 'A sheer gorge — a grapple-anchor juts from the far rim',      hint: 'You could line a GRAPPLE onto that anchor and swing across. (Earned in the Peaks.)' },
+    tool_hookshot:  { tint: 0x4a8a9a, prompt: 'A scorched chasm — a hookshot-ring is bolted across it',       hint: 'A HOOKSHOT would catch that ring and pull you over. (Earned at the Coast.)' },
+    tool_lantern:   { tint: 0x2a2a38, prompt: 'A boarded, lightless mouth — pitch dark within',               hint: 'You need a LANTERN to brave that dark. (Earned in the Marsh.)' },
+    tool_firefrost: { tint: 0xaad4ff, prompt: 'A wall of black ice seals the way',                            hint: 'FIREFROST would thaw this ice. (Earned at Ember Hollow.)' },
+    _default:       { tint: 0x8a8f9c, prompt: 'A rockfall bars the road',                                     hint: null },
+  };
   _buildRegionGate(R) {
     const g = R.gate;
     if (this.karma.hasDeed(g.deed)) return;                 // unlocked — pass open
@@ -273,9 +284,11 @@ export class OverworldScene extends Phaser.Scene {
       const rect = this.add.rectangle(c.x, c.y, c.w, c.h, 0x000000, 0).setVisible(false);
       this.physics.add.existing(rect, true); this.solids.add(rect); this._regionObjs.push(rect);
     }
-    const m = this.physics.add.sprite(g.sign.x, g.sign.y, 'prop_rock_crag').setTint(0x8a8f9c);
+    const look = OverworldScene.GATE_LOOK[g.deed] || OverworldScene.GATE_LOOK._default;
+    const m = this.physics.add.sprite(g.sign.x, g.sign.y, 'prop_rock_crag').setTint(look.tint);
+    if (g.deed === 'tool_grapple' || g.deed === 'tool_hookshot') m.setScale(1, 1.4);   // a tall anchor/ring reads as "reach across"
     m.body.enable = false; DepthSort.track(m, 30); this._regionObjs.push(m);
-    Interaction.register({ x: g.sign.x, y: g.sign.y + 8, prompt: 'Inspect the rockfall', onInteract: () => this._startGreeting('', [g.lockedMsg]) });
+    Interaction.register({ x: g.sign.x, y: g.sign.y + 8, prompt: look.prompt, onInteract: () => this._startGreeting('', [look.hint || g.lockedMsg, ...(look.hint ? [g.lockedMsg] : [])]) });
   }
 
   // GREYBOX GRANT — a placeholder reward node (a glowing marker) that records the region's tools/

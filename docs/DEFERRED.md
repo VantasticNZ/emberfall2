@@ -63,6 +63,17 @@ old griddedSettlement town SCENES become orphaned once inline (clean them up).
 | **Spell-route shortcuts** (electric/ice/wind/fire/firefrost interconnections) | ABIL prerequisite | the interconnected web | ABIL→M3 |
 | **cemetery-eerie music** | not sourced | the Lost Cemetery identity (uses mus_marsh for now) | M3/POLISH |
 
+## RPG-FEEL STANDARD — apply the 6 pillars as each region is built (`RPG-FEEL-STANDARD.md`)
+| Item | Status / need | When |
+|---|---|---|
+| **Gate LEGIBILITY (pillar 1)** — gates read as their ability | ✅ **STARTED** — the 4 tool-gates (grapple/hookshot/lantern/firefrost) are now colour-coded + ability-named (`_buildRegionGate` GATE_LOOK); proof: the grapple-gorge reads as a tall brown anchor | done (tint+label) |
+| **Bespoke per-ability gate SPRITES** (cracked-wall=bomb, ice-block=firefrost, grapple-anchor, hookshot-ring, dark-mouth=lantern, cut-brambles) | tint+label deliver legibility now; bespoke art is the finish | per-region / POLISH |
+| **Teases (pillar 2)** placed per region (see-it-before-you-reach-it) | the gating.js TEASES exist; each region needs a *visible* tease built | per-region |
+| **Backtrack rewards (pillar 3)** — a reward on revisit-with-new-tool, per early area | design + place | per-region |
+| **Soft guidance (pillar 4)** — landmarks/sightlines/funnelling per region | apply as built | per-region |
+| **Density-with-purpose (pillar 5)** — every ~24-tile stretch has a POI/tease/resource | extend the density-floor check to *purpose* | per-region |
+| **Ambient life / responsive audio (pillar 6)** | NPC schedules exist; wildlife + per-place audio crossfades to refine | POLISH |
+
 ## POLISH — anytime quality
 | Item | Why deferred | Need | When |
 |---|---|---|---|
