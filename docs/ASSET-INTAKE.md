@@ -1,3 +1,16 @@
+# ASSET INTAKE
+
+## M1 GAP-GRAB — 2026-06-10 (the Ashen Marsh build's only blockers)
+| Gap | Status | Detail |
+|---|---|---|
+| **MARSH-DREAD music** | ✅ **IN HAND + ledgered** | **"Spirits Forest" (loop) by HydroGene** → `public/audio/music/marsh.mp3`. Licence (read the pack readme): *"feel free to use it in any way you want, credits are not mandatory"* — unrestricted, **no NC/ND/no-redistribute/anti-AI** → licence-clean for a public/commercial repo. (mp3 because there's no ffmpeg to transcode to ogg; Phaser loads mp3 — convert to ogg at wire-time if preferred.) Eerie/spirits bed = the Marsh dread mood. *(Note: HydroGene is a custom permissive itch grant, not a named CC licence — flagged transparently; Van can swap for a CC0 OGA bed if he wants a named licence.)* |
+| **FROG sprite** (SA4) | 🟠 **manual** | **Not in Downloads** + not in the library. `lpc-monsters.zip` (has creatures) is **UNKNOWN-licence (no in-pack credit)** → can't use. **Grab:** an OGA CC0/OGA-BY frog — opengameart.org search *"frog"* (e.g. an LPC-style amphibian); read its licence. **Stopgap for the build:** reskin the in-repo `man_eater_flower`/`big_worm` as the Fen creature until the frog lands (the SA4 beat is puzzle-not-fight, so a placeholder reads fine short-term). |
+| **HEN / chicken** (callback) | 🟠 **present but unlicensed-in-place** | The chicken sprites **are already in your Downloads** — `chicken.png` (96×128), `chicken_walk.png` (128×128), `chicken_eat.png`, `chicken_shadow.png` = the **LPC Chicken Rework** (bluecarrot16; the OGA page is **OGA-BY 3.0 / CC-BY-SA 3.0 / GPL**). They came as **loose PNGs with no bundled licence file** → UNKNOWN-in-place (HARD RULE 3: don't commit un-evidenced). **To use:** confirm the OGA source page (opengameart.org → "LPC Chicken Rework") so we have the licence on record, then they wire straight in. |
+**Net:** the Marsh build's **only hard blocker (the dread bed) is closed**; the frog + hen are tiny
+follow-ups (frog: source/placeholder; hen: confirm the OGA page for the files already downloaded).
+
+---
+
 # ASSET INTAKE — 2026-06-09 (Van's LPC download batch)
 
 > Van downloaded a **large LPC haul (~98 archives)** — and notably it includes the exact
