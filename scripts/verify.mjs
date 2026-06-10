@@ -423,6 +423,16 @@ const tile = (px) => Math.round(px / TILE);
   const boardOnly = settlements.filter((s) => !owTargets.has(s.key));
   if (mislinks.length) fail('DESIGNED-VS-BUILT: door(s) link a region that does not exist (mislink):\n' + mislinks.map((m) => '      ' + m).join('\n'));
   else ok(`designed-vs-built: ${settlements.length} settlements built — ${onWorld.length} on the walkable overworld (${onWorld.join(', ') || 'none'}); ${boardOnly.length} still board/scene-only (must be relocated per DEFERRED.md)`);
+
+  // 17) NO-OVERLAPPING-SCENES — each enterable scene (settlement/interior) is a SEPARATE area; if two
+  //     overlap, regionAt picks ONE → walking into one entrance lands you in the other (the thornwell→
+  //     stonereach bug). Assert no two enterable scenes' bounds overlap. (Runtime-defended: door entry.)
+  const scenes = REGIONS.filter((r) => r.settlement || r.interior);
+  const ov = (a, b) => a.bounds.x < b.bounds.x + b.bounds.w && a.bounds.x + a.bounds.w > b.bounds.x && a.bounds.y < b.bounds.y + b.bounds.h && a.bounds.y + a.bounds.h > b.bounds.y;
+  const clashes = [];
+  for (let i = 0; i < scenes.length; i++) for (let j = i + 1; j < scenes.length; j++) if (ov(scenes[i], scenes[j])) clashes.push(`${scenes[i].key} ∩ ${scenes[j].key}`);
+  if (clashes.length) fail('NO-OVERLAPPING-SCENES: enterable scenes overlap → an entrance lands you in the WRONG area:\n' + clashes.map((c) => '      ' + c).join('\n'));
+  else ok(`no-overlapping-scenes: all ${scenes.length} enterable scenes (settlements + interiors) occupy distinct bounds — no wrong-area entry`);
 }
 
 // --- summary ------------------------------------------------------------------

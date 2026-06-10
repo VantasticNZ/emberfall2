@@ -402,6 +402,11 @@ export const SUNDERED_PEAKS = {
     { via: 'push', key: 'prop_rock_small', x: pkx(24) + TILE / 2, y: pky(36) + TILE / 2, id: 'peaks_block', solid: true, prompt: 'Push the stone' },
     // cuttable bushes are now CLASS-driven (the sword swing cuts ANY bush in EVERY region — the
     // Peaks scatter + GH hedges are all cuttable); no per-placement via:'cut' needed.
+    // CONNECTED-OVERWORLD ENTRANCES (Van's N layout) — walk N into the Peaks → the settlements at their
+    // map positions (Stonereach N-centre · Cragfoot W · Cinder Keep NE). Reuse the built town content.
+    { via: 'door', key: 'prop_door', solid: false, x: 311 * TILE + TILE / 2, y: 231 * TILE + TILE / 2, to: 'town_stonereach', prompt: 'Enter Stonereach' },
+    { via: 'door', key: 'prop_door', solid: false, x: 295 * TILE + TILE / 2, y: 231 * TILE + TILE / 2, to: 'vil_cragfoot', prompt: 'Enter Cragfoot' },
+    { via: 'door', key: 'prop_door', solid: false, x: 325 * TILE + TILE / 2, y: 225 * TILE + TILE / 2, to: 'dgn_keep', prompt: 'Cinder Keep' },
   ],
   combat: {
     enabled: true,
@@ -601,6 +606,17 @@ export const EMBERWOOD = greyboxRegion({
   ],
   grant: { tx: 18, ty: 23, deeds: ['tool_firefrost', 'shard_4'], label: 'Ember Hollow yields the FIREFROST tool + Shard IV.' },
 });
+
+// CONNECTED-OVERWORLD ENTRANCES (Van's E + S layout) — greyboxRegion doesn't take interactables, so
+// attach them here (walkable spine tiles, reusing the built town content). Coast (E): Saltbreak harbour
+// + Cribbins Cove. Emberwood (S): Thornwell (fever-grove spur). Doors are walk-in; on the connected world.
+TIDEWRECK_COAST.interactables = [
+  { via: 'door', key: 'prop_door', solid: false, x: 352 * TILE + TILE / 2, y: 294 * TILE + TILE / 2, to: 'city_saltbreak', prompt: 'Enter Saltbreak' },
+  { via: 'door', key: 'prop_door', solid: false, x: 355 * TILE + TILE / 2, y: 305 * TILE + TILE / 2, to: 'vil_cribbins', prompt: 'Enter Cribbins Cove' },
+];
+EMBERWOOD.interactables = [
+  { via: 'door', key: 'prop_door', solid: false, x: 317 * TILE + TILE / 2, y: 343 * TILE + TILE / 2, to: 'vil_thornwell', prompt: 'Enter Thornwell' },
+];
 
 // --- HOLLOW SPIRE (N of the Peaks; seam Peaks.N tile 218; firefrost+4-shard ascent) ----------
 export const HOLLOW_SPIRE = greyboxRegion({
@@ -838,11 +854,14 @@ export const FENWICK_HOME = interiorRegion({
 });
 export const VILLAGE_2 = village('vil_cribbins', 'Cribbins Cove', 504, 446, 0x4a90cf);
 export const VILLAGE_3 = village('vil_cragfoot', 'Cragfoot', 528, 446, 0x93a0b8);
-export const VILLAGE_4 = village('vil_oasis', 'Mirage Oasis', 400, 466, 0xd4ad6a);
-export const VILLAGE_5 = village('vil_thornwell', 'Thornwell', 424, 466, 0x4a8a40);
-export const DUNGEON_SHRINE = griddedSettlement({ key: 'dgn_shrine', label: 'Sunken Shrine (dungeon)', otx: 450, oty: 466, W: 24, H: 18, pitch: 6, street: 2, mapColor: 0x3a4a4a,
+// oty 480 (was 466) — clears the oty446 town row (Stonereach/Mirefen are 26-28 tall and bled down to
+// y472-474, overlapping these scenes → entering one landed you in the other). Far-band scenes must not
+// overlap (each is a separate enterable area; regionAt picks ONE).
+export const VILLAGE_4 = village('vil_oasis', 'Mirage Oasis', 400, 480, 0xd4ad6a);
+export const VILLAGE_5 = village('vil_thornwell', 'Thornwell', 424, 480, 0x4a8a40);
+export const DUNGEON_SHRINE = griddedSettlement({ key: 'dgn_shrine', label: 'Sunken Shrine (dungeon)', otx: 450, oty: 480, W: 24, H: 18, pitch: 6, street: 2, mapColor: 0x3a4a4a,
   doors: [{ tx: 1, ty: 1, to: 'back', label: 'Leave the shrine' }], chests: [{ tx: 12, ty: 12, id: 'shrine_shard', gold: 45 }] });
-export const DUNGEON_KEEP = griddedSettlement({ key: 'dgn_keep', label: 'Cinder Keep (dungeon)', otx: 476, oty: 466, W: 24, H: 18, pitch: 6, street: 2, mapColor: 0x4a4040,
+export const DUNGEON_KEEP = griddedSettlement({ key: 'dgn_keep', label: 'Cinder Keep (dungeon)', otx: 476, oty: 480, W: 24, H: 18, pitch: 6, street: 2, mapColor: 0x4a4040,
   doors: [{ tx: 1, ty: 1, to: 'back', label: 'Leave the keep' }], chests: [{ tx: 12, ty: 12, id: 'keep_shard', gold: 48 }] });
 export const WORLD_LAYOUT = [CITY_SALTBREAK, TOWN_STONEREACH, TOWN_MIREFEN, VILLAGE_1, VILLAGE_2, VILLAGE_3, VILLAGE_4, VILLAGE_5, DUNGEON_SHRINE, DUNGEON_KEEP];
 

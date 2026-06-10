@@ -28,10 +28,12 @@
 ## M2 — replicate the 6-region spine
 | Item | Why deferred | Unblocks/Need | When |
 |---|---|---|---|
-| **Relocate Peaks settlements to the overworld** (Stonereach, Cragfoot, High Pass, Cinder Keep) at Van's N positions | connected-overworld pass 1 did the WEST only | one connected world (N) | M2 |
-| **Relocate Coast settlements** (Saltbreak, Cribbins, Lighthouse, Drowned Vault) at E positions | as above | connected world (E) | M2 |
-| **Relocate Emberwood settlements** (Caught, Weeping, Ember Hollow) at S positions | as above | connected world (S) | M2 |
-| **Relocate Spire** (Oracle Capital, Hollow Spire) at far-N positions | as above + 24×24 (below) | the finale region | M2/M3 |
+| ~~Relocate Peaks settlements (Stonereach, Cragfoot, Cinder Keep)~~ | ✅ **DONE pass 2** — overworld entrances in the Peaks (N), all enter correctly | — | done |
+| ~~Relocate Coast settlements (Saltbreak, Cribbins)~~ | ✅ **DONE pass 2** — entrances in the Coast (E) | — | done |
+| ~~Relocate Emberwood (Thornwell)~~ | ✅ **DONE pass 2** — entrance in Emberwood (S) | — | done |
+| **Relocate the rest** (High Pass, Lighthouse, Drowned Vault, Caught, Weeping, Ember Hollow — landmarks/dungeons/the S town) at their positions | pass 2 did the 6 board-only SETTLEMENTS; the landmark/dungeon NODES + Caught town still need overworld entrances | full N/E/S/finale connectivity | M2 |
+| **Relocate Spire** (Oracle Capital, Hollow Spire) at far-N positions | needs the 24×24 expansion (below) | the finale region | M2/M3 |
+| **Mirage Oasis (vil_oasis)** — the only remaining board-only settlement (gate #16: 1/11) | no DESERT overworld region exists yet (it's far-SE expansion) | a desert region (M3 expansion) | M3 |
 | **Overworld town SILHOUETTES** (solid building clusters at each town site) | collision-gate complexity; signpost+door for now | towns read as places on the world | M2 |
 | **Music beds: storm-surf (Coast), sacral (Capital/Spire), fire-frost (Emberwood), dungeon-tension** | not sourced (CC0 from Van's RPG-music zip) | per-region audio identity | M2 (per region) |
 | **Boss reskins** (Drowned Guardian/Keep Sentinel/Tideward/Feverheart/Warden as LPC humanoids) | bespoke art deferred | the named bosses | M2 |
