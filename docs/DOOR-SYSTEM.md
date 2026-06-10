@@ -36,6 +36,17 @@
   locked door behaves identically (the choice is generated, not per-door). FLAG: KNOCK answering (an NPC
   opens) + the guard/alarm spawn are stubs (flavor beat only) — deepen in the social pass.
 
+## 2.5 INTERIOR ISOLATION + TRIGGER-ON-VISIBLE-DOOR (BUILT)
+- **Interior isolation:** when `_inInterior`, `_maybeToggleRegion` loads **only the active interior** (its
+  bounds) — never neighbouring interiors. The interiors share a far-band, so proximity-streaming would
+  otherwise render several rooms in the black at once. Result: inside a building you see ONLY its room,
+  pure void around. (Eyes-on: `interior-isolated.png`.)
+- **Trigger on the VISIBLE door:** the carve centres the doorway on the collider, but some sprite art has
+  its painted door off-centre (the paneled house's porch is on the right). A per-sprite **`DOOR_OFFSET`**
+  shifts the doorway tile + threshold + trigger onto the painted door → you enter dead-centre through the
+  opening you can SEE (`chapel-aligned-porch.png`). The threshold-clear also clears the **approach tile**
+  in front of the door, so a neighbour's mass can't make a building un-reachable.
+
 ## 3. INTERIOR EXIT doors (BUILT)
 - Embedded in the interior **wall**, **inset** (the `doorWallOffset` pushes the door sprite into the wall,
   not free-standing mid-floor); **walk INTO it to leave** (`to:'back'`, the return-stack). Kept as-is.

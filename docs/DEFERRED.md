@@ -98,7 +98,8 @@ Van's map exactly — then roll the same to every corridor.
 | PICK (a lockpick item) as an alternative to FORCE on a LOCKED door | not built (no lockpick item yet) | feature pass |
 | **Other regions' building doorways** roll out the same carve | ✅ DONE — uniform across GH/Marsh/Peaks (every building enterable via generic interiors + the carve) | done |
 | Coast + Emberwood inline buildings enterable | no inline building props there yet (marker-entered settlements) — comes with the inline-town conversion | per-region |
-| Bespoke interiors per building (generics are shared → repeat look) | every building enters a generic house/forge interior now | POLISH |
+| **Varied generic interiors** (many houses open the SAME room) | rotate the default among a SET of 3–5 distinct generic layouts (by a position hash) so it's not identical every time; + bespoke interiors for key buildings | POLISH (next) |
+| **Re-home the GENERATED dungeon/cave dev-warps** (removed from GH plaza) | place __gendungeon/__gencave at a proper Peaks/Marsh cliff cave-mouth (they were dev test-entrances dumped in the starting town) | per-region |
 | Findable house-KEY item (the USE-KEY door option is wired) | no key item/placement yet; door.key + inv.has() wiring is in place | feature pass |
 | Lock glyph more prominent (6×7px now) + threshold depth polish | functional but small | POLISH |
 

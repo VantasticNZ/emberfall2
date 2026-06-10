@@ -65,9 +65,11 @@ export const GREENHOLLOW = {
     // prop (`door:'<interior>'` in world.js) → the DOOR-SYSTEM carves an inset doorway you walk INTO; no
     // separate door interactable here. Only the CAVE / generator entrances (terrain, no building) remain —
     // rendered as a rock cave-mouth MARKER (not a floating door).
-    { via: 'door', key: 'prop_door', marker: 'prop_rock_crag', tint: 0x5a5650, solid: false, x: gx(38) + TILE / 2, y: gy(20) + TILE / 2, to: 'cave_f1', prompt: 'Enter the cave' },
-    { via: 'door', key: 'prop_door', marker: 'prop_rock_crag', tint: 0x55504a, solid: false, x: gx(33) + TILE / 2, y: gy(20) + TILE / 2, to: '__gendungeon', prompt: 'Enter a GENERATED dungeon' },
-    { via: 'door', key: 'prop_door', marker: 'prop_rock_crag', tint: 0x5a5650, solid: false, x: gx(28) + TILE / 2, y: gy(20) + TILE / 2, to: '__gencave', prompt: 'Enter a GENERATED cave' },
+    // The CAVE-MOUTH is relocated OUT of the village streets to the NORTH wilds edge (a cave in the hills
+    // above town), reading as a cave entrance against the treeline — NOT a rock dumped in the plaza. The
+    // two GENERATED dungeon/cave dev-warps are REMOVED from Greenhollow entirely (they belong in the wilds,
+    // not the starting town — DEFERRED: re-home them at a Peaks/Marsh cliff). GH's streets carry no dungeon rocks.
+    { via: 'door', key: 'prop_door', marker: 'prop_rock_crag', tint: 0x5a5650, solid: false, x: gx(37) + TILE / 2, y: gy(4) + TILE / 2, to: 'cave_f1', prompt: 'Enter the cave' },
     // The old WORLD-LAYOUT notice-board is RETIRED, and its last orphan (the Mirage Oasis fast-travel
     // door floating on the south meadow) is now REMOVED — there must be ZERO free-standing doors on open
     // ground (the no-floating-doors gate). Oasis returns when it gets a desert region (DEFERRED M3).

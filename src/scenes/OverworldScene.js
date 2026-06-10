@@ -150,11 +150,17 @@ export class OverworldScene extends Phaser.Scene {
   // combat / interaction decisions; `_activeRegions` = the full loaded set (visuals +
   // NPCs + combat). On any change to that set, rebuild (cheap; only at border crossings).
   _maybeToggleRegion(immediate = false) {
-    const inRange = REGIONS.filter((R) => {
+    let inRange = REGIONS.filter((R) => {
       const b = R.bounds;
       const cx = Math.max(b.x, Math.min(this.player.x, b.x + b.w)), cy = Math.max(b.y, Math.min(this.player.y, b.y + b.h));
       return Math.hypot(this.player.x - cx, this.player.y - cy) < CHUNK_PX;
     });
+    // INTERIOR ISOLATION — inside a building, render ONLY the active interior (its bounds). The interiors
+    // share a far-band, so proximity would stream several at once → you'd SEE other rooms in the black.
+    if (this._inInterior) {
+      const here = REGIONS.find((R) => R.interior && this.player.x >= R.bounds.x && this.player.x < R.bounds.x + R.bounds.w && this.player.y >= R.bounds.y && this.player.y < R.bounds.y + R.bounds.h);
+      inRange = here ? [here] : inRange.filter((R) => R.interior);
+    }
     const cur = this._activeRegions || [];
     const same = inRange.length === cur.length && inRange.every((R) => cur.includes(R));
     if (!same) { this._unloadAllRegions(); this._loadRegions(inRange); this._wipe(); this._restream(true); }
@@ -213,7 +219,8 @@ export class OverworldScene extends Phaser.Scene {
           // ONE clean walkable TILE (the only gap, carrying the trigger); the solid base-band is split into
           // TILE-ALIGNED left + right rects around it. Identical on every building → consistent entry, no
           // sub-tile sliver to snag on. Walk UP INTO the threshold tile to enter.
-          const dCol = Math.round((ccx - TILE / 2) / TILE), dRow = Math.round((ccy - TILE / 2) / TILE);
+          const doff = OverworldScene.DOOR_OFFSET[p.key] || { dx: 0, dy: 0 };   // shift the doorway onto the sprite's VISIBLE painted door
+          const dCol = Math.round((ccx - TILE / 2) / TILE) + doff.dx, dRow = Math.round((ccy - TILE / 2) / TILE) + doff.dy;
           const bandL = ccx - cw / 2, bandR = ccx + cw / 2, gapL = dCol * TILE, gapR = (dCol + 1) * TILE;
           const mkSolid = (x0, x1) => { if (x1 - x0 < 4) return; const r = this.add.rectangle((x0 + x1) / 2, ccy, x1 - x0, ch, 0x000000, 0).setVisible(false); this.physics.add.existing(r, true); this.solids.add(r); this._regionObjs.push(r); };
           mkSolid(bandL, gapL); mkSolid(gapR, bandR);                       // tile-aligned solids flanking the doorway tile
@@ -294,6 +301,10 @@ export class OverworldScene extends Phaser.Scene {
   // prompt are keyed to the gate's deed so a grapple-gorge ≠ a hookshot-chasm ≠ a rockfall at a glance.
   // (Bespoke per-ability gate SPRITES — cracked-wall/ice-block/grapple-anchor — are DEFERRED art; tint +
   // an ability-named inspect deliver the legibility now.)
+  // DOOR-SYSTEM — per-SPRITE doorway offset (tiles): some building art has its painted door OFF-CENTRE
+  // (the paneled house's porch is on the RIGHT). The carve shifts the doorway tile + threshold + trigger
+  // to sit on the VISIBLE door, so you enter dead-centre through the opening you can see (chapel bug).
+  static DOOR_OFFSET = { prop_house_paneled: { dx: 1, dy: 0 } };
   static GATE_LOOK = {
     tool_grapple:   { tint: 0x9a6a3a, prompt: 'A sheer gorge — a grapple-anchor juts from the far rim',      hint: 'You could line a GRAPPLE onto that anchor and swing across. (Earned in the Peaks.)' },
     tool_hookshot:  { tint: 0x4a8a9a, prompt: 'A scorched chasm — a hookshot-ring is bolted across it',       hint: 'A HOOKSHOT would catch that ring and pull you over. (Earned at the Coast.)' },
@@ -920,10 +931,14 @@ export class OverworldScene extends Phaser.Scene {
   // a doorway-tile centre. The building's own flanking side-rects don't cover the centre, so they survive.
   _clearDoorwayThresholds() {
     for (const d of (this._buildingDoors || [])) {
-      for (const o of this.solids.getChildren()) {
-        const b = o.body; if (!b || b.physicsType !== 1) continue;
-        if (d.dcx >= b.center.x - b.halfWidth && d.dcx <= b.center.x + b.halfWidth && d.dcy >= b.center.y - b.halfHeight && d.dcy <= b.center.y + b.halfHeight) {
-          b.enable = false; if (o.setVisible) o.setVisible(false);
+      // clear the doorway tile AND the APPROACH tile in front of it (so you can WALK UP to the door —
+      // a neighbour/scattered prop blocking the approach made some buildings un-reachable from the front).
+      for (const [tx, ty] of [[d.dcx, d.dcy], [d.dcx, d.dcy + TILE]]) {
+        for (const o of this.solids.getChildren()) {
+          const b = o.body; if (!b || b.physicsType !== 1) continue;
+          if (tx >= b.center.x - b.halfWidth && tx <= b.center.x + b.halfWidth && ty >= b.center.y - b.halfHeight && ty <= b.center.y + b.halfHeight) {
+            b.enable = false; if (o.setVisible) o.setVisible(false);
+          }
         }
       }
     }
