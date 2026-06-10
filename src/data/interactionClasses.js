@@ -44,6 +44,7 @@ export const IX_CLASS = {
   // cemetery markers (solid scenery)
   prop_grave_headstone: { solid: true }, prop_grave_cross: { solid: true }, prop_grave_woodcross: { solid: true },
   prop_grave_open: { solid: true }, prop_grave_large: { solid: true },
+  prop_door: { solid: false },  // a walk-through doorway marker (entrance/exit) — non-solid, the walk-trigger handles it
   prop_sign: { solid: false, readable: true },  // a sign/waypost/notice board — press-E to READ its `text`
 
   // --- SPEC'd-but-GAP assets (Van's table; art not in repo — class DEFINED + ready) --

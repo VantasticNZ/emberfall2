@@ -173,6 +173,10 @@ export const PROPS = {
   prop_grave_open:      { src: 'art/furniture/grave_open.png',      width: 64, height: 96, footprint: null }, // a freshly-dug open grave
   prop_grave_large:     { src: 'art/furniture/grave_large.png',     width: 96, height: 96, footprint: null }, // a large ornate headstone (the founder's grave)
 
+  // DOORWAY marker (original pixel art, CC0/ours) — the walk-through entrance/exit sprite (replaces the
+  // prop_sign door-markers so a door reads as a DOOR, not a sign). Non-solid: you walk ONTO it to enter.
+  prop_door:      { src: 'art/furniture/door.png',      width: 32, height: 44,  footprint: null },
+
   // ROCK / CLIFF props (ElizaWy eliza-terrain crops, OGA-BY 3.0) — the Sundered Peaks
   // mountain mass: a tall cliff face frames routes + the riven cleft; boulders/scree
   // give rocky density. Solid at the base; y-sort like tall props. (FLAG: snow-cap +

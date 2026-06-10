@@ -62,29 +62,29 @@ export const GREENHOLLOW = {
       lockedLine: "The cave mouth is boarded and black inside. A plank hangs loose — but it's far too dark to go further without a light.",
       lines: ["You squeeze the lantern through the loose plank. Inside it's cold and far too quiet — and there, scratched deep into the stone: a flame, weeping, tears running down the rock. The first seed of the god's truth. You understood nothing as a child. You understand more now."] },
     // PHASE-0 interior doors (the area-transition test): enter buildings/caves → separate interiors.
-    { via: 'door', key: 'prop_sign', solid: false, x: gx(33) + TILE / 2, y: gy(15) + TILE / 2, to: 'tankard_f1', prompt: 'Enter the Copper Tankard' },
-    { via: 'door', key: 'prop_sign', solid: false, x: gx(38) + TILE / 2, y: gy(20) + TILE / 2, to: 'cave_f1', prompt: 'Enter the cave' },
+    { via: 'door', key: 'prop_door', solid: false, x: gx(33) + TILE / 2, y: gy(15) + TILE / 2, to: 'tankard_f1', prompt: 'Enter the Copper Tankard' },
+    { via: 'door', key: 'prop_door', solid: false, x: gx(38) + TILE / 2, y: gy(20) + TILE / 2, to: 'cave_f1', prompt: 'Enter the cave' },
     // PHASE-1 generator doors (re-roll a fresh, navGate-validated dungeon/cave on each entry)
-    { via: 'door', key: 'prop_sign', solid: false, x: gx(33) + TILE / 2, y: gy(20) + TILE / 2, to: '__gendungeon', prompt: 'Enter a GENERATED dungeon' },
-    { via: 'door', key: 'prop_sign', solid: false, x: gx(28) + TILE / 2, y: gy(20) + TILE / 2, to: '__gencave', prompt: 'Enter a GENERATED cave' },
+    { via: 'door', key: 'prop_door', solid: false, x: gx(33) + TILE / 2, y: gy(20) + TILE / 2, to: '__gendungeon', prompt: 'Enter a GENERATED dungeon' },
+    { via: 'door', key: 'prop_door', solid: false, x: gx(28) + TILE / 2, y: gy(20) + TILE / 2, to: '__gencave', prompt: 'Enter a GENERATED cave' },
     // PHASE-2 building doors — the town's enterable interiors (front-of-building, walkable tile)
-    { via: 'door', key: 'prop_sign', solid: false, x: gx(10) + TILE / 2, y: gy(26) + TILE / 2, to: 'gh_forge', prompt: "Enter Hodge's forge" },
-    { via: 'door', key: 'prop_sign', solid: false, x: gx(13) + TILE / 2, y: gy(17) + TILE / 2, to: 'gh_store', prompt: "Enter Pem's store" },
-    { via: 'door', key: 'prop_sign', solid: false, x: gx(19) + TILE / 2, y: gy(15) + TILE / 2, to: 'gh_chapel', prompt: 'Enter the chapel' },   // FIX: was gy(11) — buried under the 5×5 chapel; now the walkable front step
-    { via: 'door', key: 'prop_sign', solid: false, x: gx(34) + TILE / 2, y: gy(28) + TILE / 2, to: 'gh_home1', prompt: 'Enter the cottage' },
-    { via: 'door', key: 'prop_sign', solid: false, x: gx(41) + TILE / 2, y: gy(31) + TILE / 2, to: 'gh_home2', prompt: 'Enter the cottage' },
+    { via: 'door', key: 'prop_door', solid: false, x: gx(10) + TILE / 2, y: gy(26) + TILE / 2, to: 'gh_forge', prompt: "Enter Hodge's forge" },
+    { via: 'door', key: 'prop_door', solid: false, x: gx(13) + TILE / 2, y: gy(17) + TILE / 2, to: 'gh_store', prompt: "Enter Pem's store" },
+    { via: 'door', key: 'prop_door', solid: false, x: gx(19) + TILE / 2, y: gy(15) + TILE / 2, to: 'gh_chapel', prompt: 'Enter the chapel' },   // FIX: was gy(11) — buried under the 5×5 chapel; now the walkable front step
+    { via: 'door', key: 'prop_door', solid: false, x: gx(34) + TILE / 2, y: gy(28) + TILE / 2, to: 'gh_home1', prompt: 'Enter the cottage' },
+    { via: 'door', key: 'prop_door', solid: false, x: gx(41) + TILE / 2, y: gy(31) + TILE / 2, to: 'gh_home2', prompt: 'Enter the cottage' },
     // WORLD-LAYOUT board (the halved-scope world — content-sized greybox places, walk each to approve)
-    { via: 'door', key: 'prop_sign', solid: false, x: gx(7) + TILE / 2, y: gy(37) + TILE / 2, to: 'city_saltbreak', prompt: '→ SALTBREAK (the city)' },
-    { via: 'door', key: 'prop_sign', solid: false, x: gx(11) + TILE / 2, y: gy(37) + TILE / 2, to: 'town_stonereach', prompt: '→ Stonereach (town)' },
-    { via: 'door', key: 'prop_sign', solid: false, x: gx(15) + TILE / 2, y: gy(37) + TILE / 2, to: 'town_mirefen', prompt: '→ Mirefen (town)' },
-    { via: 'door', key: 'prop_sign', solid: false, x: gx(19) + TILE / 2, y: gy(37) + TILE / 2, to: 'vil_fenwick', prompt: '→ Fenwick (village)' },
-    { via: 'door', key: 'prop_sign', solid: false, x: gx(17) + TILE / 2, y: gy(37) + TILE / 2, to: 'lost_cemetery', prompt: '→ The Lost Cemetery' },
-    { via: 'door', key: 'prop_sign', solid: false, x: gx(23) + TILE / 2, y: gy(37) + TILE / 2, to: 'vil_cribbins', prompt: '→ Cribbins Cove (village)' },
-    { via: 'door', key: 'prop_sign', solid: false, x: gx(27) + TILE / 2, y: gy(37) + TILE / 2, to: 'vil_cragfoot', prompt: '→ Cragfoot (village)' },
-    { via: 'door', key: 'prop_sign', solid: false, x: gx(31) + TILE / 2, y: gy(37) + TILE / 2, to: 'vil_oasis', prompt: '→ Mirage Oasis (village)' },
-    { via: 'door', key: 'prop_sign', solid: false, x: gx(35) + TILE / 2, y: gy(37) + TILE / 2, to: 'vil_thornwell', prompt: '→ Thornwell (village)' },
-    { via: 'door', key: 'prop_sign', solid: false, x: gx(39) + TILE / 2, y: gy(37) + TILE / 2, to: 'dgn_shrine', prompt: '→ Sunken Shrine (dungeon)' },
-    { via: 'door', key: 'prop_sign', solid: false, x: gx(43) + TILE / 2, y: gy(37) + TILE / 2, to: 'dgn_keep', prompt: '→ Cinder Keep (dungeon)' },
+    { via: 'door', key: 'prop_door', solid: false, x: gx(7) + TILE / 2, y: gy(37) + TILE / 2, to: 'city_saltbreak', prompt: '→ SALTBREAK (the city)' },
+    { via: 'door', key: 'prop_door', solid: false, x: gx(11) + TILE / 2, y: gy(37) + TILE / 2, to: 'town_stonereach', prompt: '→ Stonereach (town)' },
+    { via: 'door', key: 'prop_door', solid: false, x: gx(15) + TILE / 2, y: gy(37) + TILE / 2, to: 'town_mirefen', prompt: '→ Mirefen (town)' },
+    { via: 'door', key: 'prop_door', solid: false, x: gx(19) + TILE / 2, y: gy(37) + TILE / 2, to: 'vil_fenwick', prompt: '→ Fenwick (village)' },
+    { via: 'door', key: 'prop_door', solid: false, x: gx(17) + TILE / 2, y: gy(37) + TILE / 2, to: 'lost_cemetery', prompt: '→ The Lost Cemetery' },
+    { via: 'door', key: 'prop_door', solid: false, x: gx(23) + TILE / 2, y: gy(37) + TILE / 2, to: 'vil_cribbins', prompt: '→ Cribbins Cove (village)' },
+    { via: 'door', key: 'prop_door', solid: false, x: gx(27) + TILE / 2, y: gy(37) + TILE / 2, to: 'vil_cragfoot', prompt: '→ Cragfoot (village)' },
+    { via: 'door', key: 'prop_door', solid: false, x: gx(31) + TILE / 2, y: gy(37) + TILE / 2, to: 'vil_oasis', prompt: '→ Mirage Oasis (village)' },
+    { via: 'door', key: 'prop_door', solid: false, x: gx(35) + TILE / 2, y: gy(37) + TILE / 2, to: 'vil_thornwell', prompt: '→ Thornwell (village)' },
+    { via: 'door', key: 'prop_door', solid: false, x: gx(39) + TILE / 2, y: gy(37) + TILE / 2, to: 'dgn_shrine', prompt: '→ Sunken Shrine (dungeon)' },
+    { via: 'door', key: 'prop_door', solid: false, x: gx(43) + TILE / 2, y: gy(37) + TILE / 2, to: 'dgn_keep', prompt: '→ Cinder Keep (dungeon)' },
   ],
   // Phase-3 ART (restore discrete-v3 gold standard on the overworld; RESIDENT atlas):
   widthTiles: WORLD.widthTiles, heightTiles: WORLD.heightTiles,
@@ -628,7 +628,7 @@ function interiorRegion(spec) {
     props.push({ key: f.key, x: wx, y: wy + (f.dy || 0), solid: false, scale: f.scale || 1, tint: f.tint });
     if (f.solid) { walkable[f.ty][f.tx] = 0; colliders.push({ x: wx, y: wy, w: TILE, h: TILE }); }
   }
-  const interactables = doors.map((d) => ({ via: 'door', key: 'prop_sign', solid: false, x: ox + d.tx * TILE + TILE / 2, y: oy + d.ty * TILE + TILE / 2, to: d.to, prompt: d.label || 'Go' }));
+  const interactables = doors.map((d) => ({ via: 'door', key: 'prop_door', solid: false, x: ox + d.tx * TILE + TILE / 2, y: oy + d.ty * TILE + TILE / 2, to: d.to, prompt: d.label || 'Go' }));
   const chestData = chests.map((c) => ({ id: c.id, x: ox + c.tx * TILE + TILE / 2, y: oy + c.ty * TILE + TILE / 2, gold: c.gold || 15 }));
   return {
     key, origin: { x: ox, y: oy }, widthTiles: W, heightTiles: H, bounds: { x: ox, y: oy, w: W * TILE, h: H * TILE },
@@ -694,15 +694,15 @@ function griddedSettlement(spec) {
       const w = !wall && onStreet;
       walkable[ty][tx] = w ? 1 : 0;
       const wx = ox + tx * TILE + TILE / 2, wy = oy + ty * TILE + TILE / 2;
-      if (w) floorRects.push([tx, ty, 1, 1]);
-      else { colliders.push({ x: wx, y: wy, w: TILE, h: TILE });
+      if (!wall) floorRects.push([tx, ty, 1, 1]);   // FLOOR the WHOLE interior (continuous ground — the building blocks are floored under the buildings, NOT black void)
+      if (!w) { colliders.push({ x: wx, y: wy, w: TILE, h: TILE });   // every non-walkable tile (walls + blocks) is a solid collider
         if (!dressed && !wall && (tx % pitch) === street && (ty % pitch) === street) props.push({ key: 'prop_sign', x: wx, y: wy, solid: false, scale: 0.5, tint: 0x8a96a8 }); } // greybox footprint marker (only when not dressed)
     }
   }
   // REAL buildings dressed onto the block footprints (visual — the block tiles already collide) + decor.
   for (const b of buildings) props.push({ key: b.key, x: ox + b.tx * TILE + TILE / 2, y: oy + b.ty * TILE + TILE / 2 + (b.dy || 0), solid: false, scale: b.scale || 1, tint: b.tint });
   for (const d of dressing) props.push({ key: d.key, x: ox + d.tx * TILE + TILE / 2, y: oy + d.ty * TILE + TILE / 2 + (d.dy || 0), solid: false, scale: d.scale || 1, tint: d.tint });
-  const interactables = doors.map((d) => ({ via: 'door', key: 'prop_sign', solid: false, x: ox + d.tx * TILE + TILE / 2, y: oy + d.ty * TILE + TILE / 2, to: d.to, prompt: d.label || 'Go' }));
+  const interactables = doors.map((d) => ({ via: 'door', key: 'prop_door', solid: false, x: ox + d.tx * TILE + TILE / 2, y: oy + d.ty * TILE + TILE / 2, to: d.to, prompt: d.label || 'Go' }));
   const chestData = chests.map((c) => ({ id: c.id, x: ox + c.tx * TILE + TILE / 2, y: oy + c.ty * TILE + TILE / 2, gold: c.gold || 20 }));
   const sp = spawnTile || { tx: 1, ty: 1 };
   return {
