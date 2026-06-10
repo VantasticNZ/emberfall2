@@ -23,6 +23,21 @@ remove the enter-door; add to gate #19 `SEAMLESS_DONE`; make the town a no-aggro
 + eyes-on walk-through.* **Polish:** widen the inline streets (Mirefen's are navigable but tight); the
 old griddedSettlement town SCENES become orphaned once inline (clean them up).
 
+## GH→MIREFEN CORRIDOR — to-standard (the proven slice; structure remainder deferred)
+The feel-layer is on it (see below); the **structural geometry** is the remaining work to make it match
+Van's map exactly — then roll the same to every corridor.
+| Item | Status | When |
+|---|---|---|
+| Bounded corridor (can't stray, off-path blocked) | ✅ WEST_BELT (276 channel-wall colliders) | done |
+| Mirefen inline (seamless) | ✅ (no enter-door) | done |
+| See-it-before tease + legible sign (islet cache) | ✅ built (corridor-see-it-before-tease) | done |
+| Soft guidance (waystones funnel to Mirefen) + density (reeds/trees/pools/enemies/NPCs) | ✅ built | done |
+| **Routed ZIG-ZAG to the map** (5 bends: 9.5,10.5→9,12→8,10.5→8,12.5→6.5,11) | ❌ belt winds but not the exact bend coords | next |
+| **ELEVATION descent** GH +1 → bog −1 (visible contour/steps) | ❌ not built (no elevation render yet) | next |
+| **TERRAIN-TRANSITION bands** (grass→bog blended, not hard edge) | ❌ not built | next |
+| **Mirefen sized to spec** (44×36 footprint/population) | ❌ inline town is smaller (8 buildings) | next |
+| **Backtrack reach** (dash across to the islet cache) | 🔧 engine-blocked (no dash-leap-over-gap) | ABIL |
+
 ## BLOCKERS / PREREQUISITES (build these to unblock others)
 | Item | Why deferred | Unblocks | When |
 |---|---|---|---|

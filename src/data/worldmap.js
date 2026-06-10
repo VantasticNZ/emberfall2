@@ -125,6 +125,16 @@ export const ASHEN_MARSH = {
     { key: 'prop_house_paneled', x: mx(15) + TILE / 2, y: my(20) + TILE / 2, solid: true, tint: 0x707860, dy: -6 },
     { key: 'prop_barrel', x: mx(7) + TILE / 2, y: my(16) + TILE / 2, solid: true, tint: 0x8a7a6a },
     { key: 'prop_sign', x: mx(9) + TILE / 2, y: my(11) + TILE / 2, solid: true, tint: 0x9a8f6a, text: 'MIREFEN — walk her muddy streets; the moot-hall stands at the square. Elder Yssa keeps the fire.' },
+    // RPG-FEEL §E — DENSITY-WITH-PURPOSE + SOFT GUIDANCE on the GH→Mirefen approach: a waystone landmark
+    // (east) funnels the eye toward the town; reed clumps + a dead snag texture the bog (no dead space).
+    { key: 'prop_sign', x: mx(30) + TILE / 2, y: my(15) + TILE / 2, solid: true, tint: 0x9a8f6a, text: '← MIREFEN, the bog-town. Keep to the reeds; the black water is deep.' },
+    { key: 'prop_tree_pine', x: mx(26) + TILE / 2, y: my(12) + TILE / 2, solid: true, tint: 0x5b6358 },
+    { key: 'prop_bush', x: mx(28) + TILE / 2, y: my(18) + TILE / 2, solid: false, scale: 0.7, tint: 0x6b7560 },
+    { key: 'prop_bush', x: mx(22) + TILE / 2, y: my(16) + TILE / 2, solid: false, scale: 0.7, tint: 0x6b7560 },
+    // SEE-IT-BEFORE (pillar 2) + legible: a strongbox on a reed-islet ACROSS the black water — visible,
+    // not yet reachable; the sign teaches the DASH (backtrack reward once the dash-leap ability lands).
+    { key: 'prop_bush', x: mx(24) + TILE / 2, y: my(8) + TILE / 2, solid: false, scale: 0.8, tint: 0x6b7560 },   // the islet reeds
+    { key: 'prop_sign', x: mx(15) + TILE / 2, y: my(8) + TILE / 2, solid: true, tint: 0x9a8f6a, text: 'A strongbox on a reed-islet, across the black water — too far to step. A running DASH could clear the gap. (Mark it; come back.)' },
   ],
   npcs: [
     ...MARSH.npcs.map((n) => ({
@@ -136,7 +146,10 @@ export const ASHEN_MARSH = {
     { name: 'Fisher Coll', x: mx(12) + TILE / 2, y: my(12) + TILE / 2, facing: 'down', speed: 36, expression: 'neutral', parts: MARSH.base },
     { name: 'Reed-boy Tam', x: mx(7) + TILE / 2, y: my(18) + TILE / 2, facing: 'down', speed: 50, expression: 'happy', parts: MARSH.base },
   ],
-  chests: [],
+  chests: [
+    // the SEE-IT-BEFORE reward — a reed-islet strongbox across the east pool (dash-reach later)
+    { id: 'marsh_islet_cache', x: mx(24) + TILE / 2, y: my(9) + TILE / 2, gold: 30 },
+  ],
   // SEAMLESS OVERWORLD (Van option B) — Mirefen is now INLINE terrain (walk through its streets, no door);
   // only Yssa's HUT (a building interior) + the DUNGEONS (Shrine) + the not-yet-converted villages stay as
   // enter-scenes. Mirefen's enter-door is REMOVED (gate #19). Cemetery/Fenwick doors are DEFERRED.
