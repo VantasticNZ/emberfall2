@@ -155,7 +155,7 @@ export class OverworldScene extends Phaser.Scene {
     const same = inRange.length === cur.length && inRange.every((R) => cur.includes(R));
     if (!same) { this._unloadAllRegions(); this._loadRegions(inRange); this._wipe(); this._restream(true); }
     this.region = regionAt(this.player.x, this.player.y);   // primary (or null = belt) — refresh each call
-    this._setAmbient(this.region?.mountain ? 'amb_wind' : 'amb_birds');   // region soundscape (wind in the Peaks, birds in the green)
+    this._setAmbient((this.region?.mountain || this.region?.bog) ? 'amb_wind' : 'amb_birds');   // Peaks/Marsh = a desolate wind (no birds in the bog); green = birds
     this._setMusic(this._musicForRegion(this.region));                    // region music bed (crossfade), layered over ambient
   }
 
@@ -750,7 +750,7 @@ export class OverworldScene extends Phaser.Scene {
   _musicForRegion(R) {
     if (!R) return 'mus_green';                                   // the belt/foothill = the green pastoral
     if (R.mountain) return 'mus_peaks';
-    if (R.key === 'AshenMarsh' || R.marsh) return 'mus_marsh';
+    if (R.key === 'AshenMarsh' || R.marsh || R.bog || R.key === 'Marsh') return 'mus_marsh';
     return 'mus_green';
   }
   _setMusic(key) {

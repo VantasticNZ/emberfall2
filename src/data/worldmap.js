@@ -101,7 +101,7 @@ const MARSH_ORIGIN = { x: (GH_ORIGIN.x / TILE - 10 - M_W) * TILE, y: GH_ORIGIN.y
 const mx = (tx) => MARSH_ORIGIN.x + tx * TILE;
 const my = (ty) => MARSH_ORIGIN.y + ty * TILE;
 const MARSH_OT = { x: MARSH_ORIGIN.x / TILE, y: MARSH_ORIGIN.y / TILE };
-export const BOG_TINT = MARSH.tint.ground;   // 0x8d9a6e — the murky bog ground colour
+export const BOG_TINT = MARSH.tint.ground;   // 0x5a6357 — the eerie murky grey-teal bog ground colour
 
 export const ASHEN_MARSH = {
   key: 'Marsh',

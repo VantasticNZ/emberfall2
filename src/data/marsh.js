@@ -19,7 +19,9 @@ export const MARSH = {
   // bog mood — the scene multiplies these onto the LPC tiles/props (tinting, not
   // new art). FLAG: proper bog tiles (mud, black water, dead trees, stilt
   // boardwalk, Hagga's hut) would replace the tints.
-  tint: { ground: 0x8d9a6e, water: 0x3f5f57, tree: 0x9aa087, decal: 0x9aa882 },
+  // EERIE BOG palette — desaturated murky grey-teal (the Marsh art-direction), colder + darker
+  // than the green woodland so it reads as a sickly mire, not a forest. (was olive 0x8d9a6e.)
+  tint: { ground: 0x5a6357, water: 0x2e433e, tree: 0x666b60, decal: 0x6e7560 },
 
   // reeds + mud, denser than the green (a waterlogged, lived-in mire).
   decals: {
@@ -41,12 +43,25 @@ export const MARSH = {
 
   // dead trees (pines, gray-brown tinted) + the marsh sign. All in the ty10-27 band.
   props: [
+    // dead/gnarled pines, grey-tinted — denser stands so the mire reads as a drowned, dying wood.
     { key: 'prop_tree_pine', tx: 11, ty: 12, solid: true },
     { key: 'prop_tree_pine', tx: 29, ty: 13, solid: true },
     { key: 'prop_tree_pine', tx: 34, ty: 22, solid: true },
     { key: 'prop_tree_pine', tx: 14, ty: 26, solid: true },
     { key: 'prop_tree_pine', tx: 22, ty: 16, solid: true },
     { key: 'prop_tree_oak',  tx: 36, ty: 16, solid: true },
+    { key: 'prop_tree_pine', tx: 9,  ty: 16, solid: true, tint: 0x5b6358 },   // ── thicker dead stands ──
+    { key: 'prop_tree_pine', tx: 13, ty: 9,  solid: true, tint: 0x5b6358 },
+    { key: 'prop_tree_pine', tx: 27, ty: 19, solid: true, tint: 0x5b6358 },
+    { key: 'prop_tree_pine', tx: 31, ty: 25, solid: true, tint: 0x5b6358 },
+    { key: 'prop_tree_pine', tx: 16, ty: 22, solid: true, tint: 0x5b6358 },
+    { key: 'prop_tree_pine', tx: 24, ty: 9,  solid: true, tint: 0x5b6358 },
+    { key: 'prop_tree_pine', tx: 33, ty: 17, solid: true, tint: 0x5b6358 },
+    { key: 'prop_tree_pine', tx: 7,  ty: 24, solid: true, tint: 0x5b6358 },
+    { key: 'prop_bush', tx: 12, ty: 19, solid: false, scale: 0.7, tint: 0x6b7560 },   // reed clumps (grey-green)
+    { key: 'prop_bush', tx: 28, ty: 24, solid: false, scale: 0.7, tint: 0x6b7560 },
+    { key: 'prop_bush', tx: 20, ty: 13, solid: false, scale: 0.7, tint: 0x6b7560 },
+    { key: 'prop_bush', tx: 32, ty: 21, solid: false, scale: 0.7, tint: 0x6b7560 },
     { key: 'prop_sign', tx: 19, ty: 20, solid: true, text: 'ASHEN MARSH — Turn back. The water is black and the ground lies. Those who must go on: keep to the reeds, and do not trust a light that beckons.' },
   ],
 
