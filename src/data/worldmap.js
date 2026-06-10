@@ -681,9 +681,11 @@ export const TEST_CAVE_F2 = interiorRegion({
 // navGate-validated (the street grid connects spawn → exit + every chest). Greybox only — NO art.
 // =============================================================================
 function griddedSettlement(spec) {
-  const { key, otx, oty, W, H, pitch = 7, street = 2, floor = 'dirt', mapColor = 0x3a3a3a, label, doors = [], chests = [] } = spec;
+  const { key, otx, oty, W, H, pitch = 7, street = 2, floor = 'dirt', mapColor = 0x3a3a3a, label, doors = [], chests = [],
+    groundTint = null, buildings = [], npcs = [], dressing = [], spawnTile = null } = spec;
   const ox = otx * TILE, oy = oty * TILE;
   const walkable = [], gated = [], colliders = [], props = [], floorRects = [];
+  const dressed = buildings.length > 0;   // a finished town (real buildings) suppresses the greybox footprint-markers
   for (let ty = 0; ty < H; ty++) {
     walkable[ty] = new Uint8Array(W); gated[ty] = new Uint8Array(W);
     for (let tx = 0; tx < W; tx++) {
@@ -694,17 +696,23 @@ function griddedSettlement(spec) {
       const wx = ox + tx * TILE + TILE / 2, wy = oy + ty * TILE + TILE / 2;
       if (w) floorRects.push([tx, ty, 1, 1]);
       else { colliders.push({ x: wx, y: wy, w: TILE, h: TILE });
-        if (!wall && (tx % pitch) === street && (ty % pitch) === street) props.push({ key: 'prop_sign', x: wx, y: wy, solid: false, scale: 0.5, tint: 0x8a96a8 }); } // a building-footprint marker
+        if (!dressed && !wall && (tx % pitch) === street && (ty % pitch) === street) props.push({ key: 'prop_sign', x: wx, y: wy, solid: false, scale: 0.5, tint: 0x8a96a8 }); } // greybox footprint marker (only when not dressed)
     }
   }
+  // REAL buildings dressed onto the block footprints (visual — the block tiles already collide) + decor.
+  for (const b of buildings) props.push({ key: b.key, x: ox + b.tx * TILE + TILE / 2, y: oy + b.ty * TILE + TILE / 2 + (b.dy || 0), solid: false, scale: b.scale || 1, tint: b.tint });
+  for (const d of dressing) props.push({ key: d.key, x: ox + d.tx * TILE + TILE / 2, y: oy + d.ty * TILE + TILE / 2 + (d.dy || 0), solid: false, scale: d.scale || 1, tint: d.tint });
   const interactables = doors.map((d) => ({ via: 'door', key: 'prop_sign', solid: false, x: ox + d.tx * TILE + TILE / 2, y: oy + d.ty * TILE + TILE / 2, to: d.to, prompt: d.label || 'Go' }));
   const chestData = chests.map((c) => ({ id: c.id, x: ox + c.tx * TILE + TILE / 2, y: oy + c.ty * TILE + TILE / 2, gold: c.gold || 20 }));
+  const sp = spawnTile || { tx: 1, ty: 1 };
   return {
     key, label, origin: { x: ox, y: oy }, widthTiles: W, heightTiles: H, bounds: { x: ox, y: oy, w: W * TILE, h: H * TILE },
-    route: true, interior: true, settlement: true, mapColor,
+    route: true, interior: true, settlement: true, mapColor, groundTint,
     terrain: { patches: [{ set: floor, rects: floorRects }] },
-    colliders, props, npcs: [], chests: chestData, interactables,
-    spawn: { x: ox + 1 * TILE + TILE / 2, y: oy + 1 * TILE + TILE / 2 },
+    colliders, props,
+    npcs: npcs.map((n) => ({ ...n, x: ox + n.tx * TILE + TILE / 2, y: oy + n.ty * TILE + TILE / 2 })),
+    chests: chestData, interactables,
+    spawn: { x: ox + sp.tx * TILE + TILE / 2, y: oy + sp.ty * TILE + TILE / 2 },
     nav: { walkable, gated, W, H },
   };
 }
@@ -716,8 +724,43 @@ export const CITY_SALTBREAK = griddedSettlement({ key: 'city_saltbreak', label: 
   chests: [{ tx: 7, ty: 7, id: 'saltbreak_docks', gold: 40 }, { tx: 28, ty: 14, id: 'saltbreak_market', gold: 35 }, { tx: 49, ty: 28, id: 'saltbreak_mansion', gold: 50 }, { tx: 14, ty: 28, id: 'saltbreak_under', gold: 30 }] });
 export const TOWN_STONEREACH = griddedSettlement({ key: 'town_stonereach', label: 'Stonereach (town)', otx: 400, oty: 446, W: 36, H: 28, pitch: 8, street: 2, mapColor: 0x8a93a8,
   doors: [{ tx: 1, ty: 1, to: 'back', label: 'Leave Stonereach' }], chests: [{ tx: 8, ty: 8, id: 'stonereach_hall', gold: 30 }, { tx: 24, ty: 16, id: 'stonereach_mine', gold: 25 }] });
+const MARSH_FOLK = [
+  ['body_fem', 'head_fem', 'brows_chestnut', 'hair_bob_blonde', 'shirt_leather', 'pants_brown', 'shoes_brown_fem'],   // Hagga-ish
+  ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_chestnut', 'shirt_forest', 'pants_brown', 'shoes_brown'],       // a fisher
+  ['body_fem', 'head_fem', 'brows_chestnut', 'hair_parted_gray', 'shirt_forest', 'pants_brown', 'shoes_brown_fem'],     // a bog-woman
+  ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_chestnut', 'shirt_blue', 'pants_black', 'shoes_brown'],          // a marsh lad
+];
 export const TOWN_MIREFEN = griddedSettlement({ key: 'town_mirefen', label: 'Mirefen (town)', otx: 442, oty: 446, W: 34, H: 26, pitch: 8, street: 2, mapColor: 0x56988c,
-  doors: [{ tx: 1, ty: 1, to: 'back', label: 'Leave Mirefen' }, { tx: 9, ty: 9, to: 'mirefen_hut', label: "Enter Yssa's hut" }], chests: [{ tx: 8, ty: 8, id: 'mirefen_elder', gold: 22 }] });
+  floor: 'dirt', groundTint: 0x7a8470, spawnTile: { tx: 4, ty: 1 },
+  doors: [{ tx: 1, ty: 1, to: 'back', label: 'Leave Mirefen' }, { tx: 9, ty: 9, to: 'mirefen_hut', label: "Enter Yssa's hut" }],
+  // weathered marsh-houses dressed onto the block footprints, bog-grey-green tinted
+  buildings: [
+    { tx: 5, ty: 5, key: 'prop_house_b', tint: 0x7c8470, dy: -6 },
+    { tx: 13, ty: 5, key: 'prop_house_paneled', tint: 0x6e7860, dy: -6 },   // the moot-hall
+    { tx: 21, ty: 5, key: 'prop_house_a', tint: 0x747c68, dy: -8 },
+    { tx: 29, ty: 6, key: 'prop_house_b', tint: 0x6c7458, dy: -6 },
+    { tx: 13, ty: 13, key: 'prop_house_b', tint: 0x788066, dy: -6 },
+    { tx: 21, ty: 13, key: 'prop_house_paneled', tint: 0x707860, dy: -6 },
+    { tx: 29, ty: 13, key: 'prop_house_b', tint: 0x6e7658, dy: -6 },
+    { tx: 13, ty: 21, key: 'prop_house_a', tint: 0x727a66, dy: -8 },
+    { tx: 22, ty: 21, key: 'prop_house_b', tint: 0x6c7458, dy: -6 },
+    { tx: 5, ty: 13, key: 'prop_house_paneled', tint: 0x747e66, dy: -6 },   // fill the bare blocks
+    { tx: 5, ty: 21, key: 'prop_house_b', tint: 0x788066, dy: -6 },
+    { tx: 29, ty: 21, key: 'prop_house_a', tint: 0x6e7660, dy: -8 },
+  ],
+  dressing: [
+    { tx: 28, ty: 17, key: 'prop_tree_pine', tint: 0x5b6358 },
+    { tx: 8, ty: 16, key: 'prop_barrel', tint: 0x8a7a6a }, { tx: 17, ty: 9, key: 'prop_barrel', tint: 0x8a7a6a },
+    { tx: 16, ty: 17, key: 'prop_bush', scale: 0.7, tint: 0x6b7560 }, { tx: 25, ty: 16, key: 'prop_bush', scale: 0.7, tint: 0x6b7560 },
+    { tx: 6, ty: 8, key: 'prop_sign', scale: 0.8, tint: 0x9a8f6a },
+  ],
+  npcs: [
+    { tx: 8, ty: 4, facing: 'down', name: 'Marsh-wife Bett', speed: 40, expression: 'neutral', parts: MARSH_FOLK[2] },
+    { tx: 16, ty: 8, facing: 'down', name: 'Fisher Coll', speed: 40, expression: 'neutral', parts: MARSH_FOLK[1] },
+    { tx: 9, ty: 16, facing: 'right', name: 'Old Mire', speed: 0, expression: 'sad', parts: MARSH_FOLK[0] },
+    { tx: 24, ty: 9, facing: 'down', name: 'Reed-boy Tam', speed: 55, expression: 'happy', parts: MARSH_FOLK[3] },
+  ],
+  chests: [{ tx: 8, ty: 8, id: 'mirefen_elder', gold: 22 }] });
 // A FURNISHED Mirefen home (Elder Yssa's hut) — the proven interiorRegion+furniture pipeline, marsh-themed
 // (weathered, dim). Walk in from the Mirefen street; walk out returns to the town (return-stack).
 const YSSA_HUT = ['body_fem', 'head_fem', 'brows_chestnut', 'hair_parted_gray', 'shirt_forest', 'pants_brown', 'shoes_brown_fem'];
@@ -736,7 +779,39 @@ export const MIREFEN_HUT = interiorRegion({
   chests: [{ tx: 9, ty: 5, id: 'mirefen_hut_chest', gold: 18 }],
 });
 const village = (key, label, otx, oty, color) => griddedSettlement({ key, label, otx, oty, W: 20, H: 16, pitch: 9, street: 2, mapColor: color, doors: [{ tx: 1, ty: 1, to: 'back', label: 'Leave ' + label }], chests: [{ tx: 9, ty: 9, id: key + '_chest', gold: 16 }] });
-export const VILLAGE_1 = village('vil_fenwick', 'Fenwick', 480, 446, 0x6e9a7a);
+// FENWICK — a real small marsh-edge village (dressed). NOTE: its intended entry is the ⚡electric spur
+// (Mirefen↔Fenwick) — DEFERRED to the abilities session; for now it stays reachable via the walk approach
+// from the GH board (the door above) so the place is NOT orphaned. Flag: gate the board-door on electric
+// once that ability exists.
+export const VILLAGE_1 = griddedSettlement({ key: 'vil_fenwick', label: 'Fenwick', otx: 480, oty: 446, W: 20, H: 16, pitch: 9, street: 2, mapColor: 0x6e8a7a,
+  floor: 'dirt', groundTint: 0x7e8872, spawnTile: { tx: 4, ty: 1 },
+  doors: [{ tx: 1, ty: 1, to: 'back', label: 'Leave Fenwick' }, { tx: 5, ty: 10, to: 'fenwick_home', label: 'Enter the cottage' }],
+  buildings: [
+    { tx: 5, ty: 5, key: 'prop_house_b', tint: 0x7e8672, dy: -6 },
+    { tx: 14, ty: 5, key: 'prop_house_paneled', tint: 0x728060, dy: -6 },
+    { tx: 14, ty: 12, key: 'prop_house_b', tint: 0x76806a, dy: -6 },
+    { tx: 5, ty: 12, key: 'prop_house_a', tint: 0x748068, dy: -8 },   // fill the SW block
+  ],
+  dressing: [
+    { tx: 17, ty: 9, key: 'prop_barrel', tint: 0x8a7a6a },
+    { tx: 8, ty: 11, key: 'prop_bush', scale: 0.7, tint: 0x6b7560 }, { tx: 11, ty: 3, key: 'prop_sign', scale: 0.8, tint: 0x9a8f6a },
+  ],
+  npcs: [
+    { tx: 8, ty: 1, facing: 'down', name: 'Fen-warden Pell', speed: 40, expression: 'neutral', parts: MARSH_FOLK[1] },
+    { tx: 10, ty: 9, facing: 'down', name: 'Widow Sedge', speed: 0, expression: 'sad', parts: MARSH_FOLK[2] },
+  ],
+  chests: [{ tx: 9, ty: 9, id: 'vil_fenwick_chest', gold: 16 }] });
+// Fenwick's furnished cottage (proven pipeline)
+export const FENWICK_HOME = interiorRegion({
+  key: 'fenwick_home', otx: 512, oty: 560, W: 10, H: 8, floor: 'dirt', mapColor: 0x3a4640, groundTint: 0x8a9088, spawn: { tx: 5, ty: 6 },
+  doors: [{ tx: 5, ty: 6, to: 'back', label: 'Step outside' }],
+  furniture: [
+    { tx: 1, ty: 1, key: 'prop_bed', solid: true, dy: -2 }, { tx: 8, ty: 1, key: 'prop_fireplace', solid: true, dy: -6 },
+    { tx: 3, ty: 4, key: 'prop_table', solid: true, scale: 0.8 }, { tx: 6, ty: 1, key: 'prop_dresser', solid: true, dy: -6 },
+  ],
+  npcs: [{ tx: 5, ty: 4, facing: 'down', name: 'Fenwick child', speed: 0, expression: 'happy', parts: MARSH_FOLK[3] }],
+  chests: [{ tx: 8, ty: 5, id: 'fenwick_home_chest', gold: 14 }],
+});
 export const VILLAGE_2 = village('vil_cribbins', 'Cribbins Cove', 504, 446, 0x4a90cf);
 export const VILLAGE_3 = village('vil_cragfoot', 'Cragfoot', 528, 446, 0x93a0b8);
 export const VILLAGE_4 = village('vil_oasis', 'Mirage Oasis', 400, 466, 0xd4ad6a);
@@ -839,7 +914,7 @@ export const LOST_CEMETERY = interiorRegion({
   chests: [{ tx: 19, ty: 4, id: 'cemetery_offering', gold: 22 }],
 });
 
-export const INTERIORS = [TANKARD_F1, TANKARD_F2, TEST_CAVE_F1, TEST_CAVE_F2, GH_FORGE, GH_STORE, GH_CHAPEL, GH_HOME1, GH_HOME2, LOST_CEMETERY, MIREFEN_HUT, ...WORLD_LAYOUT];
+export const INTERIORS = [TANKARD_F1, TANKARD_F2, TEST_CAVE_F1, TEST_CAVE_F2, GH_FORGE, GH_STORE, GH_CHAPEL, GH_HOME1, GH_HOME2, LOST_CEMETERY, MIREFEN_HUT, FENWICK_HOME, ...WORLD_LAYOUT];
 
 export const REGIONS = [GREENHOLLOW, ASHEN_MARSH, WEST_BELT, SUNDERED_PEAKS, FOOTHILL_ROUTE, TIDEWRECK_COAST, EMBERWOOD, HOLLOW_SPIRE, ...INTERIORS];
 const inBounds = (b, x, y) => x >= b.x && x < b.x + b.w && y >= b.y && y < b.y + b.h;

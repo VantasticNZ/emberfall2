@@ -6,7 +6,7 @@
 // =============================================================================
 
 import assert from 'node:assert/strict';
-import { TANKARD_F1, TANKARD_F2, TEST_CAVE_F1, TEST_CAVE_F2, GH_FORGE, GH_STORE, GH_CHAPEL, GH_HOME1, GH_HOME2, LOST_CEMETERY, MIREFEN_HUT, WORLD_LAYOUT, TILE } from '../../src/data/worldmap.js';
+import { TANKARD_F1, TANKARD_F2, TEST_CAVE_F1, TEST_CAVE_F2, GH_FORGE, GH_STORE, GH_CHAPEL, GH_HOME1, GH_HOME2, LOST_CEMETERY, MIREFEN_HUT, FENWICK_HOME, WORLD_LAYOUT, TILE } from '../../src/data/worldmap.js';
 import { bodyWalkReachability, noSolidPropOnWalkable } from '../../src/systems/navGates.js';
 
 let n = 0; const pass = (m) => { n++; console.log('  ✓ ' + m); };
@@ -24,6 +24,7 @@ const CASES = [
   { R: GH_HOME2, name: 'Greenhollow — cottage 2', expect: { startTile: [5, 6], reachOpen: [[5, 6], [8, 5], [1, 6]], reachGatedOnlyWithTool: [], blockedMustHold: [[0, 0], [8, 1] /*barrel*/] } },
   { R: LOST_CEMETERY, name: 'The Lost Cemetery', expect: { startTile: [11, 14], reachOpen: [[11, 14] /*gate*/, [19, 4] /*offering chest*/, [11, 12], [15, 12] /*the mourner aisle*/], reachGatedOnlyWithTool: [], blockedMustHold: [[0, 0], [10, 2] /*founder's grave*/] } },
   { R: MIREFEN_HUT, name: "Mirefen — Yssa's hut", expect: { startTile: [5, 7], reachOpen: [[5, 7] /*door*/, [9, 5] /*chest*/, [4, 5]], reachGatedOnlyWithTool: [], blockedMustHold: [[0, 0], [1, 1] /*bed*/] } },
+  { R: FENWICK_HOME, name: 'Fenwick — the cottage', expect: { startTile: [5, 6], reachOpen: [[5, 6] /*door*/, [8, 5] /*chest*/, [4, 4]], reachGatedOnlyWithTool: [], blockedMustHold: [[0, 0], [1, 1] /*bed*/] } },
 ];
 
 for (const { R, name, expect } of CASES) {

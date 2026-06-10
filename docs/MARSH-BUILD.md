@@ -1,3 +1,27 @@
+# ASHEN MARSH — build report (Milestone 1, step 2 + 2b + 2c)
+
+## STEP 2c (2026-06-10) — Mirefen + Fenwick: greybox grids → real furnished marsh-towns
+**Done + eyes-on (0 errors, 154 fps, 22 navGate suites + 14 gates GREEN):**
+- ✅ **Engine (write-once):** extended `griddedSettlement` to accept **`buildings` · `npcs` · `dressing`
+  · `groundTint` · `spawnTile`** — so a greybox street-grid becomes a dressed, populated town (real
+  building sprites on the block footprints, forge NPCs on the streets, an eerie floor tint; the greybox
+  footprint-markers auto-suppress once `buildings` are given). Reusable for every settlement.
+- ✅ **MIREFEN** — **12 weathered marsh-houses** (bog-grey-green tinted) along the streets + **4 forge
+  NPCs** (Marsh-wife Bett, Fisher Coll, Old Mire, Reed-boy Tam) + dead pines/barrels/reeds + the eerie
+  `groundTint` + **Yssa's Hut** (furnished, Elder Yssa). The town core reads as a real weathered marsh-
+  town (`mirefen-closeup.png`). (`mirefen-before.png` was the pure greybox grid.)
+- ✅ **FENWICK** — **4 houses** + **2 NPCs** (Fen-warden Pell, Widow Sedge) + dressing + eerie tint +
+  **a furnished cottage** (bed/hearth/table/dresser + a child NPC, `fenwick-cottage-interior.png`).
+  ⚑ Its intended **⚡electric-spur** entry stays **deferred** (abilities session) — Fenwick is kept
+  reachable via the walk approach (the GH board door) so it is **not orphaned**; flag: gate that door on
+  electric once the ability exists.
+**🟡 Honest:** both towns now have **real dressed cores** (buildings + NPCs + furnished interiors +
+tint), but coverage is **not perfectly uniform** — some **bare greybox blocks remain at the grid edges**
+(a density-polish pass: add buildings/yards to the empty blocks). The cores read as real towns; the
+wide-grid is partially filled.
+
+---
+
 # ASHEN MARSH — build report (Milestone 1, step 2 + 2b)
 
 ## STEP 2b (2026-06-10) — the Lost Cemetery (FINISHED) + a furnished Mirefen interior
