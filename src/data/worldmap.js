@@ -946,6 +946,28 @@ export const GH_HOME2 = interiorRegion({
   chests: [{ tx: 8, ty: 5, id: 'gh_home2_chest', gold: 16 }],
 });
 
+// GENERIC ENTERABLE INTERIORS — the UNIFORM door system routes any building WITHOUT a bespoke interior to
+// one of these (shared via the return-stack, so each building keeps its own exit). Guarantees "every
+// building is enterable, everywhere" without authoring a unique room per house. (DOOR-SYSTEM uniform pass.)
+export const HOUSE_GENERIC = interiorRegion({
+  key: 'house_generic', otx: 600, oty: 615, W: 10, H: 8, floor: 'wood', mapColor: 0x4e4636, spawn: { tx: 5, ty: 6 },
+  doors: [{ tx: 5, ty: 6, to: 'back', label: 'Step outside' }],
+  furniture: [
+    { tx: 8, ty: 1, key: 'prop_bed', solid: true, dy: -2 }, { tx: 1, ty: 1, key: 'prop_fireplace', solid: true, dy: -6 },
+    { tx: 4, ty: 4, key: 'prop_table', solid: true, scale: 0.8 }, { tx: 2, ty: 1, key: 'prop_dresser', solid: true, dy: -6 },
+  ],
+  chests: [{ tx: 8, ty: 5, id: 'house_generic_chest', gold: 10 }],
+});
+export const FORGE_GENERIC = interiorRegion({
+  key: 'forge_generic', otx: 612, oty: 615, W: 10, H: 8, floor: 'dirt', mapColor: 0x4a3a2e, spawn: { tx: 5, ty: 6 },
+  doors: [{ tx: 5, ty: 6, to: 'back', label: 'Step outside' }],
+  furniture: [
+    { tx: 2, ty: 1, key: 'prop_anvil', solid: true, dy: 4 }, { tx: 4, ty: 1, key: 'prop_table', solid: true, scale: 0.8, dy: -2 },
+    { tx: 8, ty: 1, key: 'prop_barrel', solid: true }, { tx: 1, ty: 4, key: 'prop_fence', solid: true },
+  ],
+  chests: [{ tx: 8, ty: 5, id: 'forge_generic_chest', gold: 14 }],
+});
+
 // THE LOST CEMETERY (Van's new node, MASTER-WORLD-SPEC §0.5) — the Marsh's grief/night vignette. An
 // enclosed walled graveyard (eerie murky tint) of grave markers (LPC Grave Markers Rework, CC-BY-SA/GPL)
 // + the founder's ornate stone + the angel statue; a fresh OPEN grave with a mourner tending it. Entered
@@ -978,7 +1000,7 @@ export const LOST_CEMETERY = interiorRegion({
   chests: [{ tx: 19, ty: 4, id: 'cemetery_offering', gold: 22 }],
 });
 
-export const INTERIORS = [TANKARD_F1, TANKARD_F2, TEST_CAVE_F1, TEST_CAVE_F2, GH_FORGE, GH_STORE, GH_CHAPEL, GH_HOME1, GH_HOME2, LOST_CEMETERY, MIREFEN_HUT, FENWICK_HOME, ...WORLD_LAYOUT];
+export const INTERIORS = [TANKARD_F1, TANKARD_F2, TEST_CAVE_F1, TEST_CAVE_F2, GH_FORGE, GH_STORE, GH_CHAPEL, GH_HOME1, GH_HOME2, HOUSE_GENERIC, FORGE_GENERIC, LOST_CEMETERY, MIREFEN_HUT, FENWICK_HOME, ...WORLD_LAYOUT];
 
 export const REGIONS = [GREENHOLLOW, ASHEN_MARSH, WEST_BELT, SUNDERED_PEAKS, FOOTHILL_ROUTE, TIDEWRECK_COAST, EMBERWOOD, HOLLOW_SPIRE, ...INTERIORS];
 const inBounds = (b, x, y) => x >= b.x && x < b.x + b.w && y >= b.y && y < b.y + b.h;

@@ -96,7 +96,10 @@ Van's map exactly — then roll the same to every corridor.
 | **CLOSED + LOCKED door states** (knock / try-handle / FORCE + morality hits) | ✅ BUILT (gh_home1 closed, gh_home2 locked; `entered_uninvited` −3 / `forced_entry` −10 in the SSOT) | done |
 | KNOCK answering (an NPC opens) + a real guard/alarm spawn on FORCE | 🔧 currently a flavor beat (sfx+banner); deepen in the social pass | social pass |
 | PICK (a lockpick item) as an alternative to FORCE on a LOCKED door | not built (no lockpick item yet) | feature pass |
-| **Other regions' building doorways** roll out the same carve | inline Mirefen + village buildings still use simple/marker doors | per-region |
+| **Other regions' building doorways** roll out the same carve | ✅ DONE — uniform across GH/Marsh/Peaks (every building enterable via generic interiors + the carve) | done |
+| Coast + Emberwood inline buildings enterable | no inline building props there yet (marker-entered settlements) — comes with the inline-town conversion | per-region |
+| Bespoke interiors per building (generics are shared → repeat look) | every building enters a generic house/forge interior now | POLISH |
+| Findable house-KEY item (the USE-KEY door option is wired) | no key item/placement yet; door.key + inv.has() wiring is in place | feature pass |
 | Lock glyph more prominent (6×7px now) + threshold depth polish | functional but small | POLISH |
 
 ## POLISH — anytime quality

@@ -49,6 +49,22 @@
   doorway renders where the data says, and you enter by walking INTO it (the carve correctness, which a
   pure-geometry gate can't see — see PROCESS-RETRO on the visual-check pattern).
 
+## 🔁 UNIFORM — EVERY building, EVERY region (the rebuild)
+The carve + states are applied to **every building prop in every built region**, not just GH:
+- `_resolveBuildingDoor(p)` gives any building (`prop_house*/forge/tavern/chapel/...`) a door — its explicit
+  `door`, or a **default OPEN door to a shared generic interior** (`house_generic` / `forge_generic`,
+  reused across buildings via the return-stack). **No building is un-enterable, anywhere.**
+- `_clearDoorwayThresholds()` runs after each region's props build: it **disables any solid that landed on
+  a doorway tile** (a procedurally-scattered Peaks rock, a neighbour's mass) so the threshold is always
+  walkable — entry is robust regardless of placement. (`_solidAt` now also ignores disabled bodies.)
+- Gate #21 asserts **ALL building props in EVERY region resolve to an interior** (fails on any un-enterable
+  building), mirroring `_resolveBuildingDoor`.
+- **Visible OPEN:** a closed/locked door that's tried/broken/keyed runs `_openDoorVisual` — the closed-door
+  sprite hides, the **dark threshold appears (the door swings open)**, THEN (after ~440ms) the player walks
+  through. Fixes "break worked but no open door appeared."
+- **Break strength** (`door.breakStrength`) scales the force morality hit; **keys** (`door.key`) add a
+  USE-KEY option when the player holds the item (wiring in place; a findable house-key is DEFERRED).
+
 ## ✅ STATUS
 - **BUILT + verified (fresh cleared save, meta-rule 10):** the **6 GH buildings** each have an **exact
   tile-aligned inset doorway you walk INTO** — all enter **consistently**; the doorway tile is walkable
@@ -57,6 +73,11 @@
   → −10 morality + alarm) demonstrate the states; the deeds `entered_uninvited`/`forced_entry` fire.
   States read visually (closed-door sprite + lock glyph — `door-states-closed-locked.png`). Gates #20+#21
   pass; 0 console errors.
-- **DEFERRED / FLAG:** KNOCK answering (an NPC opens) + a real guard/alarm spawn (currently a flavor beat);
-  the lock glyph could be more prominent (polish); the other regions' building doorways roll out the same
-  carve; PICK (lockpick item) as an alternative to FORCE. Tracked in `DEFERRED.md`.
+- **UNIFORM (this pass):** ALL **22 inline building props across GH (9) + Marsh/Mirefen (8) + Peaks (5)**
+  are enterable on a fresh save — 0 blocked doorways; sample-entered each region by real movement; the
+  visible door-open verified (closed sprite → hidden, threshold → shown, then enter); 165fps; 0 errors
+  (`uniform-doors-mirefen-enterable.png`).
+- **DEFERRED / FLAG:** Coast + Emberwood have **no inline building props yet** (their settlements are
+  marker-entered scenes — enterability there comes with the inline-town conversion); a findable house-KEY
+  item (the USE-KEY option is wired); KNOCK-answering + real guard/alarm spawn (flavor beats); the generic
+  interiors are shared (repeat look) — bespoke interiors per building is a later polish. Tracked in `DEFERRED.md`.

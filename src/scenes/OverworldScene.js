@@ -207,22 +207,22 @@ export class OverworldScene extends Phaser.Scene {
       let rect = null;
       if (isSolid(p.key, p.solid)) {
         const cw = Math.max(8, b.w * sc), ch = Math.max(8, b.h * sc), ccx = p.x + offX * sc, ccy = p.y + b.offY * sc;
-        if (p.door) {
-          // DOOR-SYSTEM — EXACT TILE-ALIGNED DOORWAY (identical on every building → consistent entry, no
-          // sub-tile sliver to snag on): the doorway is ONE clean walkable TILE (the only gap, carrying the
-          // trigger); the solid base-band is split into TILE-ALIGNED left + right rects around it. You walk
-          // UP INTO the dark threshold tile to enter.
+        const bdoor = this._resolveBuildingDoor(p);
+        if (bdoor) {
+          // DOOR-SYSTEM (UNIFORM — every building, every region) — EXACT TILE-ALIGNED DOORWAY: the doorway is
+          // ONE clean walkable TILE (the only gap, carrying the trigger); the solid base-band is split into
+          // TILE-ALIGNED left + right rects around it. Identical on every building → consistent entry, no
+          // sub-tile sliver to snag on. Walk UP INTO the threshold tile to enter.
           const dCol = Math.round((ccx - TILE / 2) / TILE), dRow = Math.round((ccy - TILE / 2) / TILE);
           const bandL = ccx - cw / 2, bandR = ccx + cw / 2, gapL = dCol * TILE, gapR = (dCol + 1) * TILE;
           const mkSolid = (x0, x1) => { if (x1 - x0 < 4) return; const r = this.add.rectangle((x0 + x1) / 2, ccy, x1 - x0, ch, 0x000000, 0).setVisible(false); this.physics.add.existing(r, true); this.solids.add(r); this._regionObjs.push(r); };
           mkSolid(bandL, gapL); mkSolid(gapR, bandR);                       // tile-aligned solids flanking the doorway tile
           const dcx = dCol * TILE + TILE / 2, dcy = dRow * TILE + TILE / 2;
-          const door = (typeof p.door === 'string') ? { to: p.door, state: 'open' } : { state: 'open', ...p.door };
-          const opening = this.add.rectangle(dcx, dcy, TILE, TILE, door.state === 'open' ? 0x0b0d12 : 0x000000, door.state === 'open' ? 0.9 : 0).setDepth(DEPTH.FLOOR + 6);
+          const opening = this.add.rectangle(dcx, dcy, TILE, TILE, 0x0b0d12, bdoor.state === 'open' ? 0.9 : 0).setDepth(DEPTH.FLOOR + 6);
           this._regionObjs.push(opening);
-          if (door.state !== 'open') this._buildClosedDoorVisual(dcx, dcy, door.state);   // closed-door sprite / lock glyph
-          this._buildingDoors.push({ tx: dCol, ty: dRow, dcx, dcy, ...door });            // walk-into trigger = the doorway tile
-        } else {
+          const vis = (bdoor.state !== 'open') ? this._buildClosedDoorVisual(dcx, dcy, bdoor.state) : {};
+          this._buildingDoors.push({ tx: dCol, ty: dRow, dcx, dcy, ...bdoor, opening, closedSpr: vis.closedSpr || null, lockSpr: vis.lockSpr || null });
+        } else if (isSolid(p.key, p.solid)) {
           rect = this.add.rectangle(ccx, ccy, cw, ch, 0x000000, 0).setVisible(false);
           this.physics.add.existing(rect, true); this.solids.add(rect); this._regionObjs.push(rect);
         }
@@ -248,6 +248,7 @@ export class OverworldScene extends Phaser.Scene {
       DepthSort.track(spr, (b.offY + b.h / 2) * sc);   // y-sort by the solid base (same rule)
       this._regionObjs.push(spr);
     }
+    this._clearDoorwayThresholds();   // UNIFORM: guarantee every building's doorway tile is walkable (clear any scattered rock/prop that landed on a threshold) — no building un-enterable due to placement
     for (const n of R.npcs) this._buildRegionNpc(n);
     for (const c of (R.chests || [])) this._buildRegionChest(c);
     for (const o of (R.interactables || [])) this._buildInteractable(o);   // cut / push / search (INTERACTABLES-DESIGN)
@@ -477,7 +478,7 @@ export class OverworldScene extends Phaser.Scene {
 
   _solidAt(wx, wy, exclude) {
     for (const o of this.solids.getChildren()) {
-      const b = o.body; if (!b || b.physicsType !== 1 || o === exclude) continue;
+      const b = o.body; if (!b || b.physicsType !== 1 || b.enable === false || o === exclude) continue;   // a disabled collider (e.g. a cleared doorway threshold) is NOT solid
       if (wx >= b.center.x - b.halfWidth && wx <= b.center.x + b.halfWidth && wy >= b.center.y - b.halfHeight && wy <= b.center.y + b.halfHeight) return true;
     }
     return false;
@@ -876,20 +877,22 @@ export class OverworldScene extends Phaser.Scene {
   _openDoorChoice(d) {
     this._pendingDoor = d;
     const who = d.owner ? `${d.owner}'s ` : 'The ';
-    const enter = (mode) => `door:${mode}:${d.to}`;     // onSet command → _doorAction
+    const enter = (mode) => `door:${mode}`;     // onSet command → _doorAction (uses this._pendingDoor)
+    const hasKey = !!(d.key && this.inv && this.inv.has(d.key));
     let nodes;
     if (d.state === 'locked') {
+      const lockedOpts = [];
+      if (hasKey) lockedOpts.push({ label: 'Use your key', set: enter('key'), end: true });
+      lockedOpts.push({ label: `Break it down${(d.breakStrength || 1) > 1 ? ' (it looks sturdy)' : ''}`, set: enter('force'), end: true });
+      lockedOpts.push({ label: '(Leave it.)', end: true });
       nodes = {
-        d0: { speaker: '', text: `${who}door is locked tight.`, options: [
+        d0: { speaker: '', text: `${who}door is locked${hasKey ? ' — but you have a key that might fit' : ' tight'}.`, options: [
           { label: 'Knock', to: 'knock' },
           { label: 'Try the handle', to: 'locked' },
           { label: '(Step away.)', end: true },
         ] },
         knock: { speaker: '', text: 'You knock. Silence within — no one comes.', options: [{ label: '(Back.)', to: 'd0' }] },
-        locked: { speaker: '', text: "It won't budge — locked fast.", options: [
-          { label: 'Break it down (force)', set: enter('force'), end: true },
-          { label: '(Leave it.)', end: true },
-        ] },
+        locked: { speaker: '', text: "It won't budge — locked fast.", options: lockedOpts },
       };
     } else {
       nodes = {
@@ -903,18 +906,50 @@ export class OverworldScene extends Phaser.Scene {
     }
     this._activeQuest = null; this._dlg = new Dialogue({ start: 'd0', nodes }, this._dlgCtx()); this._openDlg();
   }
-  _doorAction(cmd) {
-    const [mode, area] = cmd.split(':');                 // 'uninvited:gh_home1' | 'force:gh_home1'
-    const d = this._pendingDoor; this._pendingDoor = null;
-    if (mode === 'uninvited') { this.karma.commit({ deed: 'entered_uninvited', morality: -3, purity: -2 }); this._banner('You let yourself in, uninvited.', 1500); }
-    else if (mode === 'force') { this.karma.commit({ deed: 'forced_entry', morality: -10, purity: -6 }); this._sfx('sfx_deny', 0.6); this._banner('You force the door — wood splinters. Someone will have heard.', 1900); }
-    const ret = d ? { x: d.dcx, y: d.dcy + TILE } : null;
-    this.time.delayedCall(70, () => this._enterArea(area, ret));   // after the dialogue closes
+  _doorAction(mode) {
+    const d = this._pendingDoor; this._pendingDoor = null; if (!d) return;
+    if (mode === 'uninvited') { this.karma.commit({ deed: 'entered_uninvited', morality: -3, purity: -2 }); this._banner('You let yourself in, uninvited.', 1400); }
+    else if (mode === 'force') { const s = d.breakStrength || 1; this.karma.commit({ deed: 'forced_entry', morality: -(6 + 4 * s), purity: -(4 + 2 * s) }); this._sfx('sfx_charge_impact', 0.6); this._banner('You force the door — wood splinters. Someone will have heard.', 1800); }
+    else if (mode === 'key') { if (d.key) this.inv.remove(d.key, 1); this._banner('The key turns; the door swings open.', 1400); }
+    this._openDoorVisual(d);                              // the door VISIBLY opens (sprite swaps to the threshold)
+    const ret = { x: d.dcx, y: d.dcy + TILE };           // clean yard return (no stuck-on-line)
+    this.time.delayedCall(440, () => this._enterArea(d.to, ret));   // let the OPEN read before walking through
+  }
+  // UNIFORM ENTERABILITY — after a region's props are built, guarantee every building's DOORWAY TILE is
+  // walkable: disable any solid (a procedurally-scattered rock, a neighbour's mass) whose collider covers
+  // a doorway-tile centre. The building's own flanking side-rects don't cover the centre, so they survive.
+  _clearDoorwayThresholds() {
+    for (const d of (this._buildingDoors || [])) {
+      for (const o of this.solids.getChildren()) {
+        const b = o.body; if (!b || b.physicsType !== 1) continue;
+        if (d.dcx >= b.center.x - b.halfWidth && d.dcx <= b.center.x + b.halfWidth && d.dcy >= b.center.y - b.halfHeight && d.dcy <= b.center.y + b.halfHeight) {
+          b.enable = false; if (o.setVisible) o.setVisible(false);
+        }
+      }
+    }
+  }
+  // EVERY building is enterable — resolve its door: an explicit `door` (string=open, or {to,state,...}) or,
+  // for any BUILDING prop without one, a DEFAULT open door to a shared generic interior. Non-buildings → null.
+  _resolveBuildingDoor(p) {
+    if (p.door) return (typeof p.door === 'string') ? { to: p.door, state: 'open' } : { state: 'open', ...p.door };
+    if (!/^(prop_house|prop_forge|prop_tavern|prop_chapel|prop_smithy|prop_hut|prop_hall|prop_manor|prop_cottage)/.test(p.key)) return null;
+    return { to: /forge|smithy/.test(p.key) ? 'forge_generic' : 'house_generic', state: 'open' };   // generic interior, walk straight in
   }
   // closed/locked doors SHOW a closed-door sprite (+ a lock glyph) IN the doorway → the state reads at a glance
   _buildClosedDoorVisual(dcx, dcy, state) {
-    const door = this.add.sprite(dcx, dcy - 3, 'prop_door').setDepth(DEPTH.FLOOR + 7); door.setDisplaySize(TILE * 0.92, TILE * 1.15); this._regionObjs.push(door);
-    if (state === 'locked') { const lock = this.add.rectangle(dcx, dcy - 2, 6, 7, 0xf2c14e).setStrokeStyle(1, 0x6b4f12).setDepth(DEPTH.FLOOR + 8); this._regionObjs.push(lock); }
+    const closedSpr = this.add.sprite(dcx, dcy - 3, 'prop_door').setDepth(DEPTH.FLOOR + 7); closedSpr.setDisplaySize(TILE * 0.92, TILE * 1.15); this._regionObjs.push(closedSpr);
+    let lockSpr = null;
+    if (state === 'locked') { lockSpr = this.add.rectangle(dcx, dcy - 2, 7, 8, 0xf2c14e).setStrokeStyle(1, 0x6b4f12).setDepth(DEPTH.FLOOR + 8); this._regionObjs.push(lockSpr); }
+    return { closedSpr, lockSpr };
+  }
+  // VISIBLY OPEN the door — hide the closed-door sprite + lock, reveal the dark threshold → Van SEES it open
+  // (the bug: break/try worked but no open-door appeared). Then the caller walks the player through.
+  _openDoorVisual(d) {
+    if (d && d.closedSpr) d.closedSpr.setVisible(false);
+    if (d && d.lockSpr) d.lockSpr.setVisible(false);
+    if (d && d.opening) d.opening.setFillStyle(0x0b0d12, 0.9);
+    if (d) d.state = 'open';
+    this._sfx('sfx_confirm', 0.5);
   }
 
   _startGreeting(name, lines) {

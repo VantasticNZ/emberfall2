@@ -496,10 +496,18 @@ const tile = (px) => Math.round(px / TILE);
     for (const o of (R.interactables || [])) if (o.via === 'door' && o.to && !o.to.startsWith('__') && o.to !== 'back') doorTargets.add(o.to);
   }
   const deadDoors = [...doorTargets].filter((t) => !allKeys2.has(t));
-  const buildingInteriors = REGIONS.filter((r) => r.interior && /^(gh_|tankard_f1|cave_f1|mirefen_hut|fenwick_home)/.test(r.key)).map((r) => r.key);
-  const orphanInteriors = buildingInteriors.filter((k) => !doorTargets.has(k));
-  if (deadDoors.length || orphanInteriors.length || badStates.length) fail('DOORWAY-GEOMETRY: ' + [...deadDoors.map((d) => 'door → ' + d + ' (no such interior)'), ...orphanInteriors.map((o) => o + ' (building interior with NO door in — un-enterable)'), ...badStates].map((s) => '\n      ' + s).join(''));
-  else ok(`doorway-geometry: ${doorTargets.size} door targets all resolve; ${buildingInteriors.length} front-door building-interiors all have a way in (no un-enterable holes); all door states valid (open/closed/locked)`);
+  // UNIFORM ENTERABILITY (must mirror OverworldScene._resolveBuildingDoor): EVERY building prop in EVERY
+  // built region must resolve to an existing interior — an explicit `door`, or the default generic by key.
+  const BUILDING = /^(prop_house|prop_forge|prop_tavern|prop_chapel|prop_smithy|prop_hut|prop_hall|prop_manor|prop_cottage)/;
+  const resolveDoor = (p) => p.door ? (typeof p.door === 'string' ? p.door : p.door.to) : (/forge|smithy/.test(p.key) ? 'forge_generic' : 'house_generic');
+  let buildingCount = 0; const unEnterable = [];
+  for (const R of REGIONS.filter((r) => !r.interior)) for (const p of (R.props || [])) if (BUILDING.test(p.key)) {
+    buildingCount++;
+    const to = resolveDoor(p);
+    if (!allKeys2.has(to)) unEnterable.push(`${R.key}:${p.key} → ${to} (no interior)`);
+  }
+  if (deadDoors.length || badStates.length || unEnterable.length) fail('DOORWAY-GEOMETRY: ' + [...deadDoors.map((d) => 'door → ' + d + ' (no such interior)'), ...badStates, ...unEnterable.map((u) => u + ' — UN-ENTERABLE building')].map((s) => '\n      ' + s).join(''));
+  else ok(`doorway-geometry: ${doorTargets.size} door targets resolve; ALL ${buildingCount} building props in every region are enterable (explicit or generic interior); door states valid`);
 }
 
 // --- summary ------------------------------------------------------------------
