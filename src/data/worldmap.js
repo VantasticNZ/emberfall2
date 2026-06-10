@@ -111,12 +111,29 @@ export const ASHEN_MARSH = {
   safeZone: false,                              // COMBAT LIVE
   bog: true,
   player: { x: mx(MARSH.player.tx), y: my(MARSH.player.ty) },
-  props: MARSH.props.map((p) => ({ ...p, x: mx(p.tx), y: my(p.ty), tint: MARSH.tint.tree && /tree/.test(p.key) ? MARSH.tint.tree : p.tint })),
+  props: [
+    ...MARSH.props.map((p) => ({ ...p, x: mx(p.tx), y: my(p.ty), tint: MARSH.tint.tree && /tree/.test(p.key) ? MARSH.tint.tree : p.tint })),
+    // OVERWORLD TOWN-SITE signposts — name each settlement at its world position (the full town is the
+    // enterable area at this spot). FLAG: a town SILHOUETTE (buildings/walls on the overworld) is deferred
+    // dressing. Non-solid readable signs (no collision issue; the door tile stays walkable).
+    { key: 'prop_sign', x: mx(6) + TILE / 2, y: my(13) + TILE / 2, solid: true, tint: 0x9a8f6a, text: 'MIREFEN — the bog-town. Elder Yssa keeps the moot-hall.' },
+    { key: 'prop_sign', x: mx(10) + TILE / 2, y: my(4) + TILE / 2, solid: true, tint: 0x9a8f6a, text: 'THE LOST CEMETERY — they buried the drowned here.' },
+    { key: 'prop_sign', x: mx(34) + TILE / 2, y: my(20) + TILE / 2, solid: true, tint: 0x9a8f6a, text: 'FENWICK — a marsh-edge village.' },
+  ],
   npcs: MARSH.npcs.map((n) => ({
     ...n, x: mx(n.tx), y: my(n.ty),
     schedule: (n.schedule || []).map((s) => ({ ...s, tx: s.tx + MARSH_OT.x, ty: s.ty + MARSH_OT.y })),
   })),
   chests: [],
+  // CONNECTED-OVERWORLD ENTRANCES (Van's map) — you WALK WEST from Greenhollow into the Marsh and reach
+  // each settlement AT ITS map position (W→E: Mirefen far-W · Shrine W · Cemetery NW · Fenwick E). The
+  // built town content is reused (enter here). The GH notice-board is kept only as optional fast-travel.
+  interactables: [
+    { via: 'door', key: 'prop_door', solid: false, x: mx(5) + TILE / 2, y: my(13) + TILE / 2, to: 'town_mirefen', prompt: 'Enter Mirefen' },
+    { via: 'door', key: 'prop_door', solid: false, x: mx(4) + TILE / 2, y: my(8) + TILE / 2, to: 'dgn_shrine', prompt: 'The Sunken Shrine' },
+    { via: 'door', key: 'prop_door', solid: false, x: mx(9) + TILE / 2, y: my(4) + TILE / 2, to: 'lost_cemetery', prompt: 'The Lost Cemetery' },
+    { via: 'door', key: 'prop_door', solid: false, x: mx(35) + TILE / 2, y: my(20) + TILE / 2, to: 'vil_fenwick', prompt: 'Enter Fenwick' },
+  ],
   // COMBAT — enemy placements at ABSOLUTE WORLD TILES so EnemyController.spawn (tx*TILE)
   // lands them in world-coords; stable placeId per placement for kill-deltas.
   combat: {
