@@ -7,6 +7,28 @@
 > edge data there IS this spec). Overworld **24×24 chunks = 768×768 tiles**, GH centred (chunk 12,12);
 > cities/dungeons/interiors are **separate enterable scenes** (Phase-0 door system). 32px tiles.
 
+## 0.5 🔒 LOCKED — VAN'S EDITED MAP IS THE SOURCE OF TRUTH (imported 2026-06-10)
+Imported `docs/world-map-vanedit.json` (the editor export). **Van's node moves, music zones, elevation,
+path traversal + widths are AUTHORITATIVE — the spec is reconciled TO them.** His changes:
+- **Node positions (locked):** shrine → chunk (5.5,10) [moved N], Mirefen (4,12.5), Dustreach (21.5,18.5),
+  Fenwick (7.5,13.5), Cragfoot (9,7), High Pass (15,7.5), Weeping Tree (9,20); all others as before.
+- **NEW place — "The Lost Cemetery"** (village, **30×24**, chunk ~(6.2,7.4), NW mountain/bog transition):
+  a graveyard — buildable from `lpc-medieval-decorations` (grave markers) + `lpc-statues-fountains`.
+  *Home it: a somber side-area (a night/eerie cameo + a Pem-mark or a grief vignette — Van to flesh).*
+- **Per-settlement MUSIC + ELEVATION (Van set):** GH `mus_green` elev+1; Mirefen `marsh-dread` elev−1;
+  Saltbreak `storm-surf` elev 0; Oracle Capital + Spire `sacral`. **+14 music zones drawn** (per-
+  settlement radii) **+ 2 terrain zones: "dark forest"** (chunk ~6.6,14.8, 8×8 — SW of Mirefen) and
+  **"mountain streams"** (~4.4,4.9 — NW). Ocean E, Mountains N, Bog W, Forest/Desert SE as before.
+- **PATH traversal (Van set — AUTHORITATIVE):** GH↔Mirefen a **wide winding road** (width 3, 5 bends);
+  **Mirefen↔Fenwick = ⚡electric**; **Thornwell↔Dustreach = ❄ice**; **Saltbreak↔Lighthouse = 🌀wind**;
+  **+ NEW Shrine↔Cragfoot = 🔥fire** and **Cragfoot↔GH = 🔥firefrost** (a late-tool alt loop GH↔Marsh
+  via Cragfoot). GH↔Stonereach + GH↔Saltbreak gained a bend each.
+- **FLAGS for Van (the only conflicts):** Van's traversal makes two SIDE spurs single-route + late-gated:
+  **Fenwick is now ⚡electric-only** (its Pem-mark/SG2 clue + side content become late-game) and
+  **Lighthouse is 🌀wind-only** (ST3 becomes late). Neither is on the critical path → **no soft-lock**,
+  but the side content shifts later — *Van's call to keep or add an early walk-spur.* Everything else
+  fits with no soft-lock (see §5 + BUILD-PLAN cross-check).
+
 ## 1. EVERY PLACE × CORRECT SIZE × POSITION
 ⇲ = separate scene. Sizes derived from content load; reconciles `WORLD-MAP-PLAN` (full sizes) — the
 just-built greybox used **halved** placeholders (Saltbreak 56×40 etc.), noted where it differs.
