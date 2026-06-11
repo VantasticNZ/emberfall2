@@ -6,6 +6,20 @@
 > SPEC'd here for build-out (the morality-entrance hook). Reconciles `RPG-FEEL-STANDARD` pillar 1 +
 > `no-floating-doors` (#20) + the new `doorway-geometry` gate (#21).
 
+## 0b. DOORWAY RECTS MEASURED FROM THE ART (round 2 — the proper asset-owned doorway)
+- `doorway:{cx,cy,w,h}` in each building asset is the painted opening **measured from the sprite PNG**
+  (centre offset + size, local px), not a guessed `px`. Each building's door is in a DIFFERENT place
+  (store=bottom-right, manor=bottom-left, paneled=right-porch, forge=centre) — so a single rule placed them
+  wrong; the measured rect places + SIZES the door sprite to the painted opening, per asset, for all placements.
+- **The door sprite is placed at `(p.x+cx, p.y+cy)` and SIZED to `(w,h)`** → it sits IN the painted opening and
+  fits it. The **trigger tile sits at the door column on the building's FEET line**, so the avatar standing
+  there sorts **in front of** the door (depth = feet + playerBase > feet + 1 = the door) — fixing the
+  avatar-disappears bug (the door at `baseDepth+2` over a band-centre threshold was occluding the player).
+- **Locked/closed sequence:** walking in shows the CHOICE first; the door stays shut (sprite visible + lock
+  glyph) — **no open sound/animation until try-success/break/key**, then it opens, then you walk in.
+- Verified by PIXELS (Van's plain load): doors sample wood at their measured sizes; the avatar samples skin
+  during the dialog; the locked door stays shut at the choice. (`door-in-painted-opening.png`.)
+
 ## 0. ASSET-OWNED DOORWAYS (the governing principle — Van) ★
 **Every building ASSET declares its own doorway, so a fix to the door system applies to ALL buildings —
 never patch doors per-building again.**

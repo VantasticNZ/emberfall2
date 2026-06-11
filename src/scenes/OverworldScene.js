@@ -215,24 +215,21 @@ export class OverworldScene extends Phaser.Scene {
         const cw = Math.max(8, b.w * sc), ch = Math.max(8, b.h * sc), ccx = p.x + offX * sc, ccy = p.y + b.offY * sc;
         const bdoor = this._resolveBuildingDoor(p);
         if (bdoor) {
-          // DOOR-SYSTEM (UNIFORM — every building, every region) — EXACT TILE-ALIGNED DOORWAY: the doorway is
-          // ONE clean walkable TILE (the only gap, carrying the trigger); the solid base-band is split into
-          // TILE-ALIGNED left + right rects around it. Identical on every building → consistent entry, no
-          // sub-tile sliver to snag on. Walk UP INTO the threshold tile to enter.
-          // ASSET-OWNED DOORWAY: the door column comes from the building ASSET's `doorway.px` (the painted
-          // door's offset from the sprite centre), not per-building code → visible == walkable == trigger,
-          // automatically, for every placement of every asset.
-          const dwpx = (d.doorway && d.doorway.px != null ? d.doorway.px : 0) * sc;
-          const dCol = Math.round((p.x + dwpx - TILE / 2) / TILE), dRow = Math.round((ccy - TILE / 2) / TILE);
-          const bandL = ccx - cw / 2, bandR = ccx + cw / 2, gapL = dCol * TILE, gapR = (dCol + 1) * TILE;
+          // DOOR-SYSTEM — ASSET-OWNED DOORWAY, MEASURED FROM THE ART: `doorway:{cx,cy,w,h}` is the painted
+          // opening's centre + size (local px). The door sprite is PLACED at that rect and SIZED to it, so it
+          // sits IN the painted doorway and fits it. The TRIGGER tile sits at the door column on the building's
+          // FEET line — so the avatar standing there sorts IN FRONT of the door (depth = feet + playerBase >
+          // feet + 1 = the door). The base-band is split tile-aligned around the door column (walkable gap).
+          const dw = (d.doorway && d.doorway.cx != null) ? d.doorway : { cx: 0, cy: 0, w: 28, h: 44 };
+          const doorWX = p.x + dw.cx * sc, doorWY = p.y + dw.cy * sc;       // painted-door centre (world)
+          const feetY = spr.y + (b.offY + b.h / 2) * sc;                    // = the building's DepthSort depth (feet line)
+          const dCol = Math.round((doorWX - TILE / 2) / TILE), dRow = Math.round((feetY - TILE / 2) / TILE);
+          const bandL = ccx - cw / 2, bandR = ccx + cw / 2;
           const mkSolid = (x0, x1) => { if (x1 - x0 < 4) return; const r = this.add.rectangle((x0 + x1) / 2, ccy, x1 - x0, ch, 0x000000, 0).setVisible(false); this.physics.add.existing(r, true); this.solids.add(r); this._regionObjs.push(r); };
-          mkSolid(bandL, gapL); mkSolid(gapR, bandR);                       // tile-aligned solids flanking the doorway tile
+          mkSolid(bandL, dCol * TILE); mkSolid((dCol + 1) * TILE, bandR);   // tile-aligned solids flanking the door column
           const dcx = dCol * TILE + TILE / 2, dcy = dRow * TILE + TILE / 2;
-          // DEPTH FIX: the building sprite is y-sorted at base-feet depth = spr.y + (b.offY+b.h/2)*sc. The
-          // door must render JUST IN FRONT of that (in the opening), not at floor depth (where it was occluded).
-          const baseDepth = spr.y + (b.offY + b.h / 2) * sc;
-          const vis = this._buildDoorVisual(dcx, dcy, bdoor.state, baseDepth);   // EVERY building shows a real door sprite IN its portal
-          this._buildingDoors.push({ tx: dCol, ty: dRow, dcx, dcy, ...bdoor, opening: vis.opening, doorSpr: vis.doorSpr, lockSpr: vis.lockSpr });
+          const vis = this._buildDoorVisual(doorWX, doorWY, dw.w * sc, dw.h * sc, bdoor.state, feetY + 1);   // door IN the painted rect, sized to it, just in front of the building (behind the avatar at the feet)
+          this._buildingDoors.push({ tx: dCol, ty: dRow, dcx, dcy, doorWX, doorWY, ...bdoor, opening: vis.opening, doorSpr: vis.doorSpr, lockSpr: vis.lockSpr });
         } else if (isSolid(p.key, p.solid)) {
           rect = this.add.rectangle(ccx, ccy, cw, ch, 0x000000, 0).setVisible(false);
           this.physics.add.existing(rect, true); this.solids.add(rect); this._regionObjs.push(rect);
@@ -958,13 +955,14 @@ export class OverworldScene extends Phaser.Scene {
   // EVERY building shows a REAL door sprite in its portal (open/closed/locked) — derived from the asset
   // doorway, identical for all. A dark threshold sits behind it; locked adds a lock glyph. (Bug: doors only
   // rendered on the blacksmith — now every building's door renders.)
-  _buildDoorVisual(dcx, dcy, state, baseDepth = 0) {
-    // render the door JUST IN FRONT of its building (baseDepth+1/2/3) so it shows IN the opening — NOT at
-    // DEPTH.FLOOR, where it was drawn beneath the building and occluded (the never-visible-door bug).
-    const opening = this.add.rectangle(dcx, dcy, TILE, TILE, 0x0b0d12, 0.9).setDepth(baseDepth + 1); this._regionObjs.push(opening);
-    const doorSpr = this.add.sprite(dcx, dcy - 3, 'prop_door').setDepth(baseDepth + 2); doorSpr.setDisplaySize(TILE * 0.92, TILE * 1.15); this._regionObjs.push(doorSpr);
+  _buildDoorVisual(x, y, w, h, state, depth) {
+    // door PLACED + SIZED to the measured painted-opening rect, rendered just IN FRONT of the building wall
+    // (depth) — the avatar at the feet line sorts in front of it (depth+playerBase). The dark threshold sits
+    // BEHIND the door (revealed when it opens).
+    const opening = this.add.rectangle(x, y, w, h, 0x0b0d12, 0.9).setDepth(depth - 0.5); this._regionObjs.push(opening);
+    const doorSpr = this.add.sprite(x, y, 'prop_door').setDepth(depth); doorSpr.setDisplaySize(w, h); this._regionObjs.push(doorSpr);
     let lockSpr = null;
-    if (state === 'locked') { lockSpr = this.add.rectangle(dcx, dcy - 2, 7, 8, 0xf2c14e).setStrokeStyle(1, 0x6b4f12).setDepth(baseDepth + 3); this._regionObjs.push(lockSpr); }
+    if (state === 'locked') { lockSpr = this.add.rectangle(x, y - h * 0.1, Math.max(6, w * 0.22), Math.max(7, h * 0.16), 0xf2c14e).setStrokeStyle(1, 0x6b4f12).setDepth(depth + 0.5); this._regionObjs.push(lockSpr); }
     return { opening, doorSpr, lockSpr };
   }
   // VISIBLY OPEN the door — hide the door sprite + lock, reveal the dark threshold → Van SEES it open before
