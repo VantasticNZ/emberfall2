@@ -92,6 +92,19 @@ The carve + states are applied to **every building prop in every built region**,
 - **Break strength** (`door.breakStrength`) scales the force morality hit; **keys** (`door.key`) add a
   USE-KEY option when the player holds the item (wiring in place; a findable house-key is DEFERRED).
 
+## 5. PRODUCTION METHOD — exhaustive table + the full-spec build (this pass)
+- **Every building renders a REAL door sprite in its portal** (`_buildDoorVisual`, all states) — not just the
+  forge. OPEN doors animate open, then you walk in.
+- **Interiors are BUILT** — a gate asserts every interior's floor `set` is a real TERRAIN set (the
+  `floor:'wood'`→black-room bug) + has a floor patch + a `back` exit.
+- **Floor change = STAIRS** — interior floor-links carry `stairs:true`, render stone-tinted (distinct from the
+  wooden exit door); up→f2 / down→f1 via the return-stack.
+- **Step-away** closes the menu (`_dlgConfirm`) and the **`_lastTile` guard** stops it re-opening while you
+  stand on the doorway; the avatar stays visible throughout.
+- **Test method (now the standard):** a FULL pass/fail table — EVERY building × EVERY case, real input, fresh
+  save — NOT done until 100% PASS. The exhaustive run surfaced a music-tween that halted the whole update loop
+  (a few-building check missed it). Encoded in the gates above.
+
 ## ✅ STATUS
 - **BUILT + verified (fresh cleared save, meta-rule 10):** the **6 GH buildings** each have an **exact
   tile-aligned inset doorway you walk INTO** — all enter **consistently**; the doorway tile is walkable

@@ -26,6 +26,7 @@ import { ITEMS } from '../src/data/items/index.js';
 import { SHOPS, JOBS } from '../src/data/economy.js';
 import { REGIONS, TILE } from '../src/data/worldmap.js';
 import { PROPS, solidBox } from '../src/data/assets.js';
+import { TERRAIN } from '../src/data/terrainTiles.js';
 import { OPAQUE_BOUNDS } from '../src/data/opaqueBounds.js';
 import { IX_CLASS } from '../src/data/interactionClasses.js';
 import { GATES, TEASES, ABILITY_GATES } from '../src/data/gating.js';
@@ -513,14 +514,23 @@ const tile = (px) => Math.round(px / TILE);
   }
   // VALID EXITS: every interior must have a 'back' exit door (you can always leave → no trapped/void room).
   const noExit = REGIONS.filter((r) => r.interior).filter((r) => !(r.interactables || []).some((o) => o.via === 'door' && o.to === 'back')).map((r) => r.key);
-  if (deadDoors.length || badStates.length || unEnterable.length || noAssetDoor.length || noExit.length) {
+  // NON-EMPTY INTERIOR (no black-floor room): every interior's terrain `set` must be a REAL TERRAIN set
+  // (the 'wood'→black bug) and it must declare a floor patch.
+  const badFloor = [];
+  for (const r of REGIONS.filter((x) => x.interior)) {
+    const patches = (r.terrain && r.terrain.patches) || [];
+    if (!patches.length) { badFloor.push(`${r.key} (no floor patch — black room)`); continue; }
+    for (const pt of patches) if (pt.set && !TERRAIN.sets[pt.set]) badFloor.push(`${r.key} floor set '${pt.set}' is not a real terrain set (→ black floor)`);
+  }
+  if (deadDoors.length || badStates.length || unEnterable.length || noAssetDoor.length || noExit.length || badFloor.length) {
     fail('DOORWAY-GEOMETRY: ' + [
       ...deadDoors.map((d) => 'door → ' + d + ' (no such interior)'), ...badStates,
       ...unEnterable.map((u) => u + ' — UN-ENTERABLE building'),
       ...noAssetDoor.map((k) => `asset '${k}' has NO doorway declared (asset-owned-doorway principle)`),
       ...noExit.map((k) => `interior '${k}' has NO 'back' exit (would trap the player)`),
+      ...badFloor,
     ].map((s) => '\n      ' + s).join(''));
-  } else ok(`doorway-geometry: ${doorTargets.size} door targets resolve; ALL ${buildingCount} building props enterable; every building ASSET declares its doorway (${seenBuildingKeys.size} assets); every interior has a 'back' exit; door states valid`);
+  } else ok(`doorway-geometry: ${doorTargets.size} door targets resolve; ALL ${buildingCount} building props enterable; every building ASSET declares its doorway (${seenBuildingKeys.size} assets); every interior has a 'back' exit + a real floor (no black room); door states valid`);
 }
 
 // --- summary ------------------------------------------------------------------

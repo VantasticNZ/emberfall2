@@ -691,7 +691,7 @@ function interiorRegion(spec) {
     props.push({ key: f.key, x: wx, y: wy + (f.dy || 0), solid: false, scale: f.scale || 1, tint: f.tint });
     if (f.solid) { walkable[f.ty][f.tx] = 0; colliders.push({ x: wx, y: wy, w: TILE, h: TILE }); }
   }
-  const interactables = doors.map((d) => ({ via: 'door', key: 'prop_door', solid: false, x: ox + d.tx * TILE + TILE / 2, y: oy + d.ty * TILE + TILE / 2, to: d.to, prompt: d.label || 'Go', ...doorWallOffset(d.tx, d.ty, W, H) }));
+  const interactables = doors.map((d) => ({ via: 'door', key: 'prop_door', solid: false, x: ox + d.tx * TILE + TILE / 2, y: oy + d.ty * TILE + TILE / 2, to: d.to, prompt: d.label || 'Go', stairs: !!d.stairs, ...doorWallOffset(d.tx, d.ty, W, H) }));
   const chestData = chests.map((c) => ({ id: c.id, x: ox + c.tx * TILE + TILE / 2, y: oy + c.ty * TILE + TILE / 2, gold: c.gold || 15 }));
   return {
     key, origin: { x: ox, y: oy }, widthTiles: W, heightTiles: H, bounds: { x: ox, y: oy, w: W * TILE, h: H * TILE },
@@ -708,7 +708,7 @@ function interiorRegion(spec) {
 // The Copper Tankard — floor 1 (front room) + floor 2 (rooms upstairs). And a 2-floor test dungeon.
 export const TANKARD_F1 = interiorRegion({
   key: 'tankard_f1', otx: 520, oty: 520, W: 14, H: 10, floor: 'dirt', mapColor: 0x6b4a2e, spawn: { tx: 3, ty: 8 },
-  doors: [{ tx: 2, ty: 8, to: 'back', label: 'Leave (back outside)' }, { tx: 11, ty: 2, to: 'tankard_f2', label: 'Upstairs →' }],
+  doors: [{ tx: 2, ty: 8, to: 'back', label: 'Leave (back outside)' }, { tx: 11, ty: 2, to: 'tankard_f2', label: 'Upstairs →', stairs: true }],
   furniture: [
     { tx: 1, ty: 1, key: 'prop_fireplace', solid: true, dy: -6 },   // the hearth
     { tx: 4, ty: 3, key: 'prop_table', solid: true, scale: 0.8 }, { tx: 8, ty: 6, key: 'prop_table', solid: true, scale: 0.8 },   // tavern tables
@@ -718,7 +718,7 @@ export const TANKARD_F1 = interiorRegion({
 });
 export const TANKARD_F2 = interiorRegion({
   key: 'tankard_f2', otx: 590, oty: 520, W: 14, H: 10, floor: 'dirt', mapColor: 0x7a5638, spawn: { tx: 11, ty: 2 },
-  doors: [{ tx: 10, ty: 2, to: 'back', label: 'Downstairs ↓' }],
+  doors: [{ tx: 10, ty: 2, to: 'back', label: 'Downstairs ↓', stairs: true }],
   furniture: [
     { tx: 1, ty: 1, key: 'prop_bed', solid: true, dy: -2 }, { tx: 1, ty: 5, key: 'prop_bed', solid: true, dy: -2 },   // the rooms upstairs
     { tx: 4, ty: 7, key: 'prop_table', solid: true, scale: 0.75 }, { tx: 12, ty: 6, key: 'prop_dresser', solid: true, dy: -6 },
@@ -765,7 +765,7 @@ function griddedSettlement(spec) {
   // REAL buildings dressed onto the block footprints (visual — the block tiles already collide) + decor.
   for (const b of buildings) props.push({ key: b.key, x: ox + b.tx * TILE + TILE / 2, y: oy + b.ty * TILE + TILE / 2 + (b.dy || 0), solid: false, scale: b.scale || 1, tint: b.tint });
   for (const d of dressing) props.push({ key: d.key, x: ox + d.tx * TILE + TILE / 2, y: oy + d.ty * TILE + TILE / 2 + (d.dy || 0), solid: false, scale: d.scale || 1, tint: d.tint });
-  const interactables = doors.map((d) => ({ via: 'door', key: 'prop_door', solid: false, x: ox + d.tx * TILE + TILE / 2, y: oy + d.ty * TILE + TILE / 2, to: d.to, prompt: d.label || 'Go', ...doorWallOffset(d.tx, d.ty, W, H) }));
+  const interactables = doors.map((d) => ({ via: 'door', key: 'prop_door', solid: false, x: ox + d.tx * TILE + TILE / 2, y: oy + d.ty * TILE + TILE / 2, to: d.to, prompt: d.label || 'Go', stairs: !!d.stairs, ...doorWallOffset(d.tx, d.ty, W, H) }));
   const chestData = chests.map((c) => ({ id: c.id, x: ox + c.tx * TILE + TILE / 2, y: oy + c.ty * TILE + TILE / 2, gold: c.gold || 20 }));
   const sp = spawnTile || { tx: 1, ty: 1 };
   return {
@@ -952,7 +952,7 @@ export const GH_HOME2 = interiorRegion({
 // one of these (shared via the return-stack, so each building keeps its own exit). Guarantees "every
 // building is enterable, everywhere" without authoring a unique room per house. (DOOR-SYSTEM uniform pass.)
 export const HOUSE_GENERIC = interiorRegion({
-  key: 'house_generic', otx: 600, oty: 615, W: 10, H: 8, floor: 'wood', mapColor: 0x4e4636, spawn: { tx: 5, ty: 6 },
+  key: 'house_generic', otx: 600, oty: 615, W: 10, H: 8, floor: 'stone', mapColor: 0x4e4636, spawn: { tx: 5, ty: 6 },
   doors: [{ tx: 5, ty: 6, to: 'back', label: 'Step outside' }],
   furniture: [
     { tx: 8, ty: 1, key: 'prop_bed', solid: true, dy: -2 }, { tx: 1, ty: 1, key: 'prop_fireplace', solid: true, dy: -6 },

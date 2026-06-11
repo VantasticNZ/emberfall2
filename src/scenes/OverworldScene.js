@@ -228,10 +228,8 @@ export class OverworldScene extends Phaser.Scene {
           const mkSolid = (x0, x1) => { if (x1 - x0 < 4) return; const r = this.add.rectangle((x0 + x1) / 2, ccy, x1 - x0, ch, 0x000000, 0).setVisible(false); this.physics.add.existing(r, true); this.solids.add(r); this._regionObjs.push(r); };
           mkSolid(bandL, gapL); mkSolid(gapR, bandR);                       // tile-aligned solids flanking the doorway tile
           const dcx = dCol * TILE + TILE / 2, dcy = dRow * TILE + TILE / 2;
-          const opening = this.add.rectangle(dcx, dcy, TILE, TILE, 0x0b0d12, bdoor.state === 'open' ? 0.9 : 0).setDepth(DEPTH.FLOOR + 6);
-          this._regionObjs.push(opening);
-          const vis = (bdoor.state !== 'open') ? this._buildClosedDoorVisual(dcx, dcy, bdoor.state) : {};
-          this._buildingDoors.push({ tx: dCol, ty: dRow, dcx, dcy, ...bdoor, opening, closedSpr: vis.closedSpr || null, lockSpr: vis.lockSpr || null });
+          const vis = this._buildDoorVisual(dcx, dcy, bdoor.state);          // EVERY building shows a real door sprite in its portal
+          this._buildingDoors.push({ tx: dCol, ty: dRow, dcx, dcy, ...bdoor, opening: vis.opening, doorSpr: vis.doorSpr, lockSpr: vis.lockSpr });
         } else if (isSolid(p.key, p.solid)) {
           rect = this.add.rectangle(ccx, ccy, cw, ch, 0x000000, 0).setVisible(false);
           this.physics.add.existing(rect, true); this.solids.add(rect); this._regionObjs.push(rect);
@@ -385,7 +383,7 @@ export class OverworldScene extends Phaser.Scene {
       // OPEN → enter (clean yard return); CLOSED/LOCKED → the knock/try/break choice (the morality entrance).
       for (const d of (this._buildingDoors || [])) if (d.tx === ptx && d.ty === pty) {
         if (d.state && d.state !== 'open') this._openDoorChoice(d);
-        else this._enterArea(d.to, { x: d.dcx, y: d.dcy + TILE });
+        else { this._areaT = true; this._openDoorVisual(d); this.time.delayedCall(180, () => { this._areaT = false; this._enterArea(d.to, { x: d.dcx, y: d.dcy + TILE }); }); }   // OPEN: the door swings open, THEN walk in (so the door visibly opens)
         return;
       }
     }
@@ -507,6 +505,9 @@ export class OverworldScene extends Phaser.Scene {
       const dspr = this.add.sprite(o.x + (o.spriteDx || 0), o.y + (o.spriteDy || 0), dk).setOrigin(0.5, 0.5);
       if (o.scale) dspr.setScale(o.scale); if (o.tint != null) dspr.setTint(o.tint);
       const db = solidBox(dk, dd); DepthSort.track(dspr, (db.offY + db.h / 2) * (o.scale || 1)); this._regionObjs.push(dspr);
+      // STAIRS (a floor-change link, not a building exit): read as a stairwell — stone-tint + a step-band
+      // overlay so it's visually distinct from the wooden exit door. (FLAG: a dedicated stairs sprite is better.)
+      if (o.stairs) { dspr.setTint(0x8a8f9c); const step = this.add.rectangle(o.x, o.y + 4, TILE * 0.8, 5, 0xbfc4cc).setStrokeStyle(1, 0x5a5e66).setDepth((dspr.depth || 0) + 0.1); this._regionObjs.push(step); }
       return;
     }
     const d = PROPS[o.key]; if (!d) return;
@@ -845,7 +846,8 @@ export class OverworldScene extends Phaser.Scene {
     const a = bindings.options.audio;
     if (this._mus) {                                             // crossfade the OLD out, then free it
       const old = this._mus; this._mus = null;
-      this.tweens.add({ targets: old, volume: 0, duration: 800, onComplete: () => { try { old.stop(); old.destroy(); } catch (_) {} } });
+      this.tweens.killTweensOf(old);   // BUGFIX: stop any in-flight fade-IN first — else it sets volume on a sound the fade-out then destroys ("Cannot set volume on null", which halts the update loop on rapid region-switching)
+      this.tweens.add({ targets: old, volume: 0, duration: 800, onComplete: () => { try { this.tweens.killTweensOf(old); old.stop(); old.destroy(); } catch (_) {} } });
     }
     if (!key || !this.cache.audio.exists(key)) return;          // dormant until the bed is loaded — no error
     const target = 0.55 * a.master * a.music;
@@ -886,6 +888,7 @@ export class OverworldScene extends Phaser.Scene {
   // hit; force = a bigger hit + an alarm. Built on the Dialogue option system (deeds + the onSet action).
   _openDoorChoice(d) {
     this._pendingDoor = d;
+    this._lastTile = { tx: d.tx, ty: d.ty };   // STEP-AWAY fix: mark the doorway tile as "current" so closing the menu (step-away) on it does NOT re-open — you must step off + back on
     const who = d.owner ? `${d.owner}'s ` : 'The ';
     const enter = (mode) => `door:${mode}`;     // onSet command → _doorAction (uses this._pendingDoor)
     const hasKey = !!(d.key && this.inv && this.inv.has(d.key));
@@ -949,19 +952,22 @@ export class OverworldScene extends Phaser.Scene {
     if (!/^(prop_house|prop_forge|prop_tavern|prop_chapel|prop_smithy|prop_hut|prop_hall|prop_manor|prop_cottage)/.test(p.key)) return null;
     return { to: /forge|smithy/.test(p.key) ? 'forge_generic' : 'house_generic', state: 'open' };   // generic interior, walk straight in
   }
-  // closed/locked doors SHOW a closed-door sprite (+ a lock glyph) IN the doorway → the state reads at a glance
-  _buildClosedDoorVisual(dcx, dcy, state) {
-    const closedSpr = this.add.sprite(dcx, dcy - 3, 'prop_door').setDepth(DEPTH.FLOOR + 7); closedSpr.setDisplaySize(TILE * 0.92, TILE * 1.15); this._regionObjs.push(closedSpr);
+  // EVERY building shows a REAL door sprite in its portal (open/closed/locked) — derived from the asset
+  // doorway, identical for all. A dark threshold sits behind it; locked adds a lock glyph. (Bug: doors only
+  // rendered on the blacksmith — now every building's door renders.)
+  _buildDoorVisual(dcx, dcy, state) {
+    const opening = this.add.rectangle(dcx, dcy, TILE, TILE, 0x0b0d12, 0.9).setDepth(DEPTH.FLOOR + 5); this._regionObjs.push(opening);
+    const doorSpr = this.add.sprite(dcx, dcy - 3, 'prop_door').setDepth(DEPTH.FLOOR + 7); doorSpr.setDisplaySize(TILE * 0.92, TILE * 1.15); this._regionObjs.push(doorSpr);
     let lockSpr = null;
     if (state === 'locked') { lockSpr = this.add.rectangle(dcx, dcy - 2, 7, 8, 0xf2c14e).setStrokeStyle(1, 0x6b4f12).setDepth(DEPTH.FLOOR + 8); this._regionObjs.push(lockSpr); }
-    return { closedSpr, lockSpr };
+    return { opening, doorSpr, lockSpr };
   }
-  // VISIBLY OPEN the door — hide the closed-door sprite + lock, reveal the dark threshold → Van SEES it open
-  // (the bug: break/try worked but no open-door appeared). Then the caller walks the player through.
+  // VISIBLY OPEN the door — hide the door sprite + lock, reveal the dark threshold → Van SEES it open before
+  // walking through (open buildings animate too). Then the caller walks the player in.
   _openDoorVisual(d) {
-    if (d && d.closedSpr) d.closedSpr.setVisible(false);
+    if (d && d.doorSpr) d.doorSpr.setVisible(false);
     if (d && d.lockSpr) d.lockSpr.setVisible(false);
-    if (d && d.opening) d.opening.setFillStyle(0x0b0d12, 0.9);
+    if (d && d.opening) d.opening.setFillStyle(0x0b0d12, 0.95);
     if (d) d.state = 'open';
     this._sfx('sfx_confirm', 0.5);
   }
