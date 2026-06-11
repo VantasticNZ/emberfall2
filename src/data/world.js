@@ -182,6 +182,12 @@ export const WORLD = {
       schedule: sched([['dawn', 12, 25, 'idle'], ['day', 11, 26, 'hammer'], ['dusk', 13, 23, 'chat'], ['night', 15, 24, 'sleep']]) },
     { tx: 9, ty: 23, facing: 'right', name: 'Hodge', tempo: 'ambler', speed: 70, expression: 'neutral', parts: HODGE, quest: 'SG3',
       greeting: ['The forge runs hot all day. Come back when you\'ve hands for real work.'],
+      greetByKarma: {   // REACTIVITY: Hodge warms to the kind, cools to the cruel
+        good: ["There's a face the town's glad to see. Sit by the heat a while.", 'Heard what you did for folk. Steel\'s honest, and so are you.'],
+        neutral: ['The forge runs hot all day. Come back when you\'ve hands for real work.'],
+        bad: ['*sets down the hammer, eyes hard* ...State your business and move along.', 'I\'ve heard the talk about you. The door\'s that way.'],
+      },
+      bark: '*the ring of hammer on anvil*',
       schedule: sched([['dawn', 9, 23, 'idle'], ['day', 9, 23, 'hammer'], ['dusk', 11, 22, 'chat'], ['night', 8, 26, 'sleep']]) },
     { tx: 25, ty: 18, facing: 'down', name: 'Tam', tempo: 'brisk', speed: 70, expression: 'happy', parts: TAM, quest: 'M2',
       greeting: ['Race you to the old cave! ...if your ma ever lets you off chores.'],

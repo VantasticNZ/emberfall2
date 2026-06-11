@@ -917,14 +917,23 @@ export class OverworldScene extends Phaser.Scene {
     if (n.quest && (st === 'available' || st === 'active')) this._startQuestDialogue(n.quest);
     else if (n.social) this._startDialogue(n.social, n.name);
     else if (st === 'complete' && n.done) this._startGreeting(n.name, n.done);
-    else if (n.greeting) this._startGreeting(n.name, this._cycleLines(n));
+    else if (n.greeting || n.greetByKarma) this._startGreeting(n.name, this._cycleLines(n));
     else if (n.done) this._startGreeting(n.name, n.done);
   }
-  // REPEAT-AVOIDANCE — re-talking an NPC rotates which greeting line surfaces (+ an occasional bark) so
-  // they don't replay the same line. Per-NPC index, persisted for the session.
+  // REACTIVITY — the greeting reacts to the player's KARMA (warm if good, wary if cruel) + REPEAT-AVOIDANCE
+  // rotates which line surfaces on re-talk (+ an occasional bark). Per-NPC index, session-persisted.
+  _greetSet(n) {
+    if (n.greetByKarma) {
+      const m = (this.karma ? this.karma.morality : 0) || 0;
+      const tier = m >= 15 ? 'good' : m <= -15 ? 'bad' : 'neutral';
+      const set = n.greetByKarma[tier] || n.greetByKarma.neutral || [];
+      return Array.isArray(set) ? set : [set];
+    }
+    return Array.isArray(n.greeting) ? n.greeting : [n.greeting];
+  }
   _cycleLines(n) {
     this._npcSaid = this._npcSaid || {};
-    const lines = Array.isArray(n.greeting) ? n.greeting : [n.greeting];
+    const lines = this._greetSet(n);
     const i = (this._npcSaid[n.name] = ((this._npcSaid[n.name] | 0) + 1));
     const pick = [lines[(i - 1) % lines.length]];
     if (n.bark && i % 3 === 0) pick.push(n.bark);   // every 3rd talk, an overheard bark
