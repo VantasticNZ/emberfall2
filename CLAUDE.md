@@ -95,5 +95,15 @@ Karma + deed-memory engine. Tests are plain Node + `node:assert` (`npm test`).
     (it is the SSOT for done); (d) **designed ≠ built** — the running world must match the
     locked map (the `designed-vs-built` verify gate shows the gap); (e) **deferred ≠ dropped** —
     log every deferral in `docs/DEFERRED.md` with a when-to-build milestone; never silently drop.
+12. **FULL-EXPECTATION SPECS — decompose THEN build (Van's process demand; see THE-SLICE.md method).**
+    (a) **RULE 1 — full-expectation spec, pre-build:** no system is built from a one-line intent. FIRST
+    write its full decomposition — every facet a professional game covers (behavior · states · sequencing ·
+    visuals · audio · feel · edge cases · persistence), derived by asking *"what would Stardew / Zelda / a
+    commercial RPG do here?"* — and **show it to Van for a ~2-min review BEFORE building.** Van approves/
+    edits; the build implements ALL of it; the exhaustive table tests ALL of it. (b) **RULE 2 — the
+    player-pass:** after the table passes, play it as a skeptical PLAYER on Van's load path (approach wrong,
+    try to break it, note what LOOKS/FEELS off) before hand-off; hand-offs include "what I noticed in the
+    player-pass." (c) **RULE 3 — reference check:** every spec names its genre-reference behavior and the
+    build is diffed against it. One facet blobbed out as the whole instruction = a process failure.
 
 The owner is Van (NZ). Be concise, honest, willing to push back; no emoji.

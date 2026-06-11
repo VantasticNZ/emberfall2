@@ -16,11 +16,21 @@ snag-free**:
 - **Audio** (region music + ambient + sfx actually play) and **save/load** round-trip.
 
 ## METHOD — the production loop (per system)
-1. Build ONE system to spec.
-2. **Exhaustive pass/fail table** — every instance × every case, REAL input, fresh save. **Pixel-truth for
-   anything visual** (snapshotPixel / depth-vs-occluder — NEVER `.visible`; see `DONE-DEFINITION` §B).
-3. A **~5-minute VAN-TEST script** (below) so Van can confirm in minutes.
-4. **Van sign-off** → the system is **FROZEN** (gate-guarded; changing it later needs an explicit unfreeze).
+0. **FULL-EXPECTATION SPEC, pre-build (RULE 1).** No system is built from a one-line intent. FIRST write its
+   **full decomposition** — every facet a professional game covers: behaviour · states · sequencing · visuals
+   · audio · feel · edge cases · persistence — derived by asking **"what would Stardew / Zelda / a commercial
+   RPG do here?"** (RULE 3 — name the genre reference per facet; the build is diffed against it). **Show the
+   spec to Van for a ~2-minute review BEFORE building.** Van approves/edits; the build implements ALL of it;
+   the table tests ALL of it. (Spec lives in `docs/SPEC-<system>.md`.)
+1. Build ONE system to the **approved** spec.
+2. **Exhaustive pass/fail table** — every instance × every case (from the spec), REAL input, fresh save.
+   **Pixel-truth for anything visual** (snapshotPixel / depth-vs-occluder — NEVER `.visible`; `DONE-DEFINITION` §B).
+3. **THE PLAYER-PASS (RULE 2).** After the table passes, play the system as a **skeptical PLAYER** on Van's
+   load path — approach things wrong, interact naturally, TRY TO BREAK IT, note anything that LOOKS or FEELS
+   off (not just the listed assertions). Fix or flag before hand-off. **Every hand-off includes "what I
+   noticed in the player-pass."**
+4. A **~5-minute VAN-TEST script** so Van can confirm in minutes.
+5. **Van sign-off** → the system is **FROZEN** (gate-guarded; changing it later needs an explicit unfreeze).
 
 ## ORDER (do not skip ahead)
 1. **DOORS** ← close it out now (depth fixed + pixel-proven; run the VAN-TEST).
