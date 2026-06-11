@@ -500,14 +500,27 @@ const tile = (px) => Math.round(px / TILE);
   // built region must resolve to an existing interior — an explicit `door`, or the default generic by key.
   const BUILDING = /^(prop_house|prop_forge|prop_tavern|prop_chapel|prop_smithy|prop_hut|prop_hall|prop_manor|prop_cottage)/;
   const resolveDoor = (p) => p.door ? (typeof p.door === 'string' ? p.door : p.door.to) : (/forge|smithy/.test(p.key) ? 'forge_generic' : 'house_generic');
-  let buildingCount = 0; const unEnterable = [];
+  let buildingCount = 0; const unEnterable = [], noAssetDoor = [];
+  const seenBuildingKeys = new Set();
   for (const R of REGIONS.filter((r) => !r.interior)) for (const p of (R.props || [])) if (BUILDING.test(p.key)) {
     buildingCount++;
     const to = resolveDoor(p);
     if (!allKeys2.has(to)) unEnterable.push(`${R.key}:${p.key} → ${to} (no interior)`);
+    // ASSET-OWNED DOORWAY (Van's governing principle): the doorway is a PROPERTY OF THE ASSET — every
+    // enterable building asset MUST declare `doorway` (the painted door's offset) in PROPS, so the door
+    // system derives it automatically (no per-building code). A building asset without one = a regression.
+    if (!seenBuildingKeys.has(p.key)) { seenBuildingKeys.add(p.key); if (!(PROPS[p.key] && PROPS[p.key].doorway)) noAssetDoor.push(p.key); }
   }
-  if (deadDoors.length || badStates.length || unEnterable.length) fail('DOORWAY-GEOMETRY: ' + [...deadDoors.map((d) => 'door → ' + d + ' (no such interior)'), ...badStates, ...unEnterable.map((u) => u + ' — UN-ENTERABLE building')].map((s) => '\n      ' + s).join(''));
-  else ok(`doorway-geometry: ${doorTargets.size} door targets resolve; ALL ${buildingCount} building props in every region are enterable (explicit or generic interior); door states valid`);
+  // VALID EXITS: every interior must have a 'back' exit door (you can always leave → no trapped/void room).
+  const noExit = REGIONS.filter((r) => r.interior).filter((r) => !(r.interactables || []).some((o) => o.via === 'door' && o.to === 'back')).map((r) => r.key);
+  if (deadDoors.length || badStates.length || unEnterable.length || noAssetDoor.length || noExit.length) {
+    fail('DOORWAY-GEOMETRY: ' + [
+      ...deadDoors.map((d) => 'door → ' + d + ' (no such interior)'), ...badStates,
+      ...unEnterable.map((u) => u + ' — UN-ENTERABLE building'),
+      ...noAssetDoor.map((k) => `asset '${k}' has NO doorway declared (asset-owned-doorway principle)`),
+      ...noExit.map((k) => `interior '${k}' has NO 'back' exit (would trap the player)`),
+    ].map((s) => '\n      ' + s).join(''));
+  } else ok(`doorway-geometry: ${doorTargets.size} door targets resolve; ALL ${buildingCount} building props enterable; every building ASSET declares its doorway (${seenBuildingKeys.size} assets); every interior has a 'back' exit; door states valid`);
 }
 
 // --- summary ------------------------------------------------------------------

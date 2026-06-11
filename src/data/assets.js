@@ -138,16 +138,20 @@ export const PROPS = {
   // the footprint covers the building's whole MASS (walls+door+base), bottom-aligned so the
   // y-sort anchor is unchanged — you can't walk into ANY face. (The thin base-only strip let
   // the player walk into the front/door = the reported walk-through-houses bug.)
+  // ASSET-OWNED DOORWAY (Van's governing principle): each building asset DECLARES its own portal —
+  // `doorway.px` = the painted door's horizontal offset from the sprite centre (native pixels). The ONE
+  // door system reads this, so the visible door + walkable threshold + trigger land on the SAME tile,
+  // automatically, wherever the building is placed. A fix to the door code fixes EVERY building; a new
+  // building only needs its `doorway` here. (Doors verified against the actual sprite art.)
   prop_forge:     { src: 'art/terrain/forge.png', width: 96, height: 128,
-                    footprint: { w: 88, h: 96, offX: 0, offY: 16 } },
-
+                    footprint: { w: 88, h: 96, offX: 0, offY: 16 }, doorway: { px: 0 } },        // door dead-centre
   // REAL LPC buildings (ElizaWy LPC structure, OGA-BY). FULLY SOLID — footprint = full mass.
   prop_house_a:   { src: 'art/structures/house_brick_a.png', width: 256, height: 224,   // a notable house / manor
-                    footprint: { w: 224, h: 160, offX: 0, offY: 32 } },
+                    footprint: { w: 224, h: 160, offX: 0, offY: 32 }, doorway: { px: -46 } },    // door bottom-LEFT
   prop_house_b:   { src: 'art/structures/house_brick_b.png', width: 192, height: 192,   // a brick cottage
-                    footprint: { w: 172, h: 140, offX: 0, offY: 26 } },
+                    footprint: { w: 172, h: 140, offX: 0, offY: 26 }, doorway: { px: 36 } },     // door bottom-RIGHT (the store fix)
   prop_house_paneled: { src: 'art/structures/house_paneled.png', width: 160, height: 160, // paneled house (tavern/shop)
-                    footprint: { w: 144, h: 116, offX: 0, offY: 22 } },
+                    footprint: { w: 144, h: 116, offX: 0, offY: 22 }, doorway: { px: 40 } },     // door = the RIGHT porch
   prop_fountain:  { src: 'art/structures/fountain.png', width: 64, height: 96,          // the village well/fountain
                     footprint: { w: 46, h: 16, offX: 0, offY: 34 } },
   prop_barrel:    { src: 'art/structures/barrel.png', width: 32, height: 32,            // scenery

@@ -219,8 +219,11 @@ export class OverworldScene extends Phaser.Scene {
           // ONE clean walkable TILE (the only gap, carrying the trigger); the solid base-band is split into
           // TILE-ALIGNED left + right rects around it. Identical on every building → consistent entry, no
           // sub-tile sliver to snag on. Walk UP INTO the threshold tile to enter.
-          const doff = OverworldScene.DOOR_OFFSET[p.key] || { dx: 0, dy: 0 };   // shift the doorway onto the sprite's VISIBLE painted door
-          const dCol = Math.round((ccx - TILE / 2) / TILE) + doff.dx, dRow = Math.round((ccy - TILE / 2) / TILE) + doff.dy;
+          // ASSET-OWNED DOORWAY: the door column comes from the building ASSET's `doorway.px` (the painted
+          // door's offset from the sprite centre), not per-building code → visible == walkable == trigger,
+          // automatically, for every placement of every asset.
+          const dwpx = (d.doorway && d.doorway.px != null ? d.doorway.px : 0) * sc;
+          const dCol = Math.round((p.x + dwpx - TILE / 2) / TILE), dRow = Math.round((ccy - TILE / 2) / TILE);
           const bandL = ccx - cw / 2, bandR = ccx + cw / 2, gapL = dCol * TILE, gapR = (dCol + 1) * TILE;
           const mkSolid = (x0, x1) => { if (x1 - x0 < 4) return; const r = this.add.rectangle((x0 + x1) / 2, ccy, x1 - x0, ch, 0x000000, 0).setVisible(false); this.physics.add.existing(r, true); this.solids.add(r); this._regionObjs.push(r); };
           mkSolid(bandL, gapL); mkSolid(gapR, bandR);                       // tile-aligned solids flanking the doorway tile
@@ -301,10 +304,6 @@ export class OverworldScene extends Phaser.Scene {
   // prompt are keyed to the gate's deed so a grapple-gorge ≠ a hookshot-chasm ≠ a rockfall at a glance.
   // (Bespoke per-ability gate SPRITES — cracked-wall/ice-block/grapple-anchor — are DEFERRED art; tint +
   // an ability-named inspect deliver the legibility now.)
-  // DOOR-SYSTEM — per-SPRITE doorway offset (tiles): some building art has its painted door OFF-CENTRE
-  // (the paneled house's porch is on the RIGHT). The carve shifts the doorway tile + threshold + trigger
-  // to sit on the VISIBLE door, so you enter dead-centre through the opening you can see (chapel bug).
-  static DOOR_OFFSET = { prop_house_paneled: { dx: 1, dy: 0 } };
   static GATE_LOOK = {
     tool_grapple:   { tint: 0x9a6a3a, prompt: 'A sheer gorge — a grapple-anchor juts from the far rim',      hint: 'You could line a GRAPPLE onto that anchor and swing across. (Earned in the Peaks.)' },
     tool_hookshot:  { tint: 0x4a8a9a, prompt: 'A scorched chasm — a hookshot-ring is bolted across it',       hint: 'A HOOKSHOT would catch that ring and pull you over. (Earned at the Coast.)' },

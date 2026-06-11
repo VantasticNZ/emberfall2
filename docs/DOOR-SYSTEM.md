@@ -6,6 +6,22 @@
 > SPEC'd here for build-out (the morality-entrance hook). Reconciles `RPG-FEEL-STANDARD` pillar 1 +
 > `no-floating-doors` (#20) + the new `doorway-geometry` gate (#21).
 
+## 0. ASSET-OWNED DOORWAYS (the governing principle — Van) ★
+**Every building ASSET declares its own doorway, so a fix to the door system applies to ALL buildings —
+never patch doors per-building again.**
+- In `assets.js`, each building PROP declares `doorway: { px }` — the painted door's horizontal offset
+  from the sprite centre (native pixels), **read off the actual sprite art** (store door = bottom-RIGHT
+  `+36`; paneled porch = `+40`; manor door = bottom-LEFT `-46`; forge = centre `0`).
+- The ONE door system (`_buildRegion`) reads `PROPS[key].doorway.px` and builds the **visible door +
+  walkable threshold + trigger as the SAME tile**, tile-aligned, automatically — wherever the building is
+  placed, however many times. No per-placement or per-building door code.
+- **Result:** fixing the door code fixes EVERY building; adding a building only needs its `doorway` in the
+  asset def. The `placement.door` field carries only the STATE/target (open/closed/locked, which interior);
+  the doorway POSITION is the asset's. Gate #21 **fails if any building asset omits `doorway`.**
+- This killed the whole "store can't enter / shop off to the left / push-to-find-the-spot / tavern-exit-
+  offset" class at once — they were all the same bug: the doorway was guessed per-building instead of
+  declared by the asset. (`store-asset-doorway.png` — the store now enters dead-on its bottom-right door.)
+
 ## 1. DOORWAY GEOMETRY (the standard — BUILT, EXACT TILE-ALIGNED)
 - A building is a **SOLID footprint** (its base-band collider) with **ONE doorway carved in the front
   wall** = **exactly ONE clean TILE-ALIGNED walkable tile** (NOT an approximate float gap). The base-band
