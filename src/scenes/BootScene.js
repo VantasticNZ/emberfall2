@@ -35,6 +35,16 @@ export class BootScene extends Phaser.Scene {
     this.load.audio('mus_green', 'audio/music/green.ogg');             // GH/belt music bed — "Peasant Theme" (nihilocrat, CC0)
     this.load.audio('mus_peaks', 'audio/music/peaks.ogg');             // Peaks music bed — "Cave Theme" (Brandon Morris, CC0)
     this.load.audio('mus_marsh', 'audio/music/marsh.mp3');             // Ashen Marsh dread bed — "Spirits Forest" (HydroGene, royalty-free)
+    // ⚑ LICENCE-UNVERIFIED beds (Van's Downloads — local/friends scope; debt tracked, resolved before any
+    // wider release by the no-unverified-assets-at-ship gate). Mood-matched from the music audit.
+    this.load.audio('mus_cemetery', 'audio/music/mus_cemetery.ogg');   // cemetery-eerie — "Old Cemitery"
+    this.load.audio('mus_dungeon',  'audio/music/mus_dungeon.ogg');    // dungeon-tension — "Mysterious cavern"
+    this.load.audio('mus_sacral',   'audio/music/mus_sacral.ogg');     // spire-sacral / chapel — "The Sage Den"
+    this.load.audio('mus_ember',    'audio/music/mus_ember.ogg');      // ember-tension — "Old Ruins"
+    this.load.audio('mus_coast',    'audio/music/mus_coast.ogg');      // coast-storm — "Submerged Ruins"
+    this.load.audio('mus_town',     'audio/music/mus_town.ogg');       // settlement — "Plains (contrasting)"
+    this.load.audio('mus_home',     'audio/music/mus_home.ogg');       // shared indoor-home bed — "Forest - Under The Great Tree"
+    this.load.audio('mus_tavern',   'audio/music/mus_tavern.mp3');     // tavern — "Tea Time For Cats"
     for (const m of MONSTER_SHEETS) this.load.spritesheet(`mon_${m.key}`, `art/monsters/${m.key}.png`, { frameWidth: m.fw, frameHeight: m.fw });
   }
 

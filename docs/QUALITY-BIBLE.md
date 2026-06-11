@@ -12,6 +12,7 @@
 > | **Traversal rule** (passes need the stated item/ability; a solid main path always exists) | `SPEC-INTERIORS.md` §R5 + `gating.js` | any gated route/region |
 > | **Asset-first** (audit library FIRST · report HAVE/GAP · ledger all) | `CLAUDE.md` HARD RULE 12d + `ASSET-LEDGER.md` | any visual/audio work |
 > | **Licence bar** (CC0/CC-BY/-SA/OGA-BY/GPL safe; NC/ND/anti-AI banned; unclear=quarantine) | `ASSET-LEDGER.md` + HARD RULE 3 | importing any asset |
+> | **Ship-gate** (`no-unverified-assets-at-ship`): licence-UNVERIFIED assets may ship at LOCAL/friends scope as tracked DEBT; **before any distribution beyond local/friends run `SHIP=true npm run verify` — it HARD-FAILS until every `unverified` row is source-verified (moved into the `ledger` block) or swapped to a CC0 candidate** (DEFERRED's music list). | `ASSET-LEDGER.md` `unverified` block + `verify.mjs` | before any release |
 > | **Full-expectation specs** (decompose→Van-review→build→exhaustive table→player-pass) | `THE-SLICE.md` method + `SPEC-BACKLOG.md` | starting any system |
 > | **Process meta-rules** (why gates went green while broken; the 12 rules) | `PROCESS-RETRO.md` | when a check disagrees with Van's eyes |
 > | **What to build next** | `THE-SLICE.md` (order) · `PLAN.md` (current step) · `DEFERRED.md` (parked) | every session |

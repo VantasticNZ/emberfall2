@@ -865,8 +865,20 @@ export class OverworldScene extends Phaser.Scene {
   // carry the soundscape) — so the system is safe before the CC0 beds land.
   _musicForRegion(R) {
     if (!R) return 'mus_green';                                   // the belt/foothill = the green pastoral
+    if (R.interior) {                                             // INTERIOR beds (SPEC-INTERIORS d) — set on entry
+      const k = R.key;
+      if (k === 'lost_cemetery') return 'mus_cemetery';
+      if (k === 'gh_chapel' || k === 'dgn_shrine') return 'mus_sacral';   // chapel + the shrine share the sacral bed
+      if (k === 'tankard_f1' || k === 'tankard_f2') return 'mus_tavern';
+      if (/^cave_|dgn_keep/.test(k)) return 'mus_dungeon';
+      if (R.settlement) return 'mus_town';                        // village/town/city scenes
+      return 'mus_home';                                          // homes / huts / shops — the shared indoor bed
+    }
     if (R.mountain) return 'mus_peaks';
-    if (R.key === 'AshenMarsh' || R.marsh || R.bog || R.key === 'Marsh' || R.key === 'lost_cemetery') return 'mus_marsh';
+    if (R.key === 'AshenMarsh' || R.marsh || R.bog || R.key === 'Marsh') return 'mus_marsh';
+    if (R.key === 'Coast' || R.coast) return 'mus_coast';
+    if (R.key === 'Emberwood' || R.ember) return 'mus_ember';
+    if (R.key === 'Spire') return 'mus_sacral';
     return 'mus_green';
   }
   _setMusic(key) {

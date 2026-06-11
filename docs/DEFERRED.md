@@ -121,11 +121,16 @@ audio wired (licence-first). UNBLOCK: a clean home/chapel/tavern bed → wire pe
 ## MUSIC BEDS — needed vs HAVE (asset-first audit 2026-06-11)
 **WIRED (SAFE):** green (Peasant Theme, nihilocrat CC0) · peaks (Cave Theme, Brandon Morris CC0) · marsh
 (Spirits Forest, HydroGene — ⚑ "royalty-free" ≠ a clear licence; re-verify or replace before ship).
-**GAP (need a licence-clean bed):** coast-storm · ember-tension · spire-sacral · dungeon-tension ·
-cemetery-eerie · settlement-town beds. Many mood-matched files are in Van's Downloads but have **NO
-provenance** (UNKNOWN licence) — must NOT use until Van confirms each source (like the hen). OGA/CC0 fetch
-candidates: OpenGameArt "Sacred"/"Shrine" (sacral), nihilocrat + Brandon Morris CC0 sets (already trusted),
-"Dungeon/Cave Ambient" CC0, "Eerie/Cemetery" CC0 ambiences. Wire per region as built; ears-on verify.
+**WIRED 2026-06-11 (Van's call, LOCAL/friends scope) as LICENCE DEBT** — 8 Downloads beds wired + tracked
+in the ASSET-LEDGER `unverified` block; the `no-unverified-assets-at-ship` gate HARD-FAILS at `SHIP=true`:
+cemetery-eerie=mus_cemetery ("Old Cemitery") · dungeon-tension=mus_dungeon ("Mysterious cavern") · spire-
+sacral/chapel=mus_sacral ("The Sage Den") · ember-tension=mus_ember ("Old Ruins") · coast-storm=mus_coast
+("Submerged Ruins") · settlement=mus_town ("Plains (contrasting)") · interior-home=mus_home ("Forest - Under
+The Great Tree") · interior-tavern=mus_tavern ("Tea Time For Cats").
+**RESOLVE before any wider release:** for each, confirm the source/licence (move it into the `ledger` block)
+OR swap to a CC0 candidate — OpenGameArt "Sacred"/"Shrine" (sacral), nihilocrat + Brandon Morris CC0 sets
+(already trusted), "Dungeon/Cave Ambient" CC0, "Eerie/Cemetery" CC0 ambiences. Run `SHIP=true npm run verify`
+to see the live debt list.
 
 ## POLISH — anytime quality
 | Item | Why deferred | Need | When |

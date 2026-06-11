@@ -114,6 +114,20 @@ for (const f of allArt) {
 }
 if (artOk) ok(`licence: all ${allArt.length} public asset files covered by ${ledger.length} ai-safe ledger entries`);
 
+// SHIP-GATE — no-unverified-assets-at-ship. Parses the ```unverified block (assets used at LOCAL/friends
+// scope but with licence DEBT). INFORMATIONAL by default (reports count + files); HARD-FAILS when a release
+// flag is set (`SHIP=true npm run verify`) — every UNVERIFIED asset must then be source-verified (moved into
+// the `ledger` block) or swapped to a CC0 candidate (DEFERRED's music list).
+{
+  const unvBlock = ledgerMd.split('```unverified')[1]?.split('```')[0] || '';
+  const unv = unvBlock.split('\n').map((l) => l.trim()).filter((l) => l.startsWith('public/')).map((l) => l.split('|')[0].trim());
+  const ship = process.env.SHIP === 'true' || process.env.SHIP === '1';
+  const missing = unv.filter((f) => !existsSync(join(ROOT, f)));   // listed-but-absent = stale debt entry
+  if (unv.length === 0) ok('no-unverified-assets-at-ship: 0 licence-unverified assets — clean to ship');
+  else if (ship) fail(`SHIP=true but ${unv.length} LICENCE-UNVERIFIED asset(s) remain — verify the source or swap to a CC0 candidate before any release beyond local/friends:${unv.map((f) => '\n      ' + f).join('')}`);
+  else { warn(`no-unverified-assets-at-ship: ${unv.length} licence-unverified asset(s) shipping at LOCAL/friends scope (HARD-FAILS at SHIP=true): ${unv.map((f) => f.split('/').pop()).join(', ')}`); if (missing.length) warn(`  (${missing.length} unverified entr(y/ies) point at a missing file: ${missing.join(', ')})`); }
+}
+
 // 5) STORAGE — no localStorage/sessionStorage outside the storage adapter ------
 const srcDir = join(ROOT, 'src');
 const offenders = [];
