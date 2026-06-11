@@ -105,5 +105,10 @@ Karma + deed-memory engine. Tests are plain Node + `node:assert` (`npm test`).
     try to break it, note what LOOKS/FEELS off) before hand-off; hand-offs include "what I noticed in the
     player-pass." (c) **RULE 3 — reference check:** every spec names its genre-reference behavior and the
     build is diffed against it. One facet blobbed out as the whole instruction = a process failure.
+    (d) **RULE 4 — ASSET-FIRST cross-check (standing):** before building anything visual/audio, AUDIT the
+    licence-vetted library FIRST (`asset-library/`, esp. the eliza sheets + lpc-* sets) for the art you
+    need — extract + ledger what exists; only then list true GAPS (a licence-clean OGA fetch, or a 1-line
+    manual note). EVERY hand-off reports **HAVE/extracted vs GAP** for the assets it used; everything used
+    is in `docs/ASSET-LEDGER.md`. Asset state is a standing cross-check in every report.
 
 The owner is Van (NZ). Be concise, honest, willing to push back; no emoji.

@@ -96,13 +96,13 @@ export const WORLD = {
     // ---- buildings FRONTING the plaza (enclosure) ----
     // DOOR-SYSTEM (docs/DOOR-SYSTEM.md): an enterable building carries `door:'<interior>'` — its front
     // wall gets ONE inset doorway gap (carved out of the solid base-band) + a dark threshold you walk INTO.
-    { key: 'prop_house_paneled', tx: 19, ty: 9, solid: true, tint: 0xc4c4d0, door: 'gh_chapel' },   // CHAPEL — fronts S
-    { key: 'prop_house_paneled', tx: 29, ty: 15, solid: true, door: 'tankard_f1' },                 // TAVERN — fronts S
-    { key: 'prop_house_b', tx: 13, ty: 14, solid: true, tint: 0xd8c8a0, door: 'gh_store' },         // Pem's STORE — fronts S
+    { key: 'prop_house_paneled', tx: 19, ty: 9, solid: true, tint: 0xc4c4d0, door: 'gh_chapel', sign: 'prop_sign_chapel' },   // CHAPEL — fronts S
+    { key: 'prop_house_paneled', tx: 29, ty: 15, solid: true, door: 'tankard_f1', sign: 'prop_sign_tavern' },                 // TAVERN — fronts S
+    { key: 'prop_house_b', tx: 13, ty: 14, solid: true, tint: 0xd8c8a0, door: 'gh_store', sign: 'prop_sign_store' },         // Pem's STORE — fronts S
     { key: 'prop_house_a', tx: 41, ty: 11, solid: true, door: { to: 'house_generic', state: 'closed', owner: 'the household' } },   // the MANOR — a CLOSED home (knock / try)
 
     // ---- the SMITHY district (set apart, W — heat + noise) ----
-    { key: 'prop_forge', tx: 10, ty: 24, solid: true, door: 'gh_forge' },
+    { key: 'prop_forge', tx: 10, ty: 24, solid: true, door: 'gh_forge', sign: 'prop_sign_forge' },
     { key: 'prop_barrel', tx: 8, ty: 26, solid: true }, { key: 'prop_barrel', tx: 13, ty: 25, solid: true },
 
     // ---- DISTRICT DIVIDERS (Pillar 1: barriers create places) — short hedges in the

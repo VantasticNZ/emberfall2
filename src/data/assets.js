@@ -149,14 +149,14 @@ export const PROPS = {
   // painted opening, fits it, and the avatar (at the feet line) sorts IN FRONT of it. (Per-asset, correct
   // by construction for every placement; verified with an overlay shot per building type.)
   prop_forge:     { src: 'art/terrain/forge.png', width: 96, height: 128,
-                    footprint: { w: 88, h: 96, offX: 0, offY: 16 }, doorway: { cx: 0, cy: 30, w: 28, h: 48 }, doorArt: 'prop_door_panel' },        // wooden door, dead-centre
+                    footprint: { w: 88, h: 96, offX: 0, offY: 16 }, doorway: { cx: 0, cy: 30, w: 28, h: 48 }, doorArt: 'prop_door_panel', signAnchor: { cx: 0, cy: -14 } },        // wooden door, dead-centre
   // REAL LPC buildings (ElizaWy LPC structure, OGA-BY). FULLY SOLID — footprint = full mass.
   prop_house_a:   { src: 'art/structures/house_brick_a.png', width: 256, height: 224,   // a notable house / manor
                     footprint: { w: 224, h: 160, offX: 0, offY: 32 }, doorway: { cx: -47, cy: 39, w: 32, h: 56 }, doorArt: 'prop_door_arched' },    // arched door, bottom-LEFT
   prop_house_b:   { src: 'art/structures/house_brick_b.png', width: 192, height: 192,   // a brick cottage
-                    footprint: { w: 172, h: 140, offX: 0, offY: 26 }, doorway: { cx: 16, cy: 66, w: 44, h: 58 }, doorArt: 'prop_door_arched' },     // arched door, bottom-RIGHT
+                    footprint: { w: 172, h: 140, offX: 0, offY: 26 }, doorway: { cx: 16, cy: 66, w: 44, h: 58 }, doorArt: 'prop_door_arched', signAnchor: { cx: 16, cy: 24 } },     // arched door, bottom-RIGHT
   prop_house_paneled: { src: 'art/structures/house_paneled.png', width: 160, height: 160, // paneled house (tavern/shop)
-                    footprint: { w: 144, h: 116, offX: 0, offY: 22 }, doorway: { cx: 42, cy: 24, w: 26, h: 48 }, doorArt: 'prop_door_panel' },     // porch doorway, RIGHT
+                    footprint: { w: 144, h: 116, offX: 0, offY: 22 }, doorway: { cx: 42, cy: 24, w: 26, h: 48 }, doorArt: 'prop_door_panel', signAnchor: { cx: -8, cy: -18 } },     // porch doorway, RIGHT
   prop_fountain:  { src: 'art/structures/fountain.png', width: 64, height: 96,          // the village well/fountain
                     footprint: { w: 46, h: 16, offX: 0, offY: 34 } },
   prop_barrel:    { src: 'art/structures/barrel.png', width: 32, height: 32,            // scenery
@@ -187,6 +187,12 @@ export const PROPS = {
   prop_door:      { src: 'art/furniture/door.png',      width: 32, height: 44,  footprint: null },
   prop_door_arched: { src: 'art/structures/door_arched.png', width: 64, height: 64, footprint: null },   // eliza arched door — matches the brick-house openings (closed/locked/broken)
   prop_door_panel:  { src: 'art/structures/door_panel.png',  width: 32, height: 48, footprint: null },   // eliza 12-panel door — matches the PANELED house (tavern/chapel) + forge
+  // HANGING PURPOSE SIGNS (eliza Sign board + icon; chapel = composed cross) — mounted per BUILDING (the
+  // building asset names WHERE via `signAnchor`; the placement names WHICH via `sign`). 32x32.
+  prop_sign_forge:  { src: 'art/structures/sign_forge.png',  width: 32, height: 32, footprint: null },   // sword = smithy
+  prop_sign_store:  { src: 'art/structures/sign_store.png',  width: 32, height: 32, footprint: null },   // coin-purse = store
+  prop_sign_tavern: { src: 'art/structures/sign_tavern.png', width: 32, height: 32, footprint: null },   // INN = tavern
+  prop_sign_chapel: { src: 'art/structures/sign_chapel.png', width: 32, height: 32, footprint: null },   // cross = chapel
 
   // ROCK / CLIFF props (ElizaWy eliza-terrain crops, OGA-BY 3.0) — the Sundered Peaks
   // mountain mass: a tall cliff face frames routes + the riven cleft; boulders/scree

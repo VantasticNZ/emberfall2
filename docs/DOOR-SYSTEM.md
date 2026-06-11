@@ -124,6 +124,13 @@ The carve + states are applied to **every building prop in every built region**,
   door renders **splintered/hanging** (tinted, angled) and you walk straight in. Repair = a future item.
 - **Inset:** interior exit doors recessed further into the wall (`doorWallOffset` → 1.35 tiles).
 
+## 4.6 HANGING PURPOSE SIGNS (asset-owned anchor + per-placement sign)
+Each building ASSET declares `signAnchor:{cx,cy}` (where a sign hangs, local px from its sprite centre);
+the PLACEMENT names `sign:'prop_sign_X'` (which sign — since one asset, e.g. the paneled house, serves both
+chapel AND tavern). Signs are eliza Sign-board + icon (sword=forge, coin=store, INN=tavern) + a composed
+cross=chapel; depth = the building's base-feet +1, so the player sorts in front when passing. GH: forge ·
+store · tavern · chapel wear theirs; homes none. Pixel-proven (`building-sign-tavern.png`).
+
 ## 5. PRODUCTION METHOD — exhaustive table + the full-spec build (this pass)
 - **Every building renders a REAL door sprite in its portal** (`_buildDoorVisual`, all states) — not just the
   forge. OPEN doors animate open, then you walk in.

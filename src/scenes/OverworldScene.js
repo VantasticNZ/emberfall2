@@ -240,6 +240,13 @@ export class OverworldScene extends Phaser.Scene {
         }
         spr.setData('solidKey', p.key);   // pixel-truth test hook: marks this sprite as a tested solid
       }
+      // HANGING PURPOSE SIGN — the building ASSET names WHERE it hangs (`signAnchor`, local px from the
+      // sprite centre); the placement names WHICH sign (`sign`). Mounted on the front wall, depth just in
+      // front of the building so the player (lower on screen) sorts IN FRONT when walking past.
+      if (p.sign && d.signAnchor && PROPS[p.sign]) {
+        const sa = d.signAnchor, sgn = this.add.sprite(p.x + sa.cx * sc, p.y + sa.cy * sc, p.sign);
+        sgn.setDepth(spr.y + (b.offY + b.h / 2) * sc + 1); this._regionObjs.push(sgn);
+      }
       // CUTTABLE from the class — every cuttable asset is cut by the sword swing in EVERY region
       // (the "cut works in GH not Peaks" fix). Tracked here; the swing tests this list (_cutSwing).
       const ic = ixClass(p.key);

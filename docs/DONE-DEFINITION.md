@@ -60,6 +60,9 @@ A region/corridor/gate is NOT done unless it delivers the 6 pillars (eyes-on):
 - [ ] **Moment-to-moment polish** — responsive controls · readable hit/feedback · smooth transitions · ambient life · responsive audio · consistent art.
 
 ## D. HONESTY — the close-out
+- [ ] **ASSET-FIRST cross-check (standing)** — for any visual/audio work: the library was AUDITED first
+  (`asset-library/`), and the hand-off states **HAVE/extracted vs GAP** for the assets used; everything used
+  is ledgered (`ASSET-LEDGER.md`). (CLAUDE.md HARD RULE 12d.)
 - [ ] **Per-item checklist** — every requested item ✅ (with proof) or ❌ (with reason). A dropped/deferred item is ❌, never omitted.
 - [ ] **Deferrals logged** — anything not done is in `DEFERRED.md` with what-unblocks-it + when-to-build.
 - [ ] **No false-green** — if any automated gate is green while a runtime/visual item in B is false, the **gate is wrong** → fix the gate (or flag it) before claiming done.
