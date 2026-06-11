@@ -643,6 +643,26 @@ const tile = (px) => Math.round(px / TILE);
   else ok(`kids-protected: all ${kids} kid NPC(s) are protected:true (unharmable/untargetable — hard rule)`);
 }
 
+// 26) PANEL-BOUNDS-INSIDE-VIEWPORT — every UI PANEL (a scrollFactor-0 OVERLAY container) MUST be registered
+//     with the uiCamera via _registerUIPanel (or be in the _setupUICamera _uiList). A panel that isn't
+//     renders on the ZOOMED main camera and gets pushed off-screen (Van's clipped-panel bug). Static scan
+//     of the scene so a new panel can never skip the shared on-screen helper.
+{
+  const scene = readFileSync(join(ROOT, 'src/scenes/OverworldScene.js'), 'utf8');
+  const pviol = [];
+  // panel containers: `this._<name>Box = this.add.container(...)`
+  const boxes = [...scene.matchAll(/this\.(_\w*Box)\s*=\s*this\.add\.container/g)].map((m) => m[1]);
+  const registered = new Set([...scene.matchAll(/_registerUIPanel\(this\.(_\w*Box)/g)].map((m) => m[1]));
+  const inUiList = new Set([...(scene.match(/_uiList\s*=\s*\[([^\]]*)\]/) || [, ''])[1].matchAll(/this\.(\w+)/g)].map((m) => '_' + m[1].replace(/^_/, '')));
+  for (const b of new Set(boxes)) {
+    if (!registered.has(b)) pviol.push(`${b} is a UI panel but never calls _registerUIPanel → would render on the zoomed main camera (off-screen)`);
+  }
+  // the shared helpers must exist
+  if (!/_registerUIPanel\(/.test(scene) || !/_clampPanel\(/.test(scene)) pviol.push('the shared _registerUIPanel/_clampPanel helpers are missing');
+  if (pviol.length) fail('PANEL-BOUNDS-INSIDE-VIEWPORT:' + pviol.map((v) => '\n      ' + v).join(''));
+  else ok(`panel-bounds-inside-viewport: all ${new Set(boxes).size} UI panel(s) register with the uiCamera (zoom-1, screen-space, clamped) — none can render off-screen`);
+}
+
 // --- summary ------------------------------------------------------------------
 if (fails.length) {
   console.error('\nVERIFY FAILED ✗\n' + fails.map((f) => '  ✗ ' + f).join('\n') + '\n');

@@ -956,6 +956,7 @@ export class OverworldScene extends Phaser.Scene {
     this._topicOpts = [...(n.topics || []).map((t) => t.q), 'Leave.'];
     this._topicRows = [];
     for (let i = 0; i < this._topicOpts.length; i++) { const t = this.add.text(40, 200 + i * 24, '', { fontFamily: 'monospace', fontSize: '14px', color: '#cfe8d6' }).setScrollFactor(0); this._topicRows.push(t); this._topicBox.add(t); }
+    this._registerUIPanel(this._topicBox, 20, 60, 728, 300);   // on the zoom-1 uiCamera, clamped on-screen
     this._renderTopics();
   }
   _renderTopics() {
@@ -971,7 +972,7 @@ export class OverworldScene extends Phaser.Scene {
     const key = `${n.name}:${this._topicSel}`; const i = (this._npcSaid[key] = ((this._npcSaid[key] | 0) + 1));
     this._topicSaid.setText(ans[(i - 1) % ans.length]); this._sfx('sfx_select', 0.4);
   }
-  _closeTopics() { if (!this._topicsOpen) return; this._topicsOpen = false; if (this._topicBox) { this._topicBox.destroy(true); this._topicBox = null; } if (this.hud2) this.hud2.setVisible(true); if (this._helpText) this._helpText.setVisible(true); this._sfx('sfx_select', 0.5); }
+  _closeTopics() { if (!this._topicsOpen) return; this._topicsOpen = false; if (this._topicBox) { this._unregisterUIPanel(this._topicBox); this._topicBox.destroy(true); this._topicBox = null; } if (this.hud2) this.hud2.setVisible(true); if (this._helpText) this._helpText.setVisible(true); this._sfx('sfx_select', 0.5); }
   // ---- SHOP BUYING v1 — a keeper's buy menu (E at the counter) -----------------------------------
   _openShop(shopId, keeperName) {
     const sh = shopDef(shopId); if (!sh) return;
@@ -993,6 +994,7 @@ export class OverworldScene extends Phaser.Scene {
       const t = this.add.text(40, 100 + i * 22, '', { fontFamily: 'monospace', fontSize: '14px', color: '#cfe8d6' }).setScrollFactor(0);
       this._shopRows.push(t); this._shopBox.add(t);
     }
+    this._registerUIPanel(this._shopBox, 20, 60, 728, 300);   // on the zoom-1 uiCamera, clamped on-screen
     this._renderShop();
   }
   _renderShop() {
@@ -1016,7 +1018,7 @@ export class OverworldScene extends Phaser.Scene {
     if (this.inv.save) this.inv.save(); else this._save && this._save();   // persist the purchase
     this._sfx('sfx_pickup', 0.85); this._banner(`Bought ${s.name} for ${s.price}g.`, 1300); this._renderShop();
   }
-  _closeShop() { if (!this._shopOpen) return; this._shopOpen = false; if (this._shopBox) { this._shopBox.destroy(true); this._shopBox = null; } if (this.hud2) this.hud2.setVisible(true); if (this._helpText) this._helpText.setVisible(true); this._sfx('sfx_select', 0.5); }
+  _closeShop() { if (!this._shopOpen) return; this._shopOpen = false; if (this._shopBox) { this._unregisterUIPanel(this._shopBox); this._shopBox.destroy(true); this._shopBox = null; } if (this.hud2) this.hud2.setVisible(true); if (this._helpText) this._helpText.setVisible(true); this._sfx('sfx_select', 0.5); }
 
   // ===========================================================================
   // DIALOGUE (minimal but real — reuses the Dialogue engine + Social gating;
@@ -1230,7 +1232,7 @@ export class OverworldScene extends Phaser.Scene {
     if (this.quests.status(qid) === 'available') this.quests.start(qid);
     this._activeQuest = qid; this._dlg = new Dialogue(def.dialogue, this._dlgCtx()); this._openDlg();
   }
-  _openDlg() { this._selOpt = 0; Movement.stop(this.player); this.dlgBox.setVisible(true); this._renderNode(); }
+  _openDlg() { this._selOpt = 0; Movement.stop(this.player); this.dlgBox.setVisible(true); this._clampPanel(this.dlgBox, 20, 266, 728, 158); this._renderNode(); }   // dialog box already on the uiCamera; clamp for narrow windows
   _renderNode() {
     const node = this._dlg && this._dlg.node(); if (!node) return this._closeDialogue();
     this._buildPortrait(node.speaker || null);
@@ -1666,6 +1668,33 @@ export class OverworldScene extends Phaser.Scene {
   }
   _mainOnly() { const ui = this._uiList || []; return this.children.list.filter((o) => !ui.includes(o)); }
   _reconcileCameras() { if (this.uiCamera) this.uiCamera.ignore(this._mainOnly()); }   // keep streamed world objects off the HUD camera
+  // ---- SHARED UI-PANEL LAYOUT (the systemic fix: every panel on the zoom-1 uiCamera, clamped on-screen) --
+  // ROOT CAUSE of the off-screen panels: a panel NOT registered here renders on the zoom-1.25 MAIN camera,
+  // where a scrollFactor-0 object pivots about the camera centre → pushed off the viewport. Registering it
+  // puts it on the screen-space uiCamera; _clampPanel shifts the whole container so its bg+contents stay
+  // inside the viewport at ANY window size.
+  _registerUIPanel(container, bgX, bgY, bgW, bgH) {
+    this._uiList = this._uiList || [];
+    if (!this._uiList.includes(container)) this._uiList.push(container);
+    this.cameras.main.ignore(container);     // world camera never draws it
+    this._reconcileCameras();                // uiCamera (zoom 1, screen space) draws it
+    this._clampPanel(container, bgX, bgY, bgW, bgH);
+  }
+  _unregisterUIPanel(container) { if (this._uiList) this._uiList = this._uiList.filter((o) => o !== container); }
+  _clampPanel(container, bgX, bgY, bgW, bgH) {
+    const W = this.scale.width, H = this.scale.height, m = 8;
+    // 1) SCALE DOWN if the panel is bigger than the viewport (narrow/short windows) so it can fit at all.
+    const sc = Math.min(1, (W - 2 * m) / bgW, (H - 2 * m) / bgH);
+    container.setScale(sc);
+    // 2) CLAMP position so the (scaled) bg stays fully inside the viewport.
+    let dx = 0, dy = 0;
+    const L = bgX * sc, R = (bgX + bgW) * sc, T = bgY * sc, B = (bgY + bgH) * sc;
+    if (R + dx > W - m) dx = (W - m) - R;   // overflow right → shift left
+    if (L + dx < m) dx = m - L;             // never past the left edge
+    if (B + dy > H - m) dy = (H - m) - B;   // overflow bottom → shift up
+    if (T + dy < m) dy = m - T;             // never past the top edge
+    container.setPosition(dx, dy);
+  }
 
   _openSettings() {
     if (this._dlg) return;
