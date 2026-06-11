@@ -17,6 +17,7 @@ const TAM = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_chestnut', 'shi
 const PHIL = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_parted_gray', 'shirt_blue', 'pants_black', 'shoes_brown'];
 const FATLEY = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_chestnut', 'beard_gray', 'shirt_leather', 'pants_black', 'shoes_brown'];
 const PEM = ['body_fem', 'head_fem', 'brows_chestnut', 'hair_bob_blonde', 'shirt_leather', 'pants_brown', 'shoes_brown_fem'];
+const GUARD = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_parted_gray', 'shirt_leather', 'pants_black', 'shoes_brown'];   // town guard (proper helm/spear skin = a deferred ULPC fetch)
 
 const W = 52, H = 40;
 const fenceRun = (tx, ty, n) => Array.from({ length: n }, (_, i) => ({ key: 'prop_fence', tx: tx + i, ty, solid: true }));
@@ -211,6 +212,16 @@ export const WORLD = {
       greeting: ["Are you a knight? You walk like a knight.", "Old Fatley sleeps in the tavern. Mum says don't grow up like Fatley."],
       bark: '*humming a little tune*',
       schedule: sched([['dawn', 27, 17, 'idle'], ['day', 25, 18, 'chat'], ['dusk', 29, 15, 'idle'], ['night', 34, 25, 'sleep']]) },
+    // THE GUARD PAIR (role: patrol route + post). Garrick walks a patrol (phase positions); Bess holds the
+    // gate post. They confront a player carrying an unpaid FINE (witnessed break-in / occupied-home entry).
+    { tx: 20, ty: 22, facing: 'down', name: 'Garrick', role: 'guard', tempo: 'normal', speed: 72, expression: 'neutral', parts: GUARD,
+      greeting: ['Keep the peace and we\'ll have no trouble, you and I.', 'Quiet shift. The way I like it.'],
+      bark: '*the creak of a leather belt and a slow patrol step*',
+      schedule: sched([['dawn', 16, 20, 'idle'], ['day', 24, 16, 'idle'], ['dusk', 30, 20, 'chat'], ['night', 20, 24, 'idle']]) },   // patrol = moves post by phase
+    { tx: 22, ty: 27, facing: 'up', name: 'Bess', role: 'guard', tempo: 'normal', speed: 70, expression: 'neutral', parts: GUARD,
+      greeting: ['The gate\'s mine to watch. Move along, now.'],
+      bark: '*stands the post, eyes on the road*',
+      schedule: sched([['dawn', 22, 27, 'idle'], ['day', 22, 27, 'idle'], ['dusk', 22, 27, 'idle'], ['night', 22, 27, 'idle']]) },   // gate post (static)
   ],
 
   player: { tx: 22, ty: 19, facing: 'up', speed: 95, expression: 'neutral', parts: HERO },

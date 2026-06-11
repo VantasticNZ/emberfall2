@@ -468,6 +468,7 @@ export class OverworldScene extends Phaser.Scene {
     this.add.existing(npc); npc.body.setImmovable(false);
     if (n.scale) npc.setScale(n.scale);                 // kids = a smaller villager (proper child skin = a deferred ULPC fetch)
     npc.setData('protected', !!n.protected);            // PROTECTED NPCs (kids) are never harmable/targetable — hard rule (gate-asserted)
+    npc.setData('role', n.role || '');                  // 'guard' = confronts a player owing a fine
     DepthSort.track(npc, npc.body.offset.y + npc.body.height);   // sort NPCs by their feet line too (same as the hero)
     this.npcLife.add(npc, n.schedule, n.tempo);
     this._regionObjs.push(npc);
@@ -990,7 +991,7 @@ export class OverworldScene extends Phaser.Scene {
   // the polished box/portrait is RegionScene's, deferred to the polish pass)
   // ===========================================================================
   _dlgCtx() { return { inv: this.inv, karma: this.karma, quests: this.quests, onSet: (cmd) => this._onDlgSet(cmd) }; }
-  _onDlgSet(cmd) { if (typeof cmd === 'string' && cmd.startsWith('door:')) this._doorAction(cmd.slice(5)); }
+  _onDlgSet(cmd) { if (typeof cmd !== 'string') return; if (cmd.startsWith('door:')) this._doorAction(cmd.slice(5)); else if (cmd.startsWith('fine:')) this._fineAction(cmd.slice(5)); }
 
   // DOOR-SYSTEM — the CLOSED / LOCKED entry choice (the morality entrance). Walking into a shut door ALWAYS
   // offers KNOCK / TRY-THE-HANDLE; a LOCKED one then offers BREAK-IT-DOWN. Try-uninvited = a small morality
@@ -1037,15 +1038,99 @@ export class OverworldScene extends Phaser.Scene {
     const d = this._pendingDoor; this._pendingDoor = null; if (!d) return;
     const occupied = !!d._occupied;
     if (mode === 'uninvited') {
-      if (occupied) { this.karma.commit({ deed: 'entered_occupied_home', morality: -7, purity: -5 }); this._banner('You walk in while they are home. They saw you.', 1600); }   // worse than empty
-      else { this.karma.commit({ deed: 'entered_uninvited', morality: -3, purity: -2 }); this._banner('You let yourself in, uninvited.', 1400); }
+      if (occupied) { this.karma.commit({ deed: 'entered_occupied_home', morality: -7, purity: -5 }); this._banner('You walk in while they are home. They saw you.', 1600); this._addFine(40, 'walking into an occupied home'); }   // WITNESSED → fineable
+      else { this.karma.commit({ deed: 'entered_uninvited', morality: -3, purity: -2 }); this._banner('You let yourself in, uninvited.', 1400); }   // empty + quiet → no witness, no fine
     }
     else if (mode === 'force') { const s = d.breakStrength || 1; const o = occupied ? 1 : 0; this.karma.commit({ deed: 'forced_entry', morality: -(6 + 4 * s + 5 * o), purity: -(4 + 2 * s + 3 * o) }); this._sfx('sfx_charge_impact', 0.6); this._banner(occupied ? 'You break in while they are home — a scream inside.' : 'You force the door — wood splinters. Someone will have heard.', 1800);
-      const [bcx, bcy] = cidOf(d.doorWX, d.doorWY); this.save.setChunkFlag(bcx, bcy, 'door_broken_' + d.to, 1); }   // BROKEN persists: the door reads splintered on re-entry (repair = future item)
+      const [bcx, bcy] = cidOf(d.doorWX, d.doorWY); this.save.setChunkFlag(bcx, bcy, 'door_broken_' + d.to, 1);   // BROKEN persists; the repair worker restores it
+      this._registerBrokenDoor(d);                                   // REPAIR-WORKER event: a joiner comes to mend it
+      this._addFine(60 + 30 * o, 'forcing a door'); }                // ALARM → fineable (worse if occupied)
     else if (mode === 'key') { if (d.key) this.inv.remove(d.key, 1); this._banner('The key turns; the door swings open.', 1400); }
     this._openDoorVisual(d);                              // the door VISIBLY opens (sprite swaps to the threshold)
     const ret = { x: d.dcx, y: d.dcy + TILE };           // clean yard return (no stuck-on-line)
     this.time.delayedCall(440, () => this._enterArea(d.to, ret));   // let the OPEN read before walking through
+  }
+  // ---- REACTIVITY: GUARD CONFRONT + FINE -------------------------------------------------------------
+  // A WITNESSED/ALARMED crime adds to the fine owed (escalating with each offence). The next time a guard
+  // gets close, they confront the player → pay (gold) or a warning if broke; refuse keeps it owed (escalates).
+  _addFine(base, reason) {
+    this._offenseCount = this._offenseCount | 0;
+    const fine = Math.round(base * (1 + 0.5 * this._offenseCount));
+    this._fineOwed = (this._fineOwed | 0) + fine; this._fineReason = reason; this._offenseCount++;
+    this._banner(`A guard marked that — ${fine}g fine owed.`, 1800);
+  }
+  _guardConfront(guard) {
+    if (this._dlg || this._shopOpen || !(this._fineOwed > 0)) return;
+    this._guardBusy = true; this._guardCooldown = this.time.now + 8000;
+    const fine = this._fineOwed, canPay = this.inv.gold >= fine;
+    const nodes = {
+      d0: { speaker: 'Town Guard', text: `Hold it there. ${this._fineReason ? 'I saw you ' + this._fineReason + '. ' : ''}That's ${fine}g — settle up.`, options: [
+        canPay ? { label: `Pay the fine (${fine}g)`, set: 'fine:pay', end: true } : { label: `(You can't afford ${fine}g.)`, set: 'fine:cant', end: true },
+        { label: 'Refuse', set: 'fine:refuse', end: true },
+      ] },
+    };
+    this._activeQuest = null; this._dlg = new Dialogue({ start: 'd0', nodes }, this._dlgCtx()); this._openDlg();
+  }
+  _fineAction(mode) {
+    if (mode === 'pay') { const f = this._fineOwed; this.inv.addGold(-f); if (this.inv.save) this.inv.save(); this._banner(`Fine paid (${f}g). "Keep your nose clean."`, 1700); this._fineOwed = 0; }
+    else if (mode === 'cant') { this._banner('"No coin? A warning, then — this once. Don\'t let me see it again."', 2200); this._fineOwed = 0; }   // warning if broke
+    else { this._banner('The guard\'s eyes narrow. "Refuse, will you. We\'ll be watching — and it won\'t go cheaper."', 2200); }   // refuse → fine stays, escalates next offence
+    this._guardBusy = false;
+  }
+  // Per-frame reactivity: a guard confronts a fined player on proximity; the repair worker advances.
+  _reactivityTick(dlgOpen, now) {
+    if (this._fineOwed > 0 && !dlgOpen && !this._guardBusy && now > (this._guardCooldown || 0) && !this._inInterior) {
+      for (const m of this.npcLife.movers) {
+        const ng = m.npc; if (!ng.active || ng.getData('role') !== 'guard') continue;
+        if (Phaser.Math.Distance.Between(ng.x, ng.y, this.player.x, this.player.y) < 80) { this._guardConfront(ng); break; }
+      }
+    }
+    this._repairTick(now);
+  }
+  // ---- REACTIVITY: REPAIR-WORKER EVENT ---------------------------------------------------------------
+  // A forced door registers a staged repair: a joiner arrives, hammers (visible presence + a banner per
+  // stage), and after REPAIR_STAGE_MS×2 the door is RESTORED to its prior state (the broken flag cleared).
+  // STAGE_MS is short for the slice so it's observable; set it to a phase length for the full-game pace.
+  _registerBrokenDoor(d) {
+    this._repairs = this._repairs || [];
+    if (this._repairs.some((r) => r.to === d.to)) return;
+    const [cx, cy] = cidOf(d.doorWX, d.doorWY);
+    this._repairs.push({ to: d.to, wx: d.doorWX, wy: d.doorWY, cx, cy, t0: this.time.now, stage: 0, worker: null, done: false });
+    this._banner('A neighbour shouts: "Who did that to the door?! Someone fetch the joiner!"', 2200);   // resident grumble
+  }
+  _repairTick(now) {
+    if (!this._repairs || !this._repairs.length) return;
+    const STAGE = 5000;   // ms per stage (slice pace; → ~10s total). Full-game: a day-phase.
+    for (const r of this._repairs) {
+      if (r.done) continue;
+      const stage = Math.min(2, Math.floor((now - r.t0) / STAGE));
+      if (stage === r.stage) continue;
+      r.stage = stage;
+      if (stage === 1) {   // the joiner arrives + hammers (visible presence if the player is near the door)
+        this._sfx('sfx_charge_impact', 0.4); this._banner('The joiner sets to it — boards up, hammering. "Vandals."', 2000);
+        this._showRepairWorker(r);
+      } else if (stage === 2) { this._finishRepair(r); }
+    }
+    this._repairs = this._repairs.filter((r) => !r.done);
+  }
+  _showRepairWorker(r) {
+    // a worker sprite at the door (only if the GH overworld is loaded near it) + a hammer bob
+    if (this._inInterior || !this.region || this.region.interior) return;
+    if (Phaser.Math.Distance.Between(r.wx, r.wy, this.player.x, this.player.y) > 700) return;   // off-screen → presence implied by banners
+    try {
+      const w = new Character(this, r.wx, r.wy + TILE, { parts: ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_parted_gray', 'beard_gray', 'shirt_leather', 'pants_brown', 'shoes_brown'], facing: 'up', speed: 0 });
+      this.add.existing(w); if (w.body) w.body.enable = false; DepthSort.track(w, w.body ? w.body.offset.y + w.body.height : 30);
+      this._regionObjs.push(w); r.worker = w;
+      this.tweens.add({ targets: w, y: w.y - 3, duration: 220, yoyo: true, repeat: -1 });   // a hammering bob
+    } catch (_) { /* presence implied by banners if the skin can't build */ }
+  }
+  _finishRepair(r) {
+    this.save.setChunkFlag(r.cx, r.cy, 'door_broken_' + r.to, 0);   // CLEAR → the door rebuilds in its prior (closed/locked) state
+    if (r.worker) { try { this.tweens.killTweensOf(r.worker); r.worker.destroy(); } catch (_) {} r.worker = null; }
+    r.done = true;
+    this._banner('The door is mended — good as it was.', 1800);
+    // if the GH overworld is live near the door, restream so the restored door shows immediately
+    if (this.region && !this.region.interior && Phaser.Math.Distance.Between(r.wx, r.wy, this.player.x, this.player.y) < 900) this._restream(true);
   }
   // UNIFORM ENTERABILITY — after a region's props are built, guarantee every building's DOORWAY TILE is
   // walkable: disable any solid (a procedurally-scattered rock, a neighbour's mass) whose collider covers
@@ -1345,6 +1430,7 @@ export class OverworldScene extends Phaser.Scene {
     while (this.loadQueue.length) this._spawn(this.loadQueue.shift());
 
     if (this.npcLife.has()) this.npcLife.update(dt, dlgOpen);
+    this._reactivityTick(dlgOpen, now);                     // guard confront/fine + repair-worker event
     if (this.combat) this.combat.update(dt, this.player);   // enemies behave (no-op when none spawned)
     if (this.uiCamera) this._reconcileCameras();   // keep this frame's new streamed/combat objects off the HUD camera (before render)
     // HARD INTERIOR CONTAINMENT — even if a dash/swept-dodge tunnels a 1-tile wall, snap the player back
