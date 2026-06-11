@@ -633,6 +633,16 @@ const tile = (px) => Math.round(px / TILE);
   else ok(`deed-schema: every enterable building resolves a {owner,price,rentRate,buyable} deed (Fable property schema present — purchase/rent BUILD is post-slice)`);
 }
 
+// 25) KIDS-PROTECTED (hard rule) — every NPC flagged `kid` MUST be `protected: true` (unharmable +
+//     untargetable). The scene also tags protected NPCs (setData('protected')) so no attack path can hit
+//     them; this gate guarantees the DATA can never ship a harmable child.
+{
+  const kviol = []; let kids = 0;
+  for (const R of REGIONS) for (const n of (R.npcs || [])) if (n.kid) { kids++; if (n.protected !== true) kviol.push(`${R.key}:${n.name || '?'} is a kid but NOT protected:true`); }
+  if (kviol.length) fail('KIDS-PROTECTED:' + kviol.map((v) => '\n      ' + v).join(''));
+  else ok(`kids-protected: all ${kids} kid NPC(s) are protected:true (unharmable/untargetable — hard rule)`);
+}
+
 // --- summary ------------------------------------------------------------------
 if (fails.length) {
   console.error('\nVERIFY FAILED ✗\n' + fails.map((f) => '  ✗ ' + f).join('\n') + '\n');

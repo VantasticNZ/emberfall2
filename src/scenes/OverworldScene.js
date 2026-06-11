@@ -466,6 +466,8 @@ export class OverworldScene extends Phaser.Scene {
   _buildRegionNpc(n) {
     const npc = new Character(this, n.x, n.y, { parts: n.parts, facing: n.facing || 'down', speed: n.speed || 70 });
     this.add.existing(npc); npc.body.setImmovable(false);
+    if (n.scale) npc.setScale(n.scale);                 // kids = a smaller villager (proper child skin = a deferred ULPC fetch)
+    npc.setData('protected', !!n.protected);            // PROTECTED NPCs (kids) are never harmable/targetable — hard rule (gate-asserted)
     DepthSort.track(npc, npc.body.offset.y + npc.body.height);   // sort NPCs by their feet line too (same as the hero)
     this.npcLife.add(npc, n.schedule, n.tempo);
     this._regionObjs.push(npc);
@@ -915,8 +917,18 @@ export class OverworldScene extends Phaser.Scene {
     if (n.quest && (st === 'available' || st === 'active')) this._startQuestDialogue(n.quest);
     else if (n.social) this._startDialogue(n.social, n.name);
     else if (st === 'complete' && n.done) this._startGreeting(n.name, n.done);
-    else if (n.greeting) this._startGreeting(n.name, n.greeting);
+    else if (n.greeting) this._startGreeting(n.name, this._cycleLines(n));
     else if (n.done) this._startGreeting(n.name, n.done);
+  }
+  // REPEAT-AVOIDANCE — re-talking an NPC rotates which greeting line surfaces (+ an occasional bark) so
+  // they don't replay the same line. Per-NPC index, persisted for the session.
+  _cycleLines(n) {
+    this._npcSaid = this._npcSaid || {};
+    const lines = Array.isArray(n.greeting) ? n.greeting : [n.greeting];
+    const i = (this._npcSaid[n.name] = ((this._npcSaid[n.name] | 0) + 1));
+    const pick = [lines[(i - 1) % lines.length]];
+    if (n.bark && i % 3 === 0) pick.push(n.bark);   // every 3rd talk, an overheard bark
+    return pick;
   }
   // ---- SHOP BUYING v1 — a keeper's buy menu (E at the counter) -----------------------------------
   _openShop(shopId, keeperName) {
