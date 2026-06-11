@@ -118,11 +118,11 @@ export const WORLD = {
     { key: 'prop_house_b', tx: 34, ty: 24, solid: true, door: { to: 'gh_home1', state: 'closed', owner: 'the cottager' } },   // cottage — CLOSED (knock / try-handle, uninvited = morality hit)
     { key: 'prop_house_b', tx: 41, ty: 28, solid: true, tint: 0xb8c8e0, door: { to: 'gh_home2', state: 'locked', owner: 'the cottager' } },   // cottage — LOCKED (knock / break-down = bigger hit + alarm)
     { key: 'prop_house_b', tx: 46, ty: 23, solid: true, tint: 0xc8b890 },       // cottage (tan)
-    ...fenceRun(32, 27, 4), ...fenceRun(44, 26, 4),                              // back-yard fences
+    ...fenceRun(28, 23, 3), ...fenceRun(49, 22, 3),                              // back-yard fences — relocated CLEAR of the cottage doors (were straddling gh_home1 + house_v5 entrances → part-walkthrough)
 
     // ---- the FARM margin (S): a homestead + FENCED fields with crop sprouts ----
     { key: 'prop_house_b', tx: 13, ty: 29, solid: true, tint: 0xc8b890 },        // the homestead
-    ...fenceRun(7, 32, 11),                                                       // the field's top fence
+    ...fenceRun(7, 32, 4), ...fenceRun(16, 32, 2),                                // the field's top fence — SPLIT to leave a clear gateway at the homestead door (house_v3 @ 13,32)
     { key: 'prop_bush', tx: 8, ty: 34, solid: false }, { key: 'prop_bush', tx: 11, ty: 35, solid: false },  // (FLAG: real crop-growth-stage sprites + a TimeOfDay growth hook are asset/engine work)
     { key: 'prop_bush', tx: 14, ty: 34, solid: false }, { key: 'prop_bush', tx: 16, ty: 35, solid: false },
     // the orchard (a tended row of oaks by the farm)

@@ -17,14 +17,14 @@ const CASES = [
   { R: TEST_CAVE_F1, name: 'Test dungeon — floor 1', expect: { startTile: [3, 8], reachOpen: [[2, 8] /*exit*/, [11, 2] /*descend*/, [7, 5] /*chest*/], reachGatedOnlyWithTool: [], blockedMustHold: [[0, 0], [13, 9]] } },
   { R: TEST_CAVE_F2, name: 'Test dungeon — floor 2', expect: { startTile: [11, 2], reachOpen: [[10, 2] /*ascend*/, [6, 5] /*chest*/], reachGatedOnlyWithTool: [], blockedMustHold: [[0, 0], [13, 9]] } },
   // PHASE-2 GREENHOLLOW town interiors — the body walks spawn → the front door + chest around the furniture
-  { R: GH_FORGE, name: 'Greenhollow — the forge', expect: { startTile: [6, 7], reachOpen: [[6, 7] /*door*/, [9, 5] /*chest*/, [10, 7]], reachGatedOnlyWithTool: [], blockedMustHold: [[0, 0], [2, 3] /*anvil*/] } },
-  { R: GH_STORE, name: 'Greenhollow — the store', expect: { startTile: [6, 7], reachOpen: [[6, 7], [9, 5], [10, 7]], reachGatedOnlyWithTool: [], blockedMustHold: [[0, 0], [2, 3] /*shelf*/] } },
+  { R: GH_FORGE, name: 'Greenhollow — the forge', expect: { startTile: [6, 7], reachOpen: [[6, 7] /*door*/, [9, 5] /*chest*/, [10, 7]], reachGatedOnlyWithTool: [], blockedMustHold: [[0, 0], [4, 3] /*anvil*/] } },
+  { R: GH_STORE, name: 'Greenhollow — the store', expect: { startTile: [6, 7], reachOpen: [[6, 7], [9, 5], [10, 7]], reachGatedOnlyWithTool: [], blockedMustHold: [[0, 0], [2, 2] /*shelf*/] } },
   { R: GH_CHAPEL, name: 'Greenhollow — the chapel', expect: { startTile: [5, 10], reachOpen: [[5, 10], [9, 9], [5, 5] /*the aisle*/], reachGatedOnlyWithTool: [], blockedMustHold: [[0, 0], [5, 2] /*altar*/] } },
-  { R: GH_HOME1, name: 'Greenhollow — cottage 1', expect: { startTile: [5, 6], reachOpen: [[5, 6], [8, 5], [1, 6]], reachGatedOnlyWithTool: [], blockedMustHold: [[0, 0], [2, 3] /*bed*/] } },
-  { R: GH_HOME2, name: 'Greenhollow — cottage 2', expect: { startTile: [5, 6], reachOpen: [[5, 6], [8, 5], [1, 6]], reachGatedOnlyWithTool: [], blockedMustHold: [[0, 0], [2, 3] /*bed*/] } },
+  { R: GH_HOME1, name: 'Greenhollow — cottage 1', expect: { startTile: [5, 6], reachOpen: [[5, 6], [8, 5], [1, 6]], reachGatedOnlyWithTool: [], blockedMustHold: [[0, 0], [2, 2] /*bed*/] } },
+  { R: GH_HOME2, name: 'Greenhollow — cottage 2', expect: { startTile: [5, 6], reachOpen: [[5, 6], [8, 5], [1, 6]], reachGatedOnlyWithTool: [], blockedMustHold: [[0, 0], [2, 2] /*bed*/] } },
   { R: LOST_CEMETERY, name: 'The Lost Cemetery', expect: { startTile: [11, 14], reachOpen: [[11, 14] /*gate*/, [19, 4] /*offering chest*/, [11, 12], [15, 12] /*the mourner aisle*/], reachGatedOnlyWithTool: [], blockedMustHold: [[0, 0], [10, 2] /*founder's grave*/] } },
-  { R: MIREFEN_HUT, name: "Mirefen — Yssa's hut", expect: { startTile: [5, 7], reachOpen: [[5, 7] /*door*/, [9, 5] /*chest*/, [3, 4]], reachGatedOnlyWithTool: [], blockedMustHold: [[0, 0], [2, 3] /*bed*/] } },
-  { R: FENWICK_HOME, name: 'Fenwick — the cottage', expect: { startTile: [5, 6], reachOpen: [[5, 6] /*door*/, [8, 5] /*chest*/, [4, 4]], reachGatedOnlyWithTool: [], blockedMustHold: [[0, 0], [2, 3] /*bed*/] } },
+  { R: MIREFEN_HUT, name: "Mirefen — Yssa's hut", expect: { startTile: [5, 7], reachOpen: [[5, 7] /*door*/, [9, 5] /*chest*/, [3, 4]], reachGatedOnlyWithTool: [], blockedMustHold: [[0, 0], [2, 2] /*bed*/] } },
+  { R: FENWICK_HOME, name: 'Fenwick — the cottage', expect: { startTile: [5, 6], reachOpen: [[5, 6] /*door*/, [8, 5] /*chest*/, [4, 4]], reachGatedOnlyWithTool: [], blockedMustHold: [[0, 0], [2, 2] /*bed*/] } },
 ];
 
 for (const { R, name, expect } of CASES) {

@@ -556,6 +556,8 @@ const tile = (px) => Math.round(px / TILE);
   const viol = [];
   for (const R of REGIONS.filter((r) => r.interior && r.widthTiles)) {
     const W = R.widthTiles, H = R.heightTiles;
+    // WALL-BACKED types (R6) must touch a perimeter wall; CENTRAL-OK types may float mid-room.
+    const WALLBACK = /^(bed|dresser|fireplace|cabinet|shelf)$/;   // tall storage + bed + hearth back a wall; anvil/table/bench/stool/crate/barrel/altar may be central
     const items = (R.props || []).filter((p) => FURN.test(p.key) && PROPS[p.key]).map((p) => {
       const d = PROPS[p.key], sc = p.scale || 1, wT = d.width * sc / TILE, hT = d.height * sc / TILE;
       const tx = Math.round((p.x - R.bounds.x - TILE / 2) / TILE), ty = Math.round((p.y - R.bounds.y - TILE) / TILE);
@@ -565,16 +567,51 @@ const tile = (px) => Math.round(px / TILE);
     // threshold/approach clear so you never catch furniture stepping in or out).
     const dz = (R.doorTiles || []).flatMap((d) => [d, { tx: d.tx, ty: d.ty + (d.ty > H / 2 ? -1 : 1) }]);
     for (const it of items) {
-      if (it.L < 1 || it.Rr > W - 1 || it.T < 1 || it.B > H - 1) viol.push(`${R.key}: ${it.k} clips a wall`);
+      // wall-clip: base-anchored furniture grows UP, so EMBEDDING into the back (top) wall is INTENDED
+      // (a fireplace/headboard tucks into the wall) — only flag a top poke fully THROUGH (T<0.2); the
+      // sides + bottom must stay inside the room.
+      if (it.L < 1 || it.Rr > W - 1 || it.T < 0.2 || it.B > H - 1) viol.push(`${R.key}: ${it.k} clips a wall`);
       for (const z of dz) if (it.L < z.tx + 1 && it.Rr > z.tx && it.T < z.ty + 1 && it.B > z.ty) viol.push(`${R.key}: ${it.k} blocks the door/approach zone`);
+      // R6 ROOM-COMPOSITION: tall storage / bed / fireplace must BACK a wall (top edge near the back wall,
+      // or flush to a side/bottom wall) — never floating mid-room.
+      if (WALLBACK.test(it.k)) {
+        const backed = it.T <= 1.6 || it.L <= 1.15 || it.Rr >= W - 1.15 || it.B >= H - 1.15;
+        if (!backed) viol.push(`${R.key}: ${it.k} FLOATS mid-room (R6: tall storage/bed/fireplace must back a wall)`);
+      }
     }
     for (let i = 0; i < items.length; i++) for (let j = i + 1; j < items.length; j++) {
       const a = items[i], b = items[j];
       if (a.L < b.Rr - 0.05 && a.Rr > b.L + 0.05 && a.T < b.B - 0.05 && a.B > b.T + 0.05) viol.push(`${R.key}: ${a.k} overlaps ${b.k}`);
     }
   }
-  if (viol.length) fail('FURNITURE-NON-COLLISION (R2):' + viol.map((v) => '\n      ' + v).join(''));
-  else ok(`furniture-non-collision: every interior's furniture is base-anchored + footprint-checked — no wall-clip, no item-on-item, no blocked door/stairs zone`);
+  if (viol.length) fail('FURNITURE-NON-COLLISION (R2+R6):' + viol.map((v) => '\n      ' + v).join(''));
+  else ok(`furniture-non-collision (R2+R6): every interior's furniture is footprint-checked + composition-checked — no overlap/clip/blocked-approach, and tall storage/beds/fireplaces back a wall (nothing floats)`);
+}
+
+// 23) FENCE-CLEARANCE — a `prop_fence` must never sit ON or beside a building ENTRANCE (door tile + the 2
+//     approach tiles in front). Fences straddling a doorway get disabled by the threshold-clear → a
+//     part-walkthrough fence (Van's finding). Door tile derived the SAME way the scene carves it.
+{
+  const fviol = [];
+  for (const R of REGIONS.filter((r) => !r.interior && (r.props || []).some((p) => p.key === 'prop_fence'))) {
+    const doorTiles = [];
+    for (const p of R.props) {
+      const d = PROPS[p.key]; if (!d || !d.doorway || d.doorway.cx == null) continue;   // enterable building (asset-owned doorway)
+      const sc = p.scale != null ? p.scale : 1, b = solidBox(p.key, d);
+      const doorWX = p.x + d.doorway.cx * sc, feetY = p.y + (b.offY + b.h / 2) * sc;
+      const dCol = Math.round((doorWX - TILE / 2) / TILE), dRow = Math.round((feetY - TILE / 2) / TILE);
+      doorTiles.push([dCol, dRow]);
+    }
+    for (const p of R.props) {
+      if (p.key !== 'prop_fence') continue;
+      const ftx = Math.round((p.x - TILE / 2) / TILE), fty = Math.round((p.y - TILE / 2) / TILE);
+      for (const [dx, dy] of doorTiles) for (const [ax, ay] of [[dx, dy], [dx, dy + 1], [dx, dy + 2]]) {
+        if (Math.max(Math.abs(ftx - ax), Math.abs(fty - ay)) < 2) { fviol.push(`${R.key}: fence @(${ftx},${fty}) is <2 tiles from a building entrance @(${dx},${dy}) — would be part-disabled (walk-through)`); break; }
+      }
+    }
+  }
+  if (fviol.length) fail('FENCE-CLEARANCE:' + [...new Set(fviol)].map((v) => '\n      ' + v).join(''));
+  else ok(`fence-clearance: every prop_fence is ≥2 tiles clear of every building entrance + approach (no part-walkthrough fence straddling a doorway)`);
 }
 
 // --- summary ------------------------------------------------------------------

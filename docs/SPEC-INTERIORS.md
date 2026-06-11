@@ -69,6 +69,21 @@ A building's interior **floor `set` must be a real TERRAIN set** (gated; the `fl
 - Encoded as a case: *every region/interior — there is a solid traversable main path between its entries
   with NO ability/item required; any ability-gated bit is a side-area, never on the only path.*
 
+## R6 — ROOM-COMPOSITION RULES (rooms read as rooms, shops as shops; per-item, gate-enforced)
+Furniture is base-anchored (sits on its tile, grows UP toward the back wall). Placement by TYPE:
+- **Tall storage** (shelf · wardrobe/cabinet · dresser) — **MUST back a wall** (top edge near the back wall,
+  or flush to a side/bottom wall). Never floating mid-room.
+- **Fireplace** — **embedded in a wall** (backs the wall; the hearth tucks into it).
+- **Bed** — **wall-headed or cornered** (backs the top/side wall).
+- **Table · bench · stool · anvil · crate · barrel** — MAY be central (work/gather pieces).
+- **Counter** (a table in a shop) — **separates the keeper zone (behind) from the customer zone (front)**:
+  placed across the room with the keeper NPC behind it, the customer path in front.
+- **Altar** — the chapel centre-piece (head of the nave). Nothing ELSE floats mid-room.
+**Gate:** `furniture-non-collision (R2+R6)` asserts per-item — wall-back types touch a wall (`T≤1.6` or a
+side/bottom edge), nothing overlaps, nothing blocks a door/approach; base-anchored items MAY embed into the
+BACK wall (that's intended, not a clip). Plus `fence-clearance` (R6 exterior): every `prop_fence` ≥2 tiles
+clear of every building entrance + approach, fully solid (no part-walkthrough fence across a doorway).
+
 ## THE FACETS — what every interior must have (the professional bar)
 | # | Facet | The bar (reference) | Notes / decisions for Van |
 |---|---|---|---|
