@@ -228,7 +228,10 @@ export class OverworldScene extends Phaser.Scene {
           const mkSolid = (x0, x1) => { if (x1 - x0 < 4) return; const r = this.add.rectangle((x0 + x1) / 2, ccy, x1 - x0, ch, 0x000000, 0).setVisible(false); this.physics.add.existing(r, true); this.solids.add(r); this._regionObjs.push(r); };
           mkSolid(bandL, gapL); mkSolid(gapR, bandR);                       // tile-aligned solids flanking the doorway tile
           const dcx = dCol * TILE + TILE / 2, dcy = dRow * TILE + TILE / 2;
-          const vis = this._buildDoorVisual(dcx, dcy, bdoor.state);          // EVERY building shows a real door sprite in its portal
+          // DEPTH FIX: the building sprite is y-sorted at base-feet depth = spr.y + (b.offY+b.h/2)*sc. The
+          // door must render JUST IN FRONT of that (in the opening), not at floor depth (where it was occluded).
+          const baseDepth = spr.y + (b.offY + b.h / 2) * sc;
+          const vis = this._buildDoorVisual(dcx, dcy, bdoor.state, baseDepth);   // EVERY building shows a real door sprite IN its portal
           this._buildingDoors.push({ tx: dCol, ty: dRow, dcx, dcy, ...bdoor, opening: vis.opening, doorSpr: vis.doorSpr, lockSpr: vis.lockSpr });
         } else if (isSolid(p.key, p.solid)) {
           rect = this.add.rectangle(ccx, ccy, cw, ch, 0x000000, 0).setVisible(false);
@@ -955,11 +958,13 @@ export class OverworldScene extends Phaser.Scene {
   // EVERY building shows a REAL door sprite in its portal (open/closed/locked) — derived from the asset
   // doorway, identical for all. A dark threshold sits behind it; locked adds a lock glyph. (Bug: doors only
   // rendered on the blacksmith — now every building's door renders.)
-  _buildDoorVisual(dcx, dcy, state) {
-    const opening = this.add.rectangle(dcx, dcy, TILE, TILE, 0x0b0d12, 0.9).setDepth(DEPTH.FLOOR + 5); this._regionObjs.push(opening);
-    const doorSpr = this.add.sprite(dcx, dcy - 3, 'prop_door').setDepth(DEPTH.FLOOR + 7); doorSpr.setDisplaySize(TILE * 0.92, TILE * 1.15); this._regionObjs.push(doorSpr);
+  _buildDoorVisual(dcx, dcy, state, baseDepth = 0) {
+    // render the door JUST IN FRONT of its building (baseDepth+1/2/3) so it shows IN the opening — NOT at
+    // DEPTH.FLOOR, where it was drawn beneath the building and occluded (the never-visible-door bug).
+    const opening = this.add.rectangle(dcx, dcy, TILE, TILE, 0x0b0d12, 0.9).setDepth(baseDepth + 1); this._regionObjs.push(opening);
+    const doorSpr = this.add.sprite(dcx, dcy - 3, 'prop_door').setDepth(baseDepth + 2); doorSpr.setDisplaySize(TILE * 0.92, TILE * 1.15); this._regionObjs.push(doorSpr);
     let lockSpr = null;
-    if (state === 'locked') { lockSpr = this.add.rectangle(dcx, dcy - 2, 7, 8, 0xf2c14e).setStrokeStyle(1, 0x6b4f12).setDepth(DEPTH.FLOOR + 8); this._regionObjs.push(lockSpr); }
+    if (state === 'locked') { lockSpr = this.add.rectangle(dcx, dcy - 2, 7, 8, 0xf2c14e).setStrokeStyle(1, 0x6b4f12).setDepth(baseDepth + 3); this._regionObjs.push(lockSpr); }
     return { opening, doorSpr, lockSpr };
   }
   // VISIBLY OPEN the door — hide the door sprite + lock, reveal the dark threshold → Van SEES it open before

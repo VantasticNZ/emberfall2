@@ -12,6 +12,17 @@
 
 ## B. RUNTIME — eyes-on, REAL input (the part that was missed)
 Exercise it as a player would; a screenshot per visual item. "Present/data-correct" does NOT count.
+- [ ] 🔴🔴 **PIXEL-TRUTH — "renders" is proven by PIXELS or DEPTH-vs-OCCLUDER, NEVER by `.visible`/`.alpha`/
+  object-existence.** A sprite can be `visible:true`, `alpha:1`, and **fully occluded** (the door-at-floor-
+  depth bug — verified "9 doors visible ✅" while Van saw none). To claim a thing RENDERS: (a) sample the
+  framebuffer — `game.renderer.snapshotPixel(screenX, screenY, c=>…)` — and assert the asset's colour
+  appears; or (b) prove `sprite.depth > every overlapping occluder's depth`. **Every visual claim in a
+  report MUST cite its pixel/occlusion evidence** (the RGB sampled, or the depth comparison). The Node
+  verify gates are DATA proxies — they can't see pixels; visual truth is a PLAYWRIGHT pixel-check, required.
+  *Reusable helper (Playwright):* `const px = await new Promise(r=>s.game.renderer.snapshotPixel(sx,sy,c=>r([c.red,c.green,c.blue])));`
+- [ ] 🔴 **LOAD PATH = VAN'S EXACT PATH** — verification screenshots use a **plain fresh load, cleared save,
+  DEFAULT camera-follow, NO teleport / centerOn / force-stream / forced animation frame.** A forced state
+  frames views Van never sees. (Move the avatar with REAL key input, not by setting x/y, when testing feel.)
 - [ ] 🔴 **VERIFIED IN THE USER'S EXACT STATE** — the eyes-on check is done with a **cleared save**
   (`localStorage.clear()`) **+ a full page reload** (recreate the scene — NOT a stale tab) **+ the build
   Van loads**. A fix "verified" in Playwright's default/fresh-scene-only state is **INVALID** — that's a

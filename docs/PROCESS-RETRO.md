@@ -52,6 +52,14 @@ was applied inconsistently and sometimes rubber-stamped.**
    hardcoded/stale list. When you replace a feature (a relocated entrance), **remove the superseded
    presentation** (the old door/board) — never leave both showing. "Data-correct + walkable" is not done
    if the on-screen world (map + clutter) still reads as the old layout.
+11. **PIXEL-TRUTH — "renders" is proven ONLY by sampling rendered PIXELS or DEPTH-vs-OCCLUDER, NEVER by
+    `.visible`/`.alpha`/object-existence.** A sprite can be `visible:true`, `alpha:1`, and fully occluded
+    (doors at floor depth: "9 visible ✅" while Van saw none). Sample the framebuffer
+    (`renderer.snapshotPixel`) and assert the asset's colour, or prove `depth > every overlapping occluder`.
+    **Cite the pixel/occlusion evidence in the report.** Node verify gates are DATA proxies — visual truth is
+    a Playwright pixel-check. (See `DONE-DEFINITION` §B + the reusable helper there.)
+12. **VAN'S LOAD PATH for screenshots** — plain fresh load, cleared save, DEFAULT camera-follow, NO
+    teleport/centerOn/force-stream/forced-frame. A forced state shows views Van never sees.
 10. **VERIFY IN THE USER'S EXACT STATE — Van's eyes on a hard-reset fresh state are the truth; a check in
     any other state is INVALID.** Playwright's fresh-scene / default load ≠ Van's reality (a saved game in
     a long-lived tab). Before claiming a fix verified: **clear the save (localStorage cleared) + full
