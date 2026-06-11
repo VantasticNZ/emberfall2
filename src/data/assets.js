@@ -100,6 +100,8 @@ export const PARTS = {
     { tex: 'shield_behind', z: Z.shieldBehind, states: ['attack'] },
     { tex: 'shield_front',  z: Z.shieldFront,  states: ['attack'] },
   ] },
+  // a town-guard HELM (ElizaWy "Helm 05 - Kettle Helm", OGA-BY) — renders over the hair, all states aligned.
+  helm_kettle: { slot: 'hat', label: 'Helm', layers: [{ tex: 'helm', z: Z.hair + 4 }] },
 };
 
 // Character footprint (feet box) in 64px frame space — collider + y-sort anchor.

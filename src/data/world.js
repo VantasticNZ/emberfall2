@@ -17,7 +17,7 @@ const TAM = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_chestnut', 'shi
 const PHIL = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_parted_gray', 'shirt_blue', 'pants_black', 'shoes_brown'];
 const FATLEY = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_chestnut', 'beard_gray', 'shirt_leather', 'pants_black', 'shoes_brown'];
 const PEM = ['body_fem', 'head_fem', 'brows_chestnut', 'hair_bob_blonde', 'shirt_leather', 'pants_brown', 'shoes_brown_fem'];
-const GUARD = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_parted_gray', 'shirt_leather', 'pants_black', 'shoes_brown'];   // town guard (proper helm/spear skin = a deferred ULPC fetch)
+const GUARD = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_parted_gray', 'shirt_leather', 'pants_black', 'shoes_brown', 'helm_kettle'];   // town guard — kettle helm (ElizaWy, OGA-BY) over the head
 
 const W = 52, H = 40;
 const fenceRun = (tx, ty, n) => Array.from({ length: n }, (_, i) => ({ key: 'prop_fence', tx: tx + i, ty, solid: true }));
