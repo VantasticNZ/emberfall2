@@ -13,9 +13,11 @@ which SLICE ORDER step you are on.
   session does + what is already done). Every session states its plan step.
 - **`docs/WORKING-AGREEMENT.md`** — how we work (scope, DoD, automation, owner
   prefs, safety/guardrails, anti-drift). Read it before building.
-- **`docs/QUALITY-BIBLE.md`** — the quality bar + DoD gates (A–N) + Part 2.5
-  Presentation & Feel DoD + the Regression / Save-Versioning rules. Nothing is "done"
+- **`docs/QUALITY-BIBLE.md`** — opens with the ★ QUALITY-BAR INDEX (one place linking every
+  live standard + when it applies); the detailed v1 foundation follows. Nothing is "done"
   until it passes its gates to the owner's eye.
+- **`docs/SPEC-BACKLOG.md`** — the ordered list of systems still needing a full-expectation
+  spec (each spec'd just-in-time at its slice step, Van-reviewed pre-build).
 - **`docs/DONE-DEFINITION.md`** — the **SSOT for "done"**: the RUNTIME, eyes-on checklist
   (walkability · containment walk+dash · doors-as-doorways · no-farm · designed==built ·
   per-settlement identity · no-false-green · honest checklist). **Apply it before claiming

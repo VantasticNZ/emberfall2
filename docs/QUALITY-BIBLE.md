@@ -1,4 +1,22 @@
-# EMBERFALL — THE QUALITY BIBLE & DEFINITION OF DONE (v1)
+# EMBERFALL — THE QUALITY BIBLE & DEFINITION OF DONE (INDEX
+
+> ## ★ THE QUALITY BAR — INDEX (read this first; the bars live in their own docs)
+> One place that links every standard + when it applies. (The detailed v1 bible below is the historical
+> foundation; the live, current bars are the linked docs.)
+> | bar | doc | applies when |
+> |---|---|---|
+> | **Definition of Done** (runtime/eyes-on · **pixel-truth** · **Van's-exact-state** · exhaustive tables · asset cross-check) | `DONE-DEFINITION.md` | before claiming ANYTHING done |
+> | **Professional feel** (the 6 open-world-but-gated pillars) | `RPG-FEEL-STANDARD.md` | building any region/corridor/gate |
+> | **Door / entrance system** (asset-owned doorways · open/closed/locked/broken · purpose signs) | `DOOR-SYSTEM.md` | any building/door work |
+> | **Interiors rules** (type×region matrix · non-collision · stairs · theme · traversal) | `SPEC-INTERIORS.md` (v2) | building any interior |
+> | **Traversal rule** (passes need the stated item/ability; a solid main path always exists) | `SPEC-INTERIORS.md` §R5 + `gating.js` | any gated route/region |
+> | **Asset-first** (audit library FIRST · report HAVE/GAP · ledger all) | `CLAUDE.md` HARD RULE 12d + `ASSET-LEDGER.md` | any visual/audio work |
+> | **Licence bar** (CC0/CC-BY/-SA/OGA-BY/GPL safe; NC/ND/anti-AI banned; unclear=quarantine) | `ASSET-LEDGER.md` + HARD RULE 3 | importing any asset |
+> | **Full-expectation specs** (decompose→Van-review→build→exhaustive table→player-pass) | `THE-SLICE.md` method + `SPEC-BACKLOG.md` | starting any system |
+> | **Process meta-rules** (why gates went green while broken; the 12 rules) | `PROCESS-RETRO.md` | when a check disagrees with Van's eyes |
+> | **What to build next** | `THE-SLICE.md` (order) · `PLAN.md` (current step) · `DEFERRED.md` (parked) | every session |
+
+# EMBERFALL — THE QUALITY BIBLE & DEFINITION OF DONE (v1, detailed foundation)
 
 > THE foundational standard. Every piece of the game is DESIGNED and BUILT to this, and VERIFIED
 > against its gates before it counts as "done." This document governs everything. It is built to
