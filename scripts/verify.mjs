@@ -487,7 +487,7 @@ const tile = (px) => Math.round(px / TILE);
   const allKeys2 = new Set(REGIONS.map((r) => r.key));
   const doorTargets = new Set();
   const badStates = [];
-  const VALID_STATE = new Set(['open', 'closed', 'locked']);
+  const VALID_STATE = new Set(['open', 'none', 'closed', 'locked', 'broken']);
   for (const R of REGIONS) {
     for (const p of (R.props || [])) if (p.door) {
       const dd = (typeof p.door === 'string') ? { to: p.door, state: 'open' } : p.door;     // string = OPEN; object = {to,state}

@@ -668,9 +668,12 @@ export const HOLLOW_SPIRE = greyboxRegion({
 // DOOR SPRITE OFFSET — push a door's VISUAL one tile toward its room's nearest wall so it reads as a
 // doorway IN the wall (not free-standing mid-floor). The walk-trigger tile (door.x/y) is unchanged.
 function doorWallOffset(tx, ty, W, H) {
+  // INSET the interior exit door further INTO its wall (Van's note) — push it 1.35 tiles toward the wall so
+  // it reads as a doorway recessed in the wall, not sitting proud of it.
+  const D = Math.round(TILE * 1.35);
   const toL = tx, toR = (W - 1) - tx, toT = ty, toB = (H - 1) - ty, m = Math.min(toL, toR, toT, toB);
-  if (m === toB) return { spriteDy: TILE }; if (m === toT) return { spriteDy: -TILE };
-  if (m === toR) return { spriteDx: TILE }; return { spriteDx: -TILE };
+  if (m === toB) return { spriteDy: D }; if (m === toT) return { spriteDy: -D };
+  if (m === toR) return { spriteDx: D }; return { spriteDx: -D };
 }
 function interiorRegion(spec) {
   const { key, otx, oty, W, H, doors = [], chests = [], furniture = [], npcs = [], spawn, floor = 'dirt', mapColor = 0x2a2620, groundTint = null } = spec;

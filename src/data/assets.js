@@ -152,9 +152,9 @@ export const PROPS = {
                     footprint: { w: 88, h: 96, offX: 0, offY: 16 }, doorway: { cx: 0, cy: 30, w: 28, h: 48 } },        // wooden door, dead-centre
   // REAL LPC buildings (ElizaWy LPC structure, OGA-BY). FULLY SOLID — footprint = full mass.
   prop_house_a:   { src: 'art/structures/house_brick_a.png', width: 256, height: 224,   // a notable house / manor
-                    footprint: { w: 224, h: 160, offX: 0, offY: 32 }, doorway: { cx: -47, cy: 39, w: 32, h: 56 } },    // arched door, bottom-LEFT
+                    footprint: { w: 224, h: 160, offX: 0, offY: 32 }, doorway: { cx: -47, cy: 39, w: 32, h: 56 }, doorArt: 'prop_door_arched' },    // arched door, bottom-LEFT
   prop_house_b:   { src: 'art/structures/house_brick_b.png', width: 192, height: 192,   // a brick cottage
-                    footprint: { w: 172, h: 140, offX: 0, offY: 26 }, doorway: { cx: 16, cy: 66, w: 44, h: 58 } },     // arched door, bottom-RIGHT
+                    footprint: { w: 172, h: 140, offX: 0, offY: 26 }, doorway: { cx: 16, cy: 66, w: 44, h: 58 }, doorArt: 'prop_door_arched' },     // arched door, bottom-RIGHT
   prop_house_paneled: { src: 'art/structures/house_paneled.png', width: 160, height: 160, // paneled house (tavern/shop)
                     footprint: { w: 144, h: 116, offX: 0, offY: 22 }, doorway: { cx: 42, cy: 24, w: 26, h: 48 } },     // porch doorway, RIGHT
   prop_fountain:  { src: 'art/structures/fountain.png', width: 64, height: 96,          // the village well/fountain
@@ -185,6 +185,7 @@ export const PROPS = {
   // DOORWAY marker (original pixel art, CC0/ours) — the walk-through entrance/exit sprite (replaces the
   // prop_sign door-markers so a door reads as a DOOR, not a sign). Non-solid: you walk ONTO it to enter.
   prop_door:      { src: 'art/furniture/door.png',      width: 32, height: 44,  footprint: null },
+  prop_door_arched: { src: 'art/structures/door_arched.png', width: 64, height: 64, footprint: null },   // eliza arched door — matches the brick-house openings (closed/locked/broken)
 
   // ROCK / CLIFF props (ElizaWy eliza-terrain crops, OGA-BY 3.0) — the Sundered Peaks
   // mountain mass: a tall cliff face frames routes + the riven cleft; boulders/scree

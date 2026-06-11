@@ -106,6 +106,19 @@ The carve + states are applied to **every building prop in every built region**,
 - **Break strength** (`door.breakStrength`) scales the force morality hit; **keys** (`door.key`) add a
   USE-KEY option when the player holds the item (wiring in place; a findable house-key is DEFERRED).
 
+## 4.5 THE MIX + STYLE-MATCHED ART + BROKEN (round 3)
+- **Door-asset audit:** the building sprites are **eliza-structure** assets, and the matching door art is
+  already in the library (`asset-library/.../eliza-structure/Doors/`: arched, 12-panel, barred, doorframes;
+  + lpc-victorian doors). **No fetch needed.** Extracted the **arched door** → `door_arched.png`
+  (`prop_door_arched`) for the brick houses; the building asset names its door art via **`doorArt`** (brick
+  → arched; others default `prop_door`). *(Remaining: per-style panel/victorian mapping — POLISH, DEFERRED.)*
+- **THE MIX (data-driven per building):** door `state` ∈ **open/none** (no door sprite — just the dark
+  threshold; an always-open shop/tavern) · **closed** (a shut door + knock/try) · **locked** (+ lock glyph +
+  break) · **broken**. GH: chapel/tavern/store/forge = OPEN; manor/home1 = CLOSED; home2 = LOCKED.
+- **BROKEN + persistence:** forcing a locked door sets a saved chunk-flag `door_broken_<to>`; on re-entry the
+  door renders **splintered/hanging** (tinted, angled) and you walk straight in. Repair = a future item.
+- **Inset:** interior exit doors recessed further into the wall (`doorWallOffset` → 1.35 tiles).
+
 ## 5. PRODUCTION METHOD — exhaustive table + the full-spec build (this pass)
 - **Every building renders a REAL door sprite in its portal** (`_buildDoorVisual`, all states) — not just the
   forge. OPEN doors animate open, then you walk in.

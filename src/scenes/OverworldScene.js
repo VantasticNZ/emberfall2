@@ -228,8 +228,12 @@ export class OverworldScene extends Phaser.Scene {
           const mkSolid = (x0, x1) => { if (x1 - x0 < 4) return; const r = this.add.rectangle((x0 + x1) / 2, ccy, x1 - x0, ch, 0x000000, 0).setVisible(false); this.physics.add.existing(r, true); this.solids.add(r); this._regionObjs.push(r); };
           mkSolid(bandL, dCol * TILE); mkSolid((dCol + 1) * TILE, bandR);   // tile-aligned solids flanking the door column
           const dcx = dCol * TILE + TILE / 2, dcy = dRow * TILE + TILE / 2;
-          const vis = this._buildDoorVisual(doorWX, doorWY, dw.w * sc, dw.h * sc, bdoor.state, feetY + 1);   // door IN the painted rect, sized to it, just in front of the building (behind the avatar at the feet)
-          this._buildingDoors.push({ tx: dCol, ty: dRow, dcx, dcy, doorWX, doorWY, ...bdoor, opening: vis.opening, doorSpr: vis.doorSpr, lockSpr: vis.lockSpr });
+          // THE MIX + BROKEN persistence: open/none → dark threshold only (always-open); closed/locked → a
+          // door sprite (the building's `doorArt`); a door BROKEN earlier (saved) stays broken on re-entry.
+          const [bcx, bcy] = cidOf(doorWX, doorWY);
+          const effState = this.save.getChunkFlag(bcx, bcy, 'door_broken_' + bdoor.to) ? 'broken' : bdoor.state;
+          const vis = this._buildDoorVisual(doorWX, doorWY, dw.w * sc, dw.h * sc, effState, feetY + 1, d.doorArt);
+          this._buildingDoors.push({ tx: dCol, ty: dRow, dcx, dcy, doorWX, doorWY, ...bdoor, state: effState, opening: vis.opening, doorSpr: vis.doorSpr, lockSpr: vis.lockSpr });
         } else if (isSolid(p.key, p.solid)) {
           rect = this.add.rectangle(ccx, ccy, cw, ch, 0x000000, 0).setVisible(false);
           this.physics.add.existing(rect, true); this.solids.add(rect); this._regionObjs.push(rect);
@@ -382,8 +386,8 @@ export class OverworldScene extends Phaser.Scene {
       // DOOR-SYSTEM: building doorways (carved into a building's front wall) — walk INTO the threshold tile.
       // OPEN → enter (clean yard return); CLOSED/LOCKED → the knock/try/break choice (the morality entrance).
       for (const d of (this._buildingDoors || [])) if (d.tx === ptx && d.ty === pty) {
-        if (d.state && d.state !== 'open') this._openDoorChoice(d);
-        else { this._areaT = true; this._openDoorVisual(d); this.time.delayedCall(180, () => { this._areaT = false; this._enterArea(d.to, { x: d.dcx, y: d.dcy + TILE }); }); }   // OPEN: the door swings open, THEN walk in (so the door visibly opens)
+        if (d.state === 'closed' || d.state === 'locked') this._openDoorChoice(d);   // shut door → knock/try/break choice
+        else { this._areaT = true; this._openDoorVisual(d); this.time.delayedCall(180, () => { this._areaT = false; this._enterArea(d.to, { x: d.dcx, y: d.dcy + TILE }); }); }   // open / none / broken → walk straight in (door, if any, swings open)
         return;
       }
     }
@@ -922,7 +926,8 @@ export class OverworldScene extends Phaser.Scene {
   _doorAction(mode) {
     const d = this._pendingDoor; this._pendingDoor = null; if (!d) return;
     if (mode === 'uninvited') { this.karma.commit({ deed: 'entered_uninvited', morality: -3, purity: -2 }); this._banner('You let yourself in, uninvited.', 1400); }
-    else if (mode === 'force') { const s = d.breakStrength || 1; this.karma.commit({ deed: 'forced_entry', morality: -(6 + 4 * s), purity: -(4 + 2 * s) }); this._sfx('sfx_charge_impact', 0.6); this._banner('You force the door — wood splinters. Someone will have heard.', 1800); }
+    else if (mode === 'force') { const s = d.breakStrength || 1; this.karma.commit({ deed: 'forced_entry', morality: -(6 + 4 * s), purity: -(4 + 2 * s) }); this._sfx('sfx_charge_impact', 0.6); this._banner('You force the door — wood splinters. Someone will have heard.', 1800);
+      const [bcx, bcy] = cidOf(d.doorWX, d.doorWY); this.save.setChunkFlag(bcx, bcy, 'door_broken_' + d.to, 1); }   // BROKEN persists: the door reads splintered on re-entry (repair = future item)
     else if (mode === 'key') { if (d.key) this.inv.remove(d.key, 1); this._banner('The key turns; the door swings open.', 1400); }
     this._openDoorVisual(d);                              // the door VISIBLY opens (sprite swaps to the threshold)
     const ret = { x: d.dcx, y: d.dcy + TILE };           // clean yard return (no stuck-on-line)
@@ -955,14 +960,18 @@ export class OverworldScene extends Phaser.Scene {
   // EVERY building shows a REAL door sprite in its portal (open/closed/locked) — derived from the asset
   // doorway, identical for all. A dark threshold sits behind it; locked adds a lock glyph. (Bug: doors only
   // rendered on the blacksmith — now every building's door renders.)
-  _buildDoorVisual(x, y, w, h, state, depth) {
-    // door PLACED + SIZED to the measured painted-opening rect, rendered just IN FRONT of the building wall
-    // (depth) — the avatar at the feet line sorts in front of it (depth+playerBase). The dark threshold sits
-    // BEHIND the door (revealed when it opens).
+  _buildDoorVisual(x, y, w, h, state, depth, doorArt) {
+    // THE MIX: the dark threshold is always drawn (the opening). A DOOR SPRITE is added only for closed /
+    // locked / broken — open/none buildings show just the threshold (always-open shop/tavern). The door art
+    // is the building's own (`doorArt`, e.g. the arched door for brick houses). Sized to the measured rect,
+    // depth just in front of the wall so the avatar (at the feet) sorts in front of it.
     const opening = this.add.rectangle(x, y, w, h, 0x0b0d12, 0.9).setDepth(depth - 0.5); this._regionObjs.push(opening);
-    const doorSpr = this.add.sprite(x, y, 'prop_door').setDepth(depth); doorSpr.setDisplaySize(w, h); this._regionObjs.push(doorSpr);
+    if (state === 'open' || state === 'none') return { opening, doorSpr: null, lockSpr: null };
+    const key = (doorArt && PROPS[doorArt]) ? doorArt : 'prop_door';
+    const doorSpr = this.add.sprite(x, y, key).setDepth(depth); doorSpr.setDisplaySize(w, h); this._regionObjs.push(doorSpr);
     let lockSpr = null;
-    if (state === 'locked') { lockSpr = this.add.rectangle(x, y - h * 0.1, Math.max(6, w * 0.22), Math.max(7, h * 0.16), 0xf2c14e).setStrokeStyle(1, 0x6b4f12).setDepth(depth + 0.5); this._regionObjs.push(lockSpr); }
+    if (state === 'broken') { doorSpr.setTint(0x4a3420).setAngle(15).setDisplaySize(w * 0.92, h * 0.6); doorSpr.y = y + h * 0.18; }   // splintered/hanging in the frame
+    else if (state === 'locked') { lockSpr = this.add.rectangle(x, y - h * 0.1, Math.max(6, w * 0.22), Math.max(7, h * 0.16), 0xf2c14e).setStrokeStyle(1, 0x6b4f12).setDepth(depth + 0.5); this._regionObjs.push(lockSpr); }
     return { opening, doorSpr, lockSpr };
   }
   // VISIBLY OPEN the door — hide the door sprite + lock, reveal the dark threshold → Van SEES it open before
