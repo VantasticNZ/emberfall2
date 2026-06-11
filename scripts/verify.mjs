@@ -24,6 +24,7 @@ import { ITEM_IDS } from '../src/constants/items.js';
 import { QUESTS } from '../src/data/quests/index.js';
 import { ITEMS } from '../src/data/items/index.js';
 import { SHOPS, JOBS } from '../src/data/economy.js';
+import { buildingDeed } from '../src/data/buildingDeeds.js';
 import { REGIONS, TILE } from '../src/data/worldmap.js';
 import { PROPS, solidBox } from '../src/data/assets.js';
 import { TERRAIN } from '../src/data/terrainTiles.js';
@@ -612,6 +613,24 @@ const tile = (px) => Math.round(px / TILE);
   }
   if (fviol.length) fail('FENCE-CLEARANCE:' + [...new Set(fviol)].map((v) => '\n      ' + v).join(''));
   else ok(`fence-clearance: every prop_fence is ≥2 tiles clear of every building entrance + approach (no part-walkthrough fence straddling a doorway)`);
+}
+
+// 24) DEED-SCHEMA (SPEC-NPCS-LIVING-WORLD §6, schema-only) — every enterable building resolves a deed
+//     { owner, price, rentRate, buyable } so the post-slice property BUILD needs no retrofit.
+{
+  const targets = new Set();
+  for (const R of REGIONS) {
+    for (const p of (R.props || [])) if (p.door) targets.add(typeof p.door === 'string' ? p.door : p.door.to);
+    for (const o of (R.interactables || [])) if (o.via === 'door' && o.to && !o.to.startsWith('__') && o.to !== 'back') targets.add(o.to);
+  }
+  const dviol = [];
+  for (const t of targets) {
+    if (/^(cave_|dgn_|tankard_f2|gen)/.test(t)) continue;   // dungeons/floors-2 aren't ownable homes
+    const d = buildingDeed(t);
+    if (!d || typeof d.owner !== 'string' || !('price' in d) || typeof d.rentRate !== 'number' || typeof d.buyable !== 'boolean') dviol.push(`${t}: invalid/absent deed schema`);
+  }
+  if (dviol.length) fail('DEED-SCHEMA:' + dviol.map((v) => '\n      ' + v).join(''));
+  else ok(`deed-schema: every enterable building resolves a {owner,price,rentRate,buyable} deed (Fable property schema present — purchase/rent BUILD is post-slice)`);
 }
 
 // --- summary ------------------------------------------------------------------
