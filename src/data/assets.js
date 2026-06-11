@@ -176,6 +176,9 @@ export const PROPS = {
   prop_fireplace: { src: 'art/furniture/fireplace.png', width: 64, height: 96,  footprint: null }, // a hearth (homes / tavern)
   prop_cabinet:   { src: 'art/furniture/cabinet.png',   width: 32, height: 67,  footprint: null }, // a wardrobe/cabinet (home variety)
   prop_crate:     { src: 'art/furniture/crate.png',     width: 31, height: 40,  footprint: null }, // a storage crate (shop/storeroom)
+  prop_stool:     { src: 'art/furniture/stool.png',     width: 24, height: 32,  footprint: null }, // a bar stool (tavern)
+  prop_bench:     { src: 'art/furniture/bench.png',     width: 56, height: 28,  footprint: null }, // a padded bench (chapel pews)
+  prop_shelf:     { src: 'art/furniture/shelf.png',     width: 32, height: 96,  footprint: null }, // a stocked shelf (shop)
 
   // CEMETERY markers (LPC Grave Markers Rework, bluecarrot16 — CC-BY-SA 3.0 / GPL 3.0) — the Lost Cemetery.
   prop_grave_headstone: { src: 'art/furniture/grave_headstone.png', width: 32, height: 40, footprint: null }, // a rounded headstone

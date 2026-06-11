@@ -30,5 +30,5 @@ export const DEEDS = ids(
   // social-system demo deeds (CHA haggle / Insight reveal / Trust-gated option)
   'haggled_bram', 'hagga_hidden_truth', 'miner_secret_pass',
   // DOOR-SYSTEM — morality-entrance (walking uninvited through a closed / locked door)
-  'entered_uninvited', 'forced_entry',
+  'entered_uninvited', 'entered_occupied_home', 'forced_entry',
 );

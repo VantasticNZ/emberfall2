@@ -42,6 +42,7 @@ export const IX_CLASS = {
   prop_altar: { solid: true }, prop_anvil: { solid: true }, prop_bed: { solid: true },
   prop_table: { solid: true }, prop_dresser: { solid: true }, prop_fireplace: { solid: true },
   prop_cabinet: { solid: true }, prop_crate: { solid: true },
+  prop_stool: { solid: true }, prop_bench: { solid: true }, prop_shelf: { solid: true },
   // cemetery markers (solid scenery)
   prop_grave_headstone: { solid: true }, prop_grave_cross: { solid: true }, prop_grave_woodcross: { solid: true },
   prop_grave_open: { solid: true }, prop_grave_large: { solid: true },

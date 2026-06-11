@@ -533,6 +533,34 @@ const tile = (px) => Math.round(px / TILE);
   } else ok(`doorway-geometry: ${doorTargets.size} door targets resolve; ALL ${buildingCount} building props enterable; every building ASSET declares its doorway (${seenBuildingKeys.size} assets); every interior has a 'back' exit + a real floor (no black room); door states valid`);
 }
 
+// 22) FURNITURE NON-COLLISION (SPEC-INTERIORS R2, mechanical) — base-anchored (oy:1) furniture footprints
+//     must NOT clip a wall, overlap each other, or sit in a door/stairs zone. Asserted PER-ITEM (Van's
+//     interiors-test finding: split beds, items-on-items). Footprint: centred on tx, base bottom at ty+1,
+//     grows UP by (h*scale) — matching the runtime base-anchor render.
+{
+  const FURN = /^prop_(bed|table|dresser|fireplace|cabinet|crate|barrel|anvil|altar|counter|shelf|fence|stool|bench)/;
+  const viol = [];
+  for (const R of REGIONS.filter((r) => r.interior && r.widthTiles)) {
+    const W = R.widthTiles, H = R.heightTiles;
+    const items = (R.props || []).filter((p) => FURN.test(p.key) && PROPS[p.key]).map((p) => {
+      const d = PROPS[p.key], sc = p.scale || 1, wT = d.width * sc / TILE, hT = d.height * sc / TILE;
+      const tx = Math.round((p.x - R.bounds.x - TILE / 2) / TILE), ty = Math.round((p.y - R.bounds.y - TILE) / TILE);
+      return { k: p.key.replace('prop_', ''), L: tx + 0.5 - wT / 2, Rr: tx + 0.5 + wT / 2, T: (ty + 1) - hT, B: ty + 1 };
+    });
+    const dz = (R.doorTiles || []);
+    for (const it of items) {
+      if (it.L < 1 || it.Rr > W - 1 || it.T < 1 || it.B > H - 1) viol.push(`${R.key}: ${it.k} clips a wall`);
+      for (const z of dz) if (it.L < z.tx + 1 && it.Rr > z.tx && it.T < z.ty + 1 && it.B > z.ty) viol.push(`${R.key}: ${it.k} blocks the door/stairs zone`);
+    }
+    for (let i = 0; i < items.length; i++) for (let j = i + 1; j < items.length; j++) {
+      const a = items[i], b = items[j];
+      if (a.L < b.Rr - 0.05 && a.Rr > b.L + 0.05 && a.T < b.B - 0.05 && a.B > b.T + 0.05) viol.push(`${R.key}: ${a.k} overlaps ${b.k}`);
+    }
+  }
+  if (viol.length) fail('FURNITURE-NON-COLLISION (R2):' + viol.map((v) => '\n      ' + v).join(''));
+  else ok(`furniture-non-collision: every interior's furniture is base-anchored + footprint-checked — no wall-clip, no item-on-item, no blocked door/stairs zone`);
+}
+
 // --- summary ------------------------------------------------------------------
 if (fails.length) {
   console.error('\nVERIFY FAILED ✗\n' + fails.map((f) => '  ✗ ' + f).join('\n') + '\n');

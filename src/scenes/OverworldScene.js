@@ -198,7 +198,7 @@ export class OverworldScene extends Phaser.Scene {
     }
     for (const p of R.props) {
       const d = PROPS[p.key]; if (!d) continue;
-      const spr = this.add.sprite(p.x, p.y, p.key).setOrigin(0.5, 0.5);   // pure VISUAL (no physics body)
+      const spr = this.add.sprite(p.x, p.y, p.key).setOrigin(0.5, p.oy != null ? p.oy : 0.5);   // pure VISUAL (no physics body); oy=1 base-anchors interior furniture (sits ON its tile, grows UP — no wall-clip)
       if (p.scale != null) spr.setScale(p.scale);
       if (p.flip) spr.setFlipX(true);
       if (p.tint != null) spr.setTint(p.tint);
@@ -909,6 +909,8 @@ export class OverworldScene extends Phaser.Scene {
     this._pendingDoor = d;
     this._lastTile = { tx: d.tx, ty: d.ty };   // STEP-AWAY fix: mark the doorway tile as "current" so closing the menu (step-away) on it does NOT re-open — you must step off + back on
     const who = d.owner ? `${d.owner}'s ` : 'The ';
+    const occupied = this._isOccupied(d.to); d._occupied = occupied;   // someone home? → knock gets a reply; entering uninvited is a worse deed
+    const knockText = occupied ? 'You knock. A voice from inside — "A moment!" — footsteps approach.' : 'You knock. Nobody answered.';
     const enter = (mode) => `door:${mode}`;     // onSet command → _doorAction (uses this._pendingDoor)
     const hasKey = !!(d.key && this.inv && this.inv.has(d.key));
     let nodes;
@@ -923,7 +925,7 @@ export class OverworldScene extends Phaser.Scene {
           { label: 'Try the handle', to: 'locked' },
           { label: '(Step away.)', end: true },
         ] },
-        knock: { speaker: '', text: 'You knock. Silence within — no one comes.', options: [{ label: '(Back.)', to: 'd0' }] },
+        knock: { speaker: '', text: knockText, options: [{ label: '(Back.)', to: 'd0' }] },
         locked: { speaker: '', text: "It won't budge — locked fast.", options: lockedOpts },
       };
     } else {
@@ -933,15 +935,22 @@ export class OverworldScene extends Phaser.Scene {
           { label: 'Try the handle (let yourself in)', set: enter('uninvited'), end: true },
           { label: '(Step away.)', end: true },
         ] },
-        knock: { speaker: '', text: 'You knock. No one answers — the house is empty.', options: [{ label: '(Back.)', to: 'd0' }] },
+        knock: { speaker: '', text: knockText, options: [{ label: '(Back.)', to: 'd0' }] },
       };
     }
     this._activeQuest = null; this._dlg = new Dialogue({ start: 'd0', nodes }, this._dlgCtx()); this._openDlg();
   }
+  // Is the interior behind this door OCCUPIED right now? (a resident NPC lives there.) Drives the knock
+  // response + a HARSHER deed for entering/breaking-in while someone is home (SPEC-INTERIORS finding 5).
+  _isOccupied(toKey) { const R = REGIONS.find((r) => r.key === toKey); return !!(R && R.npcs && R.npcs.length); }
   _doorAction(mode) {
     const d = this._pendingDoor; this._pendingDoor = null; if (!d) return;
-    if (mode === 'uninvited') { this.karma.commit({ deed: 'entered_uninvited', morality: -3, purity: -2 }); this._banner('You let yourself in, uninvited.', 1400); }
-    else if (mode === 'force') { const s = d.breakStrength || 1; this.karma.commit({ deed: 'forced_entry', morality: -(6 + 4 * s), purity: -(4 + 2 * s) }); this._sfx('sfx_charge_impact', 0.6); this._banner('You force the door — wood splinters. Someone will have heard.', 1800);
+    const occupied = !!d._occupied;
+    if (mode === 'uninvited') {
+      if (occupied) { this.karma.commit({ deed: 'entered_occupied_home', morality: -7, purity: -5 }); this._banner('You walk in while they are home. They saw you.', 1600); }   // worse than empty
+      else { this.karma.commit({ deed: 'entered_uninvited', morality: -3, purity: -2 }); this._banner('You let yourself in, uninvited.', 1400); }
+    }
+    else if (mode === 'force') { const s = d.breakStrength || 1; const o = occupied ? 1 : 0; this.karma.commit({ deed: 'forced_entry', morality: -(6 + 4 * s + 5 * o), purity: -(4 + 2 * s + 3 * o) }); this._sfx('sfx_charge_impact', 0.6); this._banner(occupied ? 'You break in while they are home — a scream inside.' : 'You force the door — wood splinters. Someone will have heard.', 1800);
       const [bcx, bcy] = cidOf(d.doorWX, d.doorWY); this.save.setChunkFlag(bcx, bcy, 'door_broken_' + d.to, 1); }   // BROKEN persists: the door reads splintered on re-entry (repair = future item)
     else if (mode === 'key') { if (d.key) this.inv.remove(d.key, 1); this._banner('The key turns; the door swings open.', 1400); }
     this._openDoorVisual(d);                              // the door VISIBLY opens (sprite swaps to the threshold)
