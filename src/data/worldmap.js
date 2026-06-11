@@ -52,15 +52,12 @@ export const GREENHOLLOW = {
     schedule: (n.schedule || []).map((s) => ({ ...s, tx: s.tx + GH_ORIGIN.x / TILE, ty: s.ty + GH_ORIGIN.y / TILE })),
   })),
   chests: (WORLD.chests || []).map((c) => ({ ...c, x: gx(c.tx), y: gy(c.ty) })),
-  // M4 — THE BOARDED CAVE (gating.js tease `boarded_cave_m4` → tool_lantern). Sealed/black until
-  // you carry the lantern earned in the Marsh; entering grants `cave_lore` (the ending-A seed —
-  // the weeping-flame carving). ⚑ ART: prop_cliff_face is a cave-mouth STAND-IN (dark-tinted) —
-  // a proper boarded-cave sprite is an art need (flag for Van's eye). Placement = SE meadow edge.
+  // M4 — THE BOARDED CAVE (lantern → cave_lore, the ending-A seed): the `prop_cliff_face` cave-mouth
+  // stand-in read as a MISPLACED CLIFF amid the GH homes (Van round 3), and it's a large solid prop with no
+  // clean reachable spot in town. REMOVED from Greenhollow — DEFERRED: re-home it as a proper boarded-cave
+  // entrance in the WILDS (a Marsh/Peaks cliff), where a cave-mouth belongs (DEFERRED.md). GH's residential
+  // area carries no out-of-place cliff. (cave_lore is a story/ending seed, not a traversal key — no soft-lock.)
   interactables: [
-    { via: 'gate', key: 'prop_cliff_face', x: gx(44) + TILE / 2, y: gy(31) + TILE / 2, id: 'm4_boarded_cave',
-      solid: true, tint: 0x4b4a55, prompt: 'The boarded cave', locked: 'tool_lantern', grantsDeeds: ['cave_lore'],
-      lockedLine: "The cave mouth is boarded and black inside. A plank hangs loose — but it's far too dark to go further without a light.",
-      lines: ["You squeeze the lantern through the loose plank. Inside it's cold and far too quiet — and there, scratched deep into the stone: a flame, weeping, tears running down the rock. The first seed of the god's truth. You understood nothing as a child. You understand more now."] },
     // The town's ENTERABLE BUILDINGS (forge/store/chapel/tavern/cottages) carry their door ON the building
     // prop (`door:'<interior>'` in world.js) → the DOOR-SYSTEM carves an inset doorway you walk INTO; no
     // separate door interactable here. Only the CAVE / generator entrances (terrain, no building) remain —

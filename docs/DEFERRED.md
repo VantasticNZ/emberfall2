@@ -101,6 +101,7 @@ Van's map exactly — then roll the same to every corridor.
 | **Stairs SPRITE for interior floor-links** | tavern up/down works as stairs (return-stack) but the link renders as a door sprite; a stairs sprite would read clearer | POLISH |
 | **Varied generic interiors** (many houses open the SAME room) | rotate the default among a SET of 3–5 distinct generic layouts (by a position hash) so it's not identical every time; + bespoke interiors for key buildings | POLISH (next) |
 | **Re-home the GENERATED dungeon/cave dev-warps** (removed from GH plaza) | place __gendungeon/__gencave at a proper Peaks/Marsh cliff cave-mouth (they were dev test-entrances dumped in the starting town) | per-region |
+| **Re-home the M4 BOARDED CAVE** (lantern → `cave_lore`, ending-A seed) | REMOVED from GH (the `prop_cliff_face` read as a misplaced cliff amid the homes + no clean reachable spot in town); re-home as a proper boarded-cave entrance in the WILDS (Marsh/Peaks cliff). A dedicated boarded-cave SPRITE is the art need (currently a cliff-face stand-in). | per-region |
 | Findable house-KEY item (the USE-KEY door option is wired) | no key item/placement yet; door.key + inv.has() wiring is in place | feature pass |
 | Lock glyph more prominent (6×7px now) + threshold depth polish | functional but small | POLISH |
 

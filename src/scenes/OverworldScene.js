@@ -1016,7 +1016,7 @@ export class OverworldScene extends Phaser.Scene {
     const view = this._optView || []; this._optTexts.forEach((t) => t.destroy()); this._optTexts = [];
     view.forEach((v, i) => {
       const locked = v.st === 'locked', sel = i === this._selOpt && !locked;
-      const t = this.add.text(this._dlgTextX, 372 + i * 18, `${sel ? '▶ ' : '  '}${view.length > 1 ? `${i + 1}. ` : ''}${v.tag}${v.opt.label}`, { fontFamily: 'monospace', fontSize: '13px', color: locked ? '#6b6275' : sel ? '#ffe66d' : v.tag ? '#8fd6ff' : '#cfe8d6' }).setScrollFactor(0).setDepth(DEPTH.OVERLAY + 12);
+      const t = this.add.text(this._dlgTextX, 344 + i * 20, `${sel ? '▶ ' : '  '}${view.length > 1 ? `${i + 1}. ` : ''}${v.tag}${v.opt.label}`, { fontFamily: 'monospace', fontSize: '13px', color: locked ? '#6b6275' : sel ? '#ffe66d' : v.tag ? '#8fd6ff' : '#cfe8d6' }).setScrollFactor(0).setDepth(DEPTH.OVERLAY + 12);
       this.dlgBox.add(t); this._optTexts.push(t);
     });
     this.dlgHint.setText(view.length > 1 ? '↑↓ pick · E confirm' : 'E continue ▸');
@@ -1037,16 +1037,18 @@ export class OverworldScene extends Phaser.Scene {
   }
   _buildDialogueUI() {
     this.dlgBox = this.add.container(0, 0).setScrollFactor(0).setDepth(DEPTH.OVERLAY + 11).setVisible(false);
-    const bg = this.add.rectangle(20, 300, 728, 120, 0x0c1410, 0.92).setOrigin(0, 0).setStrokeStyle(2, 0x3c5a3c).setScrollFactor(0);
+    // taller box, moved UP, so up to 4 options sit unsquashed inside it (screen is only 432 tall — the old
+    // 300+120 box ended at 420 and the 3rd/4th option clipped its edge). 266..424, evenly-spaced options.
+    const bg = this.add.rectangle(20, 266, 728, 158, 0x0c1410, 0.92).setOrigin(0, 0).setStrokeStyle(2, 0x3c5a3c).setScrollFactor(0);
     // PORTRAIT — the speaker's face (built per-speaker from this._faces; ported from RegionScene)
-    const PS = 96, px = 28, py = 312;
+    const PS = 96, px = 28, py = 278;
     this.portraitBox = { x: px, y: py, size: PS }; this._portrait = null; this._portraitSpeaker = null;
     this.portraitFrame = this.add.rectangle(px, py, PS, PS, 0x141a20, 1).setOrigin(0, 0).setStrokeStyle(2, 0x3c5a3c).setScrollFactor(0).setVisible(false);
     const tx0 = px + PS + 16;   // text starts to the right of the portrait
     this._dlgTextX = tx0;
-    this.dlgName = this.add.text(tx0, 308, '', { fontFamily: 'monospace', fontSize: '14px', color: '#9fd8a0', fontStyle: 'bold' }).setScrollFactor(0);
-    this.dlgBody = this.add.text(tx0, 330, '', { fontFamily: 'monospace', fontSize: '14px', color: '#e8f5e0', wordWrap: { width: 748 - tx0 - 12 } }).setScrollFactor(0);
-    this.dlgHint = this.add.text(620, 308, '', { fontFamily: 'monospace', fontSize: '11px', color: '#7a9a7a' }).setScrollFactor(0);
+    this.dlgName = this.add.text(tx0, 274, '', { fontFamily: 'monospace', fontSize: '14px', color: '#9fd8a0', fontStyle: 'bold' }).setScrollFactor(0);
+    this.dlgBody = this.add.text(tx0, 296, '', { fontFamily: 'monospace', fontSize: '14px', color: '#e8f5e0', wordWrap: { width: 748 - tx0 - 12 } }).setScrollFactor(0);
+    this.dlgHint = this.add.text(620, 274, '', { fontFamily: 'monospace', fontSize: '11px', color: '#7a9a7a' }).setScrollFactor(0);
     this.dlgBox.add([bg, this.portraitFrame, this.dlgName, this.dlgBody, this.dlgHint]); this._optTexts = [];
   }
   // Build a face RenderTexture for `name` from its registered parts (idle, down-facing,

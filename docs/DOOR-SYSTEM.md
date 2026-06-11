@@ -107,11 +107,16 @@ The carve + states are applied to **every building prop in every built region**,
   USE-KEY option when the player holds the item (wiring in place; a findable house-key is DEFERRED).
 
 ## 4.5 THE MIX + STYLE-MATCHED ART + BROKEN (round 3)
-- **Door-asset audit:** the building sprites are **eliza-structure** assets, and the matching door art is
-  already in the library (`asset-library/.../eliza-structure/Doors/`: arched, 12-panel, barred, doorframes;
-  + lpc-victorian doors). **No fetch needed.** Extracted the **arched door** → `door_arched.png`
-  (`prop_door_arched`) for the brick houses; the building asset names its door art via **`doorArt`** (brick
-  → arched; others default `prop_door`). *(Remaining: per-style panel/victorian mapping — POLISH, DEFERRED.)*
+- **Door-asset audit + per-style mapping (COMPLETE):** the building sprites are **eliza-structure** assets;
+  the matching door art is already in the library (`eliza-structure/Doors/`: arched, 12-panel, barred,
+  doorframes; + lpc-victorian). **No fetch needed.** Extracted **`door_arched.png`** + **`door_panel.png`**
+  (OGA-BY, ledgered). Each building asset names its door via **`doorArt`** — overlay-proven each door belongs
+  to its building (`door-perstyle-overlay.png`):
+  | building style | asset | door art |
+  |---|---|---|
+  | brick house / cottage / manor | `prop_house_a/b` | **`prop_door_arched`** (arched, matches the brick arch) |
+  | paneled (tavern/chapel) | `prop_house_paneled` | **`prop_door_panel`** (12-panel, matches the porch) |
+  | forge | `prop_forge` | **`prop_door_panel`** |
 - **THE MIX (data-driven per building):** door `state` ∈ **open/none** (no door sprite — just the dark
   threshold; an always-open shop/tavern) · **closed** (a shut door + knock/try) · **locked** (+ lock glyph +
   break) · **broken**. GH: chapel/tavern/store/forge = OPEN; manor/home1 = CLOSED; home2 = LOCKED.
