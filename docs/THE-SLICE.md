@@ -33,8 +33,12 @@ snag-free**:
 5. **Van sign-off** → the system is **FROZEN** (gate-guarded; changing it later needs an explicit unfreeze).
 
 ## ORDER (do not skip ahead)
-1. **DOORS** ← close it out now (depth fixed + pixel-proven; run the VAN-TEST).
-2. **Interiors** (built + distinct-enough; varied generics).
+1. **DOORS + buildings + signs** — ✅ **FROZEN 2026-06-11** (passed Van round 4: per-style doors, open/closed/
+   locked/broken mix, purpose signs). **Changing the door/building/sign system now needs an explicit unfreeze.**
+   Interiors CONSUME the door system (entry via `_enterArea`) and must never modify the door carve/states.
+2. **Interiors** ← **IN PROGRESS** — built to SPEC-INTERIORS v2: 5 distinct generic-home variants (rotated),
+   bespoke chapel/tavern, purpose-fit store/forge, keepers/residents per decision (b), private-home loot at a
+   Karma cost. (Awaiting INTERIORS VAN-TEST.)
 3. **NPCs / dialog.**
 4. **Quests M1–M4** end-to-end.
 5. **Combat-feel** (first enemy).

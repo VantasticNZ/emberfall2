@@ -692,7 +692,7 @@ function interiorRegion(spec) {
     if (f.solid) { walkable[f.ty][f.tx] = 0; colliders.push({ x: wx, y: wy, w: TILE, h: TILE }); }
   }
   const interactables = doors.map((d) => ({ via: 'door', key: 'prop_door', solid: false, x: ox + d.tx * TILE + TILE / 2, y: oy + d.ty * TILE + TILE / 2, to: d.to, prompt: d.label || 'Go', stairs: !!d.stairs, ...doorWallOffset(d.tx, d.ty, W, H) }));
-  const chestData = chests.map((c) => ({ id: c.id, x: ox + c.tx * TILE + TILE / 2, y: oy + c.ty * TILE + TILE / 2, gold: c.gold || 15 }));
+  const chestData = chests.map((c) => ({ id: c.id, x: ox + c.tx * TILE + TILE / 2, y: oy + c.ty * TILE + TILE / 2, gold: c.gold || 15, private: !!c.private }));
   return {
     key, origin: { x: ox, y: oy }, widthTiles: W, heightTiles: H, bounds: { x: ox, y: oy, w: W * TILE, h: H * TILE },
     route: true, interior: true, mapColor, groundTint,
@@ -705,6 +705,11 @@ function interiorRegion(spec) {
   };
 }
 
+// villager parts presets for interior residents/keepers (composed from PARTS; no named-overworld-NPC dup)
+const KEEP_OLD = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_parted_gray', 'shirt_leather', 'pants_brown', 'shoes_brown'];
+const KEEP_FEM = ['body_fem', 'head_fem', 'brows_chestnut', 'hair_bob_blonde', 'shirt_forest', 'pants_brown', 'shoes_brown_fem'];
+const KEEP_SMITH = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_parted_gray', 'beard_gray', 'shirt_leather', 'pants_brown', 'shoes_brown'];
+
 // The Copper Tankard — floor 1 (front room) + floor 2 (rooms upstairs). And a 2-floor test dungeon.
 export const TANKARD_F1 = interiorRegion({
   key: 'tankard_f1', otx: 520, oty: 520, W: 14, H: 10, floor: 'dirt', mapColor: 0x6b4a2e, spawn: { tx: 3, ty: 8 },
@@ -714,6 +719,7 @@ export const TANKARD_F1 = interiorRegion({
     { tx: 4, ty: 3, key: 'prop_table', solid: true, scale: 0.8 }, { tx: 8, ty: 6, key: 'prop_table', solid: true, scale: 0.8 },   // tavern tables
     { tx: 12, ty: 1, key: 'prop_barrel', solid: true }, { tx: 12, ty: 2, key: 'prop_barrel', solid: true, scale: 0.9 },   // the bar's casks
   ],
+  npcs: [{ tx: 12, ty: 4, facing: 'down', name: 'Tavernkeeper', speed: 0, expression: 'happy', parts: KEEP_OLD, greeting: ['The keeper polishes a tankard. "Ale or a room? Rooms are upstairs."'] }],
   chests: [{ tx: 7, ty: 5, id: 'tankard_f1_chest', gold: 20 }],
 });
 export const TANKARD_F2 = interiorRegion({
@@ -766,7 +772,7 @@ function griddedSettlement(spec) {
   for (const b of buildings) props.push({ key: b.key, x: ox + b.tx * TILE + TILE / 2, y: oy + b.ty * TILE + TILE / 2 + (b.dy || 0), solid: false, scale: b.scale || 1, tint: b.tint });
   for (const d of dressing) props.push({ key: d.key, x: ox + d.tx * TILE + TILE / 2, y: oy + d.ty * TILE + TILE / 2 + (d.dy || 0), solid: false, scale: d.scale || 1, tint: d.tint });
   const interactables = doors.map((d) => ({ via: 'door', key: 'prop_door', solid: false, x: ox + d.tx * TILE + TILE / 2, y: oy + d.ty * TILE + TILE / 2, to: d.to, prompt: d.label || 'Go', stairs: !!d.stairs, ...doorWallOffset(d.tx, d.ty, W, H) }));
-  const chestData = chests.map((c) => ({ id: c.id, x: ox + c.tx * TILE + TILE / 2, y: oy + c.ty * TILE + TILE / 2, gold: c.gold || 20 }));
+  const chestData = chests.map((c) => ({ id: c.id, x: ox + c.tx * TILE + TILE / 2, y: oy + c.ty * TILE + TILE / 2, gold: c.gold || 20, private: !!c.private }));
   const sp = spawnTile || { tx: 1, ty: 1 };
   return {
     key, label, origin: { x: ox, y: oy }, widthTiles: W, heightTiles: H, bounds: { x: ox, y: oy, w: W * TILE, h: H * TILE },
@@ -902,6 +908,7 @@ export const GH_FORGE = interiorRegion({
     { tx: 9, ty: 1, key: 'prop_barrel', solid: true }, { tx: 10, ty: 2, key: 'prop_barrel', solid: true, scale: 0.9 },
     { tx: 1, ty: 4, key: 'prop_fence', solid: true }, { tx: 1, ty: 5, key: 'prop_fence', solid: true },
   ],
+  npcs: [{ tx: 6, ty: 2, facing: 'down', name: 'Smith', speed: 0, expression: 'neutral', parts: KEEP_SMITH, greeting: ['The smith wipes soot from his hands. "Steel is honest work. What do you need?"'] }],
   chests: [{ tx: 9, ty: 5, id: 'gh_forge_chest', gold: 25 }],
 });
 export const GH_STORE = interiorRegion({
@@ -913,6 +920,7 @@ export const GH_STORE = interiorRegion({
     { tx: 2, ty: 4, key: 'prop_fence', solid: true }, { tx: 3, ty: 4, key: 'prop_fence', solid: true }, { tx: 4, ty: 4, key: 'prop_fence', solid: true },   // the counter
     { tx: 10, ty: 6, key: 'prop_bush', solid: false, scale: 0.6 },
   ],
+  npcs: [{ tx: 3, ty: 3, facing: 'down', name: 'Shopkeeper', speed: 0, expression: 'happy', parts: KEEP_OLD, greeting: ['"Mind the shelves — coin first, then the goods."'] }],
   chests: [{ tx: 9, ty: 5, id: 'gh_store_chest', gold: 20 }],
 });
 export const GH_CHAPEL = interiorRegion({
@@ -924,6 +932,7 @@ export const GH_CHAPEL = interiorRegion({
     { tx: 2, ty: 6, key: 'prop_fence', solid: true }, { tx: 3, ty: 6, key: 'prop_fence', solid: true }, { tx: 7, ty: 6, key: 'prop_fence', solid: true }, { tx: 8, ty: 6, key: 'prop_fence', solid: true },
     { tx: 1, ty: 1, key: 'prop_bush', solid: false, scale: 0.6 }, { tx: 9, ty: 1, key: 'prop_bush', solid: false, scale: 0.6 },
   ],
+  npcs: [{ tx: 5, ty: 3, facing: 'down', name: 'Chaplain', speed: 0, expression: 'sad', parts: KEEP_OLD, greeting: ['The chaplain bows. "Light keep you. Sit, if your heart is heavy."'] }],
   chests: [{ tx: 9, ty: 9, id: 'gh_chapel_chest', gold: 15 }],
 });
 export const GH_HOME1 = interiorRegion({
@@ -935,6 +944,7 @@ export const GH_HOME1 = interiorRegion({
     { tx: 3, ty: 4, key: 'prop_table', solid: true, scale: 0.8 }, { tx: 6, ty: 1, key: 'prop_dresser', solid: true, dy: -6 },
     { tx: 7, ty: 5, key: 'prop_bush', solid: false, scale: 0.55 },
   ],
+  npcs: [{ tx: 4, ty: 3, facing: 'down', name: 'Resident', speed: 0, expression: 'neutral', parts: KEEP_FEM, greeting: ['"Oh — a visitor. Mind the mess."'] }],
   chests: [{ tx: 8, ty: 5, id: 'gh_home1_chest', gold: 18 }],
 });
 export const GH_HOME2 = interiorRegion({
@@ -951,15 +961,55 @@ export const GH_HOME2 = interiorRegion({
 // GENERIC ENTERABLE INTERIORS — the UNIFORM door system routes any building WITHOUT a bespoke interior to
 // one of these (shared via the return-stack, so each building keeps its own exit). Guarantees "every
 // building is enterable, everywhere" without authoring a unique room per house. (DOOR-SYSTEM uniform pass.)
-export const HOUSE_GENERIC = interiorRegion({
-  key: 'house_generic', otx: 600, oty: 615, W: 10, H: 8, floor: 'stone', mapColor: 0x4e4636, spawn: { tx: 5, ty: 6 },
+// THE 5 GENERIC-HOME VARIANTS (SPEC-INTERIORS v2: distinct purpose-fit homes, rotated so no two adjacent
+// homes are identical — R1 home row · R2 ≥1-tile clear paths + clear door zone + reachable chest · R4 GH
+// warm-wood floors). _resolveBuildingDoor rotates a generic home across these by a position hash.
+export const HOUSE_GENERIC = interiorRegion({   // v1 — cosy cottage
+  key: 'house_generic', otx: 600, oty: 615, W: 10, H: 8, floor: 'stone', mapColor: 0x4e4636, groundTint: 0x6a5e4c, spawn: { tx: 5, ty: 6 },
   doors: [{ tx: 5, ty: 6, to: 'back', label: 'Step outside' }],
   furniture: [
     { tx: 8, ty: 1, key: 'prop_bed', solid: true, dy: -2 }, { tx: 1, ty: 1, key: 'prop_fireplace', solid: true, dy: -6 },
     { tx: 4, ty: 4, key: 'prop_table', solid: true, scale: 0.8 }, { tx: 2, ty: 1, key: 'prop_dresser', solid: true, dy: -6 },
   ],
-  chests: [{ tx: 8, ty: 5, id: 'house_generic_chest', gold: 10 }],
+  chests: [{ tx: 8, ty: 5, id: 'house_generic_chest', gold: 10, private: true }],
 });
+export const HOUSE_V2 = interiorRegion({   // v2 — bookish / wardrobe
+  key: 'house_v2', otx: 600, oty: 560, W: 10, H: 8, floor: 'dirt', mapColor: 0x46443a, groundTint: 0x6e6450, spawn: { tx: 5, ty: 6 },
+  doors: [{ tx: 5, ty: 6, to: 'back', label: 'Step outside' }],
+  furniture: [
+    { tx: 1, ty: 1, key: 'prop_bed', solid: true, dy: -2 }, { tx: 8, ty: 1, key: 'prop_cabinet', solid: true, dy: -4 },
+    { tx: 3, ty: 1, key: 'prop_cabinet', solid: true, dy: -4, tint: 0x9a8a6a }, { tx: 6, ty: 4, key: 'prop_table', solid: true, scale: 0.8 },
+  ],
+  chests: [{ tx: 1, ty: 5, id: 'house_v2_chest', gold: 12, private: true }],
+});
+export const HOUSE_V3 = interiorRegion({   // v3 — humble / storeroom
+  key: 'house_v3', otx: 612, oty: 560, W: 10, H: 8, floor: 'dirt', mapColor: 0x504636, groundTint: 0x73654c, spawn: { tx: 5, ty: 6 },
+  doors: [{ tx: 5, ty: 6, to: 'back', label: 'Step outside' }],
+  furniture: [
+    { tx: 8, ty: 1, key: 'prop_bed', solid: true, dy: -2 }, { tx: 1, ty: 1, key: 'prop_fireplace', solid: true, dy: -6 },
+    { tx: 1, ty: 4, key: 'prop_crate', solid: true }, { tx: 2, ty: 4, key: 'prop_crate', solid: true, scale: 0.9 }, { tx: 8, ty: 4, key: 'prop_barrel', solid: true },
+  ],
+  chests: [{ tx: 4, ty: 1, id: 'house_v3_chest', gold: 9, private: true }],
+});
+export const HOUSE_V4 = interiorRegion({   // v4 — family (two beds)
+  key: 'house_v4', otx: 624, oty: 560, W: 10, H: 8, floor: 'stone', mapColor: 0x4a463c, groundTint: 0x6c6250, spawn: { tx: 5, ty: 6 },
+  doors: [{ tx: 5, ty: 6, to: 'back', label: 'Step outside' }],
+  furniture: [
+    { tx: 1, ty: 1, key: 'prop_bed', solid: true, dy: -2 }, { tx: 8, ty: 1, key: 'prop_bed', solid: true, dy: -2, tint: 0xc8b8a0 },
+    { tx: 4, ty: 4, key: 'prop_table', solid: true, scale: 0.8 }, { tx: 5, ty: 1, key: 'prop_dresser', solid: true, dy: -6 },
+  ],
+  chests: [{ tx: 8, ty: 5, id: 'house_v4_chest', gold: 11, private: true }],
+});
+export const HOUSE_V5 = interiorRegion({   // v5 — tidy / hearth-front
+  key: 'house_v5', otx: 588, oty: 560, W: 10, H: 8, floor: 'stone', mapColor: 0x524a3a, groundTint: 0x70654e, spawn: { tx: 5, ty: 6 },
+  doors: [{ tx: 5, ty: 6, to: 'back', label: 'Step outside' }],
+  furniture: [
+    { tx: 8, ty: 1, key: 'prop_bed', solid: true, dy: -2 }, { tx: 4, ty: 1, key: 'prop_fireplace', solid: true, dy: -6 },
+    { tx: 1, ty: 1, key: 'prop_cabinet', solid: true, dy: -4 }, { tx: 7, ty: 4, key: 'prop_table', solid: true, scale: 0.8 },
+  ],
+  chests: [{ tx: 1, ty: 5, id: 'house_v5_chest', gold: 10, private: true }],
+});
+const HOME_VARIANTS = ['house_generic', 'house_v2', 'house_v3', 'house_v4', 'house_v5'];
 export const FORGE_GENERIC = interiorRegion({
   key: 'forge_generic', otx: 612, oty: 615, W: 10, H: 8, floor: 'dirt', mapColor: 0x4a3a2e, spawn: { tx: 5, ty: 6 },
   doors: [{ tx: 5, ty: 6, to: 'back', label: 'Step outside' }],
@@ -1002,7 +1052,7 @@ export const LOST_CEMETERY = interiorRegion({
   chests: [{ tx: 19, ty: 4, id: 'cemetery_offering', gold: 22 }],
 });
 
-export const INTERIORS = [TANKARD_F1, TANKARD_F2, TEST_CAVE_F1, TEST_CAVE_F2, GH_FORGE, GH_STORE, GH_CHAPEL, GH_HOME1, GH_HOME2, HOUSE_GENERIC, FORGE_GENERIC, LOST_CEMETERY, MIREFEN_HUT, FENWICK_HOME, ...WORLD_LAYOUT];
+export const INTERIORS = [TANKARD_F1, TANKARD_F2, TEST_CAVE_F1, TEST_CAVE_F2, GH_FORGE, GH_STORE, GH_CHAPEL, GH_HOME1, GH_HOME2, HOUSE_GENERIC, HOUSE_V2, HOUSE_V3, HOUSE_V4, HOUSE_V5, FORGE_GENERIC, LOST_CEMETERY, MIREFEN_HUT, FENWICK_HOME, ...WORLD_LAYOUT];
 
 export const REGIONS = [GREENHOLLOW, ASHEN_MARSH, WEST_BELT, SUNDERED_PEAKS, FOOTHILL_ROUTE, TIDEWRECK_COAST, EMBERWOOD, HOLLOW_SPIRE, ...INTERIORS];
 const inBounds = (b, x, y) => x >= b.x && x < b.x + b.w && y >= b.y && y < b.y + b.h;

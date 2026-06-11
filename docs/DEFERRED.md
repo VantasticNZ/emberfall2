@@ -105,6 +105,12 @@ Van's map exactly — then roll the same to every corridor.
 | Findable house-KEY item (the USE-KEY door option is wired) | no key item/placement yet; door.key + inv.has() wiring is in place | feature pass |
 | Lock glyph more prominent (6×7px now) + threshold depth polish | functional but small | POLISH |
 
+## INTERIOR AUDIO BEDS — hooks pending, tracks deferred (2026-06-11)
+GH interiors currently inherit the GH overworld bed. SPEC-INTERIORS (d) wants a shared indoor-home bed +
+bespoke chapel & tavern beds — but no LICENCE-CLEAN interior track exists yet (see the music audit below).
+So the bespoke interior beds are **deferred** until a clean track is sourced/Van-confirmed. No placeholder
+audio wired (licence-first). UNBLOCK: a clean home/chapel/tavern bed → wire per-interior `music`. Milestone: M1.
+
 ## MUSIC BEDS — needed vs HAVE (asset-first audit 2026-06-11)
 **WIRED (SAFE):** green (Peasant Theme, nihilocrat CC0) · peaks (Cave Theme, Brandon Morris CC0) · marsh
 (Spirits Forest, HydroGene — ⚑ "royalty-free" ≠ a clear licence; re-verify or replace before ship).

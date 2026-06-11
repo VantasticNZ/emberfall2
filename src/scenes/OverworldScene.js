@@ -477,6 +477,7 @@ export class OverworldScene extends Phaser.Scene {
         if (looted || this.save.isOpened(cx, cy, c.id)) return;   // OBJECT PERMANENCE: looted once, never re-claimed
         looted = true;
         this.inv.addGold(c.gold);
+        if (c.private) { this.karma.commit({ deed: 'home_looted', morality: -4, purity: -3 }); this._banner('You took what was not yours.', 1400); }   // SPEC-INTERIORS (c): private-home looting allowed, at a Karma cost
         this.save.recordOpened(cx, cy, c.id);
         spr.setVisible(false).setActive(false); DepthSort.untrack(spr);
         this._sfx('sfx_pickup', 0.85); this._itemGetFx(c.x, c.y - 4);   // feedback + the 2D item-get flourish
@@ -969,7 +970,11 @@ export class OverworldScene extends Phaser.Scene {
   _resolveBuildingDoor(p) {
     if (p.door) return (typeof p.door === 'string') ? { to: p.door, state: 'open' } : { state: 'open', ...p.door };
     if (!/^(prop_house|prop_forge|prop_tavern|prop_chapel|prop_smithy|prop_hut|prop_hall|prop_manor|prop_cottage)/.test(p.key)) return null;
-    return { to: /forge|smithy/.test(p.key) ? 'forge_generic' : 'house_generic', state: 'open' };   // generic interior, walk straight in
+    if (/forge|smithy/.test(p.key)) return { to: 'forge_generic', state: 'open' };
+    // ROTATE the 5 home variants by a position hash (deterministic → no two ADJACENT homes share a layout)
+    const HOME_VARIANTS = ['house_generic', 'house_v2', 'house_v3', 'house_v4', 'house_v5'];
+    const to = HOME_VARIANTS[(((p.tx || 0) * 3 + (p.ty || 0) * 7) % HOME_VARIANTS.length + HOME_VARIANTS.length) % HOME_VARIANTS.length];
+    return { to, state: 'open' };   // generic interior, walk straight in
   }
   // EVERY building shows a REAL door sprite in its portal (open/closed/locked) — derived from the asset
   // doorway, identical for all. A dark threshold sits behind it; locked adds a lock glyph. (Bug: doors only

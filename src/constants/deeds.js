@@ -17,7 +17,7 @@ export const DEEDS = ids(
   'ending_tyrant', 'ending_warden', 'fire_frost_lore', 'flowers_declined', 'flowers_gathered', 'frog_trophy',
   'general_met', 'general_saluted', 'god_seized', 'god_taken', 'greeted_warmly', 'grief_vengeance',
   'grief_vow', 'hagga_ally_plus', 'hagga_believed', 'hagga_refused', 'hagga_reported', 'hagga_silent',
-  'high_pass_climbed', 'hub_reconnected', 'ignored_unease', 'keeper_brushed', 'keeper_stayed', 'kept_to_self',
+  'high_pass_climbed', 'home_looted', 'hub_reconnected', 'ignored_unease', 'keeper_brushed', 'keeper_stayed', 'kept_to_self',
   'mara_exposed', 'mara_letters_returned', 'mara_secret_kept', 'mercy_shown', 'message_bottle', 'mule_freed',
   'night_thing_met', 'orchard_covered', 'orchard_punished', 'orchard_recruited', 'order_chose_lie', 'order_records',
   'pem_clue_coast', 'pem_clue_emberwood', 'pem_clue_marsh', 'pem_clue_peaks', 'pem_found', 'pie_lesson',
