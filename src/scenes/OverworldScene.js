@@ -720,7 +720,7 @@ export class OverworldScene extends Phaser.Scene {
     this.playerHpUI.add([panel, this._hpBarBg, this._hpBarFill, this._hpLabel]);
     this.banner = this.add.text(this.scale.width / 2, 92, '', { fontFamily: 'monospace', fontSize: '15px', color: '#ffe9c2', backgroundColor: '#10171acc', padding: { x: 10, y: 5 }, align: 'center' }).setOrigin(0.5, 0).setScrollFactor(0).setDepth(DEPTH.OVERLAY + 12).setVisible(false);
   }
-  _canAct() { return !this._dlg && !this._shopOpen && this._hitFreeze <= 0 && !!this.combat; }
+  _canAct() { return !this._dlg && !this._shopOpen && !this._topicsOpen && this._hitFreeze <= 0 && !!this.combat; }
   // SAFE HUB: within a combat region's no-aggro `safe` ring (the Peaks town) → the sword swings +
   // cuts foliage but deals NO combat damage (matching a GH-style safe zone). See the safe-zone rule.
   _inSafeHub() {
@@ -912,11 +912,12 @@ export class OverworldScene extends Phaser.Scene {
 
   // ---- interaction → dialogue branch (mirror the discrete-scene logic) --------
   _npcInteract(n) {
-    if (this._dlg || this._shopOpen) return;
+    if (this._dlg || this._shopOpen || this._topicsOpen) return;
     if (n.shop) { this._openShop(n.shop, n.name); return; }   // a keeper at the counter → the buy menu (shop buying v1)
     const st = n.quest ? this.quests.status(n.quest) : null;
     if (n.quest && (st === 'available' || st === 'active')) this._startQuestDialogue(n.quest);
     else if (n.social) this._startDialogue(n.social, n.name);
+    else if (n.topics) this._openTopics(n);   // a named villager with topics → the selectable topic menu
     else if (st === 'complete' && n.done) this._startGreeting(n.name, n.done);
     else if (n.greeting || n.greetByKarma) this._startGreeting(n.name, this._cycleLines(n));
     else if (n.done) this._startGreeting(n.name, n.done);
@@ -940,6 +941,37 @@ export class OverworldScene extends Phaser.Scene {
     if (n.bark && i % 3 === 0) pick.push(n.bark);   // every 3rd talk, an overheard bark
     return pick;
   }
+  // ---- DIALOG TOPIC MENU (selectable topics, like the buy UI) ----------------------------------------
+  _openTopics(n) {
+    if (this._dlg || this._shopOpen || this._topicsOpen) return;
+    Movement.stop(this.player); this._topicsOpen = true; this._topicNpc = n; this._topicSel = 0; this._npcSaid = this._npcSaid || {};
+    if (this.hud2) this.hud2.setVisible(false); if (this._helpText) this._helpText.setVisible(false);
+    if (this._topicBox) this._topicBox.destroy(true);
+    this._topicBox = this.add.container(0, 0).setScrollFactor(0).setDepth(DEPTH.OVERLAY + 13);
+    const bg = this.add.rectangle(20, 60, 728, 300, 0x0c1410, 0.96).setOrigin(0, 0).setStrokeStyle(2, 0x3c5a3c).setScrollFactor(0);
+    this._topicTitle = this.add.text(34, 70, n.name || '', { fontFamily: 'monospace', fontSize: '15px', color: '#9fd8a0', fontStyle: 'bold' }).setScrollFactor(0);
+    this._topicSaid = this.add.text(34, 96, this._cycleLines(n).join('  '), { fontFamily: 'monospace', fontSize: '14px', color: '#e8f5e0', wordWrap: { width: 700 } }).setScrollFactor(0);
+    this._topicHint = this.add.text(34, 336, '↑↓ choose · E ask · Q / Esc leave', { fontFamily: 'monospace', fontSize: '11px', color: '#7a9a7a' }).setScrollFactor(0);
+    this._topicBox.add([bg, this._topicTitle, this._topicSaid, this._topicHint]);
+    this._topicOpts = [...(n.topics || []).map((t) => t.q), 'Leave.'];
+    this._topicRows = [];
+    for (let i = 0; i < this._topicOpts.length; i++) { const t = this.add.text(40, 200 + i * 24, '', { fontFamily: 'monospace', fontSize: '14px', color: '#cfe8d6' }).setScrollFactor(0); this._topicRows.push(t); this._topicBox.add(t); }
+    this._renderTopics();
+  }
+  _renderTopics() {
+    if (!this._topicsOpen) return;
+    this._topicRows.forEach((t, i) => { const sel = i === this._topicSel; t.setText(`${sel ? '▶ ' : '  '}${this._topicOpts[i]}`); t.setColor(sel ? '#ffe66d' : '#cfe8d6'); });
+  }
+  _topicNav(d) { if (!this._topicsOpen) return; this._topicSel = Phaser.Math.Clamp(this._topicSel + d, 0, this._topicOpts.length - 1); this._renderTopics(); }
+  _topicPick() {
+    if (!this._topicsOpen) return; const n = this._topicNpc, topics = n.topics || [];
+    if (this._topicSel >= topics.length) { this._closeTopics(); return; }   // "Leave."
+    const topic = topics[this._topicSel];
+    const ans = Array.isArray(topic.a) ? topic.a : [topic.a];   // REPEAT-AVOIDANCE: cycle the answer line per (npc,topic)
+    const key = `${n.name}:${this._topicSel}`; const i = (this._npcSaid[key] = ((this._npcSaid[key] | 0) + 1));
+    this._topicSaid.setText(ans[(i - 1) % ans.length]); this._sfx('sfx_select', 0.4);
+  }
+  _closeTopics() { if (!this._topicsOpen) return; this._topicsOpen = false; if (this._topicBox) { this._topicBox.destroy(true); this._topicBox = null; } if (this.hud2) this.hud2.setVisible(true); if (this._helpText) this._helpText.setVisible(true); this._sfx('sfx_select', 0.5); }
   // ---- SHOP BUYING v1 — a keeper's buy menu (E at the counter) -----------------------------------
   _openShop(shopId, keeperName) {
     const sh = shopDef(shopId); if (!sh) return;
@@ -1268,11 +1300,11 @@ export class OverworldScene extends Phaser.Scene {
   }
   _buildInput() {
     this.keys = this.input.keyboard.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,SHIFT,O,C');
-    this.input.keyboard.on('keydown-E', () => { if (this._shopOpen) this._shopBuy(); else if (this._dlg) this._dlgConfirm(); else Interaction.tryInteract(); });
-    this.input.keyboard.on('keydown-UP', () => { if (this._shopOpen) this._shopNav(-1); else if (this._dlg) this._dlgNav(-1); });
-    this.input.keyboard.on('keydown-DOWN', () => { if (this._shopOpen) this._shopNav(1); else if (this._dlg) this._dlgNav(1); });
-    this.input.keyboard.on('keydown-Q', () => { if (this._shopOpen) this._closeShop(); });
-    this.input.keyboard.on('keydown-ESC', () => { if (this._shopOpen) this._closeShop(); });
+    this.input.keyboard.on('keydown-E', () => { if (this._shopOpen) this._shopBuy(); else if (this._topicsOpen) this._topicPick(); else if (this._dlg) this._dlgConfirm(); else Interaction.tryInteract(); });
+    this.input.keyboard.on('keydown-UP', () => { if (this._shopOpen) this._shopNav(-1); else if (this._topicsOpen) this._topicNav(-1); else if (this._dlg) this._dlgNav(-1); });
+    this.input.keyboard.on('keydown-DOWN', () => { if (this._shopOpen) this._shopNav(1); else if (this._topicsOpen) this._topicNav(1); else if (this._dlg) this._dlgNav(1); });
+    this.input.keyboard.on('keydown-Q', () => { if (this._shopOpen) this._closeShop(); else if (this._topicsOpen) this._closeTopics(); });
+    this.input.keyboard.on('keydown-ESC', () => { if (this._shopOpen) this._closeShop(); else if (this._topicsOpen) this._closeTopics(); });
     this.input.keyboard.on('keydown-J', () => { if (this._canAct()) this._playerAttack(); });    // attack (swing+cut everywhere; combat damage gated inside _playerAttack)
     this.input.keyboard.on('keydown-SPACE', () => { if (this._canAct()) this._tryDodge(); });                              // dodge-roll
     this.input.keyboard.on('keydown-F5', () => this.saveGame());
@@ -1398,7 +1430,7 @@ export class OverworldScene extends Phaser.Scene {
 
   update(time, delta) {
     const dt = Math.min(delta / 1000, 0.05), now = this.time.now;
-    const dlgOpen = !!this._dlg || !!this._shopOpen;   // shop menu freezes movement like a dialogue
+    const dlgOpen = !!this._dlg || !!this._shopOpen || !!this._topicsOpen;   // shop/topic menu freezes movement like a dialogue
     const k = this.keys, run = k.SHIFT.isDown;
     const combatLive = !!this._combatRegion();
 

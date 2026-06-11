@@ -105,6 +105,17 @@ Van's map exactly — then roll the same to every corridor.
 | Findable house-KEY item (the USE-KEY door option is wired) | no key item/placement yet; door.key + inv.has() wiring is in place | feature pass |
 | Lock glyph more prominent (6×7px now) + threshold depth polish | functional but small | POLISH |
 
+## LIVING-WORLD ART — chore anims + role/child skins (asset-first audit 2026-06-12)
+**HAVE:** idle/walk/slash (ElizaWy, fetched). The **slash anim doubles as the "work" motion** for the
+hammer/chop/till chores (smith/chopper/farmer/joiner) — a HAVE-asset solution, visible arm-swing.
+**GAP (NOT a quick fetch — a deferred ART task):** dedicated chore anims (chop/hammer/till/pray/sweep),
+guard **helm/spear**, **joiner** skin, proper **child** skins (kids/guard currently = scaled/tinted
+villagers). **Why not ULPC-forge:** the game's characters are the **ElizaWy "Revised" base** (its own
+per-animation sheet format/proportions); ElizaWy does **not** ship tool/chore anims, and the classic
+**ULPC** universal anims are a **different base** → they would **not align** with the ElizaWy rig. So the
+proper anims/skins are a **custom ElizaWy-format art commission**, not a clean fetch. Graceful-degrade
+(slash-as-work · idle-at-workstation for pray/sweep · scaled villagers) stays until then. Milestone: polish.
+
 ## LIVING-WORLD — post-slice layers (spec'd 2026-06-11, SPEC-NPCS-LIVING-WORLD.md)
 Deferred to post-slice (slice ships the 3-phase + GH palette): **full hourly schedules** (named meals/sleep)
 · **deeper reactive webs** (rumours/factions/escalation) · **Marsh/Peaks/Coast role palettes** · **property

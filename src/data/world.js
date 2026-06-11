@@ -189,9 +189,18 @@ export const WORLD = {
         bad: ['*sets down the hammer, eyes hard* ...State your business and move along.', 'I\'ve heard the talk about you. The door\'s that way.'],
       },
       bark: '*the ring of hammer on anvil*',
+      topics: [
+        { q: 'About your steel', a: [`"Folded a hundred times. A blade off my anvil outlasts the arm that swings it."`, `"Bram taught me the trade, years back. I have passed him now — best not tell him I said so."`] },
+        { q: 'News of the town', a: [`"Quiet, mostly. Pem's prices creep up, the guards drink at the Tankard. Same as ever."`, `"There's an old cave up the north hills. Tam won't shut up about it. I'd leave it be."`] },
+        { q: 'Any work?', a: [`"Bring me iron ore and I'll see you right. Or buy a sword and stop pestering me."`] },
+      ],
       schedule: sched([['dawn', 9, 23, 'idle'], ['day', 9, 23, 'hammer'], ['dusk', 11, 22, 'chat'], ['night', 8, 26, 'sleep']]) },
     { tx: 25, ty: 18, facing: 'down', name: 'Tam', tempo: 'brisk', speed: 70, expression: 'happy', parts: TAM, quest: 'M2',
       greeting: ['Race you to the old cave! ...if your ma ever lets you off chores.'],
+      topics: [
+        { q: 'The old cave', a: [`"Up the north hills! It's BOARDED but there's a gap. Bet there's treasure. ...Or a bear."`] },
+        { q: 'Your friends', a: [`"Nettle's fast but I'm FASTER. Wisp just hums all day. Boring."`] },
+      ],
       schedule: sched([['dawn', 22, 16, 'idle'], ['day', 25, 18, 'chat'], ['dusk', 28, 21, 'idle'], ['night', 28, 22, 'sleep']]) },
     { tx: 15, ty: 16, facing: 'down', name: 'Phil McCracken', speed: 70, expression: 'neutral', parts: PHIL, quest: 'M3',
       greeting: ['Coin\'s coin, friend. Mind you don\'t lose any.'],
@@ -217,11 +226,33 @@ export const WORLD = {
     { tx: 20, ty: 22, facing: 'down', name: 'Garrick', role: 'guard', tempo: 'normal', speed: 72, expression: 'neutral', parts: GUARD,
       greeting: ['Keep the peace and we\'ll have no trouble, you and I.', 'Quiet shift. The way I like it.'],
       bark: '*the creak of a leather belt and a slow patrol step*',
+      topics: [
+        { q: 'The watch', a: [`"Two of us hold Greenhollow — me on the walk, Bess on the gate. It's enough, most days."`] },
+        { q: 'Any trouble?', a: [`"Break a door or barge into a home and I'll have a fine off you. Pay it and we're square."`, `"Keep your hands to yourself and your coin's your own. Simple as that."`] },
+        { q: 'The gate', a: [`"Bess won't let a soul past she doesn't like the look of. Stern, that one. Good at it."`] },
+      ],
       schedule: sched([['dawn', 16, 20, 'idle'], ['day', 24, 16, 'idle'], ['dusk', 30, 20, 'chat'], ['night', 20, 24, 'idle']]) },   // patrol = moves post by phase
     { tx: 22, ty: 27, facing: 'up', name: 'Bess', role: 'guard', tempo: 'normal', speed: 70, expression: 'neutral', parts: GUARD,
       greeting: ['The gate\'s mine to watch. Move along, now.'],
       bark: '*stands the post, eyes on the road*',
       schedule: sched([['dawn', 22, 27, 'idle'], ['day', 22, 27, 'idle'], ['dusk', 22, 27, 'idle'], ['night', 22, 27, 'idle']]) },   // gate post (static)
+    // REMAINING ROLES — farmer (edge field, till loop), wood-chopper (ambient), the joiner (named presence).
+    { tx: 10, ty: 34, facing: 'down', name: 'Ada', role: 'farmer', tempo: 'ambler', speed: 66, expression: 'neutral', parts: PEM,
+      greeting: [`The soil here is good, if you mind it. Mind it I do.`],
+      bark: '*the scrape of a hoe through soil*',
+      schedule: sched([['dawn', 10, 34, 'till'], ['day', 12, 35, 'till'], ['dusk', 14, 33, 'idle'], ['night', 13, 31, 'sleep']]) },
+    { tx: 8, ty: 28, facing: 'right', name: 'Cob', role: 'chopper', tempo: 'normal', speed: 68, expression: 'neutral', parts: HODGE,
+      greeting: [`*thunk* ...Firewood does not split itself, friend.`],
+      bark: '*thunk — the steady fall of an axe*',
+      schedule: sched([['dawn', 8, 28, 'chop'], ['day', 8, 28, 'chop'], ['dusk', 10, 27, 'chat'], ['night', 9, 25, 'idle']]) },
+    { tx: 16, ty: 25, facing: 'down', name: 'Mason', role: 'joiner', tempo: 'ambler', speed: 70, expression: 'neutral', parts: BRAM,
+      greeting: [`A joiner is never short of work in a town with rough hands.`],
+      topics: [
+        { q: 'Your trade', a: [`"Doors, shutters, a coffin now and then. I mend what folk break — and they break plenty."`] },
+        { q: 'Broken doors', a: [`"Someone forces a door, I am the one called to board it up and hang it true. Keeps me in bread."`] },
+      ],
+      bark: '*the rasp of a plane over wood*',
+      schedule: sched([['dawn', 16, 25, 'idle'], ['day', 16, 25, 'hammer'], ['dusk', 18, 24, 'chat'], ['night', 17, 23, 'idle']]) },
   ],
 
   player: { tx: 22, ty: 19, facing: 'up', speed: 95, expression: 'neutral', parts: HERO },

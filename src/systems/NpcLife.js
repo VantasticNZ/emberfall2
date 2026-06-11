@@ -99,8 +99,8 @@ export class NpcLife {
   _activity(m) {
     const npc = m.npc; Movement.stop(npc); m.t++;
     switch (m.act) {
-      case 'hammer':
-        if (m.t % m.ham === 0 && npc.action) npc.action('attack'); break;
+      case 'hammer': case 'chop': case 'till':                  // work chores → the slash/swing anim reads as
+        if (m.t % m.ham === 0 && npc.action) npc.action('attack'); break;   // hammering/chopping/tilling (no dedicated chore anim in the ElizaWy base; this is the HAVE-asset solution)
       case 'sweep': case 'tend': case 'chat':
         if (m.t % m.gla === 0) { const f = ['left', 'right', 'down', 'up']; npc.facing = f[(m.rng() * 4) | 0]; npc.setState('idle'); } break;
       case 'sleep':
