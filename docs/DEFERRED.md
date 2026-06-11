@@ -105,6 +105,13 @@ Van's map exactly — then roll the same to every corridor.
 | Findable house-KEY item (the USE-KEY door option is wired) | no key item/placement yet; door.key + inv.has() wiring is in place | feature pass |
 | Lock glyph more prominent (6×7px now) + threshold depth polish | functional but small | POLISH |
 
+## LIVING-WORLD — post-slice layers (spec'd 2026-06-11, SPEC-NPCS-LIVING-WORLD.md)
+Deferred to post-slice (slice ships the 3-phase + GH palette): **full hourly schedules** (named meals/sleep)
+· **deeper reactive webs** (rumours/factions/escalation) · **Marsh/Peaks/Coast role palettes** · **property
+BUILD** (purchase UI, rent loop, furnish/rename — the deed SCHEMA ships in-slice to avoid retrofit) ·
+**chore-anim fetches** (ULPC forge: chop/hoe/hammer/sweep/pray/guard-spear — slice degrades to idle-at-
+workstation until fetched + ledgered). UNBLOCK per item: at its milestone. Milestones: schedules/webs = M2; palettes = per-region; property build = M2; anims = anytime polish.
+
 ## INTERIOR AUDIO BEDS — hooks pending, tracks deferred (2026-06-11)
 GH interiors currently inherit the GH overworld bed. SPEC-INTERIORS (d) wants a shared indoor-home bed +
 bespoke chapel & tavern beds — but no LICENCE-CLEAN interior track exists yet (see the music audit below).

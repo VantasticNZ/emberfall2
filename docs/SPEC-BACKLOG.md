@@ -10,7 +10,7 @@
 |---|---|---|---|
 | 1 | **Doors / buildings** | ✅ DONE — `DOOR-SYSTEM.md` (awaiting VAN-TEST r4 freeze). | done |
 | 2 | **Interiors** | layouts/furniture/containers/lighting/residents/stairs per type×region. | ✅ `SPEC-INTERIORS.md` v2 (review) |
-| 3 | **NPCs / dialog** | speak/schedule/portrait+name/expressions; the dialog tree, choices, deed-callbacks; trust/CHA gates; barks. | SPEC-NPC-DIALOG (step 3) |
+| 3 | **NPCs / living-world** | role palettes · 3-phase presence · chore loops · personality dialog + interconnection · reactivity (repair event/cold-loot/karma greets) · property deed schema. | ✅ `SPEC-NPCS-LIVING-WORLD.md` (review) |
 | 4 | **Quests M1–M4** | start→steps→branches→completion→reward/karma; journal/tracker; the deed-memory hooks; soft-lock-free. | SPEC-QUESTS (step 4) |
 | 5 | **Combat-feel (first enemy)** | telegraph→hit-react→dodge/block/parry windows; hit-pause/knockback/sfx; nearest-target (done); damage/HP/death; feel. | SPEC-COMBAT-FEEL (step 5) |
 | 6 | **Audio coverage** | per-region music beds + ambient + sfx routing + interior beds + crossfade; the HAVE/GAP from the music audit. | SPEC-AUDIO (step 6) |
