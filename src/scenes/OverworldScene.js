@@ -711,9 +711,16 @@ export class OverworldScene extends Phaser.Scene {
     if (!this._cuttables || !this._cuttables.length) return false;
     const f = FACE_VEC[this.player.facing] || FACE_VEC.down;
     const ax = this.player.x + f.x * 18, ay = this.player.y + 6 + f.y * 18;
-    for (const c of this._cuttables) {
-      if (!c.spr.active || !c.spr.visible) continue;
-      if (Math.hypot(c.spr.x - ax, c.spr.y - ay) > INTERACTION_RADIUS) continue;
+    // NEAREST-TARGET: pick the CLOSEST cuttable in the swing arc — a line of bushes must hit the nearest
+    // first, not whichever is first in the list (the "hits the 2nd bush" bug).
+    let c = null, bestD = Infinity;
+    for (const t of this._cuttables) {
+      if (!t.spr.active || !t.spr.visible) continue;
+      const dpx = Math.hypot(t.spr.x - ax, t.spr.y - ay);
+      if (dpx > INTERACTION_RADIUS) continue;
+      if (dpx < bestD) { bestD = dpx; c = t; }
+    }
+    if (c) {
       const res = cutObject({ loot: c.loot }, { inv: this.inv, rng: Math.random, mem: { has: () => false, record: () => {} }, key: c.key });
       this._sfx('sfx_hit', 0.4); this._grantLootFeedback(res.granted, c.spr.x, c.spr.y);
       // ANTI-FARM: record the cut (persists across area visits) + DISABLE this bush — NO in-area respawn.
