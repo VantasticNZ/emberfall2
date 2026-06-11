@@ -9,9 +9,9 @@ const ids = (...names) => Object.freeze(Object.fromEntries(names.map((n) => [n, 
 
 export const ITEM_IDS = ids(
   'archive_key', 'blessed_charm', 'bog_iron', 'book_haggling', 'book_repair', 'book_swordskill',
-  'bread', 'cinderhide_cloak', 'corrupt_blade', 'crag_maul', 'fish', 'frost_cloak',
+  'apple', 'bread', 'cheese', 'cinderhide_cloak', 'corrupt_blade', 'crag_maul', 'fish', 'frost_cloak',
   'greenhollow_house', 'humming_trinket', 'iron_ore', 'lantern_oil', 'leather_jerkin', 'major_potion',
-  'meat_pie', 'minor_potion', 'peak_mail', 'pearl_circlet', 'saltbreak_shop', 'skyiron_charm',
-  'steel_sword', 'stew', 'tideglass_blade', 'timber', 'wooden_sword',
+  'meat_pie', 'minor_potion', 'peak_mail', 'pearl_circlet', 'rope', 'saltbreak_shop', 'skyiron_charm',
+  'steel_sword', 'stew', 'tideglass_blade', 'timber', 'torch', 'whetstone', 'wooden_sword',
   'wooden_shield', 'iron_shield', 'tower_shield',
 );

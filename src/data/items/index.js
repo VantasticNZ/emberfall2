@@ -42,8 +42,14 @@ export const ITEMS = [
 
   // --- food (life-sim: heals + feeds the body-state meter) -----------------
   { id: 'bread',    name: 'Loaf of Bread', type: 'food', tier: 1, value: 3, stack: true, effects: [{ heal: 10, food: 5 }] },
+  { id: 'cheese',   name: 'Wedge of Cheese', type: 'food', tier: 1, value: 5, stack: true, effects: [{ heal: 14, food: 8 }] },
+  { id: 'apple',    name: 'Apple',        type: 'food', tier: 1, value: 2, stack: true, effects: [{ heal: 8, food: 4 }] },
   { id: 'stew',     name: 'Bog Stew',      type: 'food', tier: 1, value: 6, stack: true, effects: [{ heal: 18, food: 10 }] },
   { id: 'meat_pie', name: 'Meat Pie',      type: 'food', tier: 1, value: 8, stack: true, effects: [{ heal: 25, food: 12 }] }, // CAM7 (blow on it)
+  // --- general wares (store) + a forge upkeep item ---
+  { id: 'torch',    name: 'Torch',        type: 'consumable', tier: 1, value: 4,  stack: true, effects: [{ light: true }] },
+  { id: 'rope',     name: 'Coil of Rope', type: 'tool',       tier: 1, value: 6,  stack: true, effects: [] },
+  { id: 'whetstone', name: 'Whetstone',   type: 'tool',       tier: 1, value: 10, stack: true, effects: [{ sharpen: true }] },
 
   // --- books (life-sim: teach a skill / grant a skill point) ---------------
   { id: 'book_repair',    name: 'A Smith\'s Primer',     type: 'book', tier: 2, value: 60,  effects: [{ teaches: 'repair' }] },

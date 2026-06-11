@@ -25,10 +25,15 @@ export const SHOPS = [
   // hours: a day-only shopkeeper (Hodge works the forge by day) — DAY/NIGHT
   // example. Checked with TimeOfDay.meetsTime(shop.hours); see Economy.isOpen().
   { id: 'hodge_forge', name: "Hodge's Forge", region: 'Greenhollow', hours: { phase: 'day' }, stock: [
-    { item: 'wooden_sword' }, { item: 'steel_sword' }, { item: 'leather_jerkin' },
+    { item: 'whetstone' }, { item: 'wooden_sword' }, { item: 'steel_sword' }, { item: 'leather_jerkin' },
     { item: 'lantern_oil' }, { item: 'minor_potion' }, { item: 'iron_ore' },
     { item: 'book_repair' },
     { item: 'greenhollow_house', requires: { act: 2 } },
+  ] },
+  // Pem's general store — the GH starter wares (food + sundries). Buying-only (v1).
+  { id: 'pem_store', name: "Pem's Store", region: 'Greenhollow', stock: [
+    { item: 'bread' }, { item: 'cheese' }, { item: 'apple' },
+    { item: 'torch' }, { item: 'rope' }, { item: 'minor_potion' },
   ] },
   { id: 'mirefen_trader', name: 'Mirefen Trader', region: 'Ashen Marsh', stock: [
     { item: 'lantern_oil' }, { item: 'minor_potion' }, { item: 'stew' },

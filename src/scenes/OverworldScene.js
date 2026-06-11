@@ -41,6 +41,8 @@ import { PROPS, PARTS, DIR_ROW, ANIMS, EXPRESSIONS, EXPR_COLS, EXPR_ROW, solidBo
 import { TERRAIN } from '../data/terrainTiles.js';
 import { GREENHOLLOW_CHILDHOOD, GREENHOLLOW_SIDE, ASHEN_MARSH, SUNDERED_PEAKS as PEAKS_QUESTS, SUNDERED_PEAKS_SIDE } from '../data/quests/index.js';
 import { TILE, CHUNK_PX, WORLD_CHUNKS, WORLD_PX, chunkContent, groundTintAt, GREENHOLLOW, ASHEN_MARSH as MARSH_REGION, REGIONS, regionAt, inGreenhollow, inMarsh } from '../data/worldmap.js';
+import { item as itemDef } from '../data/items/index.js';
+import { shop as shopDef, buyPrice, availableStock } from '../systems/Economy.js';
 import { ENTRANCES } from '../data/entrances.js';
 import { generateDungeon, generateCave } from '../data/gen/index.js';
 
@@ -715,7 +717,7 @@ export class OverworldScene extends Phaser.Scene {
     this.playerHpUI.add([panel, this._hpBarBg, this._hpBarFill, this._hpLabel]);
     this.banner = this.add.text(this.scale.width / 2, 92, '', { fontFamily: 'monospace', fontSize: '15px', color: '#ffe9c2', backgroundColor: '#10171acc', padding: { x: 10, y: 5 }, align: 'center' }).setOrigin(0.5, 0).setScrollFactor(0).setDepth(DEPTH.OVERLAY + 12).setVisible(false);
   }
-  _canAct() { return !this._dlg && this._hitFreeze <= 0 && !!this.combat; }
+  _canAct() { return !this._dlg && !this._shopOpen && this._hitFreeze <= 0 && !!this.combat; }
   // SAFE HUB: within a combat region's no-aggro `safe` ring (the Peaks town) → the sword swings +
   // cuts foliage but deals NO combat damage (matching a GH-style safe zone). See the safe-zone rule.
   _inSafeHub() {
@@ -907,7 +909,8 @@ export class OverworldScene extends Phaser.Scene {
 
   // ---- interaction → dialogue branch (mirror the discrete-scene logic) --------
   _npcInteract(n) {
-    if (this._dlg) return;
+    if (this._dlg || this._shopOpen) return;
+    if (n.shop) { this._openShop(n.shop, n.name); return; }   // a keeper at the counter → the buy menu (shop buying v1)
     const st = n.quest ? this.quests.status(n.quest) : null;
     if (n.quest && (st === 'available' || st === 'active')) this._startQuestDialogue(n.quest);
     else if (n.social) this._startDialogue(n.social, n.name);
@@ -915,6 +918,51 @@ export class OverworldScene extends Phaser.Scene {
     else if (n.greeting) this._startGreeting(n.name, n.greeting);
     else if (n.done) this._startGreeting(n.name, n.done);
   }
+  // ---- SHOP BUYING v1 — a keeper's buy menu (E at the counter) -----------------------------------
+  _openShop(shopId, keeperName) {
+    const sh = shopDef(shopId); if (!sh) return;
+    Movement.stop(this.player); this._shopOpen = true; this._shopId = shopId; this._shopSel = 0; this._shopName = sh.name;
+    if (this.hud2) this.hud2.setVisible(false); if (this._helpText) this._helpText.setVisible(false);   // clear the HUD so it doesn't overlap the buy panel
+    this._shopStock = availableStock(shopId, { inv: this.inv, karma: this.karma }).map((id) => {
+      const it = itemDef(id); return { id, name: it ? it.name : id, price: buyPrice(id, sh.region, 5) };
+    });
+    // panel — REBUILT each open (its own container so it never collides with dialogue, no stale-cache)
+    if (this._shopBox) { this._shopBox.destroy(true); }
+    this._shopBox = this.add.container(0, 0).setScrollFactor(0).setDepth(DEPTH.OVERLAY + 13);
+    const bg = this.add.rectangle(20, 60, 728, 300, 0x0c1410, 0.96).setOrigin(0, 0).setStrokeStyle(2, 0x3c5a3c).setScrollFactor(0);
+    this._shopTitle = this.add.text(34, 70, '', { fontFamily: 'monospace', fontSize: '15px', color: '#ffe66d', fontStyle: 'bold' }).setScrollFactor(0);
+    this._shopGold = this.add.text(540, 72, '', { fontFamily: 'monospace', fontSize: '13px', color: '#9fd8a0' }).setScrollFactor(0);
+    this._shopHint = this.add.text(34, 336, '↑↓ choose · E buy · Q / Esc leave', { fontFamily: 'monospace', fontSize: '11px', color: '#7a9a7a' }).setScrollFactor(0);
+    this._shopBox.add([bg, this._shopTitle, this._shopGold, this._shopHint]);
+    this._shopRows = [];
+    for (let i = 0; i < Math.max(1, this._shopStock.length); i++) {
+      const t = this.add.text(40, 100 + i * 22, '', { fontFamily: 'monospace', fontSize: '14px', color: '#cfe8d6' }).setScrollFactor(0);
+      this._shopRows.push(t); this._shopBox.add(t);
+    }
+    this._renderShop();
+  }
+  _renderShop() {
+    if (!this._shopOpen) return;
+    this._shopTitle.setText(this._shopName);
+    this._shopGold.setText(`Your gold: ${this.inv.gold}g`);
+    this._shopRows.forEach((t, i) => {
+      const s = this._shopStock[i];
+      if (!s) { t.setText(''); return; }
+      const sel = i === this._shopSel, afford = this.inv.gold >= s.price;
+      const owned = this.inv.items[s.id] ? `  (have ${this.inv.items[s.id]})` : '';
+      t.setText(`${sel ? '▶ ' : '  '}${s.name.padEnd(22)} ${String(s.price).padStart(3)}g${owned}`);
+      t.setColor(sel ? '#ffe66d' : afford ? '#cfe8d6' : '#8a6b6b');
+    });
+  }
+  _shopNav(d) { if (!this._shopOpen || !this._shopStock.length) return; this._shopSel = Phaser.Math.Clamp(this._shopSel + d, 0, this._shopStock.length - 1); this._renderShop(); }
+  _shopBuy() {
+    if (!this._shopOpen) return; const s = this._shopStock[this._shopSel]; if (!s) return;
+    if (this.inv.gold < s.price) { this._sfx('sfx_deny', 0.8); this._banner('Not enough gold.', 1200); return; }
+    this.inv.addGold(-s.price); this.inv.add(s.id, 1);
+    if (this.inv.save) this.inv.save(); else this._save && this._save();   // persist the purchase
+    this._sfx('sfx_pickup', 0.85); this._banner(`Bought ${s.name} for ${s.price}g.`, 1300); this._renderShop();
+  }
+  _closeShop() { if (!this._shopOpen) return; this._shopOpen = false; if (this._shopBox) { this._shopBox.destroy(true); this._shopBox = null; } if (this.hud2) this.hud2.setVisible(true); if (this._helpText) this._helpText.setVisible(true); this._sfx('sfx_select', 0.5); }
 
   // ===========================================================================
   // DIALOGUE (minimal but real — reuses the Dialogue engine + Social gating;
@@ -1114,9 +1162,11 @@ export class OverworldScene extends Phaser.Scene {
   }
   _buildInput() {
     this.keys = this.input.keyboard.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,SHIFT,O,C');
-    this.input.keyboard.on('keydown-E', () => { if (this._dlg) this._dlgConfirm(); else Interaction.tryInteract(); });
-    this.input.keyboard.on('keydown-UP', () => { if (this._dlg) this._dlgNav(-1); });
-    this.input.keyboard.on('keydown-DOWN', () => { if (this._dlg) this._dlgNav(1); });
+    this.input.keyboard.on('keydown-E', () => { if (this._shopOpen) this._shopBuy(); else if (this._dlg) this._dlgConfirm(); else Interaction.tryInteract(); });
+    this.input.keyboard.on('keydown-UP', () => { if (this._shopOpen) this._shopNav(-1); else if (this._dlg) this._dlgNav(-1); });
+    this.input.keyboard.on('keydown-DOWN', () => { if (this._shopOpen) this._shopNav(1); else if (this._dlg) this._dlgNav(1); });
+    this.input.keyboard.on('keydown-Q', () => { if (this._shopOpen) this._closeShop(); });
+    this.input.keyboard.on('keydown-ESC', () => { if (this._shopOpen) this._closeShop(); });
     this.input.keyboard.on('keydown-J', () => { if (this._canAct()) this._playerAttack(); });    // attack (swing+cut everywhere; combat damage gated inside _playerAttack)
     this.input.keyboard.on('keydown-SPACE', () => { if (this._canAct()) this._tryDodge(); });                              // dodge-roll
     this.input.keyboard.on('keydown-F5', () => this.saveGame());
@@ -1242,7 +1292,7 @@ export class OverworldScene extends Phaser.Scene {
 
   update(time, delta) {
     const dt = Math.min(delta / 1000, 0.05), now = this.time.now;
-    const dlgOpen = !!this._dlg;
+    const dlgOpen = !!this._dlg || !!this._shopOpen;   // shop menu freezes movement like a dialogue
     const k = this.keys, run = k.SHIFT.isDown;
     const combatLive = !!this._combatRegion();
 
