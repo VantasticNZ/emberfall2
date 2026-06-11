@@ -105,6 +105,15 @@ Van's map exactly — then roll the same to every corridor.
 | Findable house-KEY item (the USE-KEY door option is wired) | no key item/placement yet; door.key + inv.has() wiring is in place | feature pass |
 | Lock glyph more prominent (6×7px now) + threshold depth polish | functional but small | POLISH |
 
+## MUSIC BEDS — needed vs HAVE (asset-first audit 2026-06-11)
+**WIRED (SAFE):** green (Peasant Theme, nihilocrat CC0) · peaks (Cave Theme, Brandon Morris CC0) · marsh
+(Spirits Forest, HydroGene — ⚑ "royalty-free" ≠ a clear licence; re-verify or replace before ship).
+**GAP (need a licence-clean bed):** coast-storm · ember-tension · spire-sacral · dungeon-tension ·
+cemetery-eerie · settlement-town beds. Many mood-matched files are in Van's Downloads but have **NO
+provenance** (UNKNOWN licence) — must NOT use until Van confirms each source (like the hen). OGA/CC0 fetch
+candidates: OpenGameArt "Sacred"/"Shrine" (sacral), nihilocrat + Brandon Morris CC0 sets (already trusted),
+"Dungeon/Cave Ambient" CC0, "Eerie/Cemetery" CC0 ambiences. Wire per region as built; ears-on verify.
+
 ## POLISH — anytime quality
 | Item | Why deferred | Need | When |
 |---|---|---|---|

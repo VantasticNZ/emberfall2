@@ -1,6 +1,10 @@
-# SPEC — INTERIORS (slice step 2) — FULL-EXPECTATION SPEC, for Van's ~2-min review
+# SPEC — INTERIORS (slice step 2) — FULL-EXPECTATION SPEC **v2** (rules layer), for Van's ~2-min RE-review
 
-> **STATUS: SPEC ONLY — do NOT build until Van approves/edits this.** (THE-SLICE method RULE 1.)
+> **STATUS: SPEC ONLY — do NOT build until Van approves/edits this v2.** (THE-SLICE method RULE 1.)
+> **v2 adds the RULES LAYER Van identified** (§§ R1–R5 below): the property-type × region matrix, the
+> non-collision rules, the stairs/floors rules, the theme/style rules, and the locked traversal rule —
+> the write-once rule-set so every region's interiors are correct by construction. The 14 facets + case
+> list + VAN-TEST (further down) are unchanged unless noted.
 > **Reference (RULE 3):** Stardew Valley interiors (homes/shops with purpose-fit furniture, searchable
 > containers, warm lighting, the owner present) + Zelda ALttP interiors (tight rooms, clear entry/exit, an
 > object or NPC that rewards the visit). Each facet below names what the reference does; the build is diffed
@@ -10,6 +14,60 @@
 Every enterable Greenhollow building's interior. Today GH has: **chapel · tavern (tankard f1+f2) · store ·
 forge · home1 · home2 · manor · 2 generic cottages.** (Marsh/Peaks reuse the same generic interiors — same
 spec applies, but the SLICE = GH only.)
+
+## R1 — PROPERTY-TYPE × REGION-STYLE MATRIX (the write-once rule-set)
+For each building TYPE, what its interior **MUST / MAY / MUST-NOT** have — then skinned per REGION-STYLE
+(R4). Build every region's interiors from this, not ad-hoc.
+| type | MUST have | MAY have | MUST NOT have |
+|---|---|---|---|
+| **home** | bed · hearth/heat source · table · a floor that fits the resident · 1 reach-path to every tile | dresser/chest · a resident NPC · a small personal item | shop counter · forge · altar · multi-floor (unless "manor") |
+| **shop (store)** | counter · stocked shelves/barrels · the shopkeeper at the counter · a clear customer path to the counter | a back-room door · a chest | bed in the sales floor · forge/altar |
+| **forge** | anvil · bellows/hearth-glow · tool rack/table · heat lighting | a back living area · a weapon display | bed in the work area · altar · plush home furniture |
+| **tavern** | bar/counter · tables+stools · hearth · the keep behind the bar · **stairs up** (rooms above) | a fireplace nook · a cellar door · patrons | altar · forge |
+| **chapel** | altar · pews/benches · candle/sacral lighting · a central aisle (clear) | a side shrine · a small bell | bar · forge · bed in the nave |
+| **manor** | grander home set (bigger room or **2 floors via stairs**) · finer furniture | study/library · a servant | shop counter · forge |
+| **hut (marsh)** | a single rough room · bog-appropriate floor/props · a hearth | herbs/charms · a cot | fine furniture · multi-floor |
+Generic homes rotate a **set of ≥N variants** (Van decision (a)) drawn from the `home` row.
+
+## R2 — NON-COLLISION RULES (encoded as table cases)
+- **Min clear path:** every interior has a **≥1-tile-wide walkable path** from the entry spawn to **every
+  container + every NPC + every exit/stairs**; no tile is reachable only by clipping furniture.
+- **Door/stairs zone CLEAR:** the spawn tile + the tile in front of every door/stairs is **walkable and
+  unblocked** (no furniture in the threshold; you never spawn on or behind a solid).
+- **All containers reachable** (a body can stand adjacent to open it) and **no walk-behind trap** (no pocket
+  a player can enter but not leave; navGate flood-fill proves full reachability + a sealed perimeter).
+- **No solid prop on a walkable tile** (the collision-matches-visual-mass rule, inside too).
+
+## R3 — STAIRS / FLOORS RULES
+- **Multi-floor threshold:** a building gets a **second floor (stairs)** only if its TYPE is `tavern` or
+  `manor`, OR its exterior footprint ≥ a size threshold (TBD on build — e.g. ≥ ~10×10 interior). Homes/
+  shops/huts are **single-floor** unless explicitly flagged.
+- **Stairs ≠ exit door:** floor-links carry `stairs:true` (built) → up = the next floor, down = the prior,
+  leave (ground floor only) = outside. Stairs are placed against a wall, clear approach (R2).
+- **What's upstairs:** tavern = guest **rooms** (beds); manor = **private quarters/study**. Each upper floor
+  is its own built, isolated interior with its own `back` (down) link.
+
+## R4 — THEME / STYLE RULES (interior matches exterior + region)
+Interior **floor + wall + palette** are chosen per REGION-STYLE so inside reads continuous with outside:
+| region | interior materials / palette |
+|---|---|
+| **Greenhollow** | warm wood/plaster, `stone`/`dirt` floor, cosy lamp-warm tint |
+| **Ashen Marsh** | rough timber + bog-grime, `mud`/`dirt` floor, murky cold tint |
+| **Sundered Peaks** | stone/`rock` floor, cold blue-grey, fire-glow accents |
+| **Tidewreck Coast** | salt-bleached wood, `sand`/plank, sea-grey light |
+| **Desert (M3)** | adobe/clay, `sand`/`soil`, warm ochre |
+A building's interior **floor `set` must be a real TERRAIN set** (gated; the `floor:'wood'`→black bug).
+
+## R5 — TRAVERSAL RULE (Van, verbatim — into the spec + reconciled with `gating.js`)
+> *"Passes are unpassable except with the stated item/ability; paths can have side-areas (secrets/dead-
+> ends/extras); a solid traversable path must always exist between places."*
+- **Reconcile:** this is the law `gating.js` + the `no-soft-locks` gate already enforce for the OVERWORLD
+  (every gated pass keys to a stated ability; every key obtainable in order; a clear main route always
+  exists). v2 **extends it to interiors + the whole world**: an interior/dungeon may gate a side-area behind
+  an ability (a secret/extra), but the REQUIRED route through it always has a solid, item-free traversable
+  path. Side-areas = optional (secrets, dead-ends, extras); they never block progress.
+- Encoded as a case: *every region/interior — there is a solid traversable main path between its entries
+  with NO ability/item required; any ability-gated bit is a side-area, never on the only path.*
 
 ## THE FACETS — what every interior must have (the professional bar)
 | # | Facet | The bar (reference) | Notes / decisions for Van |
