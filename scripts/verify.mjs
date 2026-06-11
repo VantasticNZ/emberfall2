@@ -547,10 +547,12 @@ const tile = (px) => Math.round(px / TILE);
       const tx = Math.round((p.x - R.bounds.x - TILE / 2) / TILE), ty = Math.round((p.y - R.bounds.y - TILE) / TILE);
       return { k: p.key.replace('prop_', ''), L: tx + 0.5 - wT / 2, Rr: tx + 0.5 + wT / 2, T: (ty + 1) - hT, B: ty + 1 };
     });
-    const dz = (R.doorTiles || []);
+    // door zone = the door tile PLUS the approach tile one step toward the room interior (keep the
+    // threshold/approach clear so you never catch furniture stepping in or out).
+    const dz = (R.doorTiles || []).flatMap((d) => [d, { tx: d.tx, ty: d.ty + (d.ty > H / 2 ? -1 : 1) }]);
     for (const it of items) {
       if (it.L < 1 || it.Rr > W - 1 || it.T < 1 || it.B > H - 1) viol.push(`${R.key}: ${it.k} clips a wall`);
-      for (const z of dz) if (it.L < z.tx + 1 && it.Rr > z.tx && it.T < z.ty + 1 && it.B > z.ty) viol.push(`${R.key}: ${it.k} blocks the door/stairs zone`);
+      for (const z of dz) if (it.L < z.tx + 1 && it.Rr > z.tx && it.T < z.ty + 1 && it.B > z.ty) viol.push(`${R.key}: ${it.k} blocks the door/approach zone`);
     }
     for (let i = 0; i < items.length; i++) for (let j = i + 1; j < items.length; j++) {
       const a = items[i], b = items[j];

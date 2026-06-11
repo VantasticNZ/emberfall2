@@ -667,7 +667,7 @@ export const HOLLOW_SPIRE = greyboxRegion({
 function doorWallOffset(tx, ty, W, H) {
   // INSET the interior exit door further INTO its wall (Van's note) — push it 1.35 tiles toward the wall so
   // it reads as a doorway recessed in the wall, not sitting proud of it.
-  const D = Math.round(TILE * 1.35);
+  const D = Math.round(TILE * 0.7);   // a gentle inset — the door sits in the wall EDGE, not buried past it (1.35T pushed the exit door a full tile into the wall: buried + awkward at the threshold)
   const toL = tx, toR = (W - 1) - tx, toT = ty, toB = (H - 1) - ty, m = Math.min(toL, toR, toT, toB);
   if (m === toB) return { spriteDy: D }; if (m === toT) return { spriteDy: -D };
   if (m === toR) return { spriteDx: D }; return { spriteDx: -D };
@@ -719,7 +719,7 @@ export const TANKARD_F1 = interiorRegion({
   doors: [{ tx: 2, ty: 8, to: 'back', label: 'Leave (back outside)' }, { tx: 11, ty: 2, to: 'tankard_f2', label: 'Upstairs →', stairs: true }],
   furniture: [
     { tx: 2, ty: 3, key: 'prop_fireplace', solid: true, scale: 0.6 }, { tx: 5, ty: 4, key: 'prop_table', solid: true, scale: 0.7 }, { tx: 8, ty: 6, key: 'prop_table', solid: true, scale: 0.7 },
-    { tx: 11, ty: 4, key: 'prop_table', solid: true, scale: 0.7 }, { tx: 12, ty: 6, key: 'prop_barrel', solid: true }, { tx: 4, ty: 5, key: 'prop_stool', solid: true }, { tx: 6, ty: 5, key: 'prop_stool', solid: true },
+    { tx: 11, ty: 5, key: 'prop_table', solid: true, scale: 0.7 }, { tx: 12, ty: 7, key: 'prop_barrel', solid: true }, { tx: 4, ty: 5, key: 'prop_stool', solid: true }, { tx: 6, ty: 5, key: 'prop_stool', solid: true },
   ],
   npcs: [{ tx: 12, ty: 4, facing: 'down', name: 'Tavernkeeper', speed: 0, expression: 'happy', parts: KEEP_OLD, greeting: ['The keeper polishes a tankard. "Ale or a room? Rooms are upstairs."'] }],
   chests: [{ tx: 7, ty: 5, id: 'tankard_f1_chest', gold: 20 }],
@@ -840,7 +840,7 @@ export const MIREFEN_HUT = interiorRegion({
   doors: [{ tx: 5, ty: 7, to: 'back', label: 'Step outside' }],
   furniture: [
     { tx: 2, ty: 3, key: 'prop_bed', solid: true, scale: 0.6 }, { tx: 8, ty: 3, key: 'prop_fireplace', solid: true, scale: 0.6 },
-    { tx: 5, ty: 2, key: 'prop_dresser', solid: true, scale: 0.55 }, { tx: 4, ty: 5, key: 'prop_table', solid: true, scale: 0.6 },
+    { tx: 5, ty: 2, key: 'prop_dresser', solid: true, scale: 0.55 }, { tx: 3, ty: 5, key: 'prop_table', solid: true, scale: 0.6 },
     { tx: 2, ty: 6, key: 'prop_bush', solid: false, scale: 0.6, tint: 0x6b7560 },
   ],
   npcs: [
@@ -878,7 +878,7 @@ export const FENWICK_HOME = interiorRegion({
   doors: [{ tx: 5, ty: 6, to: 'back', label: 'Step outside' }],
   furniture: [
     { tx: 2, ty: 3, key: 'prop_bed', solid: true, scale: 0.6 }, { tx: 7, ty: 3, key: 'prop_fireplace', solid: true, scale: 0.6 },
-    { tx: 5, ty: 2, key: 'prop_dresser', solid: true, scale: 0.55 }, { tx: 4, ty: 5, key: 'prop_table', solid: true, scale: 0.6 },
+    { tx: 5, ty: 2, key: 'prop_dresser', solid: true, scale: 0.55 }, { tx: 3, ty: 5, key: 'prop_table', solid: true, scale: 0.6 },
   ],
   npcs: [{ tx: 5, ty: 4, facing: 'down', name: 'Fenwick child', speed: 0, expression: 'happy', parts: MARSH_FOLK[3] }],
   chests: [{ tx: 8, ty: 5, id: 'fenwick_home_chest', gold: 14 }],
@@ -937,7 +937,7 @@ export const GH_HOME1 = interiorRegion({
   doors: [{ tx: 5, ty: 6, to: 'back', label: 'Step outside' }],
   furniture: [
     { tx: 2, ty: 3, key: 'prop_bed', solid: true, scale: 0.6 }, { tx: 7, ty: 3, key: 'prop_fireplace', solid: true, scale: 0.6 },
-    { tx: 5, ty: 2, key: 'prop_dresser', solid: true, scale: 0.55 }, { tx: 4, ty: 5, key: 'prop_table', solid: true, scale: 0.6 },
+    { tx: 5, ty: 2, key: 'prop_dresser', solid: true, scale: 0.55 }, { tx: 3, ty: 5, key: 'prop_table', solid: true, scale: 0.6 },
   ],
   npcs: [{ tx: 4, ty: 3, facing: 'down', name: 'Resident', speed: 0, expression: 'neutral', parts: KEEP_FEM, greeting: ['"Oh — a visitor. Mind the mess."'] }],
   chests: [{ tx: 8, ty: 5, id: 'gh_home1_chest', gold: 18 }],
@@ -947,7 +947,7 @@ export const GH_HOME2 = interiorRegion({
   doors: [{ tx: 5, ty: 6, to: 'back', label: 'Step outside' }],
   furniture: [
     { tx: 2, ty: 3, key: 'prop_bed', solid: true, scale: 0.6 }, { tx: 7, ty: 3, key: 'prop_fireplace', solid: true, scale: 0.6 },
-    { tx: 5, ty: 2, key: 'prop_dresser', solid: true, scale: 0.55 }, { tx: 4, ty: 5, key: 'prop_table', solid: true, scale: 0.6 },
+    { tx: 5, ty: 2, key: 'prop_dresser', solid: true, scale: 0.55 }, { tx: 3, ty: 5, key: 'prop_table', solid: true, scale: 0.6 },
   ],
   chests: [{ tx: 8, ty: 5, id: 'gh_home2_chest', gold: 16 }],
 });
@@ -963,7 +963,7 @@ export const HOUSE_GENERIC = interiorRegion({   // v1 — cosy cottage
   doors: [{ tx: 5, ty: 6, to: 'back', label: 'Step outside' }],
   furniture: [
     { tx: 2, ty: 3, key: 'prop_bed', solid: true, scale: 0.6 }, { tx: 7, ty: 3, key: 'prop_fireplace', solid: true, scale: 0.6 },
-    { tx: 5, ty: 2, key: 'prop_dresser', solid: true, scale: 0.55 }, { tx: 4, ty: 5, key: 'prop_table', solid: true, scale: 0.6 },
+    { tx: 5, ty: 2, key: 'prop_dresser', solid: true, scale: 0.55 }, { tx: 3, ty: 5, key: 'prop_table', solid: true, scale: 0.6 },
   ],
   chests: [{ tx: 8, ty: 5, id: 'house_generic_chest', gold: 10, private: true }],
 });
@@ -972,7 +972,7 @@ export const HOUSE_V2 = interiorRegion({   // v2 — bookish / wardrobe
   doors: [{ tx: 5, ty: 6, to: 'back', label: 'Step outside' }],
   furniture: [
     { tx: 2, ty: 3, key: 'prop_bed', solid: true, scale: 0.6 }, { tx: 7, ty: 3, key: 'prop_cabinet', solid: true, scale: 0.85 },
-    { tx: 5, ty: 2, key: 'prop_cabinet', solid: true, scale: 0.85, tint: 0x9a8a6a }, { tx: 4, ty: 5, key: 'prop_table', solid: true, scale: 0.6 },
+    { tx: 5, ty: 2, key: 'prop_cabinet', solid: true, scale: 0.85, tint: 0x9a8a6a }, { tx: 3, ty: 5, key: 'prop_table', solid: true, scale: 0.6 },
   ],
   chests: [{ tx: 1, ty: 5, id: 'house_v2_chest', gold: 12, private: true }],
 });
@@ -990,7 +990,7 @@ export const HOUSE_V4 = interiorRegion({   // v4 — family (two beds)
   doors: [{ tx: 5, ty: 6, to: 'back', label: 'Step outside' }],
   furniture: [
     { tx: 2, ty: 3, key: 'prop_bed', solid: true, scale: 0.55 }, { tx: 7, ty: 3, key: 'prop_bed', solid: true, scale: 0.55, tint: 0xc8b8a0 },
-    { tx: 5, ty: 2, key: 'prop_dresser', solid: true, scale: 0.55 }, { tx: 4, ty: 5, key: 'prop_table', solid: true, scale: 0.6 },
+    { tx: 5, ty: 2, key: 'prop_dresser', solid: true, scale: 0.55 }, { tx: 3, ty: 5, key: 'prop_table', solid: true, scale: 0.6 },
   ],
   chests: [{ tx: 8, ty: 5, id: 'house_v4_chest', gold: 11, private: true }],
 });
@@ -999,7 +999,7 @@ export const HOUSE_V5 = interiorRegion({   // v5 — tidy / hearth-front
   doors: [{ tx: 5, ty: 6, to: 'back', label: 'Step outside' }],
   furniture: [
     { tx: 7, ty: 3, key: 'prop_bed', solid: true, scale: 0.6 }, { tx: 4, ty: 3, key: 'prop_fireplace', solid: true, scale: 0.6 },
-    { tx: 2, ty: 3, key: 'prop_cabinet', solid: true, scale: 0.85 }, { tx: 5, ty: 5, key: 'prop_table', solid: true, scale: 0.6 },
+    { tx: 2, ty: 3, key: 'prop_cabinet', solid: true, scale: 0.85 }, { tx: 3, ty: 5, key: 'prop_table', solid: true, scale: 0.6 },
   ],
   chests: [{ tx: 1, ty: 5, id: 'house_v5_chest', gold: 10, private: true }],
 });

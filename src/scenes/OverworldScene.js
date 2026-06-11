@@ -365,6 +365,15 @@ export class OverworldScene extends Phaser.Scene {
       // not the threshold line) so walking back out lands the avatar centred in walkable space.
       (this._areaStack = this._areaStack || []).push({ x: returnPos ? returnPos.x : this.player.x, y: returnPos ? returnPos.y : this.player.y, interior: !!this._inInterior });
       this.player.x = R.spawn.x; this.player.y = R.spawn.y; this._inInterior = true;
+      // NO-THRESHOLD-JAM: the spawn coincides with the exit door (against a wall). Nudge the avatar ONE tile
+      // INTO the room so you land in open space — not jammed at the inside/outside line — and walk back DOWN
+      // to the door to leave. (The exit trigger still fires on the door tile.)
+      if (R.widthTiles && R.heightTiles) {
+        const sty = Math.floor((R.spawn.y - R.bounds.y) / TILE), stx = Math.floor((R.spawn.x - R.bounds.x) / TILE);
+        const dy = sty > R.heightTiles / 2 ? -1 : (sty < R.heightTiles / 2 ? 1 : 0);
+        const dx = dy === 0 ? (stx > R.widthTiles / 2 ? -1 : 1) : 0;   // side-door interiors nudge horizontally instead
+        this.player.x += dx * TILE; this.player.y += dy * TILE;
+      }
     }
     this.player.body.reset(this.player.x, this.player.y);
     this._lastTile = { tx: Math.floor(this.player.x / TILE), ty: Math.floor(this.player.y / TILE) };  // WALK-THROUGH: spawn ON the door tile → don't re-fire until the player steps OFF then back ON
@@ -962,9 +971,9 @@ export class OverworldScene extends Phaser.Scene {
   // a doorway-tile centre. The building's own flanking side-rects don't cover the centre, so they survive.
   _clearDoorwayThresholds() {
     for (const d of (this._buildingDoors || [])) {
-      // clear the doorway tile AND the APPROACH tile in front of it (so you can WALK UP to the door —
-      // a neighbour/scattered prop blocking the approach made some buildings un-reachable from the front).
-      for (const [tx, ty] of [[d.dcx, d.dcy], [d.dcx, d.dcy + TILE]]) {
+      // clear the doorway tile AND the APPROACH ZONE in front of it — the doorway + the 2 tiles straight
+      // ahead (Van: fences/solids were blocking building approaches). So you can always WALK UP to a door.
+      for (const [tx, ty] of [[d.dcx, d.dcy], [d.dcx, d.dcy + TILE], [d.dcx, d.dcy + 2 * TILE]]) {
         for (const o of this.solids.getChildren()) {
           const b = o.body; if (!b || b.physicsType !== 1) continue;
           if (tx >= b.center.x - b.halfWidth && tx <= b.center.x + b.halfWidth && ty >= b.center.y - b.halfHeight && ty <= b.center.y + b.halfHeight) {

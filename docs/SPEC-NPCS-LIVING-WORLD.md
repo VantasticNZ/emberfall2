@@ -91,6 +91,21 @@ Every **named** NPC gets a **line-set**: `{ greet · 2–3 talk topics · 1 bark
 
 ---
 
+## 5.5 DEATH CONSEQUENCES (Van, 2026-06-11 — design now, BUILD post-slice)
+Killing a townsperson is permanent and the world FEELS it (the Fable/Majora's reactivity, darker):
+- **Service gap:** if the dead NPC ran a service (a keeper), that shop/role **goes dark** — closed door,
+  "nobody tends the forge now" — until an **eventual replacement** arrives (a new keeper walks into town
+  after N days, or a relative takes over). The gap is visible and time-bounded.
+- **First-kill memorial:** the player's FIRST town-kill seeds a small **memorial/shrine** (a grave marker +
+  a lit candle) at the chapel/cemetery, with a line naming the dead. **Grieving kin** (a relative NPC) stand
+  by it / give cold mournful lines / refuse the player.
+- **Delayed avenger hook:** a kill plants an `avenger` flag — days later a **bounty-hunter / kin-avenger**
+  may seek the player (a confrontation beat), scaled by how many / how cruelly. (Full faction-revenge webs =
+  later.) Ties to Karma (each kill is a heavy morality/purity deed) + deed-memory (the dead are remembered).
+- **Schema now (no retrofit):** every named NPC carries `{ role, kin:[ids], replaceable:bool, replaceDays:N }`
+  so death-consequences can read it when built. BUILD (memorial spawn, replacement arrival, avenger) = post-
+  slice; the schema + the heavy kill-deed ship with combat (step 5).
+
 ## 6. PROPERTY / DEEDS (Fable model — SCHEMA now, BUILD post-slice)
 To avoid a retrofit, **every building carries deed data NOW** (one line per building, schema only):
 ```

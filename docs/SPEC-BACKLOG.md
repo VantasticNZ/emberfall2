@@ -21,7 +21,7 @@
 | system | scope (1–2 lines) | phase |
 |---|---|---|
 | **Items / inventory / keys** | item defs/SSOT (exists), pickup/use/equip, stack/carry-limit, KEYS (door-keys hooked, none findable yet), readables. | M1+ |
-| **Economy / shops** | shop stock/pricing, buy/sell, haggle (CHA), jobs/gold sources, the SHOPS/JOBS data. | M1+ |
+| **Economy / shops** | shop stock/pricing, buy/sell, haggle (CHA), jobs/gold sources, the SHOPS/JOBS data. **Van's requirements (2026-06-11):** real ITEMS with costs that enter the INVENTORY on purchase; shop STOCK scoped by **town tier × game stage** (a starting hamlet sells basics, later/bigger towns sell more/better); **prices MODIFIED by morality/purity/renown** (a hero pays less / is trusted; a feared/cruel rep pays more or is refused). Stocked-shelf props (done, visual) become the buy UI. | M1+ |
 | **Enemies / AI / difficulty** | per-enemy AI (aggro/patrol/ranged/boss), the t1→t5 placed-difficulty curve, learn-the-pattern bosses, difficulty options. | M1+ |
 | **Abilities / spell-routes** | the 11 traversal abilities, each gating ≥1 route (gating.js), the per-ability gate visual language (RPG-FEEL §1), dash-leap engine gap. | M2+ |
 | **Writing / tone guide** | the wholesome→dark→rude-to-the-line voice, per-NPC register, the morality-driven beats; a one-page tone bible. | ongoing |
