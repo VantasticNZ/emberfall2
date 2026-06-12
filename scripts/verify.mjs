@@ -645,6 +645,23 @@ const tile = (px) => Math.round(px / TILE);
   else ok(`kids-protected: all ${kids} kid NPC(s) are protected:true (unharmable/untargetable — hard rule)`);
 }
 
+// 25b) NO-DUPLICATE-NAMED-NPC (town-feel item 2) — a named NPC must not appear TWICE in the same region
+//      (the "mini-Mara" class: a double-spawn renders two of the same person). Names are unique per region;
+//      different regions may reuse a name (a different person). Unnamed/generic NPCs are exempt.
+{
+  const dups = []; let named = 0;
+  for (const R of REGIONS) {
+    const seen = new Map();
+    for (const n of (R.npcs || [])) {
+      if (!n.name) continue; named++;
+      seen.set(n.name, (seen.get(n.name) || 0) + 1);
+    }
+    for (const [name, c] of seen) if (c > 1) dups.push(`${R.key}: '${name}' spawns ${c}x`);
+  }
+  if (dups.length) fail('DUPLICATE NAMED-NPC SPAWN(S):' + dups.map((v) => '\n      ' + v).join(''));
+  else ok(`no-duplicate-named-npc: ${named} named NPC placement(s) — no name spawns twice in one region (no double-spawn)`);
+}
+
 // 26) PANEL-BOUNDS-INSIDE-VIEWPORT — every UI PANEL (a scrollFactor-0 OVERLAY container) MUST be registered
 //     with the uiCamera via _registerUIPanel (or be in the _setupUICamera _uiList). A panel that isn't
 //     renders on the ZOOMED main camera and gets pushed off-screen (Van's clipped-panel bug). Static scan

@@ -241,7 +241,7 @@ export const WORLD = {
       greeting: ["Betcha can't catch me! ...Mum says don't bother Hodge when his hammer's going.", "I helped Pem stack the apples. She gave me one for it!"],
       bark: 'Last one to the chapel\'s a rotten egg!',
       schedule: sched([['dawn', 23, 17, 'idle'], ['day', 22, 14, 'chat'], ['dusk', 24, 13, 'chat'], ['night', 34, 25, 'sleep']]) },   // plays the plaza by day, the cottage at night
-    { tx: 27, ty: 17, facing: 'down', name: 'Wisp', tempo: 'ambler', speed: 74, scale: 0.7, kid: true, protected: true, expression: 'happy', parts: MARA,
+    { tx: 27, ty: 17, facing: 'down', name: 'Wisp', tempo: 'ambler', speed: 74, scale: 0.7, kid: true, protected: true, expression: 'happy', parts: ['body_fem', 'head_fem', 'brows_chestnut', 'hair_chestnut', 'shirt_blue', 'pants_brown', 'shoes_brown_fem'],   // item 2: was MARA's exact skin at 0.7 = a "mini-Mara"; now a distinct chestnut/blue child
       greeting: ["Are you a knight? You walk like a knight.", "Old Fatley sleeps in the tavern. Mum says don't grow up like Fatley."],
       bark: '*humming a little tune*',
       schedule: sched([['dawn', 27, 17, 'idle'], ['day', 25, 18, 'chat'], ['dusk', 29, 15, 'idle'], ['night', 34, 25, 'sleep']]) },
