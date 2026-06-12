@@ -41,7 +41,7 @@ import { bindings } from '../constants/controls.js';
 import { AssetLoader } from '../art/AssetLoader.js';
 import { PROPS, PARTS, DIR_ROW, ANIMS, EXPRESSIONS, EXPR_COLS, EXPR_ROW, solidBox } from '../data/assets.js';
 import { TERRAIN } from '../data/terrainTiles.js';
-import { GREENHOLLOW_CHILDHOOD, GREENHOLLOW_SIDE, ASHEN_MARSH, SUNDERED_PEAKS as PEAKS_QUESTS, SUNDERED_PEAKS_SIDE } from '../data/quests/index.js';
+import { GREENHOLLOW_CHILDHOOD, GREENHOLLOW_SLICE, GREENHOLLOW_SIDE, ASHEN_MARSH, SUNDERED_PEAKS as PEAKS_QUESTS, SUNDERED_PEAKS_SIDE } from '../data/quests/index.js';
 import { TILE, CHUNK_PX, WORLD_CHUNKS, WORLD_PX, chunkContent, groundTintAt, GREENHOLLOW, ASHEN_MARSH as MARSH_REGION, REGIONS, regionAt, inGreenhollow, inMarsh } from '../data/worldmap.js';
 import { item as itemDef } from '../data/items/index.js';
 import { shop as shopDef, buyPrice, availableStock } from '../systems/Economy.js';
@@ -122,7 +122,7 @@ export class OverworldScene extends Phaser.Scene {
   _buildSystems() {
     const storage = memoryStorage();   // per-session; the SaveManager owns durable composition via link()
     this.karma = new KarmaEngine({ storage });
-    this.quests = new QuestEngine({ karma: this.karma, storage, quests: [...GREENHOLLOW_CHILDHOOD, ...GREENHOLLOW_SIDE, ...ASHEN_MARSH, ...PEAKS_QUESTS, ...SUNDERED_PEAKS_SIDE] });
+    this.quests = new QuestEngine({ karma: this.karma, storage, quests: [...GREENHOLLOW_CHILDHOOD, ...GREENHOLLOW_SLICE, ...GREENHOLLOW_SIDE, ...ASHEN_MARSH, ...PEAKS_QUESTS, ...SUNDERED_PEAKS_SIDE] });
     this.tod = new TimeOfDay({ storage });
     this.inv = new Inventory({ storage });
     this.inv.hp = this.inv.stats().maxHp;
@@ -496,9 +496,9 @@ export class OverworldScene extends Phaser.Scene {
     DepthSort.track(npc, npc.body.offset.y + npc.body.height);   // sort NPCs by their feet line too (same as the hero)
     this.npcLife.add(npc, n.schedule, n.tempo);
     this._regionObjs.push(npc);
-    if (n.quest) (this._npcByQuest || (this._npcByQuest = {}))[n.quest] = npc;   // objective-arrow target (live)
+    for (const q of [n.quest, ...(n.quests || [])].filter(Boolean)) (this._npcByQuest || (this._npcByQuest = {}))[q] = npc;   // objective-arrow target (live)
     Interaction.register({
-      target: npc, targetOffY: 0, prompt: n.quest ? 'Talk (quest)' : 'Talk',
+      target: npc, targetOffY: 0, prompt: (n.quest || n.quests) ? 'Talk (quest)' : 'Talk',
       onInteract: () => this._npcInteract(n),
     });
   }
@@ -941,8 +941,12 @@ export class OverworldScene extends Phaser.Scene {
     // whole confront ladder; a deliberate "I'll settle up" instead of waiting out the comply window).
     if (n.role === 'guard' && this._fineOwed > 0) { this._confront = null; this._guardConfront(null); return; }
     if (n.shop) { this._openShop(n.shop, n.name); return; }   // a keeper at the counter → the buy menu (shop buying v1)
-    const st = n.quest ? this.quests.status(n.quest) : null;
-    if (n.quest && (st === 'available' || st === 'active')) this._startQuestDialogue(n.quest);
+    // an NPC may offer ONE quest (n.quest) OR several (n.quests) — pick the first that's offerable now
+    // (so a slice giver can carry GH-arc + childhood quests without clobbering either; Decision A).
+    const qid = (n.quest && ['available', 'active'].includes(this.quests.status(n.quest))) ? n.quest
+      : (n.quests || []).find((id) => ['available', 'active'].includes(this.quests.status(id)));
+    const st = qid ? this.quests.status(qid) : null;
+    if (qid && (st === 'available' || st === 'active')) this._startQuestDialogue(qid);
     else if (n.social) this._startDialogue(n.social, n.name);
     else if (n.topics) this._openTopics(n);   // a named villager with topics → the selectable topic menu
     else if (st === 'complete' && n.done) this._startGreeting(n.name, n.done);
@@ -1051,7 +1055,7 @@ export class OverworldScene extends Phaser.Scene {
   // DIALOGUE (minimal but real — reuses the Dialogue engine + Social gating;
   // the polished box/portrait is RegionScene's, deferred to the polish pass)
   // ===========================================================================
-  _dlgCtx() { return { inv: this.inv, karma: this.karma, quests: this.quests, onSet: (cmd) => this._onDlgSet(cmd) }; }
+  _dlgCtx() { return { inv: this.inv, karma: this.karma, quests: this.quests, engine: this.quests, onSet: (cmd) => this._onDlgSet(cmd) }; }   // engine: lets a dialogue option's `choice:{quest,id}` fire the quest fork (karma+deed+unlocks, once)
   _onDlgSet(cmd) { if (typeof cmd !== 'string') return; if (cmd.startsWith('door:')) this._doorAction(cmd.slice(5)); else if (cmd.startsWith('fine:')) this._fineAction(cmd.slice(5)); }
 
   // DOOR-SYSTEM — the CLOSED / LOCKED entry choice (the morality entrance). Walking into a shut door ALWAYS
@@ -1361,9 +1365,26 @@ export class OverworldScene extends Phaser.Scene {
     if (this._dlg.done || !this._dlg.node()) this._closeDialogue(); else this._renderNode();
   }
   _closeDialogue() {
-    if (this._activeQuest && this.quests.status(this._activeQuest) === 'active') this.quests.complete(this._activeQuest);
+    const qid = this._activeQuest;
+    if (qid && this.quests.status(qid) === 'active') {   // dialogue-driven quests complete on dialogue close (unless multi-step world-driven)
+      const def = this.quests.defs[qid];
+      if (!(def && def.worldDriven)) { this.quests.complete(qid); this._grantQuestReward(qid); }
+    }
     this.dlgBox.setVisible(false); this._optTexts.forEach((t) => t.destroy()); this._optTexts = []; this._dlg = null; this._activeQuest = null;
     this._buildPortrait(null);   // clear the speaker face
+  }
+  // Grant a completed quest's DATA reward (Gate F) — gold / item(s) / weapon / skill — and banner it.
+  // Property/flag unlocks ride on a recorded DEED (the shop reads it), so they're not handled here.
+  _grantQuestReward(qid) {
+    const def = this.quests.defs[qid]; const r = (def && def.reward) || null; if (!r) return;
+    const got = [];
+    const nameOf = (id) => { const it = itemDef(id); return it ? it.name : id; };
+    if (r.gold) { this.inv.addGold(r.gold); got.push(`${r.gold}g`); }
+    for (const it of [r.item, ...(r.items || []), r.weapon].filter(Boolean)) { if (this.inv.add(it)) got.push(nameOf(it)); }
+    if (r.weapon && this.inv.equip) this.inv.equip(r.weapon);
+    if (r.skill && this.inv.learnSkill) this.inv.learnSkill(r.skill);
+    if (this.inv.save) this.inv.save();
+    this._banner(got.length ? `Quest complete: ${def.title} — ${got.join(', ')}.` : `Quest complete: ${def.title}.`, 2200);
   }
   _buildDialogueUI() {
     this.dlgBox = this.add.container(0, 0).setScrollFactor(0).setDepth(DEPTH.OVERLAY + 11).setVisible(false);

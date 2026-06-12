@@ -31,6 +31,7 @@
 // The live quest registry. Greenhollow Act 1 + the adult return is the first
 // content; more regions append here as they are authored (all as DATA).
 import { GREENHOLLOW_CHILDHOOD } from './greenhollow.js';
+import { GREENHOLLOW_SLICE } from './greenhollow.slice.js';   // GH1–GH4 (THE-SLICE step 4)
 import { GREENHOLLOW_SIDE } from './greenhollow.side.js';
 import { ASHEN_MARSH } from './ashenmarsh.js';
 import { ASHEN_MARSH_SIDE } from './ashenmarsh.side.js';
@@ -43,12 +44,12 @@ import { EMBERWOOD_SIDE } from './emberwood.side.js';
 import { SPIRE, offeredEndings, epilogueCards } from './spire.js';
 import { CAMEOS } from './cameos.js';
 export {
-  GREENHOLLOW_CHILDHOOD, GREENHOLLOW_SIDE, ASHEN_MARSH, ASHEN_MARSH_SIDE,
+  GREENHOLLOW_CHILDHOOD, GREENHOLLOW_SLICE, GREENHOLLOW_SIDE, ASHEN_MARSH, ASHEN_MARSH_SIDE,
   SUNDERED_PEAKS, SUNDERED_PEAKS_SIDE, TIDEWRECK_COAST, TIDEWRECK_COAST_SIDE,
   EMBERWOOD, EMBERWOOD_SIDE, SPIRE, CAMEOS, offeredEndings, epilogueCards,
 };
 export const QUESTS = [
-  ...GREENHOLLOW_CHILDHOOD, ...GREENHOLLOW_SIDE,
+  ...GREENHOLLOW_CHILDHOOD, ...GREENHOLLOW_SLICE, ...GREENHOLLOW_SIDE,
   ...ASHEN_MARSH, ...ASHEN_MARSH_SIDE,
   ...SUNDERED_PEAKS, ...SUNDERED_PEAKS_SIDE,
   ...TIDEWRECK_COAST, ...TIDEWRECK_COAST_SIDE,

@@ -9,6 +9,7 @@ const ids = (...names) => Object.freeze(Object.fromEntries(names.map((n) => [n, 
 
 export const TOOLS = ids(
   'tool_firefrost', 'tool_grapple', 'tool_hookshot', 'tool_lantern',
+  'tool_billhook',   // GH3 — the cut/clear ability: cuts the orchard bramble-choke (+ cuttable props)
 );
 
 export const SHARDS = ids(

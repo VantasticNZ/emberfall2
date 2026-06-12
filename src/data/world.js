@@ -163,7 +163,7 @@ export const WORLD = {
 
   // THE CAST — in their districts; M1–M4 + hub side quests + the social system.
   npcs: [
-    { tx: 22, ty: 17, facing: 'down', name: 'Mara', speed: 70, expression: 'happy', parts: MARA, quest: 'M1',
+    { tx: 22, ty: 17, facing: 'down', name: 'Mara', speed: 70, expression: 'happy', parts: MARA, quests: ['GH1', 'M1'],
       done: ['Off you go then — and mind Old Edda, she\'s in a mood this morning.'],
       schedule: sched([['dawn', 20, 16, 'chat'], ['day', 22, 17, 'tend'], ['dusk', 24, 19, 'idle'], ['night', 24, 21, 'sleep']]) },
     { tx: 11, ty: 26, facing: 'down', name: 'Bram', tempo: 'ambler', speed: 70, expression: 'neutral', parts: BRAM, greeting: [

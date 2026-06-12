@@ -31,4 +31,9 @@ export const DEEDS = ids(
   'haggled_bram', 'hagga_hidden_truth', 'miner_secret_pass',
   // DOOR-SYSTEM — morality-entrance (walking uninvited through a closed / locked door)
   'entered_uninvited', 'entered_occupied_home', 'forced_entry',
+  // SLICE GH-ARC (GH1-GH4 — SPEC-QUESTS-M1-4.md, Van-approved): the four playable slice quests.
+  'hearth_shared', 'hearth_hoarded',          // GH1 Cold Hearth — give the fuel to the family vs keep it
+  'maren_healed', 'maren_failed',             // GH2 Nobody Answered — the cure in time vs the soft-fail warn
+  'orchard_cleared', 'orchard_letter',        // GH3 Teeth in the Orchard — den cleared · the sealed letter (Marsh-thread seed)
+  'shrine_told', 'shrine_kept', 'shrine_looted', // GH4 The Boarded Cave — fork #2 (tell / keep / desecrate)
 );
