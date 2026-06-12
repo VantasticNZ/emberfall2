@@ -30,7 +30,7 @@ The block below is the source of truth for the verify gate. Format, one row per 
 `prefix | source | licence | ai_safe | category`
 
 ```ledger
-public/art/eliza/   | ElizaWy LPC (github.com/ElizaWy/LPC) — base layers + Head Accessories Helm 05 Kettle Helm (helm/, guard headgear) | OGA-BY-3.0                        | yes | character
+public/art/eliza/   | ElizaWy LPC (github.com/ElizaWy/LPC) — base layers + Head Accessories Helm 05 Kettle Helm (helm/, guard headgear) + shirt_red/plum/teal/amber/maroon = HUE-SHIFT recolours of the base shirt (scripts/recolor_shirts.py; derivative of the same OGA-BY source) for wardrobe variety | OGA-BY-3.0                        | yes | character
 public/art/terrain/ | ElizaWy LPC terrain (incl. cliff/rock crops from eliza-terrain: cliff_face, cliff_wall, cliff_top, rock_crag/boulder/small — Sundered Peaks) + Sharm LPC house + [LPC] Terrains autotile atlas (bluecarrot16, Sharm, Daneeklu, Jetrel, Zabin, Hyptosis, C.Nilsson, Buko, et al.) | OGA-BY-3.0 / CC-BY-3.0 / CC-BY-SA-3.0 / GPL-3.0 | yes | terrain+building+transition-tiles+cliff/rock
 public/art/kenney/  | Kenney (kenney.nl)                                            | CC0-1.0                           | yes | tiles (legacy, unreferenced)
 public/art/lpc/     | sanderfrenken Universal-LPC-Spritesheet                       | CC-BY-SA-3.0 / OGA-BY-3.0 / GPL-3.0 | yes | character (legacy, superseded by eliza)

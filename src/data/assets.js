@@ -88,6 +88,13 @@ export const PARTS = {
   hair_parted_gray:{ slot: 'hair',  label: 'Hair',  layers: [{ tex: 'hair_bram', z: Z.hair }] },
   beard_gray:      { slot: 'beard', label: 'Beard', layers: [{ tex: 'beard_bram', z: Z.beard }] },
   shirt_leather:   { slot: 'torso', label: 'Shirt', layers: [{ tex: 'shirt_leather', z: Z.torso }] },
+  // WARDROBE VARIETY (town-feel 6) — hue-shifted recolours of the base shirt (OGA-BY derivative, licence-clean;
+  // scripts/recolor_shirts.py). A wider palette than blue/green/brown so the cast reads as distinct people.
+  shirt_red:    { slot: 'torso', label: 'Shirt', layers: [{ tex: 'shirt_red', z: Z.torso }] },
+  shirt_plum:   { slot: 'torso', label: 'Shirt', layers: [{ tex: 'shirt_plum', z: Z.torso }] },
+  shirt_teal:   { slot: 'torso', label: 'Shirt', layers: [{ tex: 'shirt_teal', z: Z.torso }] },
+  shirt_amber:  { slot: 'torso', label: 'Shirt', layers: [{ tex: 'shirt_amber', z: Z.torso }] },
+  shirt_maroon: { slot: 'torso', label: 'Shirt', layers: [{ tex: 'shirt_maroon', z: Z.torso }] },
 
   // Equipment (Gate M). ElizaWy weapons are COMBAT props — the swing is a 128px
   // oversize sheet (the blade extends past the body); a layer with `states`

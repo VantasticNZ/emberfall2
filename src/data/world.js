@@ -12,11 +12,12 @@
 const HERO = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_chestnut', 'shirt_blue', 'pants_black', 'shoes_brown'];
 const MARA = ['body_fem', 'head_fem', 'brows_chestnut', 'hair_bob_blonde', 'shirt_forest', 'pants_brown', 'shoes_brown_fem'];
 const BRAM = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_parted_gray', 'beard_gray', 'shirt_leather', 'pants_black', 'shoes_brown'];
-const HODGE = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_chestnut', 'beard_gray', 'shirt_leather', 'pants_brown', 'shoes_brown'];
-const TAM = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_chestnut', 'shirt_forest', 'pants_brown', 'shoes_brown'];
-const PHIL = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_parted_gray', 'shirt_blue', 'pants_black', 'shoes_brown'];
-const FATLEY = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_chestnut', 'beard_gray', 'shirt_leather', 'pants_black', 'shoes_brown'];
-const PEM = ['body_fem', 'head_fem', 'brows_chestnut', 'hair_bob_blonde', 'shirt_leather', 'pants_brown', 'shoes_brown_fem'];
+// WARDROBE VARIETY (town-feel 6) — distinct shirt colours across the cast (was a sea of leather/forest/blue).
+const HODGE = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_chestnut', 'beard_gray', 'shirt_amber', 'pants_brown', 'shoes_brown'];
+const TAM = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_chestnut', 'shirt_red', 'pants_brown', 'shoes_brown'];
+const PHIL = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_parted_gray', 'shirt_teal', 'pants_black', 'shoes_brown'];
+const FATLEY = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_chestnut', 'beard_gray', 'shirt_maroon', 'pants_black', 'shoes_brown'];
+const PEM = ['body_fem', 'head_fem', 'brows_chestnut', 'hair_bob_blonde', 'shirt_plum', 'pants_brown', 'shoes_brown_fem'];
 const GUARD = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_parted_gray', 'shirt_leather', 'pants_black', 'shoes_brown', 'helm_kettle'];   // town guard — kettle helm (ElizaWy, OGA-BY) over the head
 
 const W = 52, H = 40;
@@ -207,7 +208,7 @@ export const WORLD = {
       schedule: sched([['dawn', 15, 16, 'tend'], ['day', 15, 16, 'tend'], ['dusk', 17, 18, 'chat'], ['night', 16, 18, 'sleep']]) },
     // MAREN — an ailing elder (GH2 "Nobody Answered"); the kids' gran. Static near her door, frail. After
     // GH2 she's on the mend (a warmer line). Reuses the elder-woman skin; her grandkids are the GH2 givers.
-    { tx: 36, ty: 14, facing: 'down', name: 'Maren', speed: 0, expression: 'sad', parts: MARA,
+    { tx: 36, ty: 14, facing: 'down', name: 'Maren', speed: 0, expression: 'sad', parts: ['body_fem', 'head_fem', 'brows_chestnut', 'hair_parted_gray', 'shirt_maroon', 'pants_brown', 'shoes_brown_fem'],   // item 6: distinct from Mara (was MARA's skin)
       schedule: sched([['dawn', 36, 14, 'sleep'], ['day', 36, 14, 'sleep'], ['dusk', 36, 14, 'sleep'], ['night', 36, 14, 'sleep']]),   // bedridden/frail — static (not a wandering villager)
       greetByKarma: {
         good: ["The kids tell everyone how you came when no one answered. ...Bless you, love. I'll not forget it."],
@@ -222,7 +223,7 @@ export const WORLD = {
         bad: ['*keeps the billhook where he can reach it* ...The orchard\'s cleared. We\'re square. Move along.'] },
       schedule: sched([['dawn', 40, 28, 'tend'], ['day', 40, 28, 'tend'], ['dusk', 42, 30, 'idle'], ['night', 42, 31, 'sleep']]) },
     // ACOLYTE — tends the chapel ward (GH4 "The Boarded Cave"); uneasy, devout, relents once you've earned it.
-    { tx: 18, ty: 12, facing: 'down', name: 'Acolyte', tempo: 'normal', speed: 60, expression: 'neutral', parts: MARA, quest: 'GH4',
+    { tx: 18, ty: 12, facing: 'down', name: 'Acolyte', tempo: 'normal', speed: 60, expression: 'neutral', parts: ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_parted_gray', 'shirt_plum', 'pants_black', 'shoes_brown'], quest: 'GH4',   // item 6: distinct robed acolyte (was MARA's skin)
       greeting: ['The Flame keep you. ...The boards on the old cave stay up. Tradition. Don\'t ask me why; I only tend the ward.'],
       greetByKarma: {
         good: ['You\'ve done right by Greenhollow. ...What you found down there — I think of it every time I tend the ward. Thank you for telling me.'],
