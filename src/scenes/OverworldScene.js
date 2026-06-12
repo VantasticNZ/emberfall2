@@ -27,6 +27,7 @@ import { TimeOfDay } from '../systems/TimeOfDay.js';
 import { Inventory } from '../systems/Inventory.js';
 import { NpcLife } from '../systems/NpcLife.js';
 import { Interaction } from '../systems/Interaction.js';
+import { buildingDoorTrigger } from '../systems/doorTrigger.js';
 import { searchContainer, cutObject, pushBlock, grantLoot, enterGate } from '../systems/Interactables.js';
 import { ixClass, isSolid } from '../data/interactionClasses.js';
 import { Dialogue } from '../systems/Dialogue.js';
@@ -404,22 +405,27 @@ export class OverworldScene extends Phaser.Scene {
     const ptx = Math.floor(this.player.x / T), pty = Math.floor(this.player.y / T), last = this._lastTile;
     const moved = !(last && last.tx === ptx && last.ty === pty);
     if (moved) {
+      this._doorFired = false;   // stepped onto a new tile → a fresh building-door entry is allowed here
+      // INTERIOR EXIT / region 'via:door' links — rising-edge walk-onto (no facing gate; you step OUT a door).
       if (reg && reg.interactables) {
         for (const o of reg.interactables) {
           if (o.via !== 'door') continue;
-          if (Math.round((o.x - T / 2) / T) === ptx && Math.round((o.y - T / 2) / T) === pty) { this._enterArea(o.to); return; }
+          if (Math.round((o.x - T / 2) / T) === ptx && Math.round((o.y - T / 2) / T) === pty) { this._lastTile = { tx: ptx, ty: pty }; this._enterArea(o.to); return; }
         }
       }
-      // DOOR-SYSTEM: building doorways (carved into a building's front wall) — walk INTO the threshold tile.
-      // OPEN → enter (clean yard return); CLOSED/LOCKED → the knock/try/break choice (the morality entrance).
-      // GATE (item 3): only fire when WALKING INTO the door (facing the doorway), never when crossing its tile
-      // sideways (walking PAST the front) — the threshold is a walk-IN, not a proximity radius.
-      for (const d of (this._buildingDoors || [])) if (d.tx === ptx && d.ty === pty) {
-        const ddx = d.doorWX - (ptx * T + T / 2), ddy = d.doorWY - (pty * T + T / 2);   // tile → painted door
-        const doorDir = Math.abs(ddx) > Math.abs(ddy) ? (ddx > 0 ? 'right' : 'left') : (ddy > 0 ? 'down' : 'up');
-        if (this.player.facing !== doorDir) { this._lastTile = { tx: ptx, ty: pty }; return; }   // walking past → no prompt
-        if (d.state === 'closed' || d.state === 'locked') this._openDoorChoice(d);   // shut door → knock/try/break choice
-        else { this._openDoorVisual(d); this._enterArea(d.to, { x: d.dcx, y: d.dcy + TILE }); }   // open/none/broken → transport THIS frame (no delay); the door visual still swaps for the brief frame before the cut
+    }
+    // BUILDING DOORWAYS — OPEN → enter; CLOSED/LOCKED → the knock/try/break choice. The pure
+    // buildingDoorTrigger decides; we fire it ONCE per tile-occupancy (_doorFired). A 'wait' (on the threshold
+    // but not yet facing the doorway) does NOT consume the trigger — re-evaluated each frame, so an off-axis
+    // arrival that then faces the door still enters (the item-3 facing gate used to consume here, which
+    // stranded the player on a threshold they could no longer enter = the all-buildings regression). Walking
+    // PAST (facing along the wall while crossing) stays 'wait' the whole time → never fires.
+    if (!this._doorFired) {
+      const t = buildingDoorTrigger(this._buildingDoors, ptx, pty, this.player.facing, T);
+      if (t.action === 'enter' || t.action === 'prompt') {
+        this._doorFired = true; this._lastTile = { tx: ptx, ty: pty };
+        if (t.action === 'prompt') this._openDoorChoice(t.door);
+        else { this._openDoorVisual(t.door); this._enterArea(t.door.to, { x: t.door.dcx, y: t.door.dcy + TILE }); }
         return;
       }
     }
