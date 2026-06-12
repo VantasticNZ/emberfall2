@@ -210,6 +210,21 @@ to see the live debt list.
 | **Runtime hook-throttle (7c)** | 🟡 DEFERRED (rule + gating shipped) | Hooks now gate on progression (SG1→GH1) + the HOOK PACING spec rule + `QUEST_HOOKS` [TUNE] knobs are in. A *runtime* throttle that actively defers a 2nd same-day offer isn't built (the gating staggers them instead). | Build when a stage has many same-trigger hooks: track last-offer day, suppress a 2nd within `HOOK_MIN_INTERVAL_DAYS`. |
 | **Wardrobe — marsh/peaks generics + bespoke quest-NPC faces** | 🟡 DEFERRED (GH cast widened) | The GH cast now has 8 distinct shirt colours; the marsh/peaks ambient generics + the 29 quest-only portrait speakers still use the narrower pools / a role-generic fallback face. | Spread the new shirt palette to marsh/peaks casts; author bespoke faces (gender/role/expression) for prominent quest-only speakers (Sela, Yssa, Hagga, …). |
 
+## CROUCH / DODGE-ROLL FRAME — audit verdict (2026-06-13, item 5)
+**GAP — no crouch/duck/roll animation frame exists.** The loaded ElizaWy character set has ONLY `idle`,
+`walk`, `attack` (`scripts/fetch_eliza.sh` fetches Idle/Walk/Combat-1h-Slash per layer; `STATES` in
+`assets.js` lists those three). No crouch/duck/roll/jump/hurt sheet is in `public/art/eliza/` OR the
+`asset-library`. The dodge (`Combat.dodgeRoll`) is **logic-only** — i-frames + a burst-move + cooldown — and
+the avatar slid with the walk frames (no roll read).
+- **Stopgap WIRED (no new art):** `_duckRollFx` — a procedural squash (scaleY≈0.72, scaleX≈1.16) + directional
+  lean over the dodge window, so the roll now READS as a quick duck and restores cleanly. Verified live.
+- **What a real fix needs (commission / fetch):** a licence-clean (OGA-BY / CC0) **LPC dodge-ROLL animation
+  sheet** matching the ElizaWy base body proportions + frame layout (a community "[LPC] roll/run+roll"
+  expansion, or a commission), per layer (body/clothes/hair/etc.) — then add a `roll` state to `ANIMS`/`STATES`,
+  fetch it in `fetch_eliza.sh`, and play it during `isDodgeMoving` instead of the procedural squash.
+- ElizaWy's source has other fetchable states (thrust/shoot/cast/jump per the ASSET-LEDGER note) but **none is
+  a true ground-roll/crouch** — jump is the nearest and would not read as a dodge-roll.
+
 ## MILESTONE GATES (must pass before advancing)
 - **Post-M1 TRIPLE-CHECK** (BUILD-PLAN §4b): after GH+Marsh+Shrine are BUILT, run the full cohesiveness +
   EXCELLENCE pass against the BUILT game (real cohesion, not paper) before M2 scales. **Status: pending M1

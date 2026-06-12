@@ -882,7 +882,19 @@ export class OverworldScene extends Phaser.Scene {
   _tryDodge() {
     const now = this.time.now; let { dx, dy } = this._inputDir;
     if (!dx && !dy) { const f = FACE_VEC[this.player.facing] || FACE_VEC.down; dx = f.x; dy = f.y; }
-    this.pc.dodge(now, dx, dy);
+    if (this.pc.dodge(now, dx, dy)) this._duckRollFx(dx);   // item 5: a PROCEDURAL duck (no roll FRAME exists in the library — GAP)
+  }
+  // PROCEDURAL DUCK-ROLL (item 5) — the ElizaWy set has NO crouch/duck/roll frame (only idle/walk/attack are
+  // fetched/loaded), so the dodge reads as a quick DUCK via a squash + directional lean tween over the dodge
+  // window. A STOPGAP until a real roll sheet is sourced/commissioned (see docs/DEFERRED.md). No new art.
+  _duckRollFx(dx) {
+    const p = this.player; if (!p) return;
+    if (this._duckTween) { try { this._duckTween.stop(); } catch (_) {} }
+    p.setScale(1, 1).setAngle(0);
+    const lean = dx > 0 ? 16 : dx < 0 ? -16 : 0;
+    this._duckTween = this.tweens.add({ targets: p, duration: COMBAT.DODGE_DURATION_MS / 2, ease: 'Quad.out',
+      scaleX: 1.16, scaleY: 0.72, angle: lean, yoyo: true,
+      onComplete: () => { try { p.setScale(1, 1).setAngle(0); } catch (_) {} this._duckTween = null; } });
   }
   _onPlayerHit(dmg, { fromFront, dir }) {
     const now = this.time.now, r = this.pc.takeDamage(now, dmg, { fromFront });
