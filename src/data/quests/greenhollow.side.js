@@ -19,6 +19,10 @@ export const GREENHOLLOW_SIDE = [
   {
     id: 'SG1', title: "Fatley's Mug", region: 'Greenhollow', act: 2,
     type: 'side', tone: 'funny', perm: false,
+    // HOOK PACING (item 7b/7c): unlocked at M7 with SG2/SG3, but GATED behind GH1 complete so Fatley's
+    // hook doesn't pile onto the player at the same moment as GH1-GH4 (the temporal-crowding fix). One
+    // task lands, you finish it, THEN the next hook opens. See docs/SPEC-QUESTS-M1-4.md "HOOK PACING".
+    requires: { quests: ['GH1'] },
     reward: { skill: 'see_markers' },
     steps: [
       { id: 'mug', desc: "Fetch Fatley's mug (it is, deliberately, right by his foot)." },

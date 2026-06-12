@@ -63,14 +63,16 @@ assert.match(probe.defs.SG1.dialogue.nodes.fatley.text, /can't be arsed/);
 assert.match(probe.defs.SG5.dialogue.nodes.tavern.text, /Wayne Kerr|songs/);
 pass('real hub dialogue present (Fatley, the Tankard songs)');
 
-// 1) SG1 Fatley — the Gate-D exception unlocks see-markers ------------------
+// 1) SG1 Fatley — the Gate-D exception unlocks see-markers; HOOK-PACED behind GH1 (item 7b) -----
 {
   const { karma, engine } = newHub();
-  assert.equal(engine.status('SG1'), 'available'); // opened by M7 'accept'
+  assert.equal(engine.status('SG1'), 'locked');    // unlocked by M7 but GATED behind GH1 — Fatley's hook does NOT pile on at return
+  play(engine, karma, 'GH1', 'job');               // finish the first slice quest
+  assert.equal(engine.status('SG1'), 'available'); // NOW Fatley's hook opens (one task at a time)
   assert.equal(karma.hasDeed('skill_see_markers'), false);
   play(engine, karma, 'SG1', 'fetch');
   assert.equal(karma.hasDeed('skill_see_markers'), true);
-  pass('SG1 Fatley (sanctioned item-in-front): completing it unlocks skill_see_markers');
+  pass('SG1 Fatley: hook-paced behind GH1 (locked at return → available once GH1 done) → completing unlocks skill_see_markers');
 }
 
 // 2) SG2 Pem hunt — gated until clues from EVERY region, then pem_found ------
@@ -132,6 +134,7 @@ pass('real hub dialogue present (Fatley, the Tankard songs)');
 // 6) persists through save -> reload -----------------------------------------
 {
   const { karma, engine } = newHub();
+  play(engine, karma, 'GH1', 'job');               // GH1 now gates SG1 (hook pacing) — do it first
   play(engine, karma, 'SG1', 'fetch');
   play(engine, karma, 'SG7', 'cover');
   karma.save(); engine.save();

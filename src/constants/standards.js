@@ -155,6 +155,15 @@ export const GUARD = Object.freeze({
   RECONFRONT_COOLDOWN_MS: 6000, // [TUNE] after a flee, the guard waits this long before trying again
 });
 
+// QUEST HOOK PACING (town-feel item 7c) — the temporal-crowding rule: don't dump every hook on the player
+// at once. New hooks GATE on progression (requires.quests/deeds) or day (requires.phase), and at most ONE new
+// hook should surface per HOOK_MIN_INTERVAL_DAYS so tasks land one-at-a-time, not as a wall. The gating is the
+// live mechanism (e.g. SG1 now requires GH1); this interval is the [TUNE] design rule (see docs/SPEC-QUESTS-M1-4.md).
+export const QUEST_HOOKS = Object.freeze({
+  HOOK_MIN_INTERVAL_DAYS: 1,   // [TUNE] surface at most one NEW optional hook per in-game day (design rule; staggers offers)
+  MAX_CONCURRENT_OFFERS: 3,    // [TUNE] soft ceiling on simultaneously-available side hooks (a fuller throttle is future work)
+});
+
 // REPAIR PACING — a forced door is mended through a STAGED, visible sequence the player can read beat by beat:
 //   break -> WAIT (a discovery beat — nobody notices instantly) -> the alarm goes up + a joiner TRAVELS
 //   (walks across the ground to the door) -> WORK (a long, visible hammering job) -> RESTORED.

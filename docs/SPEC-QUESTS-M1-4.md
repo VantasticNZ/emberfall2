@@ -340,3 +340,24 @@ deed-memory callbacks land (GH1 choice colours GH2; break-in is remembered).**
 ---
 **Hand-off:** canon (`LORE-CANON.md`) + this spec are ready for the ~2-min review. **No build starts until
 Van approves/edits** — especially Decisions A, B, E, G, H (they shape the data + the SSOT ids).
+
+---
+
+## HOOK PACING — the temporal-crowding rule (town-feel item 7c, 2026-06-13)
+
+Van's playthrough finding: at the adult return, hooks STACK — GH1–GH4 plus SG1/SG2/SG3 all surface at once, a
+wall of tasks. The rule, now standing for every quest:
+
+1. **One task lands at a time.** A new OPTIONAL hook gates on PROGRESSION (`requires.quests`/`requires.deeds`)
+   or on DAY (`requires.phase`) so it opens only after the player has cleared what's already on their plate.
+   *Applied:* `SG1` (Fatley's Mug) now `requires: { quests: ['GH1'] }` — it no longer piles on with the main
+   arc; it opens once GH1 is done. The same gating is the lever for every future hook.
+2. **At most one NEW hook per `QUEST_HOOKS.HOOK_MIN_INTERVAL_DAYS`** (standards.js, default 1 in-game day) —
+   the design target so offers fan out across days rather than dropping together. A soft ceiling
+   `MAX_CONCURRENT_OFFERS` (default 3) bounds how many side hooks may be available at once.
+3. **Mechanism vs. rule.** The *live* mechanism is the existing `requires` gating (no new engine). The
+   per-interval throttle is a DESIGN rule today (author hooks behind progression/day); a runtime throttle that
+   actively defers a 2nd same-day offer is logged as future work in `docs/DEFERRED.md`.
+4. **Authoring checklist for any new hook:** does it gate behind the prior step (progression) or a day? If two
+   hooks would open on the same trigger, stagger one behind the other. Main-arc beats are exempt (they ARE the
+   spine); this rule governs OPTIONAL side hooks.
