@@ -412,7 +412,12 @@ export class OverworldScene extends Phaser.Scene {
       }
       // DOOR-SYSTEM: building doorways (carved into a building's front wall) — walk INTO the threshold tile.
       // OPEN → enter (clean yard return); CLOSED/LOCKED → the knock/try/break choice (the morality entrance).
+      // GATE (item 3): only fire when WALKING INTO the door (facing the doorway), never when crossing its tile
+      // sideways (walking PAST the front) — the threshold is a walk-IN, not a proximity radius.
       for (const d of (this._buildingDoors || [])) if (d.tx === ptx && d.ty === pty) {
+        const ddx = d.doorWX - (ptx * T + T / 2), ddy = d.doorWY - (pty * T + T / 2);   // tile → painted door
+        const doorDir = Math.abs(ddx) > Math.abs(ddy) ? (ddx > 0 ? 'right' : 'left') : (ddy > 0 ? 'down' : 'up');
+        if (this.player.facing !== doorDir) { this._lastTile = { tx: ptx, ty: pty }; return; }   // walking past → no prompt
         if (d.state === 'closed' || d.state === 'locked') this._openDoorChoice(d);   // shut door → knock/try/break choice
         else { this._areaT = true; this._openDoorVisual(d); this.time.delayedCall(180, () => { this._areaT = false; this._enterArea(d.to, { x: d.dcx, y: d.dcy + TILE }); }); }   // open / none / broken → walk straight in (door, if any, swings open)
         return;
