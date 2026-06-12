@@ -543,10 +543,14 @@ export class OverworldScene extends Phaser.Scene {
   // BIG-HEAD modifier (item 1) — scale the head-region layers of one Character. Reads the LIVE modifier value
   // (1.0 when off, so this is a safe no-op then). Ported from RegionScene — the rendering moved to this scene
   // but the application didn't, so big-head silently stopped working (no gate covered scene-application).
+  // The HEAD GROUP — every layer that sits ON the head must scale as ONE unit, or a big head wears a tiny hat
+  // (Van: guard kettle-helms stayed small). 'hat' (helm/cap) + any head-attached slot is included, same scale
+  // + same lift, so the helm stays proportional and seated. [SSOT for the gate: OverworldScene.HEAD_SLOTS]
+  static HEAD_SLOTS = ['head', 'hair', 'brows', 'beard', 'hat'];
   _scaleHead(c) {
     if (!c || !c._slotLayers || !this.mods) return;
     const s = this.mods.headScale();
-    for (const slot of ['head', 'hair', 'brows', 'beard']) (c._slotLayers[slot] || []).forEach((sp) => sp.setScale(s, s).setY(s > 1 ? -10 * (s - 1) : 0));
+    for (const slot of OverworldScene.HEAD_SLOTS) (c._slotLayers[slot] || []).forEach((sp) => sp.setScale(s, s).setY(s > 1 ? -10 * (s - 1) : 0));
   }
   // Re-apply to the player + every loaded NPC. Called on create + by OptionsScene's live modifier-toggle hook.
   _applyBigHead() {

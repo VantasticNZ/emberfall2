@@ -661,6 +661,12 @@ const tile = (px) => Math.round(px / TILE);
   // must read mods.gore() somewhere (the blood effect), so the modifier actually does something.
   const ow = readFileSync(join(ROOT, 'src/scenes/OverworldScene.js'), 'utf8');
   if (!/\.gore\(\)/.test(ow)) offenders.push('src/scenes/OverworldScene.js: never reads mods.gore() (blood/gore modifier is a no-op)');
+  // HEAD-GROUP completeness — big-head must scale every head-attached slot incl. the HAT, or a big head wears a
+  // tiny helm (the guard kettle-helm bug). Assert the scaled-slot SSOT (HEAD_SLOTS) contains head + hair + hat.
+  const slotsM = ow.match(/static HEAD_SLOTS\s*=\s*\[([^\]]*)\]/);
+  for (const need of ['head', 'hair', 'hat']) {
+    if (!slotsM || !slotsM[1].includes(`'${need}'`)) offenders.push(`OverworldScene.HEAD_SLOTS missing '${need}' (big-head won't scale that head layer)`);
+  }
   if (offenders.length) fail('MODIFIER APPLICATION MISSING:' + offenders.map((v) => '\n      ' + v).join(''));
   else ok('modifier-applied-in-active-scene: big-head (_applyBigHead + headScale) + gore (mods.gore()) are applied in the active scene — toggles actually do something');
 }
