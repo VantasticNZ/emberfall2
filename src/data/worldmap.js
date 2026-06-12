@@ -937,9 +937,23 @@ export const VILLAGE_1 = griddedSettlement({ key: 'vil_fenwick', label: 'Fenwick
     { tx: 17, ty: 9, key: 'prop_barrel', tint: 0x8a7a6a },
     { tx: 8, ty: 11, key: 'prop_bush', scale: 0.7, tint: 0x6b7560 }, { tx: 11, ty: 3, key: 'prop_sign', scale: 0.8, tint: 0x9a8f6a },
   ],
+  // AMBIENT LIFE (WS2) — marsh-edge village folk made talkable + alive on the frozen dialog system. No
+  // shop here (economy gives Fenwick no keeper); speed-based wander keeps them on the walkable streets
+  // (griddedSettlement does not offset schedule tiles, so these rely on wander, not phase schedules).
   npcs: [
-    { tx: 8, ty: 1, facing: 'down', name: 'Fen-warden Pell', speed: 40, expression: 'neutral', parts: MARSH_FOLK[1] },
-    { tx: 10, ty: 9, facing: 'down', name: 'Widow Sedge', speed: 0, expression: 'sad', parts: MARSH_FOLK[2] },
+    { tx: 8, ty: 1, facing: 'down', name: 'Fen-warden Harl', speed: 40, expression: 'neutral', parts: MARSH_FOLK[1],
+      greeting: ['*leans on a staff, watching the reed-line* Fenwick. Last dry ground before the fen swallows it. Keep to the planks and you keep your boots.', "We don't bar the road, but we watch it. Strangers who mean well have nothing to fear from me."],
+      topics: [
+        { q: 'The village', a: [`"A dozen souls on the last firm ground. We fish the fringe, cut reed, and trade what the bog spares us. It's enough."`] },
+        { q: 'The black water', a: [`"East, where the ground stops pretending. Looks like meadow, drinks like a grave. Children know to stay this side of the warden-stones."`] },
+        { q: 'Mirefen', a: [`"Our nearest neighbours, up the bog-road. Stilt-houses and stubborn folk. We trade fish for their iron and pretend not to fear the witch they keep."`] },
+      ] },
+    { tx: 10, ty: 9, facing: 'down', name: 'Widow Sedge', speed: 0, expression: 'sad', parts: MARSH_FOLK[2],
+      greeting: ['*sits by a cold doorstep, hands folded* My man went to cut reed three winters past. The fen kept him. I keep his chair.', "Talk if you like. The quiet in this house is too loud some days."],
+      topics: [
+        { q: 'Your husband', a: [`"He knew the fen better than his own hands — and it took him anyway. That's the bog. It doesn't hate you. It just doesn't care."`] },
+        { q: 'Staying on', a: [`"Where would I go? His grave's the fen, his chair's by my fire. A widow stays where her grief is buried. ...Mind the black water, you."`] },
+      ] },
   ],
   chests: [{ tx: 9, ty: 9, id: 'vil_fenwick_chest', gold: 16 }] });
 // Fenwick's furnished cottage (proven pipeline)
