@@ -28,6 +28,7 @@ import { availableStock, buyPrice } from '../src/systems/Economy.js';
 import { item as itemDef } from '../src/data/items/index.js';
 import { buildingDeed } from '../src/data/buildingDeeds.js';
 import { REGIONS, TILE } from '../src/data/worldmap.js';
+import { PARTS } from '../src/data/assets.js';
 import { PROPS, solidBox } from '../src/data/assets.js';
 import { TERRAIN } from '../src/data/terrainTiles.js';
 import { OPAQUE_BOUNDS } from '../src/data/opaqueBounds.js';
@@ -643,6 +644,40 @@ const tile = (px) => Math.round(px / TILE);
   for (const R of REGIONS) for (const n of (R.npcs || [])) if (n.kid) { kids++; if (n.protected !== true) kviol.push(`${R.key}:${n.name || '?'} is a kid but NOT protected:true`); }
   if (kviol.length) fail('KIDS-PROTECTED:' + kviol.map((v) => '\n      ' + v).join(''));
   else ok(`kids-protected: all ${kids} kid NPC(s) are protected:true (unharmable/untargetable — hard rule)`);
+}
+
+// L1 COMPOSITION-COMPLETE (GAME-LAWS L1) — every placed character renders a COMPLETE, matched set: a body +
+//   a head, no MISSING clothing, and NO cross-body-type parts. A child body must be a CLOTHED child_body_*
+//   (never the bare child_body) and must NOT layer adult clothing (shirt_/pants_/shoes_, which are
+//   adult-proportioned). Also covers the player presets (HERO_CHILD/HERO in OverworldScene source).
+{
+  const isChild = (p) => /^child_/.test(p);
+  const isAdultBody = (p) => /^(body_(ivory|fem|tan|deep)|head_(ivory|fem|tan|deep))$/.test(p);
+  const isAdultClothing = (p) => /^(shirt_|pants_|shoes_)/.test(p);
+  const isBareChild = (p) => p === 'child_body' || p === 'child_body_tan' || p === 'child_body_brown';
+  const validate = (label, parts) => {
+    const out = [];
+    if (!parts || !parts.length) return out;
+    const hasChild = parts.some(isChild);
+    const adultParts = parts.filter((p) => isAdultBody(p) || isAdultClothing(p));
+    if (hasChild && adultParts.length) out.push(`${label}: child + ADULT parts on one body (${adultParts.join(', ')}) — cross-body-type`);
+    else if (hasChild && parts.some(isBareChild)) out.push(`${label}: BARE child body (no clothing) — use a clothed child_body_*`);
+    const hasBody = parts.some((p) => PARTS[p] && PARTS[p].slot === 'body');
+    const hasHead = parts.some((p) => PARTS[p] && PARTS[p].slot === 'head');
+    if (!hasBody) out.push(`${label}: no BODY part`);
+    if (!hasHead) out.push(`${label}: no HEAD part`);
+    return out;
+  };
+  const bad = [];
+  for (const R of REGIONS) for (const n of (R.npcs || [])) bad.push(...validate(`${R.key}:${n.name || '?'}`, n.parts));
+  // the player presets in OverworldScene source (HERO_CHILD / HERO)
+  const ow = readFileSync(join(ROOT, 'src/scenes/OverworldScene.js'), 'utf8');
+  for (const m of ow.matchAll(/const (HERO_CHILD|HERO)\s*=\s*\[([^\]]*)\]/g)) {
+    const parts = m[2].split(',').map((p) => p.trim().replace(/['"]/g, '')).filter(Boolean);
+    bad.push(...validate(`player:${m[1]}`, parts));
+  }
+  if (bad.length) fail('L1 COMPOSITION-COMPLETE:' + bad.map((v) => '\n      ' + v).join(''));
+  else ok('composition-complete (L1): every placed character + the player presets render a complete matched set — no bare child bodies, no cross-body-type parts');
 }
 
 // 25a) MODIFIER-APPLIED-IN-ACTIVE-SCENE (big-head regression guard) — the game runs on OverworldScene now;

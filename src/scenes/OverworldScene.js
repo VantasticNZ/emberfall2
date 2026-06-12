@@ -56,7 +56,7 @@ const FACE_VEC = { up: { x: 0, y: -1 }, down: { x: 0, y: 1 }, left: { x: -1, y: 
 const LOAD_RING = 2, UNLOAD_RING = 3;
 const CUT_REGROW_MS = 180000;   // a cut bush regrows only after you LEAVE the area + ~3 min (anti-farm)
 const HERO = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_chestnut', 'shirt_blue', 'pants_black', 'shoes_brown'];
-const HERO_CHILD = ['child_body', 'child_head', 'brows_chestnut', 'hair_chestnut', 'shirt_blue'];   // the protagonist as a CHILD (real child body; childhood opening, sys 1)
+const HERO_CHILD = ['child_body_blue', 'child_head', 'brows_chestnut', 'hair_chestnut'];   // the protagonist as a CHILD — clothed child body (L1: complete, matched, no adult parts)
 const CHILD_WAKE = { ...GREENHOLLOW.player };   // where a fresh child wakes — set to Mara's cottage interior in sys 2
 const cidOf = (x, y) => [Math.floor(x / CHUNK_PX), Math.floor(y / CHUNK_PX)];
 

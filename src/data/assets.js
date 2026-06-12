@@ -98,6 +98,13 @@ export const PARTS = {
   child_body_tan:   { slot: 'body', label: 'Body', layers: [{ tex: 'child_body_tan',   z: Z.body }] },
   child_body_brown: { slot: 'body', label: 'Body', layers: [{ tex: 'child_body_brown', z: Z.body }] },
   child_head:       { slot: 'head', label: 'Head', layers: [{ tex: 'child_head',       z: Z.head }] },
+  // CLOTHED child bodies (L1) — a child-FITTED romper composited onto the bare child body (clothe_child.py),
+  // so a child renders a COMPLETE matched set with no adult parts. Skin tone + romper colour baked together.
+  child_body_blue:  { slot: 'body', label: 'Body', layers: [{ tex: 'child_body_blue',  z: Z.body }], childClothed: true },
+  child_body_green: { slot: 'body', label: 'Body', layers: [{ tex: 'child_body_green', z: Z.body }], childClothed: true },
+  child_body_rust:  { slot: 'body', label: 'Body', layers: [{ tex: 'child_body_rust',  z: Z.body }], childClothed: true },
+  child_body_tan_green:   { slot: 'body', label: 'Body', layers: [{ tex: 'child_body_tan_green',   z: Z.body }], childClothed: true },
+  child_body_brown_rust:  { slot: 'body', label: 'Body', layers: [{ tex: 'child_body_brown_rust',  z: Z.body }], childClothed: true },
   body_tan:  { slot: 'body', label: 'Body', layers: [{ tex: 'body_tan',  z: Z.body }] },
   head_tan:  { slot: 'head', label: 'Head', layers: [{ tex: 'head_tan',  z: Z.head, expressive: true }] },
   body_deep: { slot: 'body', label: 'Body', layers: [{ tex: 'body_deep', z: Z.body }] },
