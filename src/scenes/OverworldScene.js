@@ -56,6 +56,8 @@ const FACE_VEC = { up: { x: 0, y: -1 }, down: { x: 0, y: 1 }, left: { x: -1, y: 
 const LOAD_RING = 2, UNLOAD_RING = 3;
 const CUT_REGROW_MS = 180000;   // a cut bush regrows only after you LEAVE the area + ~3 min (anti-farm)
 const HERO = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_chestnut', 'shirt_blue', 'pants_black', 'shoes_brown'];
+const HERO_CHILD = ['child_body', 'child_head', 'brows_chestnut', 'hair_chestnut', 'shirt_blue'];   // the protagonist as a CHILD (real child body; childhood opening, sys 1)
+const CHILD_WAKE = { ...GREENHOLLOW.player };   // where a fresh child wakes — set to Mara's cottage interior in sys 2
 const cidOf = (x, y) => [Math.floor(x / CHUNK_PX), Math.floor(y / CHUNK_PX)];
 
 export class OverworldScene extends Phaser.Scene {
@@ -81,12 +83,20 @@ export class OverworldScene extends Phaser.Scene {
     const hadSave = this.save.load();
     // WORLD-VERSION guard: a save from an OLD world layout has a stale position → spawn at Greenhollow
     // (its progress is kept; only the coords are reset). Prevents loading into a void / old-world spot.
-    const start = (hadSave && !this.save.worldReset) ? this.save.getPosition() : { ...GREENHOLLOW.player };
+    // AGE-STATE (sys 1) — child vs adult is DERIVED from the `time_skip` deed (recorded at the end of M6),
+    // so it persists with the save automatically. A FRESH game (no time_skip) boots a CHILD; after the
+    // childhood arc burns + the time-skip, the same save reads ADULT. Gates quests/items/doors/combat below.
+    this.isChild = !this.karma.hasDeed('time_skip');
+    // SPAWN: a fresh CHILD wakes in Mara's cottage (sys 2); an adult / a save with a position uses it.
+    const childSpawn = CHILD_WAKE;   // Mara's cottage interior spawn (sys 2)
+    const start = (hadSave && !this.save.worldReset) ? this.save.getPosition()
+      : (this.isChild ? { x: childSpawn.x, y: childSpawn.y } : { ...GREENHOLLOW.player });
     if (this.save.worldReset) this._worldResetNotice = true;
+    if (!hadSave && this.isChild) { this._bootChild = true; }   // a fresh child game → load the cottage interior on create
 
-    this.player = new Character(this, start.x, start.y, { parts: HERO, facing: 'down', speed: 150 });
-    this.player.isAdult = true; this.player.isMinor = false;
-    this.player.equip('sword');   // FIX: the player swings a visible sword (discrete RegionScene does this; Overworld didn't → "no sword")
+    this.player = new Character(this, start.x, start.y, { parts: this.isChild ? HERO_CHILD : HERO, facing: 'down', speed: this.isChild ? 130 : 150 });
+    this.player.isAdult = !this.isChild; this.player.isMinor = this.isChild;
+    if (!this.isChild) this.player.equip('sword');   // a CHILD carries no weapon (age-gate); the adult swings a visible sword
     // y-sort the hero by its FEET LINE (the collision base = body bottom), so it sorts against
     // buildings/rocks/trees by where it meets the ground — the SAME anchor the pixel-truth collider
     // uses. (Was 18 = ~12px above the feet → the hero drew UNDER a building it stood in FRONT of.)
@@ -870,7 +880,7 @@ export class OverworldScene extends Phaser.Scene {
     this.player.action('attack'); this._sfx('sfx_swing', 0.45);
     this._cutSwing();   // the swing always cuts foliage — consistent in EVERY region (incl. safe zones)
     // COMBAT damage only OUTSIDE a safe zone AND outside the town safe-hub (Peaks town = sword inert for combat).
-    if (!this.combat || this.region?.safeZone || this._inSafeHub()) return;
+    if (!this.combat || this.region?.safeZone || this._inSafeHub() || this.isChild) return;   // a CHILD deals no combat damage (age-gate, sys 1) — they can still cut foliage above
     const out = this.combat.playerAttack(this.player, COMBAT.ATTACK_DAMAGE, { tool: this.playerAttackTool() });
     for (const r of out) {
       if (r.outcome === 'hit' || r.outcome === 'swarm') {
@@ -1140,6 +1150,8 @@ export class OverworldScene extends Phaser.Scene {
   _shopNav(d) { if (!this._shopOpen || !this._shopStock.length) return; this._shopSel = Phaser.Math.Clamp(this._shopSel + d, 0, this._shopStock.length - 1); this._renderShop(); }
   _shopBuy() {
     if (!this._shopOpen) return; const s = this._shopStock[this._shopSel]; if (!s) return;
+    // AGE-GATE (sys 1) — a CHILD can't buy weapons/armour/shields (no arming a child).
+    if (this.isChild) { const it = itemDef(s.id); if (it && ['weapon', 'armour', 'shield'].includes(it.type)) { this._sfx('sfx_deny', 0.8); this._banner('"That\'s no toy for a child," the keeper says, and won\'t sell it.', 1800); return; } }
     if (this.shopStock && !this.shopStock.inStock(this._shopId, s.id)) { this._sfx('sfx_deny', 0.8); this._banner(`${s.name} is sold out — come back tomorrow.`, 1400); return; }
     if (this.inv.gold < s.price) { this._sfx('sfx_deny', 0.8); this._banner('Not enough gold.', 1200); return; }
     if (this.shopStock && !this.shopStock.take(this._shopId, s.id)) { this._sfx('sfx_deny', 0.8); this._banner(`${s.name} is sold out — come back tomorrow.`, 1400); return; }   // depletes the shelf
@@ -1181,7 +1193,7 @@ export class OverworldScene extends Phaser.Scene {
     if (d.state === 'locked') {
       const lockedOpts = [];
       if (hasKey) lockedOpts.push({ label: 'Use your key', set: enter('key'), end: true });
-      lockedOpts.push({ label: `Break it down${(d.breakStrength || 1) > 1 ? ' (it looks sturdy)' : ''}`, set: enter('force'), end: true });
+      if (!this.isChild) lockedOpts.push({ label: `Break it down${(d.breakStrength || 1) > 1 ? ' (it looks sturdy)' : ''}`, set: enter('force'), end: true });   // age-gate (sys 1): a CHILD can't break a door
       lockedOpts.push({ label: '(Leave it.)', end: true });
       nodes = {
         d0: { speaker: '', text: `${who}door is locked${hasKey ? ' — but you have a key that might fit' : ' tight'}.`, options: [
