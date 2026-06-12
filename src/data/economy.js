@@ -65,6 +65,20 @@ export const JOBS = [
   { id: 'bounty',        name: 'Bounty Board',   gold: 40, requires: { act: 2 } }, // medium, gated
 ];
 
+// SHOP STOCK (shops-v2): per-item LIMITED quantities that deplete on buy + replenish on a day
+// cadence. The system lives in src/systems/ShopStock.js (stateful + persisted); these are its knobs.
+// A per-entry `qty` in SHOPS above overrides the type-derived max for that one line.
+export const STOCK = {
+  MAX_DEFAULT: 4,         // [TUNE] fallback on-hand for an item whose type isn't listed below
+  MAX_BY_TYPE: {          // [TUNE] on-hand per item TYPE — sundries plentiful, gear scarce (a hamlet shop)
+    consumable: 8, food: 8, material: 10, tool: 5,
+    weapon: 2, armour: 2, shield: 2, trinket: 2, book: 2, property: 1,
+  },
+  RESTOCK_DAYS: 1,        // [TUNE] a new game-day refills the shelves (the canonical day cadence)
+  RESTOCK_MS: 24000,      // [DERIVED] one day at the default RATE (1440min / 60 = 24 real s) — frozen-clock fallback
+  RESTOCK_PER_CYCLE: 4,   // [TUNE] units added back per restock cycle (capped at the item's max)
+};
+
 // BALANCE constants (tunable). See docs/ECONOMY-BALANCE.md.
 export const BALANCE = {
   startGold: 20,

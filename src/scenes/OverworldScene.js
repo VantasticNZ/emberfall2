@@ -46,6 +46,7 @@ import { GREENHOLLOW_CHILDHOOD, GREENHOLLOW_SLICE, GREENHOLLOW_SIDE, ASHEN_MARSH
 import { TILE, CHUNK_PX, WORLD_CHUNKS, WORLD_PX, chunkContent, groundTintAt, GREENHOLLOW, ASHEN_MARSH as MARSH_REGION, REGIONS, regionAt, inGreenhollow, inMarsh } from '../data/worldmap.js';
 import { item as itemDef } from '../data/items/index.js';
 import { shop as shopDef, buyPrice, availableStock } from '../systems/Economy.js';
+import { ShopStock } from '../systems/ShopStock.js';
 import { ENTRANCES } from '../data/entrances.js';
 import { generateDungeon, generateCave } from '../data/gen/index.js';
 
@@ -72,8 +73,10 @@ export class OverworldScene extends Phaser.Scene {
     this._buildSystems();
 
     // SAVE: restore world-position if present, else spawn in Greenhollow.
+    this.shopStock = new ShopStock();   // shops-v2: limited/replenishing per-item quantities (persisted)
     this.save = new SaveManager({ slot: 'overworld', storage: defaultStorage() })
-      .link('karma', this.karma).link('inv', this.inv).link('quests', this.quests).link('time', this.tod);
+      .link('karma', this.karma).link('inv', this.inv).link('quests', this.quests).link('time', this.tod)
+      .link('shopstock', this.shopStock);
     const hadSave = this.save.load();
     // WORLD-VERSION guard: a save from an OLD world layout has a stale position → spawn at Greenhollow
     // (its progress is kept; only the coords are reset). Prevents loading into a void / old-world spot.
@@ -1029,8 +1032,9 @@ export class OverworldScene extends Phaser.Scene {
     const sh = shopDef(shopId); if (!sh) return;
     Movement.stop(this.player); this._shopOpen = true; this._shopId = shopId; this._shopSel = 0; this._shopName = sh.name;
     if (this.hud2) this.hud2.setVisible(false); if (this._helpText) this._helpText.setVisible(false);   // clear the HUD so it doesn't overlap the buy panel
+    if (this.shopStock) this.shopStock.maybeRestock(shopId, this.tod ? this.tod.dayCount() : 0, this.time.now);   // shelves refill on the day cadence (real-time fallback while the clock is frozen)
     this._shopStock = availableStock(shopId, { inv: this.inv, karma: this.karma }).map((id) => {
-      const it = itemDef(id); return { id, name: it ? it.name : id, price: buyPrice(id, sh.region, 5) };
+      const it = itemDef(id); return { id, name: it ? it.name : id, price: buyPrice(id, sh.region, 5), qty: this.shopStock ? this.shopStock.qtyOf(shopId, id) : 99 };
     });
     // panel — REBUILT each open (its own container so it never collides with dialogue, no stale-cache)
     if (this._shopBox) { this._shopBox.destroy(true); }
@@ -1055,18 +1059,24 @@ export class OverworldScene extends Phaser.Scene {
     this._shopRows.forEach((t, i) => {
       const s = this._shopStock[i];
       if (!s) { t.setText(''); return; }
-      const sel = i === this._shopSel, afford = this.inv.gold >= s.price;
+      const qty = this.shopStock ? this.shopStock.qtyOf(this._shopId, s.id) : (s.qty ?? 99);   // live on-hand
+      const out = qty <= 0;
+      const sel = i === this._shopSel, afford = this.inv.gold >= s.price && !out;
       const owned = this.inv.items[s.id] ? `  (have ${this.inv.items[s.id]})` : '';
-      t.setText(`${sel ? '▶ ' : '  '}${s.name.padEnd(22)} ${String(s.price).padStart(3)}g${owned}`);
-      t.setColor(sel ? '#ffe66d' : afford ? '#cfe8d6' : '#8a6b6b');
+      const stock = out ? '  (out)' : `  x${qty}`;   // replenishing stock: on-hand or sold-out
+      t.setText(`${sel ? '▶ ' : '  '}${s.name.padEnd(20)} ${String(s.price).padStart(3)}g${stock}${owned}`);
+      t.setColor(out ? '#6b6b6b' : sel ? '#ffe66d' : afford ? '#cfe8d6' : '#8a6b6b');
     });
   }
   _shopNav(d) { if (!this._shopOpen || !this._shopStock.length) return; this._shopSel = Phaser.Math.Clamp(this._shopSel + d, 0, this._shopStock.length - 1); this._renderShop(); }
   _shopBuy() {
     if (!this._shopOpen) return; const s = this._shopStock[this._shopSel]; if (!s) return;
+    if (this.shopStock && !this.shopStock.inStock(this._shopId, s.id)) { this._sfx('sfx_deny', 0.8); this._banner(`${s.name} is sold out — come back tomorrow.`, 1400); return; }
     if (this.inv.gold < s.price) { this._sfx('sfx_deny', 0.8); this._banner('Not enough gold.', 1200); return; }
+    if (this.shopStock && !this.shopStock.take(this._shopId, s.id)) { this._sfx('sfx_deny', 0.8); this._banner(`${s.name} is sold out — come back tomorrow.`, 1400); return; }   // depletes the shelf
     this.inv.addGold(-s.price); this.inv.add(s.id, 1);
     if (this.inv.save) this.inv.save(); else this._save && this._save();   // persist the purchase
+    if (this.save && this.save.save) this.save.save();                     // persist the depleted shelf (shopstock rides the world save)
     this._sfx('sfx_pickup', 0.85); this._banner(`Bought ${s.name} for ${s.price}g.`, 1300); this._renderShop();
   }
   _closeShop() { if (!this._shopOpen) return; this._shopOpen = false; if (this._shopBox) { this._unregisterUIPanel(this._shopBox); this._shopBox.destroy(true); this._shopBox = null; } if (this.hud2) this.hud2.setVisible(true); if (this._helpText) this._helpText.setVisible(true); this._sfx('sfx_select', 0.5); }
