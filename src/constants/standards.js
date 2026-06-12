@@ -73,6 +73,14 @@ export const NPC_LIFE = Object.freeze({
   CHORE_VAR: 0.45,       // per-NPC ± on chore/idle loop periods (animations not in phase)
 });
 
+// GUARD HEARING — a noisy crime (a forced door) RADIATES noise from the event; every guard whose post is
+// within the hearing radius walks to investigate and confronts THERE (not only if it later wanders past the
+// player). Radius (px) = loudness × toughness, so a tougher door (more force to break) is heard further.
+export const GUARD_HEARING = Object.freeze({
+  FORCE_DOOR_PX: 430,     // a forced door's base hearing radius (covers most of a settlement); ×breakStrength
+  ARRIVE_CONFRONT_PX: 130, // on arrival at the event, confront the player if they're still within this range
+});
+
 // Other tuning is ALSO single-sourced — it lives in its owning module (listed
 // here so there is one index of "where the knobs are"). Do not re-declare these:
 //   TILE (32 px), CHAR_FOOTPRINT, FRAME/DIR_ROW/ANIMS  -> src/data/assets.js

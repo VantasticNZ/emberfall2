@@ -34,7 +34,7 @@ import { Social } from '../systems/Social.js';
 import { EnemyController } from '../systems/EnemyController.js';
 import { PlayerCombat } from '../systems/Combat.js';
 import { ModifierRegistry } from '../systems/Modifiers.js';
-import { COMBAT, INTERACTION_RADIUS } from '../constants/standards.js';
+import { COMBAT, INTERACTION_RADIUS, GUARD_HEARING } from '../constants/standards.js';
 import { bindings } from '../constants/controls.js';
 import { AssetLoader } from '../art/AssetLoader.js';
 import { PROPS, PARTS, DIR_ROW, ANIMS, EXPRESSIONS, EXPR_COLS, EXPR_ROW, solidBox } from '../data/assets.js';
@@ -1082,7 +1082,8 @@ export class OverworldScene extends Phaser.Scene {
     else if (mode === 'force') { const s = d.breakStrength || 1; const o = occupied ? 1 : 0; this.karma.commit({ deed: 'forced_entry', morality: -(6 + 4 * s + 5 * o), purity: -(4 + 2 * s + 3 * o) }); this._sfx('sfx_charge_impact', 0.6); this._banner(occupied ? 'You break in while they are home — a scream inside.' : 'You force the door — wood splinters. Someone will have heard.', 1800);
       const [bcx, bcy] = cidOf(d.doorWX, d.doorWY); this.save.setChunkFlag(bcx, bcy, 'door_broken_' + d.to, 1);   // BROKEN persists; the repair worker restores it
       this._registerBrokenDoor(d);                                   // REPAIR-WORKER event: a joiner comes to mend it
-      this._addFine(60 + 30 * o, 'forcing a door'); }                // ALARM → fineable (worse if occupied)
+      this._addFine(60 + 30 * o, 'forcing a door');                  // ALARM → fineable (worse if occupied)
+      this._emitNoise(d.dcx, d.dcy + TILE, GUARD_HEARING.FORCE_DOOR_PX * (d.breakStrength || 1), 'forcing a door'); }   // NOISE radiates from the walkable threshold → in-earshot guards come to investigate
     else if (mode === 'key') { if (d.key) this.inv.remove(d.key, 1); this._banner('The key turns; the door swings open.', 1400); }
     this._openDoorVisual(d);                              // the door VISIBLY opens (sprite swaps to the threshold)
     const ret = { x: d.dcx, y: d.dcy + TILE };           // clean yard return (no stuck-on-line)
@@ -1108,6 +1109,29 @@ export class OverworldScene extends Phaser.Scene {
       ] },
     };
     this._activeQuest = null; this._dlg = new Dialogue({ start: 'd0', nodes }, this._dlgCtx()); this._openDlg();
+  }
+  // ---- REACTIVITY: NOISE → GUARD HEARING ------------------------------------------------------------
+  // A noisy crime RADIATES noise from (x,y). Every guard whose post is within the hearing radius drops its
+  // chore and WALKS to investigate (NpcLife.summon); on arrival it confronts the player if they're still in
+  // range (else it inspects the scene — the fine remains owed for a later proximity confront). A guard OUT of
+  // earshot does nothing here, but the fine was already registered by _addFine (per the existing rules).
+  _emitNoise(x, y, radius, reason) {
+    if (this._inInterior) return;                          // events fire on the overworld where the guards live
+    let heard = 0;
+    for (const m of this.npcLife.movers) {
+      const g = m.npc; if (!g.active || g.getData('role') !== 'guard') continue;
+      if (Phaser.Math.Distance.Between(g.x, g.y, x, y) > radius) continue;   // out of earshot → no response
+      heard++;
+      this.npcLife.summon(g, x, y, (guard) => {
+        if (this._fineOwed > 0 && !this._dlg && !this._shopOpen && !this._inInterior
+            && Phaser.Math.Distance.Between(guard.x, guard.y, this.player.x, this.player.y) <= GUARD_HEARING.ARRIVE_CONFRONT_PX) {
+          this._guardConfront(guard);                      // player still at the scene → confront HERE
+        } else {
+          this._banner('A guard reaches the door, scowling at the splintered wood.', 1800);   // player fled → fine stays owed
+        }
+      });
+    }
+    if (heard > 0) this._banner(`A guard heard that — coming to investigate.`, 1700);
   }
   _fineAction(mode) {
     if (mode === 'pay') { const f = this._fineOwed; this.inv.addGold(-f); if (this.inv.save) this.inv.save(); this._banner(`Fine paid (${f}g). "Keep your nose clean."`, 1700); this._fineOwed = 0; }

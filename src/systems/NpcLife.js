@@ -58,6 +58,17 @@ export class NpcLife {
   }
   has() { return this.movers.length > 0; }
 
+  /**
+   * SUMMON an NPC to INVESTIGATE a point (event reaction — e.g. a guard hearing a forced door). The NPC
+   * drops its chore and walks to (x,y); on arrival `onArrive(npc)` fires once, then it resumes its schedule.
+   * Minimal additive engine hook (HARD RULE 2): NPCs gain event-reaction without forking the schedule system.
+   */
+  summon(npc, x, y, onArrive = null) {
+    const m = this.movers.find((mv) => mv.npc === npc); if (!m) return false;
+    m.investigate = { x, y, cb: onArrive, fired: false }; m.delay = 0;
+    return true;
+  }
+
   /** On a phase change, retarget each NPC — to a JITTERED spot, after a STAGGERED delay. */
   setPhase(phase) {
     this._phase = phase;
@@ -77,22 +88,33 @@ export class NpcLife {
     for (const m of this.movers) {
       const npc = m.npc;
       if (paused) { Movement.stop(npc); continue; }            // dialogue — freeze
+      // EVENT REACTION (summon): an investigate target overrides the chore/schedule until reached.
+      if (m.investigate) {
+        const iv = m.investigate, idx = iv.x - npc.x, idy = iv.y - npc.y;
+        if (Math.hypot(idx, idy) <= 14) { if (!iv.fired) { iv.fired = true; if (iv.cb) iv.cb(npc); } m.investigate = null; this._activity(m); continue; }
+        this._seek(m, iv.x, iv.y, dt); continue;
+      }
       if (m.delay > 0) { m.delay -= dt; this._activity(m); continue; }   // not departed yet — keep puttering
       if (!m.target) { this._activity(m); continue; }
-      const dx = m.target.x - npc.x, dy = m.target.y - npc.y, dist = Math.hypot(dx, dy);
+      const dist = Math.hypot(m.target.x - npc.x, m.target.y - npc.y);
       if (dist <= 12) { this._activity(m); m.stuck = 0; continue; }       // arrived -> chore
-
-      // SEEK with per-NPC speed + EASED facing (turn only after a cooldown, so pivots desync).
-      const len = dist || 1, ux = dx / len, uy = dy / len, spd = npc.moveSpeed;
-      npc.body.setVelocity(ux * spd, uy * spd);
-      m.turnLock -= dt;
-      const want = Math.abs(ux) > Math.abs(uy) ? (ux > 0 ? 'right' : 'left') : (uy > 0 ? 'down' : 'up');
-      if (want !== npc.facing && m.turnLock <= 0) { npc.facing = want; m.turnLock = NPC_LIFE.TURN_COOLDOWN_S * (0.6 + m.rng() * 0.8); }
-      npc.setState('walk', spd);
-      // unstick: blocked but not arrived -> skirt the obstacle for a beat
-      if (Math.hypot(npc.body.velocity.x, npc.body.velocity.y) < 6) { if (++m.stuck > 35) { npc.body.setVelocity(uy * spd, -ux * spd); m.stuck = 16; } }
-      else m.stuck = 0;
+      this._seek(m, m.target.x, m.target.y, dt);
     }
+  }
+
+  // SEEK toward (tx,ty) with per-NPC speed + EASED facing (turn only after a cooldown, so pivots desync).
+  // Shared by the schedule target and the event-summon investigate target.
+  _seek(m, tx, ty, dt) {
+    const npc = m.npc, dx = tx - npc.x, dy = ty - npc.y, len = Math.hypot(dx, dy) || 1;
+    const ux = dx / len, uy = dy / len, spd = npc.moveSpeed;
+    npc.body.setVelocity(ux * spd, uy * spd);
+    m.turnLock -= dt;
+    const want = Math.abs(ux) > Math.abs(uy) ? (ux > 0 ? 'right' : 'left') : (uy > 0 ? 'down' : 'up');
+    if (want !== npc.facing && m.turnLock <= 0) { npc.facing = want; m.turnLock = NPC_LIFE.TURN_COOLDOWN_S * (0.6 + m.rng() * 0.8); }
+    npc.setState('walk', spd);
+    // unstick: blocked but not arrived -> skirt the obstacle for a beat
+    if (Math.hypot(npc.body.velocity.x, npc.body.velocity.y) < 6) { if (++m.stuck > 35) { npc.body.setVelocity(uy * spd, -ux * spd); m.stuck = 16; } }
+    else m.stuck = 0;
   }
 
   // a looped ACTIVITY, with per-NPC periods so identical chores are never in phase.
