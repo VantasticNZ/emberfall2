@@ -29,6 +29,7 @@ import { NpcLife } from '../systems/NpcLife.js';
 import { Interaction } from '../systems/Interaction.js';
 import { buildingDoorTrigger } from '../systems/doorTrigger.js';
 import { stageAt, travelProgress } from '../systems/repairPacing.js';
+import { stepObjective, objectiveSatisfied, objectiveArrowTarget } from '../systems/questObjective.js';
 import { searchContainer, cutObject, pushBlock, grantLoot, enterGate } from '../systems/Interactables.js';
 import { ixClass, isSolid } from '../data/interactionClasses.js';
 import { Dialogue } from '../systems/Dialogue.js';
@@ -1882,7 +1883,14 @@ export class OverworldScene extends Phaser.Scene {
     let target = null;
     for (const id of Object.keys(this.quests.state || {})) {
       if (this.quests.status(id) !== 'active') continue;
-      const npc = this._npcByQuest && this._npcByQuest[id]; if (npc && npc.active !== false) { target = npc; break; }
+      // OBJECTIVE ENGINE (deferred-sweep): a step with a physical objective points the arrow at the LOCATION;
+      // else fall back to the giver NPC (today's behaviour). Quest-agnostic — consumed by the childhood build.
+      const obj = stepObjective(this.quests.defs[id], this.quests.step[id]);
+      const npc = this._npcByQuest && this._npcByQuest[id];
+      const at = objectiveArrowTarget(obj, !!(npc && npc.active !== false));
+      if (!at) continue;
+      if (at.kind === 'loc') { target = { x: at.tx * TILE + TILE / 2, y: at.ty * TILE + TILE / 2 }; break; }
+      if (npc && npc.active !== false) { target = npc; break; }
     }
     if (!target) return;
     const cam = this.cameras.main, z = cam.zoom;
@@ -1894,6 +1902,20 @@ export class OverworldScene extends Phaser.Scene {
     const pa = ang + Math.PI * 0.8, pb = ang - Math.PI * 0.8;
     g.fillStyle(0xffd23f, 0.95).fillTriangle(tip[0], tip[1], ax + Math.cos(pa) * t, ay + Math.sin(pa) * t, ax + Math.cos(pb) * t, ay + Math.sin(pb) * t);
     g.lineStyle(1.5, 0x4a3a10, 0.9).strokeTriangle(tip[0], tip[1], ax + Math.cos(pa) * t, ay + Math.sin(pa) * t, ax + Math.cos(pb) * t, ay + Math.sin(pb) * t);
+  }
+
+  // OBJECTIVE ENGINE — when the player REACHES an active quest step's physical objective, advance the quest
+  // (the walk-to-and-do mechanic, SPEC-CHILDHOOD §4). 'interact' objectives advance from a placed prop's
+  // onInteract (the consumer's wiring); 'reach' is this auto-advance. Dormant until a quest declares an
+  // objective (M2's conversion lands with the childhood build).
+  _objectiveReachTick() {
+    if (this._dlg || this._inInterior) return;
+    const ptx = Math.floor(this.player.x / TILE), pty = Math.floor(this.player.y / TILE);
+    for (const id of Object.keys(this.quests.state || {})) {
+      if (this.quests.status(id) !== 'active') continue;
+      const obj = stepObjective(this.quests.defs[id], this.quests.step[id]);
+      if (obj && obj.type === 'reach' && objectiveSatisfied(obj, ptx, pty)) this.quests.advance(id);
+    }
   }
 
   _updateWorldHud() {
@@ -1928,6 +1950,7 @@ export class OverworldScene extends Phaser.Scene {
     this._mmDots.clear().fillStyle(0xffe66d, 1).fillCircle(this._mm.x + this.player.x * this._mm.scale, this._mm.y + this.player.y * this._mm.scale, 3);
     if (this._fullMap.visible) { const b = this._fmBox; this._fmDots.clear().fillStyle(0xffe66d, 1).fillCircle(b.x + (this.player.x - b.wx) * b.scale, b.y + (this.player.y - b.wy) * b.scale, 5).lineStyle(2, 0x4a3a00, 1).strokeCircle(b.x + (this.player.x - b.wx) * b.scale, b.y + (this.player.y - b.wy) * b.scale, 5); }
     this._updateObjective();
+    this._objectiveReachTick();   // objective engine: auto-advance on reaching a step's physical objective
   }
   // Draw the time-of-day glyph (a sun for dawn/day/dusk, a crescent moon at night), tinted to the phase.
   // Redrawn only on a phase change (the icon graphic is positioned in the stats panel; shapes are local).
