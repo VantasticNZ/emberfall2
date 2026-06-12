@@ -61,10 +61,11 @@ Van's map exactly — then roll the same to every corridor.
 | Mirefen inline (seamless) | ✅ (no enter-door) | done |
 | See-it-before tease + legible sign (islet cache) | ✅ built (corridor-see-it-before-tease) | done |
 | Soft guidance (waystones funnel to Mirefen) + density (reeds/trees/pools/enemies/NPCs) | ✅ built | done |
-| **Routed ZIG-ZAG to the map** (5 bends: 9.5,10.5→9,12→8,10.5→8,12.5→6.5,11) | ❌ belt winds but not the exact bend coords | next |
-| **ELEVATION descent** GH +1 → bog −1 (visible contour/steps) | ❌ not built (no elevation render yet) | next |
-| **TERRAIN-TRANSITION bands** (grass→bog blended, not hard edge) | ❌ not built | next |
-| **Mirefen sized to spec** (44×36 footprint/population) | ❌ inline town is smaller (8 buildings) | next |
+| **Routed ZIG-ZAG to the map** (5 bends: 9.5,10.5→9,12→8,10.5→8,12.5→6.5,11) | 🟡 **DEFERRED (unattended 2026-06-12):** re-routing the live WEST_BELT lanes is a HIGH-RISK geometry change to a working, gate-green, bounded corridor (channelled-not-open · no-soft-locks · seam · density all depend on it), the bend coords are partial (x9.5→6.5, not the full BW=10 corridor), and there's no Van present to feel-judge a re-routed road. Per the conservative rules (ambiguity → conservative reading; no design decisions), the working forked winding belt is kept. | Van-present pass |
+| **ELEVATION descent** GH +1 → bog −1 (visible contour/steps) | 🔴 **BLOCKED — no elevation render system exists.** Van's elev values (GH+1/Mirefen−1) are locked DATA, but rendering a contour/step descent needs a NEW elevation system; building one is forbidden under the conservative/no-new-systems rules. Stays deferred until an elevation render system is built. | ELEV-system / POLISH |
+| **TERRAIN-TRANSITION bands** (grass→bog blended, not hard edge) | 🟡 **DEFERRED (unattended 2026-06-12):** the belt already shows a green→bog gradient (prop-tints bog-west/oak-east) + the marsh's own bog ground. A true *blended ground band* is a per-chunk streaming-terrain change (risky to touch unattended); a finer prop-tint blend is marginal. Conservative: existing gradient kept. | Van-present pass |
+| **Mirefen sized to spec** (44×36 footprint/population) | 🟡 **DEFERRED (unattended 2026-06-12):** §0.5 locks Mirefen's POSITION + 44×36 size but NOT a detailed building LAYOUT — growing the 8-building inline town to a 44×36 footprint requires choosing where the new buildings/streets go = a DESIGN DECISION (forbidden unattended). The 8-building inline Mirefen is the conservative build. **Population enriched this session** (WS3 — see below). | Van-present layout pass |
+| **Mirefen NPC LIFE** (marsh role palette: fisher/herb-wife/mire-folk/keeper, no guards) | ✅ **BUILT (`fd184a12`, unattended 2026-06-12):** enriched Bett (herb-wife)/Coll (fisher)/Tam (protected kid) + new Old Sedge (mire-folk) + Trader Pell (keeper, mirefen_trader shop) — schedules/topics/greetings on the frozen NpcLife/dialog/shop. All frozen tables green. | done |
 | **Backtrack reach** (dash across to the islet cache) | 🔧 engine-blocked (no dash-leap-over-gap) | ABIL |
 
 ## BLOCKERS / PREREQUISITES (build these to unblock others)
