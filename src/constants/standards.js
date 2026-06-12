@@ -144,15 +144,24 @@ export const GUARD = Object.freeze({
   RECONFRONT_COOLDOWN_MS: 6000, // [TUNE] after a flee, the guard waits this long before trying again
 });
 
-// REPAIR PACING — a forced door is mended by a JOINER who works at it for a full day-phase: present the whole
-// time, swinging the hammer continuously, with an occasional mutter, THEN the door is restored. The duration is
-// one day-phase (derived from the time config in-scene), and it also completes on a real TimeOfDay phase change
-// (whichever the cycle delivers). Replaces the old fixed 2-stage 5s timer (a passive bob + one line).
+// REPAIR PACING — a forced door is mended through a STAGED, visible sequence the player can read beat by beat:
+//   break -> WAIT (a discovery beat — nobody notices instantly) -> the alarm goes up + a joiner TRAVELS
+//   (walks across the ground to the door) -> WORK (a long, visible hammering job) -> RESTORED.
+// Each stage is gated by a NAMED FLOOR below so none can collapse (the 2nd-report regression: the worker
+// teleported onto the door and the frozen 6s day-phase finished it instantly). The pure state-machine in
+// src/systems/repairPacing.js drives the stage boundaries; repairPacing.test.js asserts every floor by
+// timestamp as a permanent case. WORK_MS is the FLOOR; the scene takes max(WORK_MS, the live day-phase) so a
+// running clock still spans a real phase — but the floor guarantees it ALWAYS reads as a long job.
 export const REPAIR = Object.freeze({
+  DISCOVERY_MS: 2200,     // [TUNE] the beat AFTER the break before the alarm goes up — no instant grumble
+  TRAVEL_MS: 2500,        // [DERIVED] the joiner's visible walk to the door (= TRAVEL_TILES*TILE / WORKER_SPEED_PX)
+  WORK_MS: 12000,         // [TUNE] the LONG visible hammering job (day-phase-scale FLOOR — never the old instant pop)
+  TRAVEL_TILES: 5,        // [DERIVED] how far in front of the door the joiner starts his approach (a visible crossing)
+  WORKER_SPEED_PX: 64,    // [TUNE] the joiner's walk pace during travel (sets a no-feet-slide stride)
   HAMMER_MS: 820,         // [TUNE] replay the joiner's hammer swing this often (CONTINUOUS work, not a one-off)
   LINE_MS: 3400,          // [TUNE] an occasional joiner mutter while working
   WORKER_RANGE_PX: 700,   // [DERIVED] ~a screen of the door — show the worker if within (else presence implied by lines)
-  PHASE_MS_FALLBACK: 6000, // [DERIVED] repair duration fallback if this._phaseMs is unset (= one quarter-day at the default RATE)
+  PHASE_MS_FALLBACK: 6000, // [DERIVED] day-phase fallback if this._phaseMs is unset (= one quarter-day at default RATE)
 });
 
 // Other tuning is ALSO single-sourced — it lives in its owning module (listed
