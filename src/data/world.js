@@ -195,7 +195,7 @@ export const WORLD = {
         { q: 'Any work?', a: [`"Bring me iron ore and I'll see you right. Or buy a sword and stop pestering me."`] },
       ],
       schedule: sched([['dawn', 9, 23, 'idle'], ['day', 9, 23, 'hammer'], ['dusk', 11, 22, 'chat'], ['night', 8, 26, 'sleep']]) },
-    { tx: 25, ty: 18, facing: 'down', name: 'Tam', tempo: 'brisk', speed: 70, expression: 'happy', parts: TAM, quest: 'M2',
+    { tx: 25, ty: 18, facing: 'down', name: 'Tam', tempo: 'brisk', speed: 70, expression: 'happy', parts: TAM, quests: ['GH2', 'M2'],
       greeting: ['Race you to the old cave! ...if your ma ever lets you off chores.'],
       topics: [
         { q: 'The old cave', a: [`"Up the north hills! It's BOARDED but there's a gap. Bet there's treasure. ...Or a bear."`] },
@@ -205,6 +205,14 @@ export const WORLD = {
     { tx: 15, ty: 16, facing: 'down', name: 'Phil McCracken', speed: 70, expression: 'neutral', parts: PHIL, quest: 'M3',
       greeting: ['Coin\'s coin, friend. Mind you don\'t lose any.'],
       schedule: sched([['dawn', 15, 16, 'tend'], ['day', 15, 16, 'tend'], ['dusk', 17, 18, 'chat'], ['night', 16, 18, 'sleep']]) },
+    // MAREN — an ailing elder (GH2 "Nobody Answered"); the kids' gran. Static near her door, frail. After
+    // GH2 she's on the mend (a warmer line). Reuses the elder-woman skin; her grandkids are the GH2 givers.
+    { tx: 36, ty: 14, facing: 'down', name: 'Maren', speed: 0, expression: 'sad', parts: MARA,
+      schedule: sched([['dawn', 36, 14, 'sleep'], ['day', 36, 14, 'sleep'], ['dusk', 36, 14, 'sleep'], ['night', 36, 14, 'sleep']]),   // bedridden/frail — static (not a wandering villager)
+      greetByKarma: {
+        good: ["The kids tell everyone how you came when no one answered. ...Bless you, love. I'll not forget it."],
+        neutral: ["*a thin, tired smile* I'm on the mend, thanks to that fenwort. The young ones were so frightened."],
+        bad: ["...You're the one who put my door through, they say. A sick old woman's door. Mind how you go."] } },
     { tx: 30, ty: 18, facing: 'up', name: 'Fatley', tempo: 'dawdler', speed: 70, expression: 'neutral', parts: FATLEY, quest: 'SG1',
       greeting: ['*hic* Oi. You. ...nah, later. Me back\'s gone.'],
       schedule: sched([['dawn', 30, 18, 'idle'], ['day', 30, 18, 'chat'], ['dusk', 30, 18, 'chat'], ['night', 29, 18, 'idle']]) },   // the drunk never leaves the tavern
