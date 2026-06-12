@@ -259,6 +259,15 @@ childhood-spec prerequisite is met.
 - **Bespoke faces for the 29 quest-only speakers** — the generic fem/masc fallback covers them; per-speaker
   faces are polish (compose distinct skin/hair/expression from existing parts), not blocked.
 
+## DEFERRED SWEEP results (2026-06-13)
+| Item | Result | Detail |
+|---|---|---|
+| (b) **Chicken free-roam / objective engine** | ✅ ENGINE CLOSED; M2 conversion remains | Built the quest-agnostic objective ENGINE (`systems/questObjective.js` + tested + scene-wired: location arrow + reach-advance). PATH: left M2's conversion + the placed coop/hen for the childhood build (the spec is PROPOSED; M2 is in the childhood test chain). The build wires this + the shipped `advance:`/`complete:` commands. |
+| (c) **Marsh/Peaks wardrobe** | ✅ CLOSED | Already widened in the prior fixes (skin tones + hair colours across MARSH_FOLK + the Peaks part-sets). No further work. |
+| (d) **Victorian/barred door variants** | 🟡 LEAVE (conservative) | The ART exists (`asset-library/.../Barred Prison Door A.png`, `lpc-victorian/victorian-windows-doors.png`) but there is NO clear fit in the BUILT slice areas — GH cottages = wooden doors, Mirefen = marsh huts, Peaks = stone. Barred fits **Cinder Keep** (dgn_keep, a prison/Order keep) and victorian fits a **Saltbreak manor** — both board/scene-only, not built-out. Place when those are built (extract → assets.js doorArt → the building's door). |
+| (a) **Buy-UI item ICONS** | 🟡 READY-TO-BUILD, per-item curation flagged | The widened fetch added CHARACTER parts (clothing/child bodies), NOT item art — so this is unchanged: the same PIL-slice pipeline on `eliza-objects/Small Items/Food` (sheets are clean 32px grids — confirmed sliceable) + a buy-UI Image-per-row render. Covers ~5 food items (bread/cheese/apple/fish/meat); the other ~32 (gear/potions/books) have NO library art → text fallback stays. Per the task, the per-item cell choice (which bread/cheese sprite) is **flagged for Van's eye** before wiring; the buy UI is fully functional with name·price·xN/(out) today. |
+| Child bodies (was blocked on fetch) | ✅ CLOSED | Fetched + wired (fixes item 2 above). The childhood-spec prerequisite is met. |
+
 ## MILESTONE GATES (must pass before advancing)
 - **Post-M1 TRIPLE-CHECK** (BUILD-PLAN §4b): after GH+Marsh+Shrine are BUILT, run the full cohesiveness +
   EXCELLENCE pass against the BUILT game (real cohesion, not paper) before M2 scales. **Status: pending M1
