@@ -16,6 +16,7 @@
 
 import Phaser from 'phaser';
 import { Character } from '../systems/Character.js';
+import { CardSequence } from '../systems/CardSequence.js';
 import { Movement } from '../systems/Movement.js';
 import { DepthSort, DEPTH } from '../systems/DepthSort.js';
 import { Collision } from '../systems/Collision.js';
@@ -57,6 +58,16 @@ const LOAD_RING = 2, UNLOAD_RING = 3;
 const CUT_REGROW_MS = 180000;   // a cut bush regrows only after you LEAVE the area + ~3 min (anti-farm)
 const HERO = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_chestnut', 'shirt_blue', 'pants_black', 'shoes_brown'];
 const HERO_CHILD = ['child_body_blue', 'child_head', 'brows_chestnut', 'hair_chestnut'];   // the protagonist as a CHILD — clothed child body (L1: complete, matched, no adult parts)
+// S2: the child appearance the player picked at the title's character-select (stored "body|hair"); falls back
+// to the default child set. Always a COMPLETE matched child set (L1) — clothed body + child head + brows + hair.
+function heroChild(store) {
+  try {
+    const raw = (store && store.read('ember:childPreset')) || '';
+    const [body, hair] = raw.split('|');
+    if (body) return [body, 'child_head', 'brows_chestnut', hair || 'hair_chestnut'];
+  } catch (_) {}
+  return HERO_CHILD;
+}
 const CHILD_WAKE = { ...GREENHOLLOW.player };   // where a fresh child wakes — set to Mara's cottage interior in sys 2
 const cidOf = (x, y) => [Math.floor(x / CHUNK_PX), Math.floor(y / CHUNK_PX)];
 
@@ -97,7 +108,8 @@ export class OverworldScene extends Phaser.Scene {
     if (this.save.worldReset) this._worldResetNotice = true;
     if (!hadSave && this.isChild) { this._bootChild = true; }   // a fresh child game → load the cottage interior on create
 
-    this.player = new Character(this, start.x, start.y, { parts: this.isChild ? HERO_CHILD : HERO, facing: 'down', speed: this.isChild ? 130 : 150 });
+    const childParts = this.isChild ? heroChild(defaultStorage()) : HERO;
+    this.player = new Character(this, start.x, start.y, { parts: childParts, facing: 'down', speed: this.isChild ? 130 : 150 });
     this.player.isAdult = !this.isChild; this.player.isMinor = this.isChild;
     if (!this.isChild) this.player.equip('sword');   // a CHILD carries no weapon (age-gate); the adult swings a visible sword
     // y-sort the hero by its FEET LINE (the collision base = body bottom), so it sorts against
@@ -404,24 +416,25 @@ export class OverworldScene extends Phaser.Scene {
   _doTimeSkip() {
     if (this._timeSkipping) return; this._timeSkipping = true;
     if (this._dlg) this._closeDialogue();
-    const W = this.scale.width, H = this.scale.height;
-    const cover = this.add.rectangle(0, 0, W, H, 0x05040a, 1).setOrigin(0, 0).setScrollFactor(0).setDepth(DEPTH.OVERLAY + 50);
-    const txt = this.add.text(W / 2, H / 2, 'Ten winters gone.', { fontFamily: 'Georgia, serif', fontSize: '34px', color: '#d8c8a0', align: 'center', wordWrap: { width: Math.min(720, W - 120) } }).setOrigin(0.5).setScrollFactor(0).setDepth(DEPTH.OVERLAY + 51).setAlpha(0);   // L5: balanced + clamped
-    this._registerUIPanel && this._registerUIPanel(cover); this._registerUIPanel && this._registerUIPanel(txt);
     Movement.stop(this.player);
-    this.tweens.add({ targets: txt, alpha: 1, duration: 900 });
-    this.time.delayedCall(2400, () => {
-      // BECOME THE ADULT (under the cover)
-      this.isChild = false; this.player.isAdult = true; this.player.isMinor = false;
-      for (const p of ['body_ivory', 'head_ivory', 'pants_black', 'shoes_brown']) this.player.equip(p);   // child body → grown body
-      this.player.equip('sword'); this._scaleHead(this.player);
-      this._areaStack = []; this._inInterior = false;
-      this.player.x = GREENHOLLOW.player.x; this.player.y = GREENHOLLOW.player.y; this.player.body.reset(this.player.x, this.player.y);
-      this._unloadAllRegions(); this._maybeToggleRegion(true); this._restream(true);
-      this.cameras.main.centerOn(this.player.x, this.player.y);
-      if (this.saveGame) this.saveGame();   // persist the adult state immediately
-      this.tweens.add({ targets: [cover, txt], alpha: 0, duration: 1000, delay: 200, onComplete: () => { try { cover.destroy(); txt.destroy(); } catch (_) {} this._timeSkipping = false; this._banner('You return to Greenhollow, grown. The town is not as you left it.', 3200); } });
+    // S4: the SAME CardSequence player the intro uses — here a single TIMED beat (auto-advances after 2.4s),
+    // and onDone performs the child→adult transition UNDER the cover, then fades the cover out.
+    const seq = new CardSequence(this, [{ text: 'Ten winters gone.', hold: 2400 }], {
+      manual: false, fontSize: '34px', depth: DEPTH.OVERLAY + 50,
+      onDone: () => {
+        // BECOME THE ADULT (under the cover)
+        this.isChild = false; this.player.isAdult = true; this.player.isMinor = false;
+        for (const p of ['body_ivory', 'head_ivory', 'pants_black', 'shoes_brown']) this.player.equip(p);   // child body → grown body
+        this.player.equip('sword'); this._scaleHead(this.player);
+        this._areaStack = []; this._inInterior = false;
+        this.player.x = GREENHOLLOW.player.x; this.player.y = GREENHOLLOW.player.y; this.player.body.reset(this.player.x, this.player.y);
+        this._unloadAllRegions(); this._maybeToggleRegion(true); this._restream(true);
+        this.cameras.main.centerOn(this.player.x, this.player.y);
+        if (this.saveGame) this.saveGame();   // persist the adult state immediately
+        this.tweens.add({ targets: [seq.cover, seq.txt], alpha: 0, duration: 1000, delay: 200, onComplete: () => { seq.destroy(); this._timeSkipping = false; this._banner('You return to Greenhollow, grown. The town is not as you left it.', 3200); } });
+      },
     });
+    this._registerUIPanel && this._registerUIPanel(seq.cover); this._registerUIPanel && this._registerUIPanel(seq.txt);   // L5: on the zoom-1 uiCamera, balanced + clamped
   }
 
   // `to` = an interior region key (enter, pushing the current spot) OR 'back' (pop → exit/descend).
