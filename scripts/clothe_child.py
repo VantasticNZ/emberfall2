@@ -22,8 +22,11 @@ def clothe(src_dir, out_dir, torso_rgb):
                         if px[c*FR+x, r*FR+y][3] > 24: ys.append(y); break
                 if not ys: continue
                 y0, y1 = min(ys), max(ys); bh = y1-y0
-                # the GARMENT band: 36%..74% of the body height (torso + hips → a romper)
-                ga, gb = y0+int(bh*0.36), y0+int(bh*0.74)
+                # the GARMENT band. The child_body texture is HEADLESS (head is a separate layer), so y0 is the
+                # SHOULDER line, not the hair-tip. A romper/tunic therefore runs from just below the shoulders
+                # (4%) down past the hips to upper-thigh (60%) — covering the whole chest+torso (no bare chest).
+                # Legs + hands below stay skin (a short romper); upper arms get sleeved, which reads correct.
+                ga, gb = y0+int(bh*0.04), y0+int(bh*0.60)
                 for y in range(ga, gb+1):
                     for x in range(FR):
                         R,G,B,A = px[c*FR+x, r*FR+y]
