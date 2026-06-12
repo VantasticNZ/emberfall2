@@ -81,6 +81,16 @@ export const GUARD_HEARING = Object.freeze({
   ARRIVE_CONFRONT_PX: 130, // on arrival at the event, confront the player if they're still within this range
 });
 
+// REPAIR PACING — a forced door is mended by a JOINER who works at it for a full day-phase: present the whole
+// time, swinging the hammer continuously, with an occasional mutter, THEN the door is restored. The duration is
+// one day-phase (derived from the time config in-scene), and it also completes on a real TimeOfDay phase change
+// (whichever the cycle delivers). Replaces the old fixed 2-stage 5s timer (a passive bob + one line).
+export const REPAIR = Object.freeze({
+  HAMMER_MS: 820,         // replay the joiner's hammer swing this often (CONTINUOUS work, not a one-off)
+  LINE_MS: 3400,          // an occasional joiner mutter while working
+  WORKER_RANGE_PX: 700,   // show the worker sprite if the player is within this of the door (else presence implied)
+});
+
 // Other tuning is ALSO single-sourced — it lives in its owning module (listed
 // here so there is one index of "where the knobs are"). Do not re-declare these:
 //   TILE (32 px), CHAR_FOOTPRINT, FRAME/DIR_ROW/ANIMS  -> src/data/assets.js

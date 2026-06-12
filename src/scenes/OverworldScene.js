@@ -34,7 +34,8 @@ import { Social } from '../systems/Social.js';
 import { EnemyController } from '../systems/EnemyController.js';
 import { PlayerCombat } from '../systems/Combat.js';
 import { ModifierRegistry } from '../systems/Modifiers.js';
-import { COMBAT, INTERACTION_RADIUS, GUARD_HEARING } from '../constants/standards.js';
+import { COMBAT, INTERACTION_RADIUS, GUARD_HEARING, REPAIR } from '../constants/standards.js';
+import { DAY_LENGTH, RATE } from '../data/time.js';
 import { bindings } from '../constants/controls.js';
 import { AssetLoader } from '../art/AssetLoader.js';
 import { PROPS, PARTS, DIR_ROW, ANIMS, EXPRESSIONS, EXPR_COLS, EXPR_ROW, solidBox } from '../data/assets.js';
@@ -181,6 +182,10 @@ export class OverworldScene extends Phaser.Scene {
     this.npcLife = new NpcLife(this);
     for (const R of list) this._buildRegion(R);
     this.npcLife.setPhase(this.tod.phase());
+    // one day-phase in real ms (4 phases per day) — the joiner works the door for this long (or until a phase
+    // change, if the day cycle is running). A forced door is mended across a day-phase, not a fixed 5s timer.
+    this._phaseMs = (DAY_LENGTH / RATE / 4) * 1000;
+    if (!this._todWired) { this._todWired = true; this.tod.onPhaseChange((p) => { this.npcLife.setPhase(p); this._repairOnPhaseChange(); }); }
     this.region = regionAt(this.player.x, this.player.y);
   }
 
@@ -1150,41 +1155,54 @@ export class OverworldScene extends Phaser.Scene {
     this._repairTick(now);
   }
   // ---- REACTIVITY: REPAIR-WORKER EVENT ---------------------------------------------------------------
-  // A forced door registers a staged repair: a joiner arrives, hammers (visible presence + a banner per
-  // stage), and after REPAIR_STAGE_MS×2 the door is RESTORED to its prior state (the broken flag cleared).
-  // STAGE_MS is short for the slice so it's observable; set it to a phase length for the full-game pace.
+  // A forced door registers a repair JOB: a joiner works the door for a full DAY-PHASE — present the whole
+  // time, swinging the hammer CONTINUOUSLY (the slash-as-work anim), with an occasional mutter — then the
+  // door is RESTORED (the broken flag cleared). The job ends after one day-phase (this._phaseMs) OR on a real
+  // TimeOfDay phase change (whichever the cycle delivers). Not a fixed 5s 2-stage timer.
   _registerBrokenDoor(d) {
     this._repairs = this._repairs || [];
     if (this._repairs.some((r) => r.to === d.to)) return;
     const [cx, cy] = cidOf(d.doorWX, d.doorWY);
-    this._repairs.push({ to: d.to, wx: d.doorWX, wy: d.doorWY, cx, cy, t0: this.time.now, stage: 0, worker: null, done: false });
+    this._repairs.push({ to: d.to, wx: d.doorWX, wy: d.doorWY, cx, cy, t0: this.time.now, worker: null, nextHammer: 0, nextLine: this.time.now + REPAIR.LINE_MS, done: false });
     this._banner('A neighbour shouts: "Who did that to the door?! Someone fetch the joiner!"', 2200);   // resident grumble
   }
+  // The joiner's working mutters (an occasional line while hammering).
+  static REPAIR_LINES = ['The joiner mutters: "Vandals. No respect."', 'Hammering: "Hold still, you — there."', 'The joiner: "New boards, new hinges. Half a day gone."', 'Tap, tap, tap — "Almost square now."'];
   _repairTick(now) {
     if (!this._repairs || !this._repairs.length) return;
-    const STAGE = 5000;   // ms per stage (slice pace; → ~10s total). Full-game: a day-phase.
     for (const r of this._repairs) {
       if (r.done) continue;
-      const stage = Math.min(2, Math.floor((now - r.t0) / STAGE));
-      if (stage === r.stage) continue;
-      r.stage = stage;
-      if (stage === 1) {   // the joiner arrives + hammers (visible presence if the player is near the door)
-        this._sfx('sfx_charge_impact', 0.4); this._banner('The joiner sets to it — boards up, hammering. "Vandals."', 2000);
-        this._showRepairWorker(r);
-      } else if (stage === 2) { this._finishRepair(r); }
+      // RESTORE after one full day-phase of work (the cycle, if running, also restores via _repairOnPhaseChange).
+      if (now - r.t0 >= (this._phaseMs || 6000)) { this._finishRepair(r); continue; }
+      // PRESENCE — keep the joiner at the door whenever the player can see it (re-spawn if streamed away).
+      const near = !this._inInterior && this.region && !this.region.interior
+        && Phaser.Math.Distance.Between(r.wx, r.wy, this.player.x, this.player.y) <= REPAIR.WORKER_RANGE_PX;
+      if (near && (!r.worker || !r.worker.active)) this._showRepairWorker(r);
+      else if (!near && r.worker) { try { r.worker.destroy(); } catch (_) {} r.worker = null; }
+      // CONTINUOUS HAMMERING — replay the swing on a cadence (the slash-as-work anim), plus an occasional line.
+      if (r.worker && r.worker.active) {
+        if (now >= r.nextHammer) { r.nextHammer = now + REPAIR.HAMMER_MS; r.worker.facing = 'up'; if (r.worker.action) r.worker.action('attack'); this._sfx('sfx_charge_impact', 0.25); }
+      }
+      if (now >= r.nextLine) { r.nextLine = now + REPAIR.LINE_MS; if (near) this._banner(OverworldScene.REPAIR_LINES[(r.lineI = (r.lineI | 0) + 1) % OverworldScene.REPAIR_LINES.length], 1800); }
     }
     this._repairs = this._repairs.filter((r) => !r.done);
   }
+  // On a day-phase change, finish any repair that has worked for at least one phase (so it spans a phase change).
+  _repairOnPhaseChange() {
+    if (!this._repairs) return;
+    const now = this.time.now;
+    for (const r of this._repairs) if (!r.done && now - r.t0 >= (this._phaseMs || 6000)) this._finishRepair(r);
+    this._repairs = this._repairs.filter((r) => !r.done);
+  }
   _showRepairWorker(r) {
-    // a worker sprite at the door (only if the GH overworld is loaded near it) + a hammer bob
+    // the joiner at the door (only when the GH overworld is loaded near it; else presence is implied by lines).
     if (this._inInterior || !this.region || this.region.interior) return;
-    if (Phaser.Math.Distance.Between(r.wx, r.wy, this.player.x, this.player.y) > 700) return;   // off-screen → presence implied by banners
+    if (Phaser.Math.Distance.Between(r.wx, r.wy, this.player.x, this.player.y) > REPAIR.WORKER_RANGE_PX) return;
     try {
       const w = new Character(this, r.wx, r.wy + TILE, { parts: ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_parted_gray', 'beard_gray', 'shirt_leather', 'pants_brown', 'shoes_brown'], facing: 'up', speed: 0 });
       this.add.existing(w); if (w.body) w.body.enable = false; DepthSort.track(w, w.body ? w.body.offset.y + w.body.height : 30);
-      this._regionObjs.push(w); r.worker = w;
-      this.tweens.add({ targets: w, y: w.y - 3, duration: 220, yoyo: true, repeat: -1 });   // a hammering bob
-    } catch (_) { /* presence implied by banners if the skin can't build */ }
+      this._regionObjs.push(w); r.worker = w; r.nextHammer = 0;   // hammer fires on the next tick
+    } catch (_) { /* presence implied by the joiner's lines if the skin can't build */ }
   }
   _finishRepair(r) {
     this.save.setChunkFlag(r.cx, r.cy, 'door_broken_' + r.to, 0);   // CLEAR → the door rebuilds in its prior (closed/locked) state
