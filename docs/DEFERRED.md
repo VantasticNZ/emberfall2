@@ -242,6 +242,23 @@ exist in the LPC universe under OGA-BY/CC0), add PARTS entries per new layer (th
 `tex` in PARTS), then assign styles/accessories per role (smith=apron, guard=helm, fisher=hat). A child body for
 the kids (currently scaled-down adults) is part of the same fetch.
 
+## FETCH WIDEN — HAVE/GAP (2026-06-13, fixes item 2)
+**HAVE (fetched + wired):** ElizaWy **CHILD bodies** (`Characters/Children`, OGA-BY) — `child_body/_tan/_brown`
++ `child_head`, idle/walk fetched, idle tiled to 3 + static 7-frame attack (kids never fight). The four kids
+(Nettle · Wisp · Reed-boy Tam · Crag-child Pib) now use REAL child proportions, not scaled-down adults — the
+childhood-spec prerequisite is met.
+**GAP (the ElizaWy repo genuinely LACKS — evidence in `fetch_eliza.sh`):**
+- **Robes** (priest/acolyte) · **aprons** (smith/keeper) · **tunics/dresses** — `Clothing/.../Torso` has ONLY
+  shirt shapes (Longsleeve/V-neck/T-shirt/Polo/Buttoned) + Torso 2 (Suspenders, Cardigan) + Bowtie. No robe/
+  apron/tunic. → need a DIFFERENT LPC artist's expansion (e.g. bluecarrot16 robes), OGA-BY/CC0, then ledger.
+- **Civilian hats** (straw/cap/hood) — `Head Accessories` has only 6 Helms + Eyewear + a chainmail Hood; no
+  civilian headwear. (Helms ARE available for guard variety — a future quick add.)
+- **Carried tools** (creel/pick/apron props) — these are PROP layers, not character clothing; a separate fetch.
+- **Available-but-not-yet-applied** (a future quick variety pass, no new GAP): shirt SHAPE variants (v-neck/
+  buttoned/polo) + cardigan + the extra helm styles (Norman/Bascinet/Chainmail-Hood) all exist in ElizaWy.
+- **Bespoke faces for the 29 quest-only speakers** — the generic fem/masc fallback covers them; per-speaker
+  faces are polish (compose distinct skin/hair/expression from existing parts), not blocked.
+
 ## MILESTONE GATES (must pass before advancing)
 - **Post-M1 TRIPLE-CHECK** (BUILD-PLAN §4b): after GH+Marsh+Shrine are BUILT, run the full cohesiveness +
   EXCELLENCE pass against the BUILT game (real cohesion, not paper) before M2 scales. **Status: pending M1

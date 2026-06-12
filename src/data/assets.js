@@ -92,6 +92,12 @@ export const PARTS = {
   hair_auburn: { slot: 'hair', label: 'Hair', layers: [{ tex: 'hair_auburn', z: Z.hair }] },
   hair_blond:  { slot: 'hair', label: 'Hair', layers: [{ tex: 'hair_blond',  z: Z.hair }] },
   hair_ginger: { slot: 'hair', label: 'Hair', layers: [{ tex: 'hair_ginger', z: Z.hair }] },
+  // CHILD bodies (item 2) — real ElizaWy Children sheets (proper kid proportions, not a scaled-down adult).
+  // idle/walk fetched; idle tiled to 3 frames + a static 7-frame attack (kids never fight). Non-expressive head.
+  child_body:       { slot: 'body', label: 'Body', layers: [{ tex: 'child_body',       z: Z.body }] },
+  child_body_tan:   { slot: 'body', label: 'Body', layers: [{ tex: 'child_body_tan',   z: Z.body }] },
+  child_body_brown: { slot: 'body', label: 'Body', layers: [{ tex: 'child_body_brown', z: Z.body }] },
+  child_head:       { slot: 'head', label: 'Head', layers: [{ tex: 'child_head',       z: Z.head }] },
   body_tan:  { slot: 'body', label: 'Body', layers: [{ tex: 'body_tan',  z: Z.body }] },
   head_tan:  { slot: 'head', label: 'Head', layers: [{ tex: 'head_tan',  z: Z.head, expressive: true }] },
   body_deep: { slot: 'body', label: 'Body', layers: [{ tex: 'body_deep', z: Z.body }] },

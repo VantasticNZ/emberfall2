@@ -37,3 +37,23 @@ curl -sf --max-time 60 -o public/art/eliza/sword_behind/attack.png "$(enc "$RAW/
 curl -sf --max-time 60 -o public/art/eliza/shield_front/attack.png  "$(enc "$RAW/Props/Shield 01 - Heater Shield/Wood/Brown/Combat 1h - Slash.png")"
 curl -sf --max-time 60 -o public/art/eliza/shield_behind/attack.png "$(enc "$RAW/Props/Shield 01 - Heater Shield/Wood/Brown/_Behind/Combat 1h - Slash.png")"
 echo "ElizaWy layers + equipment fetched into public/art/eliza/"
+
+# --- CHILD BODIES (Van-approved widen, 2026-06-13) — ElizaWy Characters/Children (OGA-BY). Children ship
+# idle/walk/jump (NO attack — kids don't fight). We fetch idle+walk, then scripts/tile_child_idle.py tiles the
+# 1-frame idle to 3 + a static 7-frame attack so the sheets match our ANIMS (idle:3, walk:8, attack:7).
+fetchchild() { # $1=skin folder under Children/Body, $2=dest
+  mkdir -p "public/art/eliza/$2"
+  curl -sf --max-time 60 -o "public/art/eliza/$2/idle.png" "$(enc "$RAW/Children/Body/$1/idle.png")"
+  curl -sf --max-time 60 -o "public/art/eliza/$2/walk.png" "$(enc "$RAW/Children/Body/$1/walk.png")"
+}
+fetchchild "Ivory" child_body
+fetchchild "Tan"   child_body_tan
+fetchchild "Brown" child_body_brown
+mkdir -p public/art/eliza/child_head
+curl -sf --max-time 60 -o public/art/eliza/child_head/idle.png "$(enc "$RAW/Children/Head/Head 01 - Default/Ivory/idle.png")"
+curl -sf --max-time 60 -o public/art/eliza/child_head/walk.png "$(enc "$RAW/Children/Head/Head 01 - Default/Ivory/walk.png")"
+# then: python scripts/tile_child_idle.py   (tiles idle->3 + attack->7 for each child_* folder)
+# REPO GAP (evidence): Characters/Clothing/.../Torso has only shirt shapes (Longsleeve/V-neck/T-shirt/Polo/
+# Buttoned) + Torso 2 (Suspenders, Cardigan) + Accessories (Bowtie). NO robe/apron/tunic/dress. Characters/
+# Head Accessories has only Helms (6) + Eyewear + chainmail Hood — NO civilian hats (straw/cap). Role-apt
+# robes (priest) + aprons (smith) need a DIFFERENT LPC artist's expansion, not ElizaWy's revised base.
