@@ -665,6 +665,28 @@ const tile = (px) => Math.round(px / TILE);
   else ok('modifier-applied-in-active-scene: big-head (_applyBigHead + headScale) + gore (mods.gore()) are applied in the active scene — toggles actually do something');
 }
 
+// 25a2) QUEST-OPENER-IS-GIVER (dialog-routing item 3) — the NPC you TALK TO must speak first / own the box.
+//       A quest dialogue is started by talking to its GIVER (an NPC that lists it); its OPENING node must be
+//       spoken by that giver (or be narration), never by a different NPC. The bug: M2 was given by Tam but
+//       opened with MARA's line+portrait. Catches every such authoring mismatch.
+{
+  const givers = {};
+  for (const R of REGIONS) for (const n of (R.npcs || [])) {
+    for (const q of [n.quest, ...(n.quests || [])].filter(Boolean)) (givers[q] = givers[q] || []).push(n.name);
+  }
+  const bad = [];
+  for (const q of QUESTS) {
+    if (!q.dialogue || !q.dialogue.nodes) continue;
+    let node = q.dialogue.nodes[q.dialogue.start], guard = 0;
+    while (node && node.route && guard++ < 6) node = q.dialogue.nodes[node.route[node.route.length - 1].to];
+    const opener = node && node.speaker ? node.speaker : null;   // null = narration (allowed)
+    const gv = givers[q.id];
+    if (gv && gv.length && opener && !gv.includes(opener)) bad.push(`${q.id}: given by [${gv.join(', ')}] but opens with '${opener}' — the talked-to NPC must speak first`);
+  }
+  if (bad.length) fail('QUEST OPENER ≠ GIVER (the talked-to NPC must own the box):' + bad.map((v) => '\n      ' + v).join(''));
+  else ok(`quest-opener-is-giver: every quest's opening line is spoken by its giver (or narration) — the NPC you talk to speaks first`);
+}
+
 // 25b) NO-DUPLICATE-NAMED-NPC (town-feel item 2) — a named NPC must not appear TWICE in the same region
 //      (the "mini-Mara" class: a double-spawn renders two of the same person). Names are unique per region;
 //      different regions may reuse a name (a different person). Unnamed/generic NPCs are exempt.

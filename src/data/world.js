@@ -164,7 +164,7 @@ export const WORLD = {
 
   // THE CAST — in their districts; M1–M4 + hub side quests + the social system.
   npcs: [
-    { tx: 22, ty: 17, facing: 'down', name: 'Mara', speed: 70, expression: 'happy', parts: MARA, quests: ['GH1', 'M1'],
+    { tx: 22, ty: 17, facing: 'down', name: 'Mara', speed: 70, expression: 'happy', parts: MARA, quests: ['GH1', 'M1', 'M2'],
       done: ['Off you go then — and mind Old Edda, she\'s in a mood this morning.'],
       schedule: sched([['dawn', 20, 16, 'chat'], ['day', 22, 17, 'tend'], ['dusk', 24, 19, 'idle'], ['night', 24, 21, 'sleep']]) },
     { tx: 11, ty: 26, facing: 'down', name: 'Bram', tempo: 'ambler', speed: 70, expression: 'neutral', parts: BRAM, greeting: [
@@ -196,7 +196,7 @@ export const WORLD = {
         { q: 'Any work?', a: [`"Bring me iron ore and I'll see you right. Or buy a sword and stop pestering me."`] },
       ],
       schedule: sched([['dawn', 9, 23, 'idle'], ['day', 9, 23, 'hammer'], ['dusk', 11, 22, 'chat'], ['night', 8, 26, 'sleep']]) },
-    { tx: 25, ty: 18, facing: 'down', name: 'Tam', tempo: 'brisk', speed: 70, expression: 'happy', parts: TAM, quests: ['GH2', 'M2'],
+    { tx: 25, ty: 18, facing: 'down', name: 'Tam', tempo: 'brisk', speed: 70, expression: 'happy', parts: TAM, quests: ['GH2'],   // item 3: M2 moved to Mara (its giver) — M2 opens with Mara's line, so Mara must be who you talk to
       greeting: ['Race you to the old cave! ...if your ma ever lets you off chores.'],
       topics: [
         { q: 'The old cave', a: [`"Up the north hills! It's BOARDED but there's a gap. Bet there's treasure. ...Or a bear."`] },
