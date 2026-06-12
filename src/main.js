@@ -8,6 +8,7 @@ import { OptionsScene } from './scenes/OptionsScene.js';
 import { PrototypeScene } from './scenes/PrototypeScene.js';   // ⚠ THROWAWAY world-migration Phase-0 prototype (NOT in the boot flow; start via scene.start('Prototype'))
 import { AssetSpikeScene } from './scenes/AssetSpikeScene.js'; // ⚠ THROWAWAY asset-load spike (NOT in the boot flow; start via scene.start('AssetSpike'))
 import { OverworldScene } from './scenes/OverworldScene.js';   // world-migration Phase 1 foundation (additive; NOT in boot flow; start via scene.start('Overworld'))
+import { TitleScene } from './scenes/TitleScene.js';           // game-start shell: title → char-select → intro → Overworld
 
 // Native render resolution; the canvas is FIT-scaled up to the window with
 // crisp pixels. Wide framing (24x13.5 tiles of 32px) so a 64px hero reads as a
@@ -38,7 +39,7 @@ const config = {
     },
   },
   input: { gamepad: true },      // Xbox controller (primary device) — see src/constants/controls.js
-  scene: [BootScene, GreenhollowScene, MarshScene, PeaksScene, OptionsScene, PrototypeScene, AssetSpikeScene, OverworldScene],
+  scene: [BootScene, TitleScene, GreenhollowScene, MarshScene, PeaksScene, OptionsScene, PrototypeScene, AssetSpikeScene, OverworldScene],
 };
 
 const game = new Phaser.Game(config);

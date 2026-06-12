@@ -71,6 +71,6 @@ export class BootScene extends Phaser.Scene {
     // the green belt into Ashen Marsh with no wall, no console command. The discrete
     // GreenhollowScene/MarshScene/PeaksScene stay registered as a FALLBACK (reachable
     // via scene.start in dev); HUD/dialogue polish on the overworld is the next pass.
-    this.scene.start('Overworld');
+    this.scene.start('Title');   // game-start shell (title → char-select → intro → Overworld)
   }
 }
