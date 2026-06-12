@@ -55,6 +55,9 @@ import { generateDungeon, generateCave } from '../data/gen/index.js';
 const FACE_VEC = { up: { x: 0, y: -1 }, down: { x: 0, y: 1 }, left: { x: -1, y: 0 }, right: { x: 1, y: 0 } };
 
 const LOAD_RING = 2, UNLOAD_RING = 3;
+const WORLD_ZOOM = 1.25;          // the open-world camera zoom
+const INTERIOR_ZOOM_MAX = 4.2;    // cap when zooming IN to fill a small interior so NO void shows past the walls
+                                  // (RESIZE mode → camera = window size; the smallest 10x8 room needs ~4.0 at 1280w)
 const CUT_REGROW_MS = 180000;   // a cut bush regrows only after you LEAVE the area + ~3 min (anti-farm)
 const HERO = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_chestnut', 'shirt_blue', 'pants_black', 'shoes_brown'];
 const HERO_CHILD = ['child_body_blue', 'child_head', 'brows_chestnut', 'hair_chestnut'];   // the protagonist as a CHILD — clothed child body (L1: complete, matched, no adult parts)
@@ -135,7 +138,7 @@ export class OverworldScene extends Phaser.Scene {
     // = the old "moving funny" drift), so a dedicated uiCamera at zoom 1 renders the HUD and
     // the main camera ignores it (see _setupUICamera). _reconcileCameras keeps every STREAMED
     // world object off the uiCamera so nothing leaks over the HUD.
-    this.cameras.main.setZoom(1.25);   // closer world zoom; the HUD rides a separate zoom-1 uiCamera (see _setupUICamera)
+    this.cameras.main.setZoom(WORLD_ZOOM);   // closer world zoom; the HUD rides a separate zoom-1 uiCamera (see _setupUICamera)
     this.cameras.main.startFollow(this.player, true, 0.16, 0.16);
     this.cameras.main.setDeadzone(160, 110);
 
@@ -153,6 +156,14 @@ export class OverworldScene extends Phaser.Scene {
     this._maybeToggleRegion(true);
     this._setupUICamera();   // isolate the HUD onto its own zoom-1 camera so the world can zoom past 1.0
     this._reconcileCameras();
+    // SAVE-LOAD INTO AN INTERIOR — a save made inside a building loads the player at an interior position;
+    // flag _inInterior so the room isolates + apply the enclosed view + camera clamp (else other rooms leak
+    // into the black AND the camera shows void past the walls). The _bootChild path enters via _enterArea below.
+    if (!this._bootChild && this.region && this.region.interior) {
+      this._inInterior = true;
+      this._maybeToggleRegion(true);   // re-run so interior isolation restricts to this one room
+      this._setInteriorView(true);
+    }
     // CHILDHOOD OPENING (sys 2) — a fresh CHILD game WAKES inside Mara's cottage; the door steps out to GH.
     if (this._bootChild) this.time.delayedCall(120, () => {
       // L3 — enter the cottage FROM its building door tile, so stepping back OUT lands at the cottage exterior
@@ -429,6 +440,7 @@ export class OverworldScene extends Phaser.Scene {
         this._areaStack = []; this._inInterior = false;
         this.player.x = GREENHOLLOW.player.x; this.player.y = GREENHOLLOW.player.y; this.player.body.reset(this.player.x, this.player.y);
         this._unloadAllRegions(); this._maybeToggleRegion(true); this._restream(true);
+        this._applyInteriorCamera(false);   // the child may have been in a clamped interior — restore the open-world camera
         this.cameras.main.centerOn(this.player.x, this.player.y);
         if (this.saveGame) this.saveGame();   // persist the adult state immediately
         this.tweens.add({ targets: [seq.cover, seq.txt], alpha: 0, duration: 1000, delay: 200, onComplete: () => { seq.destroy(); this._timeSkipping = false; this._banner('You return to Greenhollow, grown. The town is not as you left it.', 3200); } });
@@ -556,6 +568,27 @@ export class OverworldScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor(on ? '#07060c' : '#243a2a');
     // hide the overworld chunk ground/props/decals so the interior reads enclosed (not grass + trees)
     for (const [, c] of this.chunks) { if (c.ground) c.ground.setVisible(!on); for (const s of c.props) if (s.active) s.setVisible(!on); for (const d of (c.decals || [])) if (d.active) d.setVisible(!on); }
+    // CAMERA CLAMP TO FOOTPRINT (systemic, every interior) — bound the camera to the interior's exact
+    // footprint and zoom IN so the room FILLS the viewport, so NO dark void shows past the walls at any
+    // position. A room smaller than the (zoomed) view is centred + locked automatically: Phaser centres the
+    // camera on bounds smaller than its viewport. The follow still pans within a larger room, clamping at the
+    // walls. Restore the open-world zoom + bounds on exit.
+    this._applyInteriorCamera(on);
+  }
+
+  // Clamp + zoom-to-fill the main camera for the ACTIVE interior (or restore the overworld). Reads the
+  // region's own bounds (interiorRegion declares `bounds` + `interior:true`), so it applies to ALL interiors.
+  _applyInteriorCamera(on) {
+    const cam = this.cameras.main, b = this.region && this.region.bounds;
+    if (on && this.region && this.region.interior && b) {
+      const vw = this.scale.width, vh = this.scale.height;
+      const zoom = Math.min(INTERIOR_ZOOM_MAX, Math.max(WORLD_ZOOM, vw / b.w, vh / b.h));
+      cam.setZoom(zoom);
+      cam.setBounds(b.x, b.y, b.w, b.h);
+    } else {
+      cam.setZoom(WORLD_ZOOM);
+      cam.setBounds(0, 0, WORLD_PX, WORLD_PX);
+    }
   }
 
   // CINDER KEEP — the GRAPPLE + SHARD_2 grant point (gating.js: Peaks GRANTS tool_grapple
