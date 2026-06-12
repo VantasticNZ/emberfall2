@@ -657,8 +657,12 @@ const tile = (px) => Math.round(px / TILE);
     if (!/headScale\(\)/.test(src)) offenders.push(`${f}: does not apply mods.headScale() (big-head won't work)`);
     if (!/_applyBigHead/.test(src)) offenders.push(`${f}: missing _applyBigHead (OptionsScene live-toggle no-ops)`);
   }
-  if (offenders.length) fail('BIG-HEAD APPLICATION MISSING:' + offenders.map((v) => '\n      ' + v).join(''));
-  else ok('modifier-applied-in-active-scene: OverworldScene + RegionScene both apply mods.headScale() + expose _applyBigHead (big-head works)');
+  // GORE must be CONSUMED in the active scene (it had ZERO call sites — a silent no-op). The active overworld
+  // must read mods.gore() somewhere (the blood effect), so the modifier actually does something.
+  const ow = readFileSync(join(ROOT, 'src/scenes/OverworldScene.js'), 'utf8');
+  if (!/\.gore\(\)/.test(ow)) offenders.push('src/scenes/OverworldScene.js: never reads mods.gore() (blood/gore modifier is a no-op)');
+  if (offenders.length) fail('MODIFIER APPLICATION MISSING:' + offenders.map((v) => '\n      ' + v).join(''));
+  else ok('modifier-applied-in-active-scene: big-head (_applyBigHead + headScale) + gore (mods.gore()) are applied in the active scene — toggles actually do something');
 }
 
 // 25b) NO-DUPLICATE-NAMED-NPC (town-feel item 2) — a named NPC must not appear TWICE in the same region

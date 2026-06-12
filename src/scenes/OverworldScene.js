@@ -868,6 +868,7 @@ export class OverworldScene extends Phaser.Scene {
     for (const r of out) {
       if (r.outcome === 'hit' || r.outcome === 'swarm') {
         this._sfx('sfx_hit', r.killed ? 0.85 : 0.7);
+        if (r.e && r.e.spr) this._bloodFx(r.e.spr.x, r.e.spr.y, r.killed);   // gore modifier (item 2)
         this._hitFreeze = Math.max(this._hitFreeze, r.killed ? COMBAT.KILL_FREEZE_FRAMES : COMBAT.HIT_FREEZE_FRAMES);
         this.cameras.main.shake(r.killed ? 150 : 110, r.killed ? COMBAT.SHAKE_KILL : COMBAT.SHAKE_HIT);
         if (r.killed && r.e._placeId) { const [cx, cy] = cidOf(r.e.spr.x, r.e.spr.y); this.save.recordKilled(cx, cy, r.e._placeId); }   // stays dead across reload/chunk-cycle
@@ -889,6 +890,7 @@ export class OverworldScene extends Phaser.Scene {
     if (r.outcome === 'parried') { this.pc.consumeParry(); const a = this.combat.nearest(this.player); if (a) this.combat.stagger(a); this._sfx('sfx_hit', 0.85); this._hitFreeze = COMBAT.HIT_FREEZE_FRAMES + 3; this.cameras.main.shake(160, COMBAT.SHAKE_HIT); return; }
     const blocked = r.outcome === 'blocked';
     this.inv.hp = Math.max(0, this.inv.hp - r.taken);
+    if (!blocked) this._bloodFx(this.player.x, this.player.y, this.inv.hp <= 0);   // the player bleeds too (gore modifier, item 2)
     this._sfx(blocked ? 'sfx_hit' : 'sfx_charge_impact', blocked ? 0.5 : 0.7);
     this._playerFlash = Math.round(COMBAT.FLASH_MS / 16); this._hitFreeze = COMBAT.HIT_FREEZE_FRAMES + (blocked ? 0 : 2);
     this.cameras.main.shake(blocked ? 110 : 200, blocked ? COMBAT.SHAKE_HIT : COMBAT.SHAKE_CHARGE);
@@ -977,6 +979,26 @@ export class OverworldScene extends Phaser.Scene {
   }
   // 2D ITEM-GET flourish (the tool/overhead-pickup FALLBACK — no rigged held layer): a glow + the
   // named item floats up above a point, scales up, fades. Pairs with a banner + a confirm sting.
+  // BLOOD & GORE modifier (item 2) — a real, NOTICEABLE blood effect, gated on mods.gore() (off → nothing,
+  // so the toggle reads as a clear difference). A persistent ground pool + a burst of droplets; a KILL bleeds
+  // far more (bigger pool + more, faster droplets). Was a no-op before: gore() existed but had ZERO call sites.
+  _bloodFx(x, y, killed) {
+    if (!this.mods || !this.mods.gore()) return;
+    const baseDepth = (this.player && this.player.depth) || 0;
+    // ground pool — lingers, then fades (the gory residue)
+    const pool = this.add.ellipse(x, y + 7, killed ? 32 : 17, killed ? 15 : 8, 0x6e0a0a, 0.85).setDepth(baseDepth - 60);
+    this.tweens.add({ targets: pool, alpha: 0, duration: killed ? 4200 : 2200, delay: killed ? 1800 : 700, onComplete: () => { try { pool.destroy(); } catch (_) {} } });
+    (this._regionObjs || (this._regionObjs = [])).push(pool);
+    // droplet spray
+    const cols = [0x8a0d0d, 0xb01818, 0x5a0606], n = killed ? 16 : 8;
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * Math.PI * 2, sp = 12 + Math.random() * (killed ? 44 : 24);
+      const d = this.add.circle(x, y, 1 + Math.random() * 2.4, cols[i % 3], 1).setDepth(baseDepth + 30);
+      this.tweens.add({ targets: d, x: x + Math.cos(a) * sp, y: y + Math.sin(a) * sp + 10, alpha: 0,
+        duration: 360 + Math.random() * 280, ease: 'Quad.out', onComplete: () => { try { d.destroy(); } catch (_) {} } });
+    }
+  }
+
   _itemGetFx(x, y, iconKey = 'ow_orb', tint = 0xffe66d) {
     const glow = this.add.image(x, y - 18, 'ow_orb').setTint(tint).setScale(0.6).setDepth(DEPTH.OVERLAY).setAlpha(0.9);
     const icon = this.cache.obj && this.textures.exists(iconKey) ? this.add.image(x, y - 18, iconKey).setScale(0.5).setDepth(DEPTH.OVERLAY + 1) : null;
