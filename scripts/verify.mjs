@@ -706,6 +706,33 @@ const tile = (px) => Math.round(px / TILE);
   else ok('modifier-applied-in-active-scene: big-head (_applyBigHead + headScale) + gore (mods.gore()) are applied in the active scene — toggles actually do something');
 }
 
+// L2 DIALOG-SPEAKER-PRESENT (GAME-LAWS L2) — no disembodied speakers. A dialog node's named speaker, IF it is
+//   a PLACED NPC (a real wandering NPC somewhere), must be placed in a region the quest's GIVER is also in —
+//   so the line fires only where that NPC is present. (The bug: Bram, placed at the GH forge, spoke in M1
+//   which plays in Mara's cottage.) Quest-ONLY narrative voices (names placed nowhere) are exempt — they live
+//   in their quest's context. Narration (empty speaker) is exempt.
+{
+  const npcRegions = {};   // name -> Set(region keys it is placed in)
+  const givers = {};       // quest id -> Set(region keys its giver NPCs are in)
+  for (const R of REGIONS) for (const n of (R.npcs || [])) {
+    if (n.name) (npcRegions[n.name] = npcRegions[n.name] || new Set()).add(R.key);
+    for (const q of [n.quest, ...(n.quests || [])].filter(Boolean)) (givers[q] = givers[q] || new Set()).add(R.key);
+  }
+  const bad = [];
+  for (const q of QUESTS) {
+    if (!q.dialogue || !q.dialogue.nodes) continue;
+    const gset = givers[q.id]; if (!gset || !gset.size) continue;   // no placed giver → not a walk-up dialog
+    for (const k of Object.keys(q.dialogue.nodes)) {
+      const sp = q.dialogue.nodes[k].speaker; if (!sp) continue;     // narration
+      const placed = npcRegions[sp]; if (!placed) continue;          // quest-only voice (placed nowhere) → exempt
+      const shares = [...placed].some((r) => gset.has(r));
+      if (!shares) bad.push(`${q.id}.${k}: '${sp}' speaks but is placed in [${[...placed].join(',')}], not where the quest plays [${[...gset].join(',')}]`);
+    }
+  }
+  if (bad.length) fail('L2 DISEMBODIED SPEAKER (not present where the dialog plays):' + bad.map((v) => '\n      ' + v).join(''));
+  else ok('dialog-speaker-present (L2): every placed-NPC dialog speaker shares a region with the quest giver — no disembodied speakers');
+}
+
 // 25a2) QUEST-OPENER-IS-GIVER (dialog-routing item 3) — the NPC you TALK TO must speak first / own the box.
 //       A quest dialogue is started by talking to its GIVER (an NPC that lists it); its OPENING node must be
 //       spoken by that giver (or be narration), never by a different NPC. The bug: M2 was given by Tam but

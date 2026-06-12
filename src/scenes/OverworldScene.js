@@ -149,6 +149,8 @@ export class OverworldScene extends Phaser.Scene {
       const ret = d ? { x: d.tx * TILE + TILE / 2, y: (d.ty + 1) * TILE + TILE / 2 } : null;   // the walkable yard tile below the door
       if (ret) { this.player.x = ret.x; this.player.y = ret.y; this.player.body.reset(ret.x, ret.y); }
       this._enterArea('mara_cottage', ret); this._objOn = true;
+      // L4 — the cottage door stays shut until you've spoken with Mara (M1 engaged: no longer just 'available').
+      this._exitBlock = { region: 'mara_cottage', msg: 'Mara is calling you — see what she wants first.', done: () => this.quests.status('M1') !== 'available' };
     });
     this.perf = () => ({ fps: Math.round(this.game.loop.actualFps), avgMs: +this._avg().toFixed(2), maxMs: +this._maxMs.toFixed(2), loaded: this.chunks.size, region: this.region ? this.region.key : null, npcs: this.npcLife.movers.length, saveMs: +this._lastSaveMs.toFixed(2), loadMs: +this._lastLoadMs.toFixed(2), pos: { x: this.player.x | 0, y: this.player.y | 0 }, gold: this.inv.gold });
   }
@@ -404,7 +406,7 @@ export class OverworldScene extends Phaser.Scene {
     if (this._dlg) this._closeDialogue();
     const W = this.scale.width, H = this.scale.height;
     const cover = this.add.rectangle(0, 0, W, H, 0x05040a, 1).setOrigin(0, 0).setScrollFactor(0).setDepth(DEPTH.OVERLAY + 50);
-    const txt = this.add.text(W / 2, H / 2, 'Ten winters gone.', { fontFamily: 'Georgia, serif', fontSize: '34px', color: '#d8c8a0' }).setOrigin(0.5).setScrollFactor(0).setDepth(DEPTH.OVERLAY + 51).setAlpha(0);
+    const txt = this.add.text(W / 2, H / 2, 'Ten winters gone.', { fontFamily: 'Georgia, serif', fontSize: '34px', color: '#d8c8a0', align: 'center', wordWrap: { width: Math.min(720, W - 120) } }).setOrigin(0.5).setScrollFactor(0).setDepth(DEPTH.OVERLAY + 51).setAlpha(0);   // L5: balanced + clamped
     this._registerUIPanel && this._registerUIPanel(cover); this._registerUIPanel && this._registerUIPanel(txt);
     Movement.stop(this.player);
     this.tweens.add({ targets: txt, alpha: 1, duration: 900 });
@@ -426,6 +428,11 @@ export class OverworldScene extends Phaser.Scene {
   // Reuses the proven streaming (interiors are REGIONS in a far corner) + SaveManager deltas, so a
   // looted interior chest stays looted, tools/quests/karma persist, and navGates validate interiors.
   _enterArea(to, returnPos = null) {
+    // L4 CRITICAL BEAT — a blocking step refuses the exit until it's done. The opening: the cottage door stays
+    // shut until you've spoken with Mara (M1 engaged). Diegetic banner; no transition.
+    if (to === 'back' && this._exitBlock && this.region && this.region.key === this._exitBlock.region && !this._exitBlock.done()) {
+      this._sfx('sfx_deny', 0.5); this._banner(this._exitBlock.msg, 2000); return;
+    }
     if (this._areaT) return; this._areaT = true;                     // debounce mid-transition
     if (to === '__gendungeon' || to === '__gencave') { to = this._generateAndInject(to === '__gencave' ? 'cave' : 'dungeon'); if (!to) { this._areaT = false; return; } }
     if (to === 'back') {
