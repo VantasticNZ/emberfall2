@@ -133,10 +133,42 @@ export const ASHEN_MARSH = {
       ...n, x: mx(n.tx), y: my(n.ty),
       schedule: (n.schedule || []).map((s) => ({ ...s, tx: s.tx + MARSH_OT.x, ty: s.ty + MARSH_OT.y })),
     })),
-    // MIREFEN townsfolk — INLINE in the streets (no enter-scene)
-    { name: 'Marsh-wife Bett', x: mx(6) + TILE / 2, y: my(12) + TILE / 2, facing: 'down', speed: 36, expression: 'neutral', parts: MARSH.haggaParts },
-    { name: 'Fisher Coll', x: mx(12) + TILE / 2, y: my(12) + TILE / 2, facing: 'down', speed: 36, expression: 'neutral', parts: MARSH.base },
-    { name: 'Reed-boy Tam', x: mx(7) + TILE / 2, y: my(18) + TILE / 2, facing: 'down', speed: 50, expression: 'happy', parts: MARSH.base },
+    // MIREFEN townsfolk — INLINE in the streets (no enter-scene). MARSH ROLE PALETTE (SPEC-NPCS §1):
+    // herb-wife (forage), fisher (net loop), mire-folk (slow stroll), a bog-trader (keeper) — NO guards
+    // (the bog is lawless). Schedules use ABSOLUTE world tiles (MARSH_OT + local) so NpcLife retargets them;
+    // topics weave the cast together (Yssa/Hagga/the black water). Built on the frozen NpcLife/dialog/shop.
+    { name: 'Marsh-wife Bett', x: mx(6) + TILE / 2, y: my(12) + TILE / 2, facing: 'down', speed: 40, expression: 'neutral', parts: MARSH.haggaParts,
+      greeting: ["Mind the black water, love — it looks like good ground right up till it isn't.", "Fenwort by the fringe, bog-cotton by the pools. I forage what the mire'll give."],
+      topics: [
+        { q: 'The marsh', a: [`"Folk call it Ashen now. Weren't always. Something soured the water long back — Elder Yssa knows more than she'll say."`] },
+        { q: 'Foraging', a: [`"Fenwort for a fever, bog-cotton for a bleed, sundew for a sour stomach. The mire heals near as much as it drowns."`] },
+        { q: 'Hagga', a: [`"The witch across the water? Folk fear her. I don't. She fled something — she didn't bring it."`] },
+      ],
+      schedule: [{ phase: 'dawn', tx: MARSH_OT.x + 5, ty: MARSH_OT.y + 11, do: 'tend' }, { phase: 'day', tx: MARSH_OT.x + 6, ty: MARSH_OT.y + 12, do: 'tend' }, { phase: 'dusk', tx: MARSH_OT.x + 8, ty: MARSH_OT.y + 14, do: 'chat' }, { phase: 'night', tx: MARSH_OT.x + 5, ty: MARSH_OT.y + 16, do: 'sleep' }] },
+    { name: 'Fisher Coll', x: mx(12) + TILE / 2, y: my(12) + TILE / 2, facing: 'down', speed: 40, expression: 'neutral', parts: MARSH.base,
+      greeting: ["*hauling a dripping net* Eels, mostly. And things that ain't eels. You learn not to look too close.", "Tide's no tide out here — the water just sulks and waits."],
+      topics: [
+        { q: 'The fishing', a: [`"Eel and bog-carp keep Mirefen fed. The net brings up odd things some nights — bones, mostly. Best thrown back."`] },
+        { q: 'The shrine', a: [`"The Sunken Shrine? Drowned-guardian country. I keep my nets this side of the black water and I keep my skin."`] },
+      ],
+      schedule: [{ phase: 'dawn', tx: MARSH_OT.x + 13, ty: MARSH_OT.y + 11, do: 'tend' }, { phase: 'day', tx: MARSH_OT.x + 12, ty: MARSH_OT.y + 12, do: 'tend' }, { phase: 'dusk', tx: MARSH_OT.x + 11, ty: MARSH_OT.y + 14, do: 'chat' }, { phase: 'night', tx: MARSH_OT.x + 13, ty: MARSH_OT.y + 16, do: 'sleep' }] },
+    { name: 'Reed-boy Tam', x: mx(7) + TILE / 2, y: my(18) + TILE / 2, facing: 'down', speed: 60, scale: 0.72, kid: true, protected: true, expression: 'happy', parts: MARSH.base,
+      greeting: ["Bet you can't skip a stone all the way to the witch's hut! ...Don't, though. Mum says don't.", "I caught a frog THIS big. It got away. It always gets away."] },
+    // MIRE-FOLK — a slow bog-stroller (the spec's 'mire-folk: slow stroll').
+    { name: 'Old Sedge', x: mx(11) + TILE / 2, y: my(16) + TILE / 2, facing: 'down', speed: 28, expression: 'neutral', parts: MARSH.base,
+      greeting: ["*moves like the bog itself — slow, in no hurry for anyone* ...Outsider. The mire don't like being hurried. Nor do I."],
+      topics: [
+        { q: 'Mirefen', a: [`"Stilts and mud and good neighbours. We keep to ourselves and the bog keeps to itself, mostly. Mostly."`] },
+        { q: 'The Lost Cemetery', a: [`"North, where the ground gives up pretending. They buried the drowned there. Don't go at night. ...Don't go."`] },
+      ],
+      schedule: [{ phase: 'dawn', tx: MARSH_OT.x + 10, ty: MARSH_OT.y + 16, do: 'idle' }, { phase: 'day', tx: MARSH_OT.x + 12, ty: MARSH_OT.y + 17, do: 'chat' }, { phase: 'dusk', tx: MARSH_OT.x + 11, ty: MARSH_OT.y + 18, do: 'idle' }, { phase: 'night', tx: MARSH_OT.x + 10, ty: MARSH_OT.y + 19, do: 'sleep' }] },
+    // BOG-TRADER — the keeper (the frozen shop system; mirefen_trader stock). Posted at the square (no schedule).
+    { name: 'Trader Pell', x: mx(8) + TILE / 2, y: my(11) + TILE / 2, facing: 'down', speed: 0, expression: 'neutral', parts: MARSH.haggaParts, shop: 'mirefen_trader',
+      greeting: ['"Oil for your lantern, a draught for your hurts, stew to line your belly. The bog gives little; I sell the rest."'],
+      topics: [
+        { q: 'Your wares', a: [`"Lantern oil — you'll WANT that, deeper in. Bog-iron, fresh eel, marsh stew. And a blessed charm, if your heart's clean enough to carry it."`] },
+        { q: 'The road east', a: [`"Back to Greenhollow? Keep to the dry ridge through the West Belt. The bog drinks the careless, friend."`] },
+      ] },
   ],
   chests: [
     // the SEE-IT-BEFORE reward — a reed-islet strongbox across the east pool (dash-reach later)
