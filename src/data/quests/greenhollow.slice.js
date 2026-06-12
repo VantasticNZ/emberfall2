@@ -164,4 +164,74 @@ export const GREENHOLLOW_SLICE = [
         options: [ { label: '(Leave her to rest. The kids can breathe again.)', choice: { quest: 'GH2', id: 'healed' }, end: true } ] },
     } },
   },
+
+  // ---------------------------------------------------------------------------
+  // GH3 — Teeth in the Orchard (the cut ability + FIRST COMBAT + a lore hook).
+  // The billhook GRANTS the cut flag (tool_billhook); the den is the slice's
+  // first fight (the live spawned encounter lands with THE-SLICE step 5, which
+  // this quest scaffolds); the sealed letter seeds the Marsh thread.
+  // ---------------------------------------------------------------------------
+  {
+    id: 'GH3', title: 'Teeth in the Orchard', region: 'Greenhollow', act: 2,
+    type: 'main', tone: 'warm-then-danger', perm: true,
+    unlocks: ['GH4'],
+    reward: { gold: 12 },
+    steps: [
+      { id: 'report', desc: "Something's denned in the orchard's bramble-choked back rows." },
+      { id: 'cut', desc: 'Get a billhook and cut through the bramble-choke.' },
+      { id: 'den', desc: 'Clear the den.' },
+      { id: 'letter', desc: 'Search the den.' },
+      { id: 'reportback', desc: "Tell Bracken the orchard's safe." },
+    ],
+    choices: [
+      { id: 'mercy', label: 'Spare the litter cowering at the back', impact: 'good',
+        karma: { morality: 10 }, deed: 'mercy_shown',
+        note: 'You drive the den off but spare the young — a kindness even to teeth.' },
+      { id: 'cull', label: 'Put every last one of them down', impact: 'neutral',
+        karma: {}, deed: 'orchard_cleared',
+        note: 'The orchard is safe. Thorough work.' },
+      { id: 'letter_keep', label: 'Pocket the sealed letter', impact: 'neutral',
+        karma: {}, deed: 'orchard_letter',
+        note: "A water-stained letter, sealed with a mark you don't know — addressed west. (Marsh thread.)" },
+    ],
+    dialogue: { start: 'report', nodes: {
+      report: { speaker: 'Bracken', text:
+        "Forty years I've kept this orchard and I've never— *teeth*, in the BARK. Ewes won't go near " +
+        "the back rows, and they're thorn-choked solid; I can't get a billhook's swing in there without " +
+        "losing a hand. ...But a young pair of hands, now.",
+        options: [ { label: "Give me the billhook. I'll go in.", to: 'billhook' } ] },
+      billhook: { speaker: 'Bracken', text:
+        "*hefts a worn billhook off the wall and presses it on you* Mind the edge — she clears bramble " +
+        "AND worse. Cut your way to the den. And... come back, eh? I've buried better than you for less.",
+        options: [ { label: '(Take the billhook and cut into the brambles.)', deed: 'tool_billhook', to: 'cut' } ] },
+      cut: { speaker: '', text:
+        "The billhook bites through the bramble-choke in long, satisfying sweeps — the first thing you've " +
+        "had that says CUT and means it. The thorns part. Beyond them, a hollow of torn earth and bone, " +
+        "and low in the dark, the gleam of small eyes. Several of them. They come at you.",
+        options: [ { label: '(Fight.)', to: 'den' } ] },
+      // FIRST COMBAT — the den. (The LIVE spawned fight lands with step-5 combat-feel; the quest scaffolds
+      // the encounter + the mercy fork. For now the beat resolves the fight + offers the moral choice.)
+      den: { speaker: '', text:
+        "Quick, snapping things — orchard-teeth, all hunger and no sense. You learn their rhythm: the " +
+        "tell before they lunge, the beat to strike, the roll when they swarm. One by one they break and " +
+        "scatter — until only a litter of pups is left, cornered and shaking at the back of the den.",
+        options: [
+          { label: '(Let the pups go — they\'re no threat now.)', choice: { quest: 'GH3', id: 'mercy' }, to: 'letter' },
+          { label: '(Finish it. All of them.)', choice: { quest: 'GH3', id: 'cull' }, to: 'letter' },
+        ] },
+      letter: { speaker: '', text:
+        "Half-buried in the den's leaf-litter: a traveller's satchel, long abandoned. Inside, wrapped in " +
+        "oilcloth, a LETTER — water-stained, still sealed, the wax pressed with a mark you've never seen. " +
+        "On the front, in a careful hand: a name, and one word — WEST.",
+        options: [
+          { label: '(Pocket the sealed letter.)', choice: { quest: 'GH3', id: 'letter_keep' }, to: 'reportback' },
+          { label: "(Leave it — give it to Bracken to pass on.)", to: 'reportback' },
+        ] },
+      reportback: { speaker: 'Bracken', text:
+        "*looks you over for missing pieces, finds none* ...You went IN there. And walked back out. " +
+        "*lets out a breath he's held forty years* Good as gold, you. The orchard's yours to walk, any " +
+        "hour. ...And whatever you found in that pit — that's a worry for another day.",
+        options: [ { label: "(Head back to the village.)", end: true } ] },
+    } },
+  },
 ];

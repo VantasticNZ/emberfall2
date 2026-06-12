@@ -213,6 +213,14 @@ export const WORLD = {
         good: ["The kids tell everyone how you came when no one answered. ...Bless you, love. I'll not forget it."],
         neutral: ["*a thin, tired smile* I'm on the mend, thanks to that fenwort. The young ones were so frightened."],
         bad: ["...You're the one who put my door through, they say. A sick old woman's door. Mind how you go."] } },
+    // BRACKEN — the orchard-keeper (GH3 "Teeth in the Orchard"). Weathered, proud of his trees.
+    { tx: 40, ty: 28, facing: 'down', name: 'Bracken', tempo: 'ambler', speed: 64, expression: 'neutral', parts: PHIL, quest: 'GH3',
+      greeting: ['Forty years I\'ve kept this orchard. Never seen the like of what\'s in the back rows now.'],
+      greetByKarma: {
+        good: ["The orchard's yours to walk any time — you earned it, going in there. Take an apple, go on."],
+        neutral: ['Quiet in the back rows now, thanks to you. Take an apple if you\'re passing.'],
+        bad: ['*keeps the billhook where he can reach it* ...The orchard\'s cleared. We\'re square. Move along.'] },
+      schedule: sched([['dawn', 40, 28, 'tend'], ['day', 40, 28, 'tend'], ['dusk', 42, 30, 'idle'], ['night', 42, 31, 'sleep']]) },
     { tx: 30, ty: 18, facing: 'up', name: 'Fatley', tempo: 'dawdler', speed: 70, expression: 'neutral', parts: FATLEY, quest: 'SG1',
       greeting: ['*hic* Oi. You. ...nah, later. Me back\'s gone.'],
       schedule: sched([['dawn', 30, 18, 'idle'], ['day', 30, 18, 'chat'], ['dusk', 30, 18, 'chat'], ['night', 29, 18, 'idle']]) },   // the drunk never leaves the tavern
