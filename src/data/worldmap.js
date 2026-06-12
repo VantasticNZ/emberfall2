@@ -939,6 +939,7 @@ export const GH_FORGE = interiorRegion({
   furniture: [
     { tx: 2, ty: 1, key: 'prop_table', solid: true, scale: 0.7 }, { tx: 9, ty: 2, key: 'prop_shelf', solid: true, scale: 0.7 }, { tx: 4, ty: 3, key: 'prop_anvil', solid: true, scale: 1.3 },
     { tx: 10, ty: 4, key: 'prop_barrel', solid: true }, { tx: 2, ty: 5, key: 'prop_barrel', solid: true, scale: 0.9 },
+    { tx: 8, ty: 2, key: 'prop_crate', solid: true, scale: 0.85 }, { tx: 3, ty: 5, key: 'prop_crate', solid: true, scale: 0.9 },   // stock: a goods cluster (ironmongery) so the forge reads stocked
   ],
   npcs: [{ tx: 6, ty: 2, facing: 'down', name: 'Smith', speed: 0, expression: 'neutral', parts: KEEP_SMITH, shop: 'hodge_forge', greeting: ['The smith wipes soot from his hands. "Steel is honest work. What do you need?"'] }],
   chests: [{ tx: 9, ty: 5, id: 'gh_forge_chest', gold: 25 }],
@@ -949,6 +950,7 @@ export const GH_STORE = interiorRegion({
   furniture: [
     { tx: 2, ty: 2, key: 'prop_shelf', solid: true, scale: 0.7 }, { tx: 3, ty: 2, key: 'prop_shelf', solid: true, scale: 0.7 }, { tx: 9, ty: 2, key: 'prop_shelf', solid: true, scale: 0.7 },
     { tx: 5, ty: 4, key: 'prop_table', solid: true, scale: 0.8 }, { tx: 10, ty: 4, key: 'prop_barrel', solid: true }, { tx: 2, ty: 5, key: 'prop_crate', solid: true },
+    { tx: 8, ty: 2, key: 'prop_crate', solid: true, scale: 0.85 }, { tx: 3, ty: 5, key: 'prop_barrel', solid: true, scale: 0.9 },   // stock: sacks/goods so Pem's store reads stocked, not bare
   ],
   npcs: [{ tx: 6, ty: 3, facing: 'down', name: 'Shopkeeper', speed: 0, expression: 'happy', parts: KEEP_OLD, shop: 'pem_store', greeting: ['"Mind the shelves — coin first, then the goods."'] }],
   chests: [{ tx: 9, ty: 5, id: 'gh_store_chest', gold: 20 }],
