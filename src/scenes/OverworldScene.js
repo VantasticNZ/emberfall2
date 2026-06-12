@@ -142,7 +142,14 @@ export class OverworldScene extends Phaser.Scene {
     this._setupUICamera();   // isolate the HUD onto its own zoom-1 camera so the world can zoom past 1.0
     this._reconcileCameras();
     // CHILDHOOD OPENING (sys 2) — a fresh CHILD game WAKES inside Mara's cottage; the door steps out to GH.
-    if (this._bootChild) this.time.delayedCall(120, () => { this._enterArea('mara_cottage'); this._objOn = true; });
+    if (this._bootChild) this.time.delayedCall(120, () => {
+      // L3 — enter the cottage FROM its building door tile, so stepping back OUT lands at the cottage exterior
+      // (not the boot spawn). The door system carved the threshold; stand the return there.
+      const d = (this._buildingDoors || []).find((x) => x.to === 'mara_cottage');
+      const ret = d ? { x: d.tx * TILE + TILE / 2, y: (d.ty + 1) * TILE + TILE / 2 } : null;   // the walkable yard tile below the door
+      if (ret) { this.player.x = ret.x; this.player.y = ret.y; this.player.body.reset(ret.x, ret.y); }
+      this._enterArea('mara_cottage', ret); this._objOn = true;
+    });
     this.perf = () => ({ fps: Math.round(this.game.loop.actualFps), avgMs: +this._avg().toFixed(2), maxMs: +this._maxMs.toFixed(2), loaded: this.chunks.size, region: this.region ? this.region.key : null, npcs: this.npcLife.movers.length, saveMs: +this._lastSaveMs.toFixed(2), loadMs: +this._lastLoadMs.toFixed(2), pos: { x: this.player.x | 0, y: this.player.y | 0 }, gold: this.inv.gold });
   }
 

@@ -118,7 +118,7 @@ export const WORLD = {
     ...hedge(35, 31, 3),         // homes ↔ farm margin (a low planting break, SE)
 
     // ---- the HOMES district (SE), cottages fronting the curved lane, BACKING onto fenced yards ----
-    { key: 'prop_house_b', tx: 34, ty: 24, solid: true, door: { to: 'gh_home1', state: 'closed', owner: 'the cottager' } },   // cottage — CLOSED (knock / try-handle, uninvited = morality hit)
+    { key: 'prop_house_b', tx: 34, ty: 24, solid: true, door: { to: 'mara_cottage', state: 'open', owner: 'Mara' } },   // THE FAMILY COTTAGE (childhood home) — the child wakes inside; the door is the cottage exterior (L3)
     { key: 'prop_house_b', tx: 41, ty: 28, solid: true, tint: 0xb8c8e0, door: { to: 'gh_home2', state: 'locked', owner: 'the cottager' } },   // cottage — LOCKED (knock / break-down = bigger hit + alarm)
     { key: 'prop_house_b', tx: 46, ty: 23, solid: true, tint: 0xc8b890 },       // cottage (tan)
     ...fenceRun(28, 23, 3), ...fenceRun(49, 22, 3),                              // back-yard fences — relocated CLEAR of the cottage doors (were straddling gh_home1 + house_v5 entrances → part-walkthrough)
