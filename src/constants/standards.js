@@ -71,6 +71,12 @@ export const NPC_LIFE = Object.freeze({
   TARGET_JITTER_PX: 12,  // seek a slightly different point near the target tile (paths differ)
   TURN_COOLDOWN_S: 0.45, // min time between facing changes (eased turn; no synced pivots)
   CHORE_VAR: 0.45,       // per-NPC ± on chore/idle loop periods (animations not in phase)
+  // MOTION BUDGET (a plaza that reads ALIVE-but-CALM, not a field of statues nor a swarm):
+  WANDER_RADIUS_PX: 72,  // a free (idle) NPC takes short PURPOSEFUL hops within this of its post
+  WANDER_PAUSE_MIN_S: 1.8,// after a hop it pauses (idles) for [min,max]s before the next — staggered per NPC
+  WANDER_PAUSE_MAX_S: 4.6,
+  MAX_IDLE_FRACTION: 0.5, // at most this fraction of FREE NPCs may stand idle at once (the rest stroll)
+  IDLE_GLANCE_FRAMES: 300,// base interval between idle facing-glances (raised: fewer twitchy direction-flips)
 });
 
 // GUARD HEARING — a noisy crime (a forced door) RADIATES noise from the event; every guard whose post is

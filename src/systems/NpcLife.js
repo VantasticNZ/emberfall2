@@ -38,6 +38,8 @@ function mulberry32(a) {
 }
 
 export class NpcLife {
+  // chores that keep an NPC AT its post (they don't wander + don't count toward the idle cap).
+  static POSTED = new Set(['sweep', 'tend', 'chat', 'hammer', 'chop', 'till', 'sleep']);
   constructor(scene) { this.scene = scene; this.movers = []; this._phase = null; }
 
   /** Register a scheduled NPC. `tempo` is an optional personality trait (data). */
@@ -50,10 +52,12 @@ export class NpcLife {
     this.movers.push({
       npc, schedule, rng, tt, target: null, act: 'idle', stuck: 0,
       delay: 0, turnLock: 0,
+      post: { x: npc.x, y: npc.y },                           // the anchor a free NPC wanders AROUND (updated on phase retarget)
+      wandering: false, wanderUntil: rng() * NPC_LIFE.WANDER_PAUSE_MAX_S,   // staggered first hop
       t: (rng() * 240) | 0,                                   // chore-loop start offset
       ham: Math.round(150 * (1 + (rng() * 2 - 1) * NPC_LIFE.CHORE_VAR)),   // per-NPC chore periods
       gla: Math.round(110 * (1 + (rng() * 2 - 1) * NPC_LIFE.CHORE_VAR)),
-      idl: Math.round(180 * (1 + (rng() * 2 - 1) * NPC_LIFE.CHORE_VAR)),
+      idl: Math.round(NPC_LIFE.IDLE_GLANCE_FRAMES * (1 + (rng() * 2 - 1) * NPC_LIFE.CHORE_VAR)),
     });
   }
   has() { return this.movers.length > 0; }
@@ -78,6 +82,8 @@ export class NpcLife {
       if (!e) continue;                                        // partial schedule: keep previous
       const j = NPC_LIFE.TARGET_JITTER_PX;
       m.target = { x: e.tx * TILE + TILE / 2 + (m.rng() * 2 - 1) * j, y: e.ty * TILE + TILE / 2 + (m.rng() * 2 - 1) * j };
+      m.post = { x: m.target.x, y: m.target.y };               // wander around the new phase post, not the spawn
+      m.wandering = false;
       m.act = e.do || 'idle';
       // STAGGER: fan out departures so nobody marches in unison.
       m.delay = (NPC_LIFE.STAGGER_MIN_S + m.rng() * (NPC_LIFE.STAGGER_MAX_S - NPC_LIFE.STAGGER_MIN_S)) * m.tt.delay;
@@ -85,9 +91,11 @@ export class NpcLife {
   }
 
   update(dt, paused) {
+    if (paused) { for (const m of this.movers) Movement.stop(m.npc); return; }   // dialogue — freeze the crowd
+    this._clock = (this._clock || 0) + dt;
+    const now = this._clock;
     for (const m of this.movers) {
       const npc = m.npc;
-      if (paused) { Movement.stop(npc); continue; }            // dialogue — freeze
       // EVENT REACTION (summon): an investigate target overrides the chore/schedule until reached.
       if (m.investigate) {
         const iv = m.investigate, idx = iv.x - npc.x, idy = iv.y - npc.y;
@@ -95,11 +103,41 @@ export class NpcLife {
         this._seek(m, iv.x, iv.y, dt); continue;
       }
       if (m.delay > 0) { m.delay -= dt; this._activity(m); continue; }   // not departed yet — keep puttering
-      if (!m.target) { this._activity(m); continue; }
-      const dist = Math.hypot(m.target.x - npc.x, m.target.y - npc.y);
-      if (dist <= 12) { this._activity(m); m.stuck = 0; continue; }       // arrived -> chore
-      this._seek(m, m.target.x, m.target.y, dt);
+      // WALKING to a target (a schedule post OR a wander hop)?
+      if (m.target) {
+        if (Math.hypot(m.target.x - npc.x, m.target.y - npc.y) > 12) { this._seek(m, m.target.x, m.target.y, dt); continue; }
+        m.target = null; m.stuck = 0;                          // arrived
+        if (m.wandering) { m.wandering = false; m.wanderUntil = now + this._wanderPause(m); }   // finished a hop → pause here
+      }
+      // No target: FREE (idle) NPCs take short wander hops around their post; posted/chore NPCs do their chore.
+      if (this._isFree(m) && now >= (m.wanderUntil || 0)) { this._startWander(m); this._seek(m, m.target.x, m.target.y, dt); continue; }
+      this._activity(m);
     }
+    this._enforceIdleCap(now);
+  }
+
+  // MOTION BUDGET — a "free" NPC is an idle stroller (not a guard, not mid-chore); these wander + count to the cap.
+  _isFree(m) {
+    if (m.npc.getData && m.npc.getData('role') === 'guard') return false;   // guards hold / patrol their post
+    return !NpcLife.POSTED.has(m.act);                          // idle/default = free; sweep/hammer/etc. stay put
+  }
+  _wanderPause(m) {
+    const M = NPC_LIFE; return (M.WANDER_PAUSE_MIN_S + m.rng() * (M.WANDER_PAUSE_MAX_S - M.WANDER_PAUSE_MIN_S)) * m.tt.pause;
+  }
+  _startWander(m) {
+    const r = NPC_LIFE.WANDER_RADIUS_PX, a = m.rng() * Math.PI * 2, rad = (0.4 + 0.6 * m.rng()) * r;
+    m.target = { x: m.post.x + Math.cos(a) * rad, y: m.post.y + Math.sin(a) * rad };
+    m.wandering = true;
+  }
+  // CAP: at most MAX_IDLE_FRACTION of free NPCs may stand idle at once — nudge the longest-idle ones to stroll.
+  _enforceIdleCap(now) {
+    const free = this.movers.filter((m) => m.npc.active && this._isFree(m));
+    if (free.length < 3) return;                               // tiny crowds need no cap
+    const idle = free.filter((m) => !m.target);
+    const maxIdle = Math.floor(free.length * NPC_LIFE.MAX_IDLE_FRACTION);
+    if (idle.length <= maxIdle) return;
+    idle.sort((a, b) => (a.wanderUntil || 0) - (b.wanderUntil || 0));   // the ones paused longest go first
+    for (let i = 0, need = idle.length - maxIdle; i < need; i++) idle[i].wanderUntil = now;   // eligible to hop next frame
   }
 
   // SEEK toward (tx,ty) with per-NPC speed + EASED facing (turn only after a cooldown, so pivots desync).
