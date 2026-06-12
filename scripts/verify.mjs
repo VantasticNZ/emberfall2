@@ -721,6 +721,33 @@ const tile = (px) => Math.round(px / TILE);
   else ok(`shop-stock-non-empty: all ${SHOPS.length} shops + ${keepers} keeper(s) offer buyable items on a fresh save (no empty buy menu)`);
 }
 
+// 29) NO-INLINE-INTERACTION-LITERALS — every interaction distance/window/offset must be a NAMED constant in
+//     standards.js (the INTERACTION-STANDARDS index), never a bare literal in interaction code. The pure
+//     decision files (Interaction.js, doorTrigger.js) must contain NO magic numeric literals; the specific
+//     migrated literals must not reappear in the scene's interaction paths; standards must define the blocks.
+{
+  const iviol = [];
+  const stripComments = (src) => src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '');
+  // (a) the PURE interaction-decision files carry no bare magic literals (only 0/1/2 structural + named consts)
+  for (const f of ['src/systems/Interaction.js', 'src/systems/doorTrigger.js']) {
+    const code = stripComments(readFileSync(join(ROOT, f), 'utf8'));
+    const lits = [...code.matchAll(/(?<![\w.])(\d+\.\d+|\d{2,})(?![\w.])/g)].map((m) => m[1]);
+    const bad = lits.filter((n) => !['0', '1', '2'].includes(n));   // 0/1/2 are structural (div-guard, TILE/2, axis vecs)
+    if (bad.length) iviol.push(`${f} has bare numeric literal(s) ${[...new Set(bad)].join(', ')} — move to a NAMED standards.js constant`);
+  }
+  // (b) the migrated interaction literals must NOT reappear in the scene's interaction paths
+  const scene = readFileSync(join(ROOT, 'src/scenes/OverworldScene.js'), 'utf8');
+  for (const [pat, name] of [[/delayedCall\(\s*180\b/, 'DOOR.AREA_DEBOUNCE_MS'], [/delayedCall\(\s*440\b/, 'DOOR.CHOICE_ENTER_REVEAL_MS'], [/_phaseMs\s*\|\|\s*6000/, 'REPAIR.PHASE_MS_FALLBACK']])
+    if (pat.test(scene)) iviol.push(`OverworldScene.js uses a bare interaction literal where ${name} should be used`);
+  // (c) standards defines the INTERACTION + DOOR blocks with the documented keys + the source index exists
+  const std = readFileSync(join(ROOT, 'src/constants/standards.js'), 'utf8');
+  for (const key of ['NO_FACING_FRAC', 'FACING_AWAY_DOT', 'ENTRY_FRAME_BUDGET', 'AREA_DEBOUNCE_MS', 'CHOICE_ENTER_REVEAL_MS'])
+    if (!std.includes(key)) iviol.push(`standards.js is missing the interaction constant ${key}`);
+  if (!/INTERACTION-STANDARDS/.test(std)) iviol.push('standards.js is missing the ★ INTERACTION-STANDARDS index (name/value/source)');
+  if (iviol.length) fail('NO-INLINE-INTERACTION-LITERALS:' + iviol.map((v) => '\n      ' + v).join(''));
+  else ok('no-inline-interaction-literals: interaction code uses only NAMED standards.js constants (INTERACTION/DOOR/GUARD/REPAIR) — every distance/window/offset has a source-tagged constant');
+}
+
 // --- summary ------------------------------------------------------------------
 if (fails.length) {
   console.error('\nVERIFY FAILED ✗\n' + fails.map((f) => '  ✗ ' + f).join('\n') + '\n');

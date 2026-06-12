@@ -4,12 +4,58 @@
 // verify.mjs lints for bare literals that bypass these (best-effort).
 // =============================================================================
 
+// =============================================================================
+// ★ INTERACTION-STANDARDS — every interaction distance / window / offset is a
+// NAMED, MEASURED constant here, with its SOURCE recorded. No interaction code
+// may use a bare literal (verify gate `no-inline-interaction-literals` lints it).
+// Documented in docs/QUALITY-BIBLE.md (Interaction Standards). SOURCE legend:
+//   [MEASURED]   — read off the artwork / a measured runtime value
+//   [DERIVED]    — computed from TILE / a frame budget / a geometric identity
+//   [PLAY-JUDGED]— Van play-judged the feel (owner: Van)
+//   [GENRE-REF]  — matched to a genre reference (Fable/Zelda/Stardew)
+//   [TUNE]       — a sane default, NOT yet play-judged → owner: Van, flagged TUNE
+//
+//  CONSTANT                          VALUE   SOURCE        WHAT
+//  INTERACTION_RADIUS                40px    [DERIVED]     talk/interact reach (~1.25×TILE, one person-width)
+//  INTERACTION.NO_FACING_FRAC        0.6     [PLAY-JUDGED] within 60% of reach, facing is ignored (walk-up is rock-solid)
+//  INTERACTION.FACING_AWAY_DOT       -0.4    [DERIVED]     reject a target only if facing >~113° away (cos≈-0.4)
+//  INTERACTION.ENTRY_FRAME_BUDGET    7       [MEASURED]    threshold→interior transport (synchronous; measured)
+//  DOOR.AREA_DEBOUNCE_MS             180     [TUNE]        re-trigger lock-out after an area transition
+//  DOOR.CHOICE_ENTER_REVEAL_MS       440     [PLAY-JUDGED] after CHOOSING to enter a shut door, let it visibly open
+//  DOOR facing tolerance             ±45°    [DERIVED]     the doorway is cardinal (4-way) — face within 45° of it
+//  DOOR feet-line offset             ~1.3 t  [MEASURED]    the painted doorway sits ~1.3 tiles ABOVE the walkable
+//                                                          threshold tile (per-art; NOT a constant — the threshold IS
+//                                                          the feet line below the door, measured from each doorway rect)
+//  GUARD_HEARING.FORCE_DOOR_PX       430px   [TUNE]        forced-door hearing radius (×breakStrength)
+//  GUARD.NOTICE_RANGE_PX             150px   [TUNE]        a fined player this close makes a guard start over
+//  GUARD.WARN_RANGE_PX               96px    [TUNE]        guard halts here + shouts "Stop right there!"
+//  GUARD.COMPLY_MS                   2000ms  [PLAY-JUDGED] stand-still window = comply
+//  GUARD.FLEE_DIST_PX                70px    [TUNE]        move this far from the warn spot = flee
+//  GUARD.RECONFRONT_COOLDOWN_MS      6000ms  [TUNE]        after a flee, the guard waits this long
+//  REPAIR.WORKER_RANGE_PX            700px   [DERIVED]     show the joiner if within ~a screen of the door
+//  REPAIR.HAMMER_MS / LINE_MS        820/3400 [TUNE]       hammer-swing cadence / occasional mutter
+// =============================================================================
+
 // The canonical talk/interact reach, in px. ONE value for the whole game so
 // "walk up + press E" feels identical everywhere. Per-entity overrides are
 // allowed ONLY with a stated reason, and expressed as a DERIVED value
 // (e.g. `INTERACTION_RADIUS * 1.5 /* big shrine, reachable from afar */`),
 // never a bare magic number — so the canonical value still flows through.
-export const INTERACTION_RADIUS = 40;   // ~one person-width from the entity: stand beside someone to talk, not call across the lawn
+export const INTERACTION_RADIUS = 40;   // [DERIVED] ~1.25×TILE — one person-width from the entity: stand beside someone, not call across the lawn
+
+// INTERACTION FACING + ENTRY — the "walk up + press E" forgiveness model + the door-entry frame budget.
+export const INTERACTION = Object.freeze({
+  NO_FACING_FRAC: 0.6,      // [PLAY-JUDGED] within 60% of INTERACTION_RADIUS, facing is NOT checked (close = always reachable)
+  FACING_AWAY_DOT: -0.4,    // [DERIVED] further out, reject only if dot(toTarget, facing) < this — i.e. facing >~113° away (cos⁻¹(-0.4))
+  ENTRY_FRAME_BUDGET: 7,    // [MEASURED] frames from stepping on a threshold to the interior (synchronous transport + 1 stream); a perf budget, not a delay
+});
+
+// DOOR ENTRY timings (the threshold walk-in path). Geometry (threshold tile, the ~1.3-tile feet-line offset,
+// cardinal facing) is DERIVED from each doorway's MEASURED art rect in buildingDoorTrigger — see the INDEX.
+export const DOOR = Object.freeze({
+  AREA_DEBOUNCE_MS: 180,         // [TUNE] after an area transition, ignore re-triggers for this long (anti double-fire)
+  CHOICE_ENTER_REVEAL_MS: 440,   // [PLAY-JUDGED] after you CHOOSE to enter a shut door, let it visibly open before the cut
+});
 
 // COMBAT tuning (Stage 2a — the first fight). One place to tune feel; the scene
 // reads ONLY these, never bare numbers. (Player max HP also comes from the
@@ -83,8 +129,7 @@ export const NPC_LIFE = Object.freeze({
 // within the hearing radius walks to investigate and confronts THERE (not only if it later wanders past the
 // player). Radius (px) = loudness × toughness, so a tougher door (more force to break) is heard further.
 export const GUARD_HEARING = Object.freeze({
-  FORCE_DOOR_PX: 430,     // a forced door's base hearing radius (covers most of a settlement); ×breakStrength
-  ARRIVE_CONFRONT_PX: 130, // on arrival at the event, confront the player if they're still within this range
+  FORCE_DOOR_PX: 430,     // [TUNE] a forced door's base hearing radius (covers most of a settlement); ×breakStrength — Van play-judge
 });
 
 // GUARD CONFRONT LADDER (Fable-style) — a guard who HEARD a crime (or notices a fined player) WALKS from
@@ -92,11 +137,11 @@ export const GUARD_HEARING = Object.freeze({
 // the fine (pay / can't-pay); flee and the confrontation LAPSES (fine stays owed, re-confront on proximity).
 // Chase / knock-out / lock-up are the DEFERRED escalation (step 5+). NOT a teleport — the guard is visibly en route.
 export const GUARD = Object.freeze({
-  NOTICE_RANGE_PX: 150,   // a fined player THIS close to a guard makes the guard start walking over
-  WARN_RANGE_PX: 96,      // the guard stops here, faces the player, and shouts "Stop right there!"
-  COMPLY_MS: 2000,        // stand still within this window = comply → the fine dialog opens
-  FLEE_DIST_PX: 70,       // move this far from where you were warned = flee → confrontation lapses (fine owed)
-  RECONFRONT_COOLDOWN_MS: 6000, // after a flee, the guard waits this long before trying again
+  NOTICE_RANGE_PX: 150,   // [TUNE] a fined player THIS close to a guard makes the guard start walking over — Van play-judge
+  WARN_RANGE_PX: 96,      // [TUNE] the guard stops here (~3×TILE), faces the player, and shouts "Stop right there!"
+  COMPLY_MS: 2000,        // [PLAY-JUDGED] stand still within this window = comply → the fine dialog opens (owner: Van)
+  FLEE_DIST_PX: 70,       // [TUNE] move this far from where you were warned = flee → confrontation lapses (fine owed)
+  RECONFRONT_COOLDOWN_MS: 6000, // [TUNE] after a flee, the guard waits this long before trying again
 });
 
 // REPAIR PACING — a forced door is mended by a JOINER who works at it for a full day-phase: present the whole
@@ -104,9 +149,10 @@ export const GUARD = Object.freeze({
 // one day-phase (derived from the time config in-scene), and it also completes on a real TimeOfDay phase change
 // (whichever the cycle delivers). Replaces the old fixed 2-stage 5s timer (a passive bob + one line).
 export const REPAIR = Object.freeze({
-  HAMMER_MS: 820,         // replay the joiner's hammer swing this often (CONTINUOUS work, not a one-off)
-  LINE_MS: 3400,          // an occasional joiner mutter while working
-  WORKER_RANGE_PX: 700,   // show the worker sprite if the player is within this of the door (else presence implied)
+  HAMMER_MS: 820,         // [TUNE] replay the joiner's hammer swing this often (CONTINUOUS work, not a one-off)
+  LINE_MS: 3400,          // [TUNE] an occasional joiner mutter while working
+  WORKER_RANGE_PX: 700,   // [DERIVED] ~a screen of the door — show the worker if within (else presence implied by lines)
+  PHASE_MS_FALLBACK: 6000, // [DERIVED] repair duration fallback if this._phaseMs is unset (= one quarter-day at the default RATE)
 });
 
 // Other tuning is ALSO single-sourced — it lives in its owning module (listed

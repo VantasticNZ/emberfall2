@@ -8,6 +8,7 @@
 > | **Definition of Done** (runtime/eyes-on · **pixel-truth** · **Van's-exact-state** · exhaustive tables · asset cross-check) | `DONE-DEFINITION.md` | before claiming ANYTHING done |
 > | **Professional feel** (the 6 open-world-but-gated pillars) | `RPG-FEEL-STANDARD.md` | building any region/corridor/gate |
 > | **Door / entrance system** (asset-owned doorways · open/closed/locked/broken · purpose signs) | `DOOR-SYSTEM.md` | any building/door work |
+> | **Interaction standards** (every distance/window/offset a NAMED, MEASURED, source-tagged constant — no inline literals) | `src/constants/standards.js` ★ INTERACTION-STANDARDS index + gate `no-inline-interaction-literals` | any interaction/door/guard/talk work |
 > | **Interiors rules** (type×region matrix · non-collision · stairs · theme · traversal) | `SPEC-INTERIORS.md` (v2) | building any interior |
 > | **Traversal rule** (passes need the stated item/ability; a solid main path always exists) | `SPEC-INTERIORS.md` §R5 + `gating.js` | any gated route/region |
 > | **Asset-first** (audit library FIRST · report HAVE/GAP · ledger all) | `CLAUDE.md` HARD RULE 12d + `ASSET-LEDGER.md` | any visual/audio work |
@@ -16,6 +17,20 @@
 > | **Full-expectation specs** (decompose→Van-review→build→exhaustive table→player-pass) | `THE-SLICE.md` method + `SPEC-BACKLOG.md` | starting any system |
 > | **Process meta-rules** (why gates went green while broken; the 12 rules) | `PROCESS-RETRO.md` | when a check disagrees with Van's eyes |
 > | **What to build next** | `THE-SLICE.md` (order) · `PLAN.md` (current step) · `DEFERRED.md` (parked) | every session |
+
+> ## ★ INTERACTION STANDARDS (no guessed geometry)
+> **Every interaction distance, window, and offset is a NAMED, MEASURED constant** in
+> `src/constants/standards.js` — see the **★ INTERACTION-STANDARDS index** at the top of that file
+> (name · value · SOURCE · what). Interaction code (talk reach, door trigger geometry, guard
+> confront/warn ranges + comply window, hearing radii, prompt ranges, entry frame budget) reads ONLY
+> these constants — **no bare literal may appear in interaction code** (enforced by the verify gate
+> `no-inline-interaction-literals`, which also keeps `Interaction.js` + `doorTrigger.js` literal-free).
+> Each constant records its **SOURCE**: `[MEASURED]` (off the artwork / a measured runtime value),
+> `[DERIVED]` (from `TILE` / a geometric identity / a frame budget), `[PLAY-JUDGED]` (Van judged the
+> feel — owner Van), `[GENRE-REF]` (matched to Fable/Zelda/Stardew), or `[TUNE]` (a sane default not
+> yet play-judged → flagged for Van). The door geometry is **measured, not guessed**: the threshold
+> tile is the walkable feet line ~1.3 tiles below each doorway's *painted* rect, and `buildingDoorTrigger`
+> derives the face-into direction (cardinal, ±45°) from that rect per building.
 
 # EMBERFALL — THE QUALITY BIBLE & DEFINITION OF DONE (v1, detailed foundation)
 

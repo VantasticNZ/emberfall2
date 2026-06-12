@@ -9,7 +9,7 @@
 // shows its prompt and calls tryInteract() on the key press.
 // =============================================================================
 
-import { INTERACTION_RADIUS } from '../constants/standards.js';
+import { INTERACTION_RADIUS, INTERACTION } from '../constants/standards.js';
 
 export const Interaction = {
   _items: [],
@@ -44,13 +44,13 @@ export const Interaction = {
       const dist = Math.hypot(dx, dy);
       if (dist > it.radius) continue;
 
-      if (it.requireFacing && dist > it.radius * 0.6) {
-        // Lenient facing: when you're close (within 60% of reach) no facing is
-        // needed at all; further out, only reject if you're facing clearly AWAY
-        // (>~115°). Makes "walk up + press E" rock-solid, not finicky.
+      if (it.requireFacing && dist > it.radius * INTERACTION.NO_FACING_FRAC) {
+        // Lenient facing: within NO_FACING_FRAC of reach no facing is needed at all;
+        // further out, only reject if you're facing clearly AWAY (FACING_AWAY_DOT,
+        // ~113°). Makes "walk up + press E" rock-solid, not finicky. (standards.js)
         const len = dist || 1;
         const dot = (dx / len) * facing.x + (dy / len) * facing.y;
-        if (dot < -0.4) continue;
+        if (dot < INTERACTION.FACING_AWAY_DOT) continue;
       }
       // prefer the nearest in-range candidate
       if (dist < bestScore) { bestScore = dist; best = it; }

@@ -59,6 +59,23 @@ A region/corridor/gate is NOT done unless it delivers the 6 pillars (eyes-on):
 - [ ] **Density with purpose** — no empty dead space; every ~24-tile stretch has a POI/tease/resource/NPC/landmark.
 - [ ] **Moment-to-moment polish** — responsive controls · readable hit/feedback · smooth transitions · ambient life · responsive audio · consistent art.
 
+## F. REGRESSION PROTOCOL — touching a frozen/verified system (MANDATORY)
+> Born from real regressions where a NEW change silently broke an OLD verified feature: the NPC-wander
+> drifting shopkeepers off their counters ("shops have no items"), and the door facing-gate stranding the
+> player on the threshold ("cannot enter any building"). Each passed its own per-item check while breaking a
+> neighbour. Any change that touches a system already marked verified/frozen MUST:
+- [ ] **(a) RE-RUN that system's full table pre-commit** — not a sample. Re-run the frozen exhaustive table
+  (every building × every case, every keeper, etc.) with REAL input on a fresh save, not just the new case.
+- [ ] **(b) ADD the new behaviour as a COMBINED case** — assert the OLD and NEW behaviours TOGETHER (the
+  prompt-gate-vs-entry lesson: "walk-in prompts" and "open-door transports" must hold in the SAME table, not
+  separate green checks). A new feature on a shared actor/path re-verifies that actor's EXISTING contracts.
+- [ ] **(c) NAME the frozen systems touched in the commit message** — e.g. "touches: door-entry, guard-ladder".
+  So a reviewer (and the next session) knows which frozen tables the change could have disturbed.
+- [ ] **(d) LOCK it where feasible** — extract the decision to a PURE unit-testable function + a Node test wired
+  into `npm test` (e.g. `doorTrigger.test.js`, `NpcLife.test.js`), or a data gate — so the combined case is
+  enforced by the pre-commit hook, not just this session's eyes. (Cross-feature regressions are runtime
+  truths — exercise the OLD feature after shipping the NEW one; see PROCESS-RETRO.)
+
 ## D. HONESTY — the close-out
 - [ ] **ASSET-FIRST cross-check (standing)** — for any visual/audio work: the library was AUDITED first
   (`asset-library/`), and the hand-off states **HAVE/extracted vs GAP** for the assets used; everything used

@@ -35,7 +35,7 @@ import { Social } from '../systems/Social.js';
 import { EnemyController } from '../systems/EnemyController.js';
 import { PlayerCombat } from '../systems/Combat.js';
 import { ModifierRegistry } from '../systems/Modifiers.js';
-import { COMBAT, INTERACTION_RADIUS, GUARD_HEARING, GUARD, REPAIR } from '../constants/standards.js';
+import { COMBAT, INTERACTION_RADIUS, GUARD_HEARING, GUARD, REPAIR, DOOR } from '../constants/standards.js';
 import { DAY_LENGTH, RATE } from '../data/time.js';
 import { bindings } from '../constants/controls.js';
 import { AssetLoader } from '../art/AssetLoader.js';
@@ -393,7 +393,7 @@ export class OverworldScene extends Phaser.Scene {
     this.cameras.main.centerOn(this.player.x, this.player.y);
     this._setInteriorView(this._inInterior);
     this._banner(this._inInterior ? (this.region ? 'Entered ' + this.region.key : 'Inside') : 'Back outside', 1100);
-    this.time.delayedCall(180, () => { this._areaT = false; });
+    this.time.delayedCall(DOOR.AREA_DEBOUNCE_MS, () => { this._areaT = false; });
   }
 
   // WALK-IN / WALK-OUT — doors/stairs are walk-trigger zones (genre standard, not press-E). Fires on the
@@ -1110,7 +1110,7 @@ export class OverworldScene extends Phaser.Scene {
     else if (mode === 'key') { if (d.key) this.inv.remove(d.key, 1); this._banner('The key turns; the door swings open.', 1400); }
     this._openDoorVisual(d);                              // the door VISIBLY opens (sprite swaps to the threshold)
     const ret = { x: d.dcx, y: d.dcy + TILE };           // clean yard return (no stuck-on-line)
-    this.time.delayedCall(440, () => this._enterArea(d.to, ret));   // let the OPEN read before walking through
+    this.time.delayedCall(DOOR.CHOICE_ENTER_REVEAL_MS, () => this._enterArea(d.to, ret));   // let the OPEN read before walking through
   }
   // ---- REACTIVITY: GUARD CONFRONT + FINE -------------------------------------------------------------
   // A WITNESSED/ALARMED crime adds to the fine owed (escalating with each offence). The next time a guard
@@ -1227,7 +1227,7 @@ export class OverworldScene extends Phaser.Scene {
     for (const r of this._repairs) {
       if (r.done) continue;
       // RESTORE after one full day-phase of work (the cycle, if running, also restores via _repairOnPhaseChange).
-      if (now - r.t0 >= (this._phaseMs || 6000)) { this._finishRepair(r); continue; }
+      if (now - r.t0 >= (this._phaseMs || REPAIR.PHASE_MS_FALLBACK)) { this._finishRepair(r); continue; }
       // PRESENCE — keep the joiner at the door whenever the player can see it (re-spawn if streamed away).
       const near = !this._inInterior && this.region && !this.region.interior
         && Phaser.Math.Distance.Between(r.wx, r.wy, this.player.x, this.player.y) <= REPAIR.WORKER_RANGE_PX;
@@ -1245,7 +1245,7 @@ export class OverworldScene extends Phaser.Scene {
   _repairOnPhaseChange() {
     if (!this._repairs) return;
     const now = this.time.now;
-    for (const r of this._repairs) if (!r.done && now - r.t0 >= (this._phaseMs || 6000)) this._finishRepair(r);
+    for (const r of this._repairs) if (!r.done && now - r.t0 >= (this._phaseMs || REPAIR.PHASE_MS_FALLBACK)) this._finishRepair(r);
     this._repairs = this._repairs.filter((r) => !r.done);
   }
   _showRepairWorker(r) {
