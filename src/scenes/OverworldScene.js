@@ -270,7 +270,7 @@ export class OverworldScene extends Phaser.Scene {
       // READABLE (signs/notice boards/waystones) — press-E to read the placement's `text`. Consistent
       // in every region; no more walk-through-can't-read white squares.
       if (ic.readable && p.text) Interaction.register({ x: p.x, y: p.y + 8, prompt: 'Read the sign', onInteract: () => this._startGreeting('', Array.isArray(p.text) ? p.text : [p.text]) });
-      DepthSort.track(spr, (b.offY + b.h / 2) * sc);   // y-sort by the solid base (same rule)
+      DepthSort.trackProp(spr, b);   // y-sort by the FEET (opaque base) — the one game-wide rule
       this._regionObjs.push(spr);
     }
     this._clearDoorwayThresholds();   // UNIFORM: guarantee every building's doorway tile is walkable (clear any scattered rock/prop that landed on a threshold) — no building un-enterable due to placement
@@ -336,7 +336,7 @@ export class OverworldScene extends Phaser.Scene {
     const look = OverworldScene.GATE_LOOK[g.deed] || OverworldScene.GATE_LOOK._default;
     const m = this.physics.add.sprite(g.sign.x, g.sign.y, 'prop_rock_crag').setTint(look.tint);
     if (g.deed === 'tool_grapple' || g.deed === 'tool_hookshot') m.setScale(1, 1.4);   // a tall anchor/ring reads as "reach across"
-    m.body.enable = false; DepthSort.track(m, 30); this._regionObjs.push(m);
+    m.body.enable = false; DepthSort.trackProp(m, solidBox('prop_rock_crag', PROPS['prop_rock_crag'])); this._regionObjs.push(m);
     Interaction.register({ x: g.sign.x, y: g.sign.y + 8, prompt: look.prompt, onInteract: () => this._startGreeting('', [look.hint || g.lockedMsg, ...(look.hint ? [g.lockedMsg] : [])]) });
   }
 
@@ -346,7 +346,7 @@ export class OverworldScene extends Phaser.Scene {
     const g = R.grant;
     if (g.deeds.every((d) => this.karma.hasDeed(d))) return;                  // already granted
     const m = this.add.rectangle(g.x, g.y, 28, 28, 0xffcf66, 0.45).setStrokeStyle(2, 0xffe9a8);
-    DepthSort.track(m, 10); this._regionObjs.push(m);
+    DepthSort.trackProp(m, null); this._regionObjs.push(m);   // box-less greybox → display-bottom feet
     Interaction.register({ x: g.x, y: g.y + 6, prompt: 'Investigate (greybox reward)', onInteract: () => {
       g.deeds.forEach((d) => this.karma.recordDeed(d));
       this._startGreeting('', [g.label + '  [greybox grant — placeholder for the dungeon/boss]']);
@@ -458,7 +458,7 @@ export class OverworldScene extends Phaser.Scene {
   _buildPeaksRecords(R) {
     const r = R.records;
     const m = this.physics.add.sprite(r.x, r.y, 'prop_sign').setTint(0x9a8f6a);
-    m.body.enable = false; DepthSort.track(m, 8); this._regionObjs.push(m);
+    m.body.enable = false; DepthSort.trackProp(m, solidBox('prop_sign', PROPS['prop_sign'])); this._regionObjs.push(m);
     Interaction.register({ x: r.x, y: r.y + 8, prompt: `Read ${r.name}`, onInteract: () => {
       const st = this.quests.status('SP1');
       if (st === 'available' || st === 'active') return this._startQuestDialogue('SP1');
@@ -487,7 +487,7 @@ export class OverworldScene extends Phaser.Scene {
     const [cx, cy] = cidOf(c.x, c.y);
     if (this.save.isOpened(cx, cy, c.id)) return;          // already looted (delta) → don't spawn
     const spr = this.physics.add.sprite(c.x, c.y, 'prop_chest').setOrigin(0.5, 0.72);
-    DepthSort.track(spr, 10); this._regionObjs.push(spr); this._chestSprites.push(spr);
+    DepthSort.trackProp(spr, solidBox('prop_chest', PROPS['prop_chest'])); this._regionObjs.push(spr); this._chestSprites.push(spr);
     let looted = false;
     Interaction.register({
       x: c.x, y: c.y + 6, prompt: 'Open the chest',
@@ -534,7 +534,7 @@ export class OverworldScene extends Phaser.Scene {
       const dk = o.marker || o.key, dd = PROPS[dk]; if (!dd) return;
       const dspr = this.add.sprite(o.x + (o.spriteDx || 0), o.y + (o.spriteDy || 0), dk).setOrigin(0.5, 0.5);
       if (o.scale) dspr.setScale(o.scale); if (o.tint != null) dspr.setTint(o.tint);
-      const db = solidBox(dk, dd); DepthSort.track(dspr, (db.offY + db.h / 2) * (o.scale || 1)); this._regionObjs.push(dspr);
+      const db = solidBox(dk, dd); DepthSort.trackProp(dspr, db); this._regionObjs.push(dspr);
       // STAIRS (a floor-change link, not a building exit): read as a stairwell — stone-tint + a step-band
       // overlay so it's visually distinct from the wooden exit door. (FLAG: a dedicated stairs sprite is better.)
       if (o.stairs) { dspr.setTint(0x8a8f9c); const step = this.add.rectangle(o.x, o.y + 4, TILE * 0.8, 5, 0xbfc4cc).setStrokeStyle(1, 0x5a5e66).setDepth((dspr.depth || 0) + 0.1); this._regionObjs.push(step); }
@@ -551,7 +551,7 @@ export class OverworldScene extends Phaser.Scene {
       this.physics.add.existing(rect, true); this.solids.add(rect); this._regionObjs.push(rect);
       spr.setData('solidKey', o.key);
     }
-    DepthSort.track(spr, (b.offY + b.h / 2) * sc);
+    DepthSort.trackProp(spr, b);
     this._regionObjs.push(spr);
 
     const [cx, cy] = cidOf(o.x, o.y), memKey = `ix_${o.id}`;
@@ -687,7 +687,7 @@ export class OverworldScene extends Phaser.Scene {
   _buildRegionShrine(R) {
     const sh = R.shrine;
     const marker = this.physics.add.sprite(sh.x, sh.y, 'prop_sign').setTint(0x6a8a9a);
-    marker.body.enable = false; DepthSort.track(marker, 8); this._regionObjs.push(marker);
+    marker.body.enable = false; DepthSort.trackProp(marker, solidBox('prop_sign', PROPS['prop_sign'])); this._regionObjs.push(marker);
     Interaction.register({
       x: sh.x, y: sh.y + 8, prompt: `Enter ${sh.name}`,
       onInteract: () => {
@@ -1392,7 +1392,7 @@ export class OverworldScene extends Phaser.Scene {
       let spr = c.props[pi++]; if (!spr) { spr = this.add.sprite(0, 0, p.key).setOrigin(0.5, 0.85); c.props.push(spr); }
       const d = PROPS[p.key] || {};
       spr.setTexture(p.key).setPosition(p.x, p.y).setScale(p.scale || 1).setFlipX(!!p.flip).setVisible(true).setActive(true);
-      DepthSort.track(spr, d.footprint ? d.footprint.offY + d.footprint.h / 2 : (d.height || 32) * 0.15);
+      DepthSort.trackProp(spr, solidBox(p.key, d));   // FEET rule (origin 0.85 + scale honoured)
     }
     for (; pi < c.props.length; pi++) { c.props[pi].setVisible(false).setActive(false); DepthSort.untrack(c.props[pi]); }
     // belt DECALS — FLOOR-pinned ground dressing (flowers/tufts), never occlude actors

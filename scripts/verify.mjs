@@ -663,6 +663,29 @@ const tile = (px) => Math.round(px / TILE);
   else ok(`panel-bounds-inside-viewport: all ${new Set(boxes).size} UI panel(s) register with the uiCamera (zoom-1, screen-space, clamped) — none can render off-screen`);
 }
 
+// 27) GAME-WIDE DEPTH RULE — every WORLD sprite y-sorts by its FEET (baseY), one formula. Static props go
+//     through DepthSort.trackProp (origin/scale-agnostic opaque-base feet); only ACTORS use DepthSort.track,
+//     and their offset MUST be a body-derived feet line (never a per-case constant). A bare number / footprint
+//     arithmetic as a track() offset is the regression class (props sorting off their feet → wrong occlusion,
+//     Van's "prop renders over the player" bug). Whitelisted: UI/FX/floor via setDepth(DEPTH.*) — not y-sorted.
+{
+  const scene = readFileSync(join(ROOT, 'src/scenes/OverworldScene.js'), 'utf8');
+  const ds = readFileSync(join(ROOT, 'src/systems/DepthSort.js'), 'utf8');
+  const dviol = [];
+  // the one formula must live in DepthSort (origin + scale terms present)
+  if (!/trackProp/.test(ds) || !/0\.5 - s\.originY/.test(ds) || !/s\.scaleY/.test(ds))
+    dviol.push('DepthSort is missing the trackProp feet formula ((0.5-originY)*displayHeight + scaleY*box) — the game-wide rule');
+  // every bare DepthSort.track( in the live scene must derive feet from an actor body (not a constant)
+  const calls = [...scene.matchAll(/DepthSort\.track\([^,]+,\s*([^;]+?)\);/g)];
+  for (const c of calls) {
+    const arg = c[1];
+    if (!/\bbody\b/i.test(arg) && !/foot/i.test(arg))
+      dviol.push(`DepthSort.track offset "${arg.trim()}" is a per-case constant — world props must use DepthSort.trackProp(spr, solidBox(...)) so they sort by their FEET`);
+  }
+  if (dviol.length) fail('GAME-WIDE-DEPTH-RULE:' + dviol.map((v) => '\n      ' + v).join(''));
+  else ok(`game-wide-depth-rule: depth = feet (baseY) for every world sprite — ${calls.length} actor track() are body-derived; all props use trackProp (one origin/scale-agnostic formula)`);
+}
+
 // --- summary ------------------------------------------------------------------
 if (fails.length) {
   console.error('\nVERIFY FAILED ✗\n' + fails.map((f) => '  ✗ ' + f).join('\n') + '\n');
