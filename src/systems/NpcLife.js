@@ -48,16 +48,15 @@ export class NpcLife {
     const rng = mulberry32(seed);
     const tt = TEMPOS[tempo] || TEMPOS.normal;
     // persistent per-NPC speed: base × (1 ± SPEED_VAR) × tempo. Movement.drive reads moveSpeed.
-    npc.moveSpeed = (npc.moveSpeed || npc.speed || 70) * (1 + (rng() * 2 - 1) * NPC_LIFE.SPEED_VAR) * tt.speed;
+    npc.moveSpeed = (npc.moveSpeed || npc.speed || 70) * (1 + (rng() * 2 - 1) * NPC_LIFE.SPEED_VAR) * tt.speed * NPC_LIFE.WALK_SPEED_SCALE;
     this.movers.push({
       npc, schedule, rng, tt, target: null, act: 'idle', stuck: 0,
       delay: 0, turnLock: 0,
       post: { x: npc.x, y: npc.y },                           // the anchor a free NPC wanders AROUND (updated on phase retarget)
       wandering: false, wanderUntil: rng() * NPC_LIFE.WANDER_PAUSE_MAX_S,   // staggered first hop
-      t: (rng() * 240) | 0,                                   // chore-loop start offset
-      ham: Math.round(150 * (1 + (rng() * 2 - 1) * NPC_LIFE.CHORE_VAR)),   // per-NPC chore periods
-      gla: Math.round(110 * (1 + (rng() * 2 - 1) * NPC_LIFE.CHORE_VAR)),
-      idl: Math.round(NPC_LIFE.IDLE_GLANCE_FRAMES * (1 + (rng() * 2 - 1) * NPC_LIFE.CHORE_VAR)),
+      // TIME-based cadence (item 5): each NPC re-rolls its own next glance/swing, so they never alias into unison.
+      nextGlance: rng() * NPC_LIFE.IDLE_GLANCE_MAX_S,         // staggered first glance
+      nextSwing: rng() * NPC_LIFE.SWING_MAX_S,                // staggered first work-swing
     });
   }
   has() { return this.movers.length > 0; }
@@ -99,10 +98,10 @@ export class NpcLife {
       // EVENT REACTION (summon): an investigate target overrides the chore/schedule until reached.
       if (m.investigate) {
         const iv = m.investigate, idx = iv.x - npc.x, idy = iv.y - npc.y;
-        if (Math.hypot(idx, idy) <= 14) { if (!iv.fired) { iv.fired = true; if (iv.cb) iv.cb(npc); } m.investigate = null; this._activity(m); continue; }
+        if (Math.hypot(idx, idy) <= 14) { if (!iv.fired) { iv.fired = true; if (iv.cb) iv.cb(npc); } m.investigate = null; this._activity(m, now); continue; }
         this._seek(m, iv.x, iv.y, dt); continue;
       }
-      if (m.delay > 0) { m.delay -= dt; this._activity(m); continue; }   // not departed yet — keep puttering
+      if (m.delay > 0) { m.delay -= dt; this._activity(m, now); continue; }   // not departed yet — keep puttering
       // WALKING to a target (a schedule post OR a wander hop)?
       if (m.target) {
         if (Math.hypot(m.target.x - npc.x, m.target.y - npc.y) > 12) { this._seek(m, m.target.x, m.target.y, dt); continue; }
@@ -111,9 +110,10 @@ export class NpcLife {
       }
       // No target: FREE (idle) NPCs take short wander hops around their post; posted/chore NPCs do their chore.
       if (this._isFree(m) && now >= (m.wanderUntil || 0)) { this._startWander(m); this._seek(m, m.target.x, m.target.y, dt); continue; }
-      this._activity(m);
+      this._activity(m, now);
     }
     this._enforceIdleCap(now);
+    this._enforceZoneCap(now);
   }
 
   // MOTION BUDGET — a "free" NPC is an idle stroller (not a guard, not mid-chore); these wander + count to the cap.
@@ -156,18 +156,46 @@ export class NpcLife {
     else m.stuck = 0;
   }
 
-  // a looped ACTIVITY, with per-NPC periods so identical chores are never in phase.
-  _activity(m) {
-    const npc = m.npc; Movement.stop(npc); m.t++;
+  // a looped ACTIVITY. Cadence is TIME-based + RE-RANDOMISED per occurrence (item 5): each NPC re-rolls its
+  // own next interval, so identical chores can never alias into a unison glance/pivot, and the pace stays CALM.
+  _activity(m, now) {
+    const npc = m.npc; Movement.stop(npc);
+    const M = NPC_LIFE;
     switch (m.act) {
-      case 'hammer': case 'chop': case 'till':                  // work chores → the slash/swing anim reads as
-        if (m.t % m.ham === 0 && npc.action) npc.action('attack'); break;   // hammering/chopping/tilling (no dedicated chore anim in the ElizaWy base; this is the HAVE-asset solution)
+      case 'hammer': case 'chop': case 'till':                  // work chores → the slash/swing reads as work
+        if (now >= m.nextSwing) { m.nextSwing = now + this._roll(M.SWING_MIN_S, M.SWING_MAX_S, m); if (npc.action) npc.action('attack'); }
+        break;
       case 'sweep': case 'tend': case 'chat':
-        if (m.t % m.gla === 0) { const f = ['left', 'right', 'down', 'up']; npc.facing = f[(m.rng() * 4) | 0]; npc.setState('idle'); } break;
+        if (now >= m.nextGlance) { m.nextGlance = now + this._roll(M.GLANCE_MIN_S, M.GLANCE_MAX_S, m); npc.facing = ['left', 'right', 'down', 'up'][(m.rng() * 4) | 0]; npc.setState('idle'); }
+        break;
       case 'sleep':
         npc.facing = 'down'; npc.setState('idle'); break;
-      default:                                                  // even idlers glance about now and then
-        if (m.t % m.idl === 0) { const f = ['left', 'right', 'down']; npc.facing = f[(m.rng() * 3) | 0]; npc.setState('idle'); }
+      default:                                                  // even idlers glance about now and then — calmest cadence
+        if (now >= m.nextGlance) { m.nextGlance = now + this._roll(M.IDLE_GLANCE_MIN_S, M.IDLE_GLANCE_MAX_S, m); npc.facing = ['left', 'right', 'down'][(m.rng() * 3) | 0]; npc.setState('idle'); }
+    }
+  }
+  // a per-NPC random interval in [min,max]s, scaled by tempo (an ambler lingers longer between glances).
+  _roll(min, max, m) { return (min + m.rng() * (max - min)) * m.tt.pause; }
+
+  // DENSITY CAP (item 4) — if more than MAX_PER_ZONE FREE NPCs cluster within ZONE_RADIUS of each other,
+  // the surplus (the most-recently-arrived idlers) get nudged to wander OUTWARD, away from the cluster centre,
+  // so the fountain reads "a few people about", not a gathering. Free NPCs only — posted/quest/guards stay put.
+  _enforceZoneCap(now) {
+    const free = this.movers.filter((m) => m.npc.active && this._isFree(m) && !m.target);
+    if (free.length <= NPC_LIFE.MAX_PER_ZONE) return;
+    const R2 = NPC_LIFE.ZONE_RADIUS_PX * NPC_LIFE.ZONE_RADIUS_PX;
+    for (const m of free) {
+      const cluster = free.filter((o) => { const dx = o.npc.x - m.npc.x, dy = o.npc.y - m.npc.y; return dx * dx + dy * dy <= R2; });
+      if (cluster.length <= NPC_LIFE.MAX_PER_ZONE) continue;
+      // centroid of the cluster → push the surplus outward from it
+      let cx = 0, cy = 0; for (const o of cluster) { cx += o.npc.x; cy += o.npc.y; } cx /= cluster.length; cy /= cluster.length;
+      cluster.sort((a, b) => (b.wanderUntil || 0) - (a.wanderUntil || 0));   // most-recently-settled disperse first
+      for (let i = NPC_LIFE.MAX_PER_ZONE; i < cluster.length; i++) {
+        const o = cluster[i]; const ox = o.npc.x - cx, oy = o.npc.y - cy, len = Math.hypot(ox, oy) || 1;
+        o.target = { x: o.post.x + (ox / len) * NPC_LIFE.WANDER_RADIUS_PX, y: o.post.y + (oy / len) * NPC_LIFE.WANDER_RADIUS_PX };
+        o.wandering = true; o.wanderUntil = now + this._wanderPause(o);
+      }
+      break;   // one dispersal pass per frame is enough; the cluster thins over successive frames
     }
   }
 }

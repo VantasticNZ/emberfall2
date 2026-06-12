@@ -234,17 +234,17 @@ export const WORLD = {
       schedule: sched([['dawn', 30, 18, 'idle'], ['day', 30, 18, 'chat'], ['dusk', 30, 18, 'chat'], ['night', 29, 18, 'idle']]) },   // the drunk never leaves the tavern
     { tx: 26, ty: 11, facing: 'down', name: 'Pem', tempo: 'brisk', speed: 70, expression: 'happy', parts: PEM, quest: 'SG2',
       greeting: ['*grins* You didn\'t see me. PEM WOZ ERE, though. Always.'],
-      schedule: sched([['dawn', 26, 11, 'idle'], ['day', 26, 11, 'idle'], ['dusk', 24, 13, 'chat'], ['night', 27, 10, 'idle']]) },
+      schedule: sched([['dawn', 26, 11, 'idle'], ['day', 32, 12, 'idle'], ['dusk', 24, 13, 'chat'], ['night', 27, 10, 'idle']]) },   // item 4: day-post off the fountain (NE edge) to thin the plaza
     // KIDS — PROTECTED (unharmable/untargetable, hard rule). Smaller villager skins (proper child art = a
     // deferred ULPC fetch). Playful, with interconnection lines (they talk about the grown-ups).
     { tx: 23, ty: 14, facing: 'down', name: 'Nettle', tempo: 'brisk', speed: 78, scale: 0.72, kid: true, protected: true, expression: 'happy', parts: TAM,
       greeting: ["Betcha can't catch me! ...Mum says don't bother Hodge when his hammer's going.", "I helped Pem stack the apples. She gave me one for it!"],
       bark: 'Last one to the chapel\'s a rotten egg!',
-      schedule: sched([['dawn', 23, 17, 'idle'], ['day', 22, 14, 'chat'], ['dusk', 24, 13, 'chat'], ['night', 34, 25, 'sleep']]) },   // plays the plaza by day, the cottage at night
+      schedule: sched([['dawn', 23, 17, 'idle'], ['day', 18, 20, 'chat'], ['dusk', 17, 19, 'chat'], ['night', 34, 25, 'sleep']]) },   // item 4: plays the SW plaza edge by day (off the fountain), the cottage at night
     { tx: 27, ty: 17, facing: 'down', name: 'Wisp', tempo: 'ambler', speed: 74, scale: 0.7, kid: true, protected: true, expression: 'happy', parts: ['body_fem', 'head_fem', 'brows_chestnut', 'hair_chestnut', 'shirt_blue', 'pants_brown', 'shoes_brown_fem'],   // item 2: was MARA's exact skin at 0.7 = a "mini-Mara"; now a distinct chestnut/blue child
       greeting: ["Are you a knight? You walk like a knight.", "Old Fatley sleeps in the tavern. Mum says don't grow up like Fatley."],
       bark: '*humming a little tune*',
-      schedule: sched([['dawn', 27, 17, 'idle'], ['day', 25, 18, 'chat'], ['dusk', 29, 15, 'idle'], ['night', 34, 25, 'sleep']]) },
+      schedule: sched([['dawn', 27, 17, 'idle'], ['day', 31, 21, 'chat'], ['dusk', 30, 19, 'idle'], ['night', 34, 25, 'sleep']]) },   // item 4: plays the SE plaza edge by day (off Tam + the fountain)
     // THE GUARD PAIR (role: patrol route + post). Garrick walks a patrol (phase positions); Bess holds the
     // gate post. They confront a player carrying an unpaid FINE (witnessed break-in / occupied-home entry).
     { tx: 20, ty: 22, facing: 'down', name: 'Garrick', role: 'guard', tempo: 'normal', speed: 72, expression: 'neutral', parts: GUARD,

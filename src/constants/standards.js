@@ -117,12 +117,23 @@ export const NPC_LIFE = Object.freeze({
   TARGET_JITTER_PX: 12,  // seek a slightly different point near the target tile (paths differ)
   TURN_COOLDOWN_S: 0.45, // min time between facing changes (eased turn; no synced pivots)
   CHORE_VAR: 0.45,       // per-NPC ± on chore/idle loop periods (animations not in phase)
+  WALK_SPEED_SCALE: 0.9, // [TUNE] global stroll-pace scale — a calmer town walk (item 5; applied in add())
+  // GLANCE/SWING cadence is now TIME-based + RE-RANDOMISED per occurrence (item 5): each NPC re-rolls its
+  // own next-glance interval, so identical periods can never ALIAS into a unison turn (the "everyone pivots
+  // at once" Van saw). Intervals are deliberately LONG so the town reads CALM, not twitchy. [seconds]
+  GLANCE_MIN_S: 3.2,     // [TUNE] a chore NPC (sweep/tend/chat) glances about this..max apart — slow + individual
+  GLANCE_MAX_S: 7.0,
+  IDLE_GLANCE_MIN_S: 4.5,// [TUNE] a plain idler glances even less often (calmest cadence)
+  IDLE_GLANCE_MAX_S: 9.5,
+  SWING_MIN_S: 2.0,      // [TUNE] a work chore (hammer/chop/till) replays its swing this..max apart
+  SWING_MAX_S: 3.6,
   // MOTION BUDGET (a plaza that reads ALIVE-but-CALM, not a field of statues nor a swarm):
   WANDER_RADIUS_PX: 72,  // a free (idle) NPC takes short PURPOSEFUL hops within this of its post
-  WANDER_PAUSE_MIN_S: 1.8,// after a hop it pauses (idles) for [min,max]s before the next — staggered per NPC
-  WANDER_PAUSE_MAX_S: 4.6,
-  MAX_IDLE_FRACTION: 0.5, // at most this fraction of FREE NPCs may stand idle at once (the rest stroll)
-  IDLE_GLANCE_FRAMES: 300,// base interval between idle facing-glances (raised: fewer twitchy direction-flips)
+  WANDER_PAUSE_MIN_S: 2.6,// after a hop it pauses (idles) for [min,max]s before the next — staggered per NPC (raised: calmer)
+  WANDER_PAUSE_MAX_S: 6.0,
+  MAX_IDLE_FRACTION: 0.62,// at most this fraction of FREE NPCs may stand idle at once (raised: more standing = calmer)
+  MAX_PER_ZONE: 4,       // [TUNE] density cap (item 4): >this free NPCs clustered within a zone → excess disperse outward
+  ZONE_RADIUS_PX: 120,   // [DERIVED] the cluster radius the per-zone cap measures (≈ the fountain apron)
 });
 
 // GUARD HEARING — a noisy crime (a forced door) RADIATES noise from the event; every guard whose post is
