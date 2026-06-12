@@ -91,6 +91,13 @@ export class OverworldScene extends Phaser.Scene {
     // uses. (Was 18 = ~12px above the feet → the hero drew UNDER a building it stood in FRONT of.)
     this.add.existing(this.player); DepthSort.track(this.player, this.player.body.offset.y + this.player.body.height);
     this.physics.add.collider(this.player, this.solids);
+    // NPC SOLIDITY (town-feel item 1) — the player collides with townsfolk (no walk-through) and NPCs
+    // separate from each other (no stacking). Dynamic bodies kept NON-pushable so a bump never shoves them
+    // across the plaza; ghost:true NPCs stay exempt (out of the group). No pathfinding — Arcade overlap
+    // resolution is the whole mechanism (conservative). The group's membership updates as regions stream.
+    this.npcSolids = this.physics.add.group();
+    this.physics.add.collider(this.player, this.npcSolids);
+    this.physics.add.collider(this.npcSolids, this.npcSolids);
     this.combat = new EnemyController(this, { solids: this.solids, onPlayerHit: (dmg, info) => this._onPlayerHit(dmg, info), onPlayerRecoil: (dmg) => this._onPlayerRecoil(dmg) });
     this._buildCombatUI();
     this._blockArcG = this.add.graphics().setDepth(DEPTH.OVERLAY);
@@ -511,6 +518,9 @@ export class OverworldScene extends Phaser.Scene {
   _buildRegionNpc(n) {
     const npc = new Character(this, n.x, n.y, { parts: n.parts, facing: n.facing || 'down', speed: n.speed || 70 });
     this.add.existing(npc); npc.body.setImmovable(false);
+    // SOLID to the player + each other (item 1). pushable=false → a bump blocks, never shoves them away.
+    // ghost:true exempts (schema for special cases — e.g. a vision/cutscene actor that must pass through).
+    if (!n.ghost) { npc.body.pushable = false; this.npcSolids.add(npc); }
     if (n.scale) npc.setScale(n.scale);                 // kids = a smaller villager (proper child skin = a deferred ULPC fetch)
     npc.setData('protected', !!n.protected);            // PROTECTED NPCs (kids) are never harmable/targetable — hard rule (gate-asserted)
     npc.setData('role', n.role || '');                  // 'guard' = confronts a player owing a fine
