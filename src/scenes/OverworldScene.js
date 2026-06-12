@@ -419,7 +419,7 @@ export class OverworldScene extends Phaser.Scene {
         const doorDir = Math.abs(ddx) > Math.abs(ddy) ? (ddx > 0 ? 'right' : 'left') : (ddy > 0 ? 'down' : 'up');
         if (this.player.facing !== doorDir) { this._lastTile = { tx: ptx, ty: pty }; return; }   // walking past → no prompt
         if (d.state === 'closed' || d.state === 'locked') this._openDoorChoice(d);   // shut door → knock/try/break choice
-        else { this._areaT = true; this._openDoorVisual(d); this.time.delayedCall(180, () => { this._areaT = false; this._enterArea(d.to, { x: d.dcx, y: d.dcy + TILE }); }); }   // open / none / broken → walk straight in (door, if any, swings open)
+        else { this._openDoorVisual(d); this._enterArea(d.to, { x: d.dcx, y: d.dcy + TILE }); }   // open/none/broken → transport THIS frame (no delay); the door visual still swaps for the brief frame before the cut
         return;
       }
     }
