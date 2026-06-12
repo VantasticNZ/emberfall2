@@ -267,7 +267,18 @@ export const GREENHOLLOW_SLICE = [
         note: 'You loot a grieving shrine. The cold reads you, and weeps darker. A corrupt seed.' },
     ],
     dialogue: { start: 'earn', nodes: {
-      earn: { speaker: 'Acolyte', text:
+      // REACTIVE OPENING — the acolyte names Bracken's LETTER if you earned it (GH3 mercy path: orchard_letter),
+      // otherwise the plain earned-it line. Both hand over the lantern and lead down. (WS3 — the logged gap.)
+      earn: { route: [
+        { when: (c) => c.karma.hasDeed('orchard_letter'), to: 'earn_letter' },
+        { to: 'earn_plain' } ] },
+      earn_letter: { speaker: 'Acolyte', text:
+        "The boards stay up. Tradition. ...But old Bracken sent word ahead — a LETTER, sealed, no less. " +
+        "Says you showed the orchard mercy when the billhook was the easy answer. *turns it over, then sets it down* " +
+        "A village remembers a steady hand. If anyone's earned a look beneath the chapel, it's you. " +
+        "*unhooks a lantern, hands it over, won't follow* The Flame keep you. ...You may wish it had.",
+        options: [ { label: '(Pry the boards and go down.)', to: 'descend' } ] },
+      earn_plain: { speaker: 'Acolyte', text:
         "The boards stay up. Tradition. ...But you've mended this village's hearth, its sick, its orchard. " +
         "If anyone's earned a look beneath it, it's you. *unhooks a lantern, hands it over, won't follow* " +
         "The Flame keep you. ...You may wish it had.",
