@@ -30,6 +30,13 @@ export class BootScene extends Phaser.Scene {
     this.load.audio('sfx_confirm', 'audio/ui/ui_confirm.wav');
     this.load.audio('sfx_select', 'audio/ui/ui_select.wav');
     this.load.audio('sfx_deny', 'audio/ui/ui_deny.wav');
+    // Ambient INTERACTION SFX (Kenney RPG Audio, CC0) — doors / coin / chop / knock / footstep (WS3 audio coverage).
+    this.load.audio('sfx_door_open', 'audio/sfx/door_open.ogg');
+    this.load.audio('sfx_door_close', 'audio/sfx/door_close.ogg');
+    this.load.audio('sfx_coin', 'audio/sfx/coin.ogg');
+    this.load.audio('sfx_chop', 'audio/sfx/chop.ogg');
+    this.load.audio('sfx_knock', 'audio/sfx/knock.ogg');
+    this.load.audio('sfx_footstep', 'audio/sfx/footstep.ogg');
     this.load.audio('amb_birds', 'audio/ambient/birds_ambient.ogg');   // Greenhollow / foothill
     this.load.audio('amb_wind', 'audio/ambient/wind_ambient.ogg');     // Sundered Peaks
     this.load.audio('mus_green', 'audio/music/green.ogg');             // GH/belt music bed — "Peasant Theme" (nihilocrat, CC0)

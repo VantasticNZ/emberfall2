@@ -375,9 +375,11 @@ export class OverworldScene extends Phaser.Scene {
       const ret = (this._areaStack || []).pop();
       if (ret) { this.player.x = ret.x; this.player.y = ret.y; this._inInterior = !!ret.interior; }
       else this._inInterior = false;
+      this._sfx('sfx_door_close', 0.5);                              // the door shuts behind you (WS3)
     } else {
       const R = REGIONS.find((r) => r.key === to && r.interior);
       if (!R || !R.spawn) { this._areaT = false; return; }
+      this._sfx('sfx_door_open', 0.5);                              // the door opens as you step in (WS3)
       // NO-STUCK-ON-LINE: store the RETURN squarely on a clean walkable tile (the yard below the doorway,
       // not the threshold line) so walking back out lands the avatar centred in walkable space.
       (this._areaStack = this._areaStack || []).push({ x: returnPos ? returnPos.x : this.player.x, y: returnPos ? returnPos.y : this.player.y, interior: !!this._inInterior });
@@ -791,7 +793,7 @@ export class OverworldScene extends Phaser.Scene {
     }
     if (c) {
       const res = cutObject({ loot: c.loot }, { inv: this.inv, rng: Math.random, mem: { has: () => false, record: () => {} }, key: c.key });
-      this._sfx('sfx_hit', 0.4); this._grantLootFeedback(res.granted, c.spr.x, c.spr.y);
+      this._sfx('sfx_chop', 0.5); this._grantLootFeedback(res.granted, c.spr.x, c.spr.y);   // foliage chop (WS3)
       // ANTI-FARM: record the cut (persists across area visits) + DISABLE this bush — NO in-area respawn.
       // It regrows only when you LEAVE + re-enter after CUT_REGROW_MS (handled in the props loop on re-entry).
       this._cutBushes.set(c.bushId, this.time.now);
@@ -1077,7 +1079,7 @@ export class OverworldScene extends Phaser.Scene {
     this.inv.addGold(-s.price); this.inv.add(s.id, 1);
     if (this.inv.save) this.inv.save(); else this._save && this._save();   // persist the purchase
     if (this.save && this.save.save) this.save.save();                     // persist the depleted shelf (shopstock rides the world save)
-    this._sfx('sfx_pickup', 0.85); this._banner(`Bought ${s.name} for ${s.price}g.`, 1300); this._renderShop();
+    this._sfx('sfx_coin', 0.8); this._banner(`Bought ${s.name} for ${s.price}g.`, 1300); this._renderShop();   // coin clink (WS3)
   }
   _closeShop() { if (!this._shopOpen) return; this._shopOpen = false; if (this._shopBox) { this._unregisterUIPanel(this._shopBox); this._shopBox.destroy(true); this._shopBox = null; } if (this.hud2) this.hud2.setVisible(true); if (this._helpText) this._helpText.setVisible(true); this._sfx('sfx_select', 0.5); }
 
@@ -1086,7 +1088,7 @@ export class OverworldScene extends Phaser.Scene {
   // the polished box/portrait is RegionScene's, deferred to the polish pass)
   // ===========================================================================
   _dlgCtx() { return { inv: this.inv, karma: this.karma, quests: this.quests, engine: this.quests, onSet: (cmd) => this._onDlgSet(cmd) }; }   // engine: lets a dialogue option's `choice:{quest,id}` fire the quest fork (karma+deed+unlocks, once)
-  _onDlgSet(cmd) { if (typeof cmd !== 'string') return; if (cmd.startsWith('door:')) this._doorAction(cmd.slice(5)); else if (cmd.startsWith('fine:')) this._fineAction(cmd.slice(5)); }
+  _onDlgSet(cmd) { if (typeof cmd !== 'string') return; if (cmd.startsWith('door:')) this._doorAction(cmd.slice(5)); else if (cmd.startsWith('fine:')) this._fineAction(cmd.slice(5)); else if (cmd.startsWith('sfx:')) this._sfx('sfx_' + cmd.slice(4), 0.55); }   // WS3: a dialogue option can fire a sound (e.g. a knock)
 
   // DOOR-SYSTEM — the CLOSED / LOCKED entry choice (the morality entrance). Walking into a shut door ALWAYS
   // offers KNOCK / TRY-THE-HANDLE; a LOCKED one then offers BREAK-IT-DOWN. Try-uninvited = a small morality
@@ -1107,7 +1109,7 @@ export class OverworldScene extends Phaser.Scene {
       lockedOpts.push({ label: '(Leave it.)', end: true });
       nodes = {
         d0: { speaker: '', text: `${who}door is locked${hasKey ? ' — but you have a key that might fit' : ' tight'}.`, options: [
-          { label: 'Knock', to: 'knock' },
+          { label: 'Knock', to: 'knock', set: 'sfx:knock' },
           { label: 'Try the handle', to: 'locked' },
           { label: '(Step away.)', end: true },
         ] },
@@ -1117,7 +1119,7 @@ export class OverworldScene extends Phaser.Scene {
     } else {
       nodes = {
         d0: { speaker: '', text: `${who}door is shut.`, options: [
-          { label: 'Knock', to: 'knock' },
+          { label: 'Knock', to: 'knock', set: 'sfx:knock' },
           { label: 'Try the handle (let yourself in)', set: enter('uninvited'), end: true },
           { label: '(Step away.)', end: true },
         ] },
@@ -1256,6 +1258,8 @@ export class OverworldScene extends Phaser.Scene {
       stage: 'wait', worker: null, nextHammer: 0, nextLine: 0, lineI: 0, done: false });
     // NO grumble yet — discovery is a beat away (the WAIT stage); the shout fires when we enter TRAVEL.
   }
+  // Ambient SFX tuning (WS3) — footstep cadence (ms) + subtle volume. [TUNE]
+  static SFX = { STEP_MS_WALK: 340, STEP_MS_RUN: 250, STEP_VOL: 0.16 };
   // The joiner's working mutters (an occasional line while hammering).
   static REPAIR_LINES = ['The joiner mutters: "Vandals. No respect."', 'Hammering: "Hold still, you — there."', 'The joiner: "New boards, new hinges. Half a day gone."', 'Tap, tap, tap — "Almost square now."'];
   // TIME-OF-DAY HUD — friendly labels + a sun/moon icon style per TimeOfDay phase.
@@ -1637,6 +1641,11 @@ export class OverworldScene extends Phaser.Scene {
       // flush a BUFFERED attack the instant the swing is ready (crisp combat)
       if (this._atkBuffered && now <= this._atkBuffered && now >= this._atkReady && !this.player.isBusy()) { this._atkBuffered = 0; this._playerAttack(); }
     }
+    // FOOTSTEPS (WS3) — a soft step on a cadence while actually walking (quicker when running). Subtle volume.
+    const F = OverworldScene.SFX, moving = !dlgOpen && this._hitFreeze <= 0 && this.player.body
+      && (Math.abs(this.player.body.velocity.x) + Math.abs(this.player.body.velocity.y)) > 10;
+    if (moving) { if (now >= (this._nextStep || 0)) { this._nextStep = now + (run ? F.STEP_MS_RUN : F.STEP_MS_WALK); this._sfx('sfx_footstep', F.STEP_VOL); } }
+    else this._nextStep = 0;
 
     const [pcx, pcy] = cidOf(this.player.x, this.player.y), pc = `${pcx},${pcy}`;
     if (pc !== this._lastChunk) { this._lastChunk = pc; this._restream(false); this._maybeToggleRegion(); }
