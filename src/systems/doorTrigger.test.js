@@ -33,4 +33,19 @@ assert.equal(buildingDoorTrigger(d, 10, 10, 'up', T).action, 'enter', 'then face
 // doorDir is derived from geometry: a doorway painted to the LEFT is entered by facing left, not up.
 assert.equal(buildingDoorTrigger([door('open', 0, -40)], 10, 10, 'left', T).action, 'enter', 'left-painted doorway → enter by facing left');
 
-console.log('buildingDoorTrigger: open enters, closed/locked prompt, walk-past waits, off-axis recovers (no consume) ✓');
+// FULL ORIENTATION MATRIX (regression guard): the facing-derivation must hold for ALL 4 door orientations,
+// not just up — a side- or bottom-fronting building's door is its own escape class. For each orientation,
+// the CORRECT facing enters and a WRONG facing WAITS (never consumes). dy/dx pick where the doorway is painted.
+const orient = [
+  { name: 'up',    dy: -40, dx: 0,   face: 'up',    wrong: 'down' },
+  { name: 'down',  dy: 40,  dx: 0,   face: 'down',  wrong: 'up' },
+  { name: 'left',  dy: 0,   dx: -40, face: 'left',  wrong: 'right' },
+  { name: 'right', dy: 0,   dx: 40,  face: 'right', wrong: 'left' },
+];
+for (const o of orient) {
+  assert.equal(buildingDoorTrigger([door('open', o.dy, o.dx)], 10, 10, o.face, T).action, 'enter', `${o.name}-doorway + facing ${o.face} → enter`);
+  assert.equal(buildingDoorTrigger([door('closed', o.dy, o.dx)], 10, 10, o.face, T).action, 'prompt', `${o.name}-doorway (closed) + facing ${o.face} → prompt`);
+  assert.equal(buildingDoorTrigger([door('open', o.dy, o.dx)], 10, 10, o.wrong, T).action, 'wait', `${o.name}-doorway + facing ${o.wrong} → wait (no consume)`);
+}
+
+console.log('buildingDoorTrigger: open enters, closed/locked prompt, walk-past waits, off-axis recovers, all 4 orientations ✓');
