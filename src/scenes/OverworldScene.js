@@ -551,7 +551,9 @@ export class OverworldScene extends Phaser.Scene {
   _scaleHead(c) {
     if (!c || !c._slotLayers || !this.mods) return;
     const s = this.mods.headScale();
-    for (const slot of OverworldScene.HEAD_SLOTS) (c._slotLayers[slot] || []).forEach((sp) => sp.setScale(s, s).setY(s > 1 ? -10 * (s - 1) : 0));
+    // y = the per-part SEAT offset (scaled) + the big-head lift. When s=1 (off) this restores the base seat,
+    // so the hair stays correctly seated in BOTH modes (the per-part oy in assets.js fixes high-sitting styles).
+    for (const slot of OverworldScene.HEAD_SLOTS) (c._slotLayers[slot] || []).forEach((sp) => sp.setScale(s, s).setY((sp._baseY || 0) * s + (s > 1 ? -10 * (s - 1) : 0)));
   }
   // Re-apply to the player + every loaded NPC. Called on create + by OptionsScene's live modifier-toggle hook.
   _applyBigHead() {

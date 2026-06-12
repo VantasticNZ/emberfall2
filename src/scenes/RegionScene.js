@@ -681,7 +681,7 @@ export class RegionScene extends Phaser.Scene {
   // BIG-HEAD modifier — scale the head-region layers of every Character.
   _applyBigHead() {
     const s = this.mods.headScale();
-    const heads = (c) => { if (!c?._slotLayers) return; for (const slot of ['head', 'hair', 'brows', 'beard']) (c._slotLayers[slot] || []).forEach((sp) => sp.setScale(s, s).setY(s > 1 ? -10 * (s - 1) : 0)); };
+    const heads = (c) => { if (!c?._slotLayers) return; for (const slot of ['head', 'hair', 'brows', 'beard', 'hat']) (c._slotLayers[slot] || []).forEach((sp) => sp.setScale(s, s).setY((sp._baseY || 0) * s + (s > 1 ? -10 * (s - 1) : 0))); };
     heads(this.player);
     this.children.list.forEach((o) => { if (o.constructor?.name === 'Character') heads(o); });
   }

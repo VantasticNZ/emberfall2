@@ -55,6 +55,8 @@ export class Character extends Phaser.GameObjects.Container {
       const initState = (layer.states || ['idle'])[0];
       const spr = this.scene.add.sprite(0, 0, `${layer.tex}__${initState}`).setOrigin(0.5, 0.5);
       spr._layerDef = layer;
+      spr._baseY = layer.oy || 0;   // per-part vertical SEAT offset (some hair styles sit high at base) — survives big-head
+      spr.y = spr._baseY;
       this.add(spr);
       return spr;
     });

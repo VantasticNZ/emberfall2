@@ -80,7 +80,7 @@ export const PARTS = {
   // Mara — a feminine villager: feminine body/head, blonde bob, forest shirt.
   body_fem:        { slot: 'body',  label: 'Body',  layers: [{ tex: 'body_fem', z: Z.body }] },
   head_fem:        { slot: 'head',  label: 'Head',  layers: [{ tex: 'head_fem', z: Z.head, expressive: true }] },
-  hair_bob_blonde: { slot: 'hair',  label: 'Hair',  layers: [{ tex: 'hair_mara', z: Z.hair }] },
+  hair_bob_blonde: { slot: 'hair',  label: 'Hair',  layers: [{ tex: 'hair_mara', z: Z.hair, oy: 3 }] },   // sat high at base — seat it down onto the head
   shirt_forest:    { slot: 'torso', label: 'Shirt', layers: [{ tex: 'shirt_forest', z: Z.torso }] },
   pants_brown:     { slot: 'legs',  label: 'Pants', layers: [{ tex: 'pants_fem', z: Z.legs }] },
   shoes_brown_fem: { slot: 'feet',  label: 'Shoes', layers: [{ tex: 'shoes_fem', z: Z.shoes }] },
