@@ -28,7 +28,7 @@ export const SHOPS = [
     { item: 'whetstone' }, { item: 'wooden_sword' }, { item: 'steel_sword' }, { item: 'leather_jerkin' },
     { item: 'lantern_oil' }, { item: 'minor_potion' }, { item: 'iron_ore' },
     { item: 'book_repair' },
-    { item: 'greenhollow_house', requires: { act: 2 } },
+    { item: 'greenhollow_house', requires: { deeds: ['cave_lore'] } },   // GH4 arc-complete unlocks the property (you belong here now)
   ] },
   // Pem's general store — the GH starter wares (food + sundries). Buying-only (v1).
   { id: 'pem_store', name: "Pem's Store", region: 'Greenhollow', stock: [

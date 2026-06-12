@@ -221,6 +221,14 @@ export const WORLD = {
         neutral: ['Quiet in the back rows now, thanks to you. Take an apple if you\'re passing.'],
         bad: ['*keeps the billhook where he can reach it* ...The orchard\'s cleared. We\'re square. Move along.'] },
       schedule: sched([['dawn', 40, 28, 'tend'], ['day', 40, 28, 'tend'], ['dusk', 42, 30, 'idle'], ['night', 42, 31, 'sleep']]) },
+    // ACOLYTE — tends the chapel ward (GH4 "The Boarded Cave"); uneasy, devout, relents once you've earned it.
+    { tx: 18, ty: 12, facing: 'down', name: 'Acolyte', tempo: 'normal', speed: 60, expression: 'neutral', parts: MARA, quest: 'GH4',
+      greeting: ['The Flame keep you. ...The boards on the old cave stay up. Tradition. Don\'t ask me why; I only tend the ward.'],
+      greetByKarma: {
+        good: ['You\'ve done right by Greenhollow. ...What you found down there — I think of it every time I tend the ward. Thank you for telling me.'],
+        neutral: ['The Flame keep you. ...Whatever you saw beneath us, you carry it well.'],
+        bad: ['*will not meet your eye* ...You went down there and you took from it. From a SHRINE. The Flame sees, even when I look away.'] },
+      schedule: sched([['dawn', 18, 12, 'tend'], ['day', 18, 12, 'tend'], ['dusk', 19, 13, 'idle'], ['night', 19, 14, 'sleep']]) },
     { tx: 30, ty: 18, facing: 'up', name: 'Fatley', tempo: 'dawdler', speed: 70, expression: 'neutral', parts: FATLEY, quest: 'SG1',
       greeting: ['*hic* Oi. You. ...nah, later. Me back\'s gone.'],
       schedule: sched([['dawn', 30, 18, 'idle'], ['day', 30, 18, 'chat'], ['dusk', 30, 18, 'chat'], ['night', 29, 18, 'idle']]) },   // the drunk never leaves the tavern

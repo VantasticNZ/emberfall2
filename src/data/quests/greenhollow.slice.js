@@ -234,4 +234,98 @@ export const GREENHOLLOW_SLICE = [
         options: [ { label: "(Head back to the village.)", end: true } ] },
     } },
   },
+
+  // ---------------------------------------------------------------------------
+  // GH4 — The Boarded Cave (the lore payoff + moral fork #2 + the property
+  // unlock). With the village steadied (GH1–GH3), the acolyte relents; below
+  // lies the DEAD EMBER-SHRINE (LORE-CANON §4). Fire-responds-to-purity: the
+  // carving reads your heart (route on purity). Completing it makes you
+  // Greenhollow's own — the house becomes buyable (greenhollow_house gates on
+  // the cave_lore deed). Boards gated on GH1–GH3 (Decision E).
+  // ---------------------------------------------------------------------------
+  {
+    id: 'GH4', title: 'The Boarded Cave', region: 'Greenhollow', act: 2,
+    type: 'main', tone: 'mystery/weight', perm: true,
+    requires: { quests: ['GH1', 'GH2', 'GH3'] },
+    reward: { item: 'wooden_toy' },   // a rubbing of the weeping-flame carving (a keepsake; reuses the toy slot)
+    steps: [
+      { id: 'earn', desc: "You've earned the right to open the boarded cave." },
+      { id: 'descend', desc: 'Open the cave and go down.' },
+      { id: 'shrine', desc: 'Something is down here. Look.' },
+      { id: 'fork', desc: 'Decide what to do with what you found.' },
+      { id: 'home', desc: 'Return to Greenhollow.' },
+    ],
+    choices: [
+      { id: 'tell', label: 'Tell the acolyte the shrine grieves', impact: 'good',
+        karma: { purity: 10 }, deed: 'shrine_told',
+        note: 'The honest path. It unsettles the warmth — the acolyte is shaken — but the truth is shared.' },
+      { id: 'keep', label: 'Keep it to yourself — protect the warmth', impact: 'neutral',
+        karma: {}, deed: 'shrine_kept',
+        note: "You carry the village's oldest secret alone. A quietly heavier road." },
+      { id: 'desecrate', label: 'Pry the carving loose and take it', impact: 'dark',
+        karma: { morality: -10, purity: -15 }, deed: 'shrine_looted',
+        note: 'You loot a grieving shrine. The cold reads you, and weeps darker. A corrupt seed.' },
+    ],
+    dialogue: { start: 'earn', nodes: {
+      earn: { speaker: 'Acolyte', text:
+        "The boards stay up. Tradition. ...But you've mended this village's hearth, its sick, its orchard. " +
+        "If anyone's earned a look beneath it, it's you. *unhooks a lantern, hands it over, won't follow* " +
+        "The Flame keep you. ...You may wish it had.",
+        options: [ { label: '(Pry the boards and go down.)', to: 'descend' } ] },
+      descend: { speaker: '', text:
+        "The plank that's hung loose since you were small gives easy. Cold air climbs to meet you, far " +
+        "too still. You go down, and down, beneath the chapel's quiet hum — into a chamber no festival " +
+        "ever reached.",
+        options: [ { label: '(Raise the lantern.)', to: 'shrine_read' } ] },
+      // FIRE-RESPONDS-TO-PURITY — the dead shrine reads your heart (LORE-CANON §5).
+      shrine_read: { route: [
+        { when: (c) => c.karma.get('purity') >= 20, to: 'shrine_pure' },
+        { when: (c) => c.karma.get('purity') <= -20, to: 'shrine_corrupt' },
+        { to: 'shrine_cold' } ] },
+      shrine_pure: { speaker: '', text:
+        "An old ember-shrine — a seat of binding, long dead. Scratched deep into cold stone: a flame, " +
+        "WEEPING, tears running down the rock. As you near, the dead carving catches the lantern and " +
+        "glows faint and gold, the way a warm hand is met — as if it knows your heart, and is glad of it.",
+        options: [ { label: '(Take it in.)', to: 'fork' } ] },
+      shrine_corrupt: { speaker: '', text:
+        "An old ember-shrine — a seat of binding, long dead. A flame is scratched deep into the cold " +
+        "stone: WEEPING. As you near, the carving's tears seem to run darker, the cold pressing close " +
+        "and unwelcoming — as if it reads what's in you, and recoils.",
+        options: [ { label: '(Take it in.)', to: 'fork' } ] },
+      shrine_cold: { speaker: '', text:
+        "An old ember-shrine — a seat of binding, long dead. Scratched deep into the cold stone: a flame, " +
+        "WEEPING, tears running down the rock. Far above, the chapel's ward hums on, keeping this asleep. " +
+        "You don't have all of it. You have enough to know the warm story isn't the whole story.",
+        options: [ { label: '(Decide what to do.)', to: 'fork' } ] },
+      // cave_lore fires on the way INTO the fork (you SAW it — every path); then the moral fork.
+      fork: { speaker: '', text:
+        "A flame that grieves, sealed beneath a village that sings to fire every festival. What do you " +
+        "do with a thing like that?",
+        options: [
+          { label: 'Tell the acolyte — the village deserves the truth.', deed: 'cave_lore', choice: { quest: 'GH4', id: 'tell' }, to: 'out_tell' },
+          { label: '(Say nothing. Some warmth is worth protecting.)', deed: 'cave_lore', choice: { quest: 'GH4', id: 'keep' }, to: 'out_keep' },
+          { label: '(Pry the weeping carving loose and pocket it.)', deed: 'cave_lore', choice: { quest: 'GH4', id: 'desecrate' }, to: 'out_loot' },
+        ] },
+      out_tell: { speaker: 'Acolyte', text:
+        "*goes very still as you tell it* ...Weeping. The Flame, weeping. *a long silence* ...I tend a " +
+        "ward I was never told the meaning of. I'll keep tending it. But I'll never hear the festival " +
+        "songs the same way again. ...Thank you. I think.",
+        options: [ { label: '(Step back into the sun.)', to: 'home' } ] },
+      out_keep: { speaker: '', text:
+        "You climb back into the warm noise of the village and you say nothing. The kids wave; Mara calls " +
+        "you for bread; the festival bunting's already going up. You smile, and you let them have it — " +
+        "the whole warm lie of it — and you carry the cold part alone.",
+        options: [ { label: '(Carry it.)', to: 'home' } ] },
+      out_loot: { speaker: '', text:
+        "The carving comes away from the stone with a sound like a held breath let go. The cold deepens, " +
+        "and for just a moment the weeping seems to run faster down the bare rock you've left behind. You " +
+        "pocket your prize and climb toward the warmth you've taken something from.",
+        options: [ { label: '(Leave the shrine bared.)', to: 'home' } ] },
+      home: { speaker: '', text:
+        "Greenhollow is whole again — hearth lit, the sick well, the orchard quiet — and the village knows " +
+        "your face now as one of its own. You've a place here, if you want it: there are houses for sale, " +
+        "and Greenhollow would be glad to call you neighbour.",
+        options: [ { label: '(You belong here now.)', end: true } ] },
+    } },
+  },
 ];

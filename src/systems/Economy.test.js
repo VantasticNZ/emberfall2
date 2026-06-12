@@ -59,11 +59,13 @@ pass('regional pricing: same item costs/sells differently by region; buy > sell 
   const act1 = newKarma();                                                       // Act 1 — childhood, no milestones
   const act2 = newKarma(); act2.recordDeed('time_skip');                         // Act 2 — returned as an adult (M7)
   const act3 = newKarma(); ['time_skip', 'shard_1', 'shard_2', 'shard_3', 'shard_4'].forEach((d) => act3.recordDeed(d)); // Act 3 — ready for the Spire
-  // the dead-content fix: bounty + house open at Act 2; the Saltbreak shop-property at Act 3.
-  assert.ok(!availableStock('hodge_forge', { inv, karma: act1 }).includes('greenhollow_house')); // Act 1: locked
+  // the GH house unlocks on the GH-arc capstone deed `cave_lore` (GH4 — you belong here now), NOT on act.
+  const ghDone = newKarma(); ghDone.recordDeed('cave_lore');                     // GH4 complete
+  assert.ok(!availableStock('hodge_forge', { inv, karma: act1 }).includes('greenhollow_house')); // no cave_lore: locked
   assert.equal(buy(inv, act1, 'hodge_forge', 'greenhollow_house').reason, 'locked');
   assert.equal(doJob(inv, 'bounty', act1).reason, 'locked');                     // bounty board: Act 1 locked
-  assert.ok(availableStock('hodge_forge', { inv, karma: act2 }).includes('greenhollow_house')); // Act 2: house opens
+  assert.ok(!availableStock('hodge_forge', { inv, karma: act2 }).includes('greenhollow_house')); // act2 alone: still locked
+  assert.ok(availableStock('hodge_forge', { inv, karma: ghDone }).includes('greenhollow_house'));  // cave_lore: house opens
   assert.equal(doJob(inv, 'bounty', act2).ok, true);                            // Act 2: bounty opens
   assert.ok(!availableStock('saltbreak_market', { inv, karma: act2 }).includes('saltbreak_shop')); // shop still Act 3
   assert.ok(availableStock('saltbreak_market', { inv, karma: act3 }).includes('saltbreak_shop'));  // Act 3: shop opens
@@ -99,7 +101,7 @@ pass('regional pricing: same item costs/sells differently by region; buy > sell 
 
 // 6) PROPERTY: buy (level+gold gated) then collect passive rent --------------
 {
-  const inv = newInv({ gold: 2000 }); const karma = newKarma(); karma.recordDeed('time_skip'); // Act 2
+  const inv = newInv({ gold: 2000 }); const karma = newKarma(); karma.recordDeed('time_skip'); karma.recordDeed('cave_lore'); // Act 2 + GH4 (house unlocked)
   const r = buyProperty(inv, karma, 'hodge_forge', 'greenhollow_house');
   assert.equal(r.ok, true); assert.equal(r.price, 1500); assert.equal(r.rent, 25);
   assert.equal(inv.gold, 500);
@@ -149,7 +151,7 @@ pass('regional pricing: same item costs/sells differently by region; buy > sell 
 // 10) persists through save -> reload ---------------------------------------
 {
   const store = memoryStorage();
-  const inv = new Inventory({ storage: store, gold: 2000 }); const karma = newKarma(); karma.recordDeed('time_skip'); // Act 2
+  const inv = new Inventory({ storage: store, gold: 2000 }); const karma = newKarma(); karma.recordDeed('time_skip'); karma.recordDeed('cave_lore'); // Act 2 + GH4 (house unlocked)
   inv.add('major_potion', 2); inv.add('steel_sword'); inv.equip('steel_sword');
   learnBook(inv, (buy(inv, karma, 'hodge_forge', 'book_repair'), 'book_repair'));
   buyProperty(inv, karma, 'hodge_forge', 'greenhollow_house');
