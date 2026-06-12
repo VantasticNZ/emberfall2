@@ -172,7 +172,7 @@ export const PROPS = {
   // tile + adds the collider when placed solid (so they're collider-backed, not walk-through mass).
   prop_altar:     { src: 'art/furniture/altar.png',     width: 64, height: 64,  footprint: null }, // chapel shrine statue (replaces the fountain-altar)
   prop_anvil:     { src: 'art/furniture/anvil.png',     width: 32, height: 24,  footprint: null }, // smithing anvil (the forge)
-  prop_bed:       { src: 'art/furniture/bed.png',       width: 46, height: 58, footprint: null }, // a single bed (homes / tavern upstairs)
+  prop_bed:       { src: 'art/furniture/bed.png',       width: 46, height: 69, footprint: null }, // a single bed (homes / tavern upstairs)
   prop_table:     { src: 'art/furniture/table.png',     width: 96, height: 64,  footprint: null }, // a wooden table/bench (homes / shop counter / forge bench)
   prop_dresser:   { src: 'art/furniture/dresser.png',   width: 62, height: 40,  footprint: null }, // a dresser (homes)
   prop_fireplace: { src: 'art/furniture/fireplace.png', width: 64, height: 96,  footprint: null }, // a hearth (homes / tavern)
