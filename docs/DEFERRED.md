@@ -188,6 +188,13 @@ to see the live debt list.
 | ~~M-map settlement pins~~ | ✅ **DONE** — the M-map now pins each settlement at its live overworld-entrance position (matches the walkable world) | — | done |
 | **Bespoke boss/god-reveal VFX** | art polish | the finale's unique look | M3/POLISH |
 
+## SHOPS-v2 — WS1 overnight (2026-06-12)
+| Item | State | Why | Need / when |
+|---|---|---|---|
+| **Buy-UI item ICONS** (eliza-objects) | 🟡 DEFERRED (asset-first audit done) | RULE-4 audit: the licence-vetted library has item art for only a small FOOD/sundry subset (`eliza-objects/Small Items/Food`); **every weapon/armour/shield/trinket/potion/book/material — the bulk of shop stock — is a GAP**. Items carry no `icon` field; no image-slicing tool (sharp/jimp) is installed to extract from the packed grids; and choosing a per-item frame from a packed sheet is a curation call better made with Van's eye. Building food-only icons = ~15% coverage for a new preload/atlas pipeline. | When Van is present: pick ~5–6 food frames (bread/cheese/apple/meat/fish) + a packed-sheet → Phaser-spritesheet preload, render a frame before each buy row, text-fallback the rest. **The buy UI already shows name · price · xN/(out) clearly without icons.** |
+| **Replenishing-stock RESTOCK is clock-dependent** | ✅ BUILT, ⚠ partial-live | The restock day-cadence keys off `tod.dayCount()`, which is **frozen** (the day clock doesn't advance — root cause already logged). Mitigated: a real-time day-equivalent fallback (`STOCK.RESTOCK_MS` ≈ 24 s) drives restock anyway, so shelves DO replenish live; the *day-count* path activates for free when the clock is unfrozen. | Clears when the day-clock freeze is fixed — no further shop work needed. |
+| **Shop INTERIORS dressed with goods** (WS1b) | ⬜ pending this night | Sequenced after WS1d+WS1c. The interiors spec (`SPEC-INTERIORS v2`) covers shop dressing; eliza-objects furniture/shelf props are in-library. | This night if budget, else next shops pass: visible goods props in shop interiors (R2/R6 footprint-checked). |
+
 ## MILESTONE GATES (must pass before advancing)
 - **Post-M1 TRIPLE-CHECK** (BUILD-PLAN §4b): after GH+Marsh+Shrine are BUILT, run the full cohesiveness +
   EXCELLENCE pass against the BUILT game (real cohesion, not paper) before M2 scales. **Status: pending M1
