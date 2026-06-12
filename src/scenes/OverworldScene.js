@@ -90,6 +90,7 @@ export class OverworldScene extends Phaser.Scene {
     // buildings/rocks/trees by where it meets the ground — the SAME anchor the pixel-truth collider
     // uses. (Was 18 = ~12px above the feet → the hero drew UNDER a building it stood in FRONT of.)
     this.add.existing(this.player); DepthSort.track(this.player, this.player.body.offset.y + this.player.body.height);
+    this._scaleHead(this.player);   // BIG-HEAD modifier (item 1) applies to the hero too
     this.physics.add.collider(this.player, this.solids);
     // NPC SOLIDITY (town-feel item 1) — the player collides with townsfolk (no walk-through) and NPCs
     // separate from each other (no stacking). Dynamic bodies kept NON-pushable so a bump never shoves them
@@ -529,6 +530,7 @@ export class OverworldScene extends Phaser.Scene {
     // Without this, a scheduleless keeper drifts off its counter and "the shop has no items" (item-5 regression).
     npc.setData('posted', !!(n.shop || n.quest || n.topics || n.social));
     DepthSort.track(npc, npc.body.offset.y + npc.body.height);   // sort NPCs by their feet line too (same as the hero)
+    this._scaleHead(npc);                                         // BIG-HEAD modifier (item 1) — streamed NPCs scale too
     this.npcLife.add(npc, n.schedule, n.tempo);
     this._regionObjs.push(npc);
     for (const q of [n.quest, ...(n.quests || [])].filter(Boolean)) (this._npcByQuest || (this._npcByQuest = {}))[q] = npc;   // objective-arrow target (live)
@@ -536,6 +538,20 @@ export class OverworldScene extends Phaser.Scene {
       target: npc, targetOffY: 0, prompt: (n.quest || n.quests) ? 'Talk (quest)' : 'Talk',
       onInteract: () => this._npcInteract(n),
     });
+  }
+
+  // BIG-HEAD modifier (item 1) — scale the head-region layers of one Character. Reads the LIVE modifier value
+  // (1.0 when off, so this is a safe no-op then). Ported from RegionScene — the rendering moved to this scene
+  // but the application didn't, so big-head silently stopped working (no gate covered scene-application).
+  _scaleHead(c) {
+    if (!c || !c._slotLayers || !this.mods) return;
+    const s = this.mods.headScale();
+    for (const slot of ['head', 'hair', 'brows', 'beard']) (c._slotLayers[slot] || []).forEach((sp) => sp.setScale(s, s).setY(s > 1 ? -10 * (s - 1) : 0));
+  }
+  // Re-apply to the player + every loaded NPC. Called on create + by OptionsScene's live modifier-toggle hook.
+  _applyBigHead() {
+    this._scaleHead(this.player);
+    this.children.list.forEach((o) => { if (o instanceof Character) this._scaleHead(o); });
   }
 
   _buildRegionChest(c) {

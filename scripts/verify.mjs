@@ -645,6 +645,22 @@ const tile = (px) => Math.round(px / TILE);
   else ok(`kids-protected: all ${kids} kid NPC(s) are protected:true (unharmable/untargetable — hard rule)`);
 }
 
+// 25a) MODIFIER-APPLIED-IN-ACTIVE-SCENE (big-head regression guard) — the game runs on OverworldScene now;
+//      big-head silently stopped working because the headScale APPLICATION never moved here from RegionScene
+//      (Modifiers.test only covers the modifier LOGIC, never scene application). Guard: every scene that
+//      builds Characters must consume mods.headScale() AND expose _applyBigHead (so the OptionsScene live
+//      re-apply hook resolves). A future scene-port that drops the application turns this RED.
+{
+  const offenders = [];
+  for (const f of ['src/scenes/OverworldScene.js', 'src/scenes/RegionScene.js']) {
+    const src = readFileSync(join(ROOT, f), 'utf8');
+    if (!/headScale\(\)/.test(src)) offenders.push(`${f}: does not apply mods.headScale() (big-head won't work)`);
+    if (!/_applyBigHead/.test(src)) offenders.push(`${f}: missing _applyBigHead (OptionsScene live-toggle no-ops)`);
+  }
+  if (offenders.length) fail('BIG-HEAD APPLICATION MISSING:' + offenders.map((v) => '\n      ' + v).join(''));
+  else ok('modifier-applied-in-active-scene: OverworldScene + RegionScene both apply mods.headScale() + expose _applyBigHead (big-head works)');
+}
+
 // 25b) NO-DUPLICATE-NAMED-NPC (town-feel item 2) — a named NPC must not appear TWICE in the same region
 //      (the "mini-Mara" class: a double-spawn renders two of the same person). Names are unique per region;
 //      different regions may reuse a name (a different person). Unnamed/generic NPCs are exempt.
