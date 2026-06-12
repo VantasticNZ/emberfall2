@@ -475,11 +475,49 @@ export const SUNDERED_PEAKS = {
   },
   keep: { x: pkx(PK_KEEP.tx) + TILE / 2, y: pky(PK_KEEP.ty) + TILE / 2, name: 'Cinder Keep' },
   records: { x: pkx(PK_RECORDS.tx) + TILE / 2, y: pky(PK_RECORDS.ty) + TILE / 2, name: "the Order's records" },
-  npcs: PEAKS.npcs.map((n) => {
-    const [lx, ly] = PK_CAST_POS[n.name] || [n.tx, n.ty];
-    return { ...n, x: pkx(lx) + TILE / 2, y: pky(ly) + TILE / 2,
-      schedule: (n.schedule || []).map((s) => ({ ...s, tx: s.tx + PEAKS_OT.x, ty: s.ty + PEAKS_OT.y })) };
-  }),
+  npcs: [
+    ...PEAKS.npcs.map((n) => {
+      const [lx, ly] = PK_CAST_POS[n.name] || [n.tx, n.ty];
+      return { ...n, x: pkx(lx) + TILE / 2, y: pky(ly) + TILE / 2,
+        schedule: (n.schedule || []).map((s) => ({ ...s, tx: s.tx + PEAKS_OT.x, ty: s.ty + PEAKS_OT.y })) };
+    }),
+    // ===== AMBIENT LIFE (WS2 2026-06-12) — the forge-town's LIVING layer on the frozen NpcLife/dialog/shop
+    // systems (the proven Mirefen pattern). Role palette per the spec sketch: ore-haulers + a stonemason +
+    // a protected crag-child + the keeper (peaks_merchant). Schedules stay on the stone town plaza (walkable,
+    // inside the no-aggro ring). Quest cast above is UNTOUCHED — this only adds ambient presence.
+    { name: 'Ore-hauler Brock', x: pkx(33) + TILE / 2, y: pky(41) + TILE / 2, facing: 'down', speed: 55, expression: 'neutral', parts: PEAKS.minerParts,
+      greeting: ['*shoulders a sack of ore* Up and down the quarry road all day. The Order pays in stone and silence.', "Mind the slopes past the ring — the crag rams don't care whose town this is."],
+      topics: [
+        { q: 'The quarry', a: [`"Sky-iron and crag-stone, hauled down to the forges. Hard rock, harder winters. It's a living."`] },
+        { q: 'Cinder Keep', a: [`"The Order keeps to the keep, up the cleft. We haul, they record. Don't go asking what they record."`] },
+      ],
+      schedule: [{ phase: 'dawn', tx: PEAKS_OT.x + 35, ty: PEAKS_OT.y + 40, do: 'tend' }, { phase: 'day', tx: PEAKS_OT.x + 28, ty: PEAKS_OT.y + 42, do: 'tend' }, { phase: 'dusk', tx: PEAKS_OT.x + 31, ty: PEAKS_OT.y + 39, do: 'chat' }, { phase: 'night', tx: PEAKS_OT.x + 33, ty: PEAKS_OT.y + 43, do: 'sleep' }] },
+    { name: 'Ore-hauler Senna', x: pkx(27) + TILE / 2, y: pky(42) + TILE / 2, facing: 'down', speed: 55, expression: 'neutral', parts: PEAKS.strangerParts,
+      greeting: ["*sets down a laden basket, rolls a shoulder* You'll want good boots up here. And better lungs.", "Stonereach folk think we're hard for living this high. Let them think it."],
+      topics: [
+        { q: 'The haul', a: [`"Ore down, supplies up. Bread comes from Stonereach, oil from whatever pedlar's passing. We trade or we go hungry."`] },
+        { q: 'The cleft pass', a: [`"North, past the storm-crawler ground. Lightning lives in the rock up there. I don't haul that road after dark."`] },
+      ],
+      schedule: [{ phase: 'dawn', tx: PEAKS_OT.x + 25, ty: PEAKS_OT.y + 42, do: 'tend' }, { phase: 'day', tx: PEAKS_OT.x + 34, ty: PEAKS_OT.y + 42, do: 'tend' }, { phase: 'dusk', tx: PEAKS_OT.x + 30, ty: PEAKS_OT.y + 41, do: 'idle' }, { phase: 'night', tx: PEAKS_OT.x + 27, ty: PEAKS_OT.y + 44, do: 'sleep' }] },
+    { name: 'Mason Garrow', x: pkx(26) + TILE / 2, y: pky(37) + TILE / 2, facing: 'down', speed: 36, expression: 'neutral', parts: PEAKS.huntParts,
+      greeting: ["*chips at a block, not looking up* Every wall in this town passed through my hands. Mind you don't lean on the fresh courses."],
+      topics: [
+        { q: 'The stonework', a: [`"Terraces, walls, the keep-road kerbs. Stone holds where timber rots — and up here, that's the whole difference."`] },
+        { q: 'The Stonewright', a: [`"She drafts, I cut. We've raised half the peaks between us and argued over every joint."`] },
+      ],
+      schedule: [{ phase: 'dawn', tx: PEAKS_OT.x + 26, ty: PEAKS_OT.y + 37, do: 'tend' }, { phase: 'day', tx: PEAKS_OT.x + 27, ty: PEAKS_OT.y + 36, do: 'tend' }, { phase: 'dusk', tx: PEAKS_OT.x + 26, ty: PEAKS_OT.y + 38, do: 'idle' }, { phase: 'night', tx: PEAKS_OT.x + 25, ty: PEAKS_OT.y + 39, do: 'sleep' }] },
+    // CRAG-CHILD — protected (HARD RULE: kids unharmable/untargetable); pinned to the safe town hub.
+    { name: 'Crag-child Pib', x: pkx(31) + TILE / 2, y: pky(43) + TILE / 2, facing: 'down', speed: 58, scale: 0.72, kid: true, protected: true, expression: 'happy', parts: PEAKS.minerParts,
+      greeting: ["I can name every peak! ...That one's Big Tooth. That one's the Other Tooth. I'm still working on the rest.", "Da says don't climb the scree. So I only climb the SMALL scree."],
+      schedule: [{ phase: 'dawn', tx: PEAKS_OT.x + 31, ty: PEAKS_OT.y + 43, do: 'idle' }, { phase: 'day', tx: PEAKS_OT.x + 30, ty: PEAKS_OT.y + 42, do: 'idle' }, { phase: 'dusk', tx: PEAKS_OT.x + 32, ty: PEAKS_OT.y + 43, do: 'chat' }, { phase: 'night', tx: PEAKS_OT.x + 31, ty: PEAKS_OT.y + 44, do: 'sleep' }] },
+    // THE KEEPER — peaks_merchant stock on the frozen shop system. Posted at the plaza stall (no schedule).
+    { name: 'Pedlar Hesk', x: pkx(32) + TILE / 2, y: pky(38) + TILE / 2, facing: 'down', speed: 0, expression: 'neutral', parts: PEAKS.bountyParts, shop: 'peaks_merchant',
+      greeting: ['"Mountain goods for mountain coin. Mail that turns a crag-ram\'s horn, draughts that turn a bad day. What\'ll it be?"'],
+      topics: [
+        { q: 'Your wares', a: [`"Peak mail, a proper crag maul, sky-iron charms for luck on the slopes — and major draughts. You'll want those past the ring."`] },
+        { q: 'The road down', a: [`"South, the foothill road to Greenhollow — long, but gentle for these parts. Stonereach's closer if it's only bread you're after."`] },
+      ] },
+  ],
 };
 
 // ============================================================================
