@@ -192,6 +192,7 @@ export class OverworldScene extends Phaser.Scene {
 
   // build ONE region's content into the SHARED state (objs / npcLife / combat).
   _buildRegion(R) {
+    if (R.key === 'Greenhollow') this._buildChapelFlame(R);   // fire-responds-to-purity (LORE-CANON §5) — the chapel ward's flame reads the heart
     if (R.terrain) this._buildRegionTerrain(R);
     if (R.cliffWalls) this._buildRegionCliffs(R);   // continuous cliff faces (QUALITY-SPEC C1)
     this._buildRegionWater(R);
@@ -445,6 +446,24 @@ export class OverworldScene extends Phaser.Scene {
     if (i >= 0) REGIONS[i] = region; else REGIONS.push(region);
     this._lastGen = { kind, tries: res.tries, fallback: res.fallback, rooms: region.chests.length };
     return region.key;
+  }
+
+  // FIRE-RESPONDS-TO-PURITY (LORE-CANON §5) — a flame at the chapel ward that READS the player's heart:
+  // PURE → steady warm gold; CORRUPT → cold, wrong-coloured, flinching; neutral → an honest orange. Diegetic
+  // karma feedback (show, never tell). _tickFlame re-tints it each frame by the live purity band.
+  _buildChapelFlame(R) {
+    const T = TILE, fx = R.origin.x + 19 * T + T / 2, fy = R.origin.y + 11 * T;   // the chapel front (building at tx19)
+    const f = this.add.image(fx, fy, 'ow_orb').setBlendMode(Phaser.BlendModes.ADD).setDepth(fy + 200);
+    this._chapelFlame = f; this._regionObjs.push(f); this._tickFlame(this.time.now);
+  }
+  _tickFlame(now) {
+    const f = this._chapelFlame; if (!f || !f.active) return;
+    const pur = this.karma.get('purity');
+    const corrupt = pur <= -20, pure = pur >= 20;
+    const flick = Math.sin(now / (corrupt ? 70 : 220)) * (corrupt ? 0.22 : 0.06);   // corrupt = a fast, uneasy flinch
+    const tint = pure ? 0xffd86a : corrupt ? 0x4a86e0 : 0xffa040;                    // gold / cold-wrong blue / honest orange
+    const baseScale = pure ? 0.78 : corrupt ? 0.5 : 0.64, baseAlpha = pure ? 0.95 : corrupt ? 0.6 : 0.85;
+    f.setTint(tint).setScale(baseScale + flick).setAlpha(Math.max(0.25, baseAlpha + flick * 0.6));
   }
 
   // enclosed look: a dark backdrop over the overworld ground (under the interior floor) + dim bg.
@@ -1601,6 +1620,7 @@ export class OverworldScene extends Phaser.Scene {
     this._updatePlayerVisual(now);
     DepthSort.update();
     this._drawCombatUI();
+    this._tickFlame(now);   // chapel ward flame reads the live purity band (fire-responds-to-purity)
 
     this._ring[this._ri] = delta; this._ri = (this._ri + 1) % this._ring.length;
     if (delta > this._maxMs) this._maxMs = delta;
