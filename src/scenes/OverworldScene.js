@@ -1213,6 +1213,9 @@ export class OverworldScene extends Phaser.Scene {
   }
   // The joiner's working mutters (an occasional line while hammering).
   static REPAIR_LINES = ['The joiner mutters: "Vandals. No respect."', 'Hammering: "Hold still, you — there."', 'The joiner: "New boards, new hinges. Half a day gone."', 'Tap, tap, tap — "Almost square now."'];
+  // TIME-OF-DAY HUD — friendly labels + a sun/moon icon style per TimeOfDay phase.
+  static TIME_LABEL = { dawn: 'Morning', day: 'Midday', dusk: 'Evening', night: 'Night' };
+  static TIME_STYLE = { dawn: { c: 0xffb066, moon: false }, day: { c: 0xffe08a, moon: false }, dusk: { c: 0xff8a5c, moon: false }, night: { c: 0x8ab6ff, moon: true } };
   _repairTick(now) {
     if (!this._repairs || !this._repairs.length) return;
     for (const r of this._repairs) {
@@ -1599,7 +1602,11 @@ export class OverworldScene extends Phaser.Scene {
     add(this.add.rectangle(sx + 42, sy + 35, 152, 11, 0x1c2230, 1).setOrigin(0, 0.5).setScrollFactor(0).setDepth(OD));
     add(txt(sx + 48, sy + 30, 'reserved (no mana system yet)', 9, '#6b6275'));
     this._sGold = add(txt(sx + 10, sy + 50, '', 13, '#ffe08a'));
-    this._sTime = add(txt(sx + 120, sy + 50, '', 13, '#bcd6ff'));
+    // TIME-OF-DAY indicator: a small sun/moon icon + phase label + day number, tied to the live TimeOfDay clock.
+    this._sTimeIcon = add(this.add.graphics().setScrollFactor(0).setDepth(OD));
+    this._sTimeIcon.setPosition(sx + 126, sy + 57);
+    this._sTime = add(txt(sx + 138, sy + 50, '', 13, '#bcd6ff'));
+    this._timePanelBg = 0x10131c; this._timePhaseShown = null;
     this._sMor = add(txt(sx + 10, sy + 74, '', 12, '#9fe6a0'));
     this._sPur = add(txt(sx + 10, sy + 94, '', 12, '#c7b6ff'));
 
@@ -1717,8 +1724,9 @@ export class OverworldScene extends Phaser.Scene {
     this._sHpFill.width = 152 * Math.max(0, hp / max); this._sHpFill.fillColor = hp / max > 0.3 ? 0x5fcf6a : 0xcf5f5f;
     this._sHpTxt.setText(`${hp}/${max}`);
     this._sGold.setText(`Gold ${this.inv.gold}`);
-    const ph = this.tod.phase(), word = ph[0].toUpperCase() + ph.slice(1);
-    this._sTime.setText(`${word} D${this.tod.dayCount() + 1}`);
+    const ph = this.tod.phase();
+    this._sTime.setText(`${OverworldScene.TIME_LABEL[ph] || ph} · D${this.tod.dayCount() + 1}`);
+    if (ph !== this._timePhaseShown) { this._timePhaseShown = ph; this._drawTimeIcon(ph); }   // redraw the icon only on a phase change
     const ks = this.karma.getStatus();
     this._sMor.setText(`Morality ${ks.morality >= 0 ? '+' : ''}${ks.morality} ${ks.moralityTier}`);
     this._sPur.setText(`Purity ${ks.purity >= 0 ? '+' : ''}${ks.purity} ${ks.purityTier}`);
@@ -1742,6 +1750,16 @@ export class OverworldScene extends Phaser.Scene {
     this._mmDots.clear().fillStyle(0xffe66d, 1).fillCircle(this._mm.x + this.player.x * this._mm.scale, this._mm.y + this.player.y * this._mm.scale, 3);
     if (this._fullMap.visible) { const b = this._fmBox; this._fmDots.clear().fillStyle(0xffe66d, 1).fillCircle(b.x + (this.player.x - b.wx) * b.scale, b.y + (this.player.y - b.wy) * b.scale, 5).lineStyle(2, 0x4a3a00, 1).strokeCircle(b.x + (this.player.x - b.wx) * b.scale, b.y + (this.player.y - b.wy) * b.scale, 5); }
     this._updateObjective();
+  }
+  // Draw the time-of-day glyph (a sun for dawn/day/dusk, a crescent moon at night), tinted to the phase.
+  // Redrawn only on a phase change (the icon graphic is positioned in the stats panel; shapes are local).
+  _drawTimeIcon(ph) {
+    const g = this._sTimeIcon; if (!g) return;
+    const st = OverworldScene.TIME_STYLE[ph] || OverworldScene.TIME_STYLE.day;
+    g.clear();
+    g.fillStyle(st.c, 1).fillCircle(0, 0, 5);
+    if (st.moon) { g.fillStyle(this._timePanelBg, 1).fillCircle(2.6, -1.4, 5); }   // carve a crescent for night
+    else { g.lineStyle(1.5, st.c, 1); for (const [dx, dy] of [[0, -8], [0, 8], [-8, 0], [8, 0]]) g.lineBetween(dx * 0.8, dy * 0.8, dx, dy); }   // sun rays
   }
 
   // ---- UI CAMERA (HUD on its own zoom-1 camera; world on the 1.25 main camera) ----
