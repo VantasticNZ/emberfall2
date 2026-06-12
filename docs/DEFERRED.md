@@ -7,6 +7,27 @@
 > the 6-region spine + 5 endings · **M3** = expansion + spell-route web · **ABIL** = the abilities-mechanics
 > session (a prerequisite) · **POLISH** = anytime quality.
 
+## DAY/NIGHT CYCLE — wire the TimeOfDay clock to ADVANCE in the live Overworld (POLISH/system decision)
+The `TimeOfDay` system is built (HUD shows the phase; NpcLife is designed to retarget on phase changes;
+the legacy RegionScene advances it). But **OverworldScene never advances `tod`** during play — the clock is
+frozen at 'day' (frac 0.35), so no phase changes ever fire in the live slice. Consequences logged here so it
+is not silently assumed working:
+- **Repair pacing (item 4, `437dc0eb`)** wires `tod.onPhaseChange` and would complete on a real phase change,
+  but since the clock is frozen it actually completes on a config-derived real-time floor (one day-phase ≈ 6s).
+- **NPC schedules** (dawn/day/dusk/night routines) never switch — NPCs hold their 'day' post (mitigated for
+  feel by the item-5 wander, `764f1e1f`).
+**When:** a deliberate decision for Van — enabling the cycle changes NPC routines + needs a sane `RATE`
+(currently a full day ≈ 24 real s, very fast). One line (`this.tod.advanceRealSeconds(dt)` in `update`, when
+not paused) + a `RATE` tune. **Milestone: POLISH** (or whenever Van wants a living day/night in the slice).
+
+## DEPTH RULE — apply the game-wide feet formula to the parked legacy scenes (POLISH)
+`f1e42e15` made `depth = feet` game-wide via `DepthSort.trackProp` and converted **OverworldScene** (the live
+boot scene) + added the `game-wide-depth-rule` gate. The parked scenes **Greenhollow/Marsh/Peaks/RegionScene**
+(NOT in the boot flow — `BootScene` starts 'Overworld') still call the old `DepthSort.track(spr, footprint…)`.
+The new `trackProp` is a strict improvement for them (identical for origin-0.5 props, corrected otherwise), but
+they were **not converted or eyes-on this session** since they're unreachable in the slice. **When:** if/when a
+legacy scene is revived, convert its prop `track()` calls to `trackProp` + eyes-on. **Milestone: POLISH.**
+
 ## 🔒 SEAMLESS OVERWORLD (Van option B, LOCKED) — convert towns to inline terrain (gate #19)
 **Target: every town/village/city is inline walk-through terrain (0 enter-scenes).** Proven pattern:
 **Mirefen is DONE** (inline in the Marsh — buildings + NPCs + the hut interior-door, no enter-door; walk
