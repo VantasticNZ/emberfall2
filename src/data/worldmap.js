@@ -865,11 +865,11 @@ export const CITY_SALTBREAK = griddedSettlement({ key: 'city_saltbreak', label: 
   chests: [{ tx: 7, ty: 7, id: 'saltbreak_docks', gold: 40 }, { tx: 28, ty: 14, id: 'saltbreak_market', gold: 35 }, { tx: 49, ty: 28, id: 'saltbreak_mansion', gold: 50 }, { tx: 14, ty: 28, id: 'saltbreak_under', gold: 30 }] });
 export const TOWN_STONEREACH = griddedSettlement({ key: 'town_stonereach', label: 'Stonereach (town)', otx: 400, oty: 446, W: 36, H: 28, pitch: 8, street: 2, mapColor: 0x8a93a8,
   doors: [{ tx: 1, ty: 1, to: 'back', label: 'Leave Stonereach' }], chests: [{ tx: 8, ty: 8, id: 'stonereach_hall', gold: 30 }, { tx: 24, ty: 16, id: 'stonereach_mine', gold: 25 }] });
-const MARSH_FOLK = [
-  ['body_fem', 'head_fem', 'brows_chestnut', 'hair_bob_blonde', 'shirt_leather', 'pants_brown', 'shoes_brown_fem'],   // Hagga-ish
-  ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_chestnut', 'shirt_forest', 'pants_brown', 'shoes_brown'],       // a fisher
-  ['body_fem', 'head_fem', 'brows_chestnut', 'hair_parted_gray', 'shirt_forest', 'pants_brown', 'shoes_brown_fem'],     // a bog-woman
-  ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_chestnut', 'shirt_blue', 'pants_black', 'shoes_brown'],          // a marsh lad
+const MARSH_FOLK = [   // item 4: skin-tone + hair-colour variety across the marsh folk
+  ['body_tan', 'head_tan', 'brows_chestnut', 'hair_black', 'shirt_leather', 'pants_brown', 'shoes_brown_fem'],         // Hagga-ish (tan, black)
+  ['body_deep', 'head_deep', 'brows_chestnut', 'hair_black', 'shirt_forest', 'pants_brown', 'shoes_brown'],            // a fisher (deep skin)
+  ['body_fem', 'head_fem', 'brows_chestnut', 'hair_parted_gray', 'shirt_teal', 'pants_brown', 'shoes_brown_fem'],      // a bog-woman (grey, teal)
+  ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_ginger', 'shirt_blue', 'pants_black', 'shoes_brown'],           // a marsh lad (ginger)
 ];
 export const TOWN_MIREFEN = griddedSettlement({ key: 'town_mirefen', label: 'Mirefen (town)', otx: 442, oty: 446, W: 34, H: 26, pitch: 8, street: 2, mapColor: 0x56988c,
   floor: 'dirt', groundTint: 0x7a8470, spawnTile: { tx: 4, ty: 1 },

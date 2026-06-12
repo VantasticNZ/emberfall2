@@ -13,8 +13,9 @@ const HERO = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_chestnut', 'sh
 const MARA = ['body_fem', 'head_fem', 'brows_chestnut', 'hair_bob_blonde', 'shirt_forest', 'pants_brown', 'shoes_brown_fem'];
 const BRAM = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_parted_gray', 'beard_gray', 'shirt_leather', 'pants_black', 'shoes_brown'];
 // WARDROBE VARIETY (town-feel 6) — distinct shirt colours across the cast (was a sea of leather/forest/blue).
-const HODGE = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_chestnut', 'beard_gray', 'shirt_amber', 'pants_brown', 'shoes_brown'];
-const TAM = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_chestnut', 'shirt_red', 'pants_brown', 'shoes_brown'];
+// CAST VARIETY (item 4) — vary skin tone + hair COLOUR across the cast, not just shirt hue.
+const HODGE = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_black', 'beard_gray', 'shirt_amber', 'pants_brown', 'shoes_brown'];
+const TAM = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_ginger', 'shirt_red', 'pants_brown', 'shoes_brown'];
 const PHIL = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_parted_gray', 'shirt_teal', 'pants_black', 'shoes_brown'];
 const FATLEY = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_chestnut', 'beard_gray', 'shirt_maroon', 'pants_black', 'shoes_brown'];
 const PEM = ['body_fem', 'head_fem', 'brows_chestnut', 'hair_bob_blonde', 'shirt_plum', 'pants_brown', 'shoes_brown_fem'];
@@ -238,7 +239,7 @@ export const WORLD = {
       schedule: sched([['dawn', 26, 11, 'idle'], ['day', 32, 12, 'idle'], ['dusk', 24, 13, 'chat'], ['night', 27, 10, 'idle']]) },   // item 4: day-post off the fountain (NE edge) to thin the plaza
     // KIDS — PROTECTED (unharmable/untargetable, hard rule). Smaller villager skins (proper child art = a
     // deferred ULPC fetch). Playful, with interconnection lines (they talk about the grown-ups).
-    { tx: 23, ty: 14, facing: 'down', name: 'Nettle', tempo: 'brisk', speed: 78, scale: 0.72, kid: true, protected: true, expression: 'happy', parts: TAM,
+    { tx: 23, ty: 14, facing: 'down', name: 'Nettle', tempo: 'brisk', speed: 78, scale: 0.72, kid: true, protected: true, expression: 'happy', parts: ['body_tan', 'head_tan', 'brows_chestnut', 'hair_blond', 'shirt_plum', 'pants_brown', 'shoes_brown'],
       greeting: ["Betcha can't catch me! ...Mum says don't bother Hodge when his hammer's going.", "I helped Pem stack the apples. She gave me one for it!"],
       bark: 'Last one to the chapel\'s a rotten egg!',
       schedule: sched([['dawn', 23, 17, 'idle'], ['day', 18, 20, 'chat'], ['dusk', 17, 19, 'chat'], ['night', 34, 25, 'sleep']]) },   // item 4: plays the SW plaza edge by day (off the fountain), the cottage at night
@@ -262,15 +263,15 @@ export const WORLD = {
       bark: '*stands the post, eyes on the road*',
       schedule: sched([['dawn', 22, 27, 'idle'], ['day', 22, 27, 'idle'], ['dusk', 22, 27, 'idle'], ['night', 22, 27, 'idle']]) },   // gate post (static)
     // REMAINING ROLES — farmer (edge field, till loop), wood-chopper (ambient), the joiner (named presence).
-    { tx: 10, ty: 34, facing: 'down', name: 'Ada', role: 'farmer', tempo: 'ambler', speed: 66, expression: 'neutral', parts: PEM,
+    { tx: 10, ty: 34, facing: 'down', name: 'Ada', role: 'farmer', tempo: 'ambler', speed: 66, expression: 'neutral', parts: ['body_deep', 'head_deep', 'brows_chestnut', 'hair_black', 'shirt_amber', 'pants_brown', 'shoes_brown_fem'],
       greeting: [`The soil here is good, if you mind it. Mind it I do.`],
       bark: '*the scrape of a hoe through soil*',
       schedule: sched([['dawn', 10, 34, 'till'], ['day', 12, 35, 'till'], ['dusk', 14, 33, 'idle'], ['night', 13, 31, 'sleep']]) },
-    { tx: 8, ty: 28, facing: 'right', name: 'Cob', role: 'chopper', tempo: 'normal', speed: 68, expression: 'neutral', parts: HODGE,
+    { tx: 8, ty: 28, facing: 'right', name: 'Cob', role: 'chopper', tempo: 'normal', speed: 68, expression: 'neutral', parts: ['body_tan', 'head_tan', 'brows_chestnut', 'hair_auburn', 'shirt_forest', 'pants_brown', 'shoes_brown'],
       greeting: [`*thunk* ...Firewood does not split itself, friend.`],
       bark: '*thunk — the steady fall of an axe*',
       schedule: sched([['dawn', 8, 28, 'chop'], ['day', 8, 28, 'chop'], ['dusk', 10, 27, 'chat'], ['night', 9, 25, 'idle']]) },
-    { tx: 16, ty: 25, facing: 'down', name: 'Mason', role: 'joiner', tempo: 'ambler', speed: 70, expression: 'neutral', parts: BRAM,
+    { tx: 16, ty: 25, facing: 'down', name: 'Mason', role: 'joiner', tempo: 'ambler', speed: 70, expression: 'neutral', parts: ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_auburn', 'shirt_teal', 'pants_black', 'shoes_brown'],
       greeting: [`A joiner is never short of work in a town with rough hands.`],
       topics: [
         { q: 'Your trade', a: [`"Doors, shutters, a coffin now and then. I mend what folk break — and they break plenty."`] },

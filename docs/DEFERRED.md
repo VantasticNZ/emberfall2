@@ -225,6 +225,23 @@ the avatar slid with the walk frames (no roll read).
 - ElizaWy's source has other fetchable states (thrust/shoot/cast/jump per the ASSET-LEDGER note) but **none is
   a true ground-roll/crouch** — jump is the nearest and would not read as a dodge-roll.
 
+## CAST VARIETY — accessories + clothing STYLES (2026-06-13, item 4)
+**Delivered (offline, no fetch):** hair COLOURS (black/auburn/blond/ginger) + SKIN TONES (tan/deep, with matching
+faces) hue/value-shifted from the OGA-BY base (`recolor_chars.py`), reassigned across GH/Mirefen/Peaks so the
+casts read as distinct people (GH: 14 distinct {skin·hair·shirt} of 17; guards stay uniform by design). Shirt
+COLOURS were town-feel 6.
+**GAP (needs a forge FETCH/commission — recolour can't make new SHAPES):**
+- **Clothing STYLES** — robe / tunic / dress / apron / cloak silhouettes (we only have the one base shirt shape
+  in blue/recolours + leather). Distinct *garments*, not just *colours*.
+- **Accessories** — hats / caps / hoods, aprons, belts, bags, carried tools (a smith's apron, a fisher's creel,
+  a miner's pick). Only the guard kettle-helm (`helm`) exists.
+- **More hair STYLES** (long, braided, bald, topknot) + **more bodies** (child body, stout/aged) — only 3 hair
+  shapes + 2 adult bodies exist.
+**What it needs:** widen `scripts/fetch_eliza.sh` to pull the ElizaWy/LPC clothing + hat + apron layers (they
+exist in the LPC universe under OGA-BY/CC0), add PARTS entries per new layer (the AssetLoader auto-loads any
+`tex` in PARTS), then assign styles/accessories per role (smith=apron, guard=helm, fisher=hat). A child body for
+the kids (currently scaled-down adults) is part of the same fetch.
+
 ## MILESTONE GATES (must pass before advancing)
 - **Post-M1 TRIPLE-CHECK** (BUILD-PLAN §4b): after GH+Marsh+Shrine are BUILT, run the full cohesiveness +
   EXCELLENCE pass against the BUILT game (real cohesion, not paper) before M2 scales. **Status: pending M1

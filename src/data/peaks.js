@@ -9,11 +9,11 @@
 
 const HERO = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_chestnut', 'shirt_blue', 'pants_black', 'shoes_brown'];
 // Townsfolk (distinct via hair/shirt within the limited LPC palette — FLAG: more variants wanted).
-const MINER = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_parted_gray', 'shirt_leather', 'pants_brown', 'shoes_brown'];
-const HUNT = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_chestnut', 'shirt_forest', 'pants_black', 'shoes_brown'];
-const STONEWRIGHT = ['body_fem', 'head_fem', 'brows_chestnut', 'hair_bob_blonde', 'shirt_forest', 'pants_brown', 'shoes_brown_fem'];
-const STRANGER = ['body_fem', 'head_fem', 'brows_chestnut', 'hair_parted_gray', 'shirt_leather', 'pants_brown', 'shoes_brown_fem'];
-const BOUNTY = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_chestnut', 'shirt_leather', 'pants_black', 'shoes_brown'];
+const MINER = ['body_tan', 'head_tan', 'brows_chestnut', 'hair_parted_gray', 'shirt_leather', 'pants_brown', 'shoes_brown'];   // item 4
+const HUNT = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_auburn', 'shirt_forest', 'pants_black', 'shoes_brown'];   // item 4
+const STONEWRIGHT = ['body_fem', 'head_fem', 'brows_chestnut', 'hair_auburn', 'shirt_forest', 'pants_brown', 'shoes_brown_fem'];   // item 4
+const STRANGER = ['body_deep', 'head_deep', 'brows_chestnut', 'hair_black', 'shirt_leather', 'pants_brown', 'shoes_brown_fem'];   // item 4
+const BOUNTY = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_black', 'shirt_leather', 'pants_black', 'shoes_brown'];   // item 4
 
 export const PEAKS = {
   widthTiles: 40,

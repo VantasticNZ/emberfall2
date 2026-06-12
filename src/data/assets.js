@@ -87,6 +87,15 @@ export const PARTS = {
   // Bram — an older bearded smith: gray parted hair + gray beard + leather shirt.
   hair_parted_gray:{ slot: 'hair',  label: 'Hair',  layers: [{ tex: 'hair_bram', z: Z.hair }] },
   beard_gray:      { slot: 'beard', label: 'Beard', layers: [{ tex: 'beard_bram', z: Z.beard }] },
+  // CAST VARIETY (item 4) — hair COLOURS + SKIN TONES, hue/value-shifted from the OGA-BY base (recolor_chars.py).
+  hair_black:  { slot: 'hair', label: 'Hair', layers: [{ tex: 'hair_black',  z: Z.hair }] },
+  hair_auburn: { slot: 'hair', label: 'Hair', layers: [{ tex: 'hair_auburn', z: Z.hair }] },
+  hair_blond:  { slot: 'hair', label: 'Hair', layers: [{ tex: 'hair_blond',  z: Z.hair }] },
+  hair_ginger: { slot: 'hair', label: 'Hair', layers: [{ tex: 'hair_ginger', z: Z.hair }] },
+  body_tan:  { slot: 'body', label: 'Body', layers: [{ tex: 'body_tan',  z: Z.body }] },
+  head_tan:  { slot: 'head', label: 'Head', layers: [{ tex: 'head_tan',  z: Z.head, expressive: true }] },
+  body_deep: { slot: 'body', label: 'Body', layers: [{ tex: 'body_deep', z: Z.body }] },
+  head_deep: { slot: 'head', label: 'Head', layers: [{ tex: 'head_deep', z: Z.head, expressive: true }] },
   shirt_leather:   { slot: 'torso', label: 'Shirt', layers: [{ tex: 'shirt_leather', z: Z.torso }] },
   // WARDROBE VARIETY (town-feel 6) — hue-shifted recolours of the base shirt (OGA-BY derivative, licence-clean;
   // scripts/recolor_shirts.py). A wider palette than blue/green/brown so the cast reads as distinct people.
