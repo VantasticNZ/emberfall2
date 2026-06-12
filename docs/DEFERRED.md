@@ -7,6 +7,14 @@
 > the 6-region spine + 5 endings · **M3** = expansion + spell-route web · **ABIL** = the abilities-mechanics
 > session (a prerequisite) · **POLISH** = anytime quality.
 
+## GUARD CONFRONT LADDER — chase / knock-out / lock-up (the escalation past "flee", step 5+)
+The Fable-style ladder is built through step 4: crime → noise → the guard WALKS to you → "Stop right there!"
+warning → comply window (stand still = pay/can't-pay fine; flee = lapse, fine stays owed, re-confront on
+proximity). The DESIGNED escalation past a flee is **not** built: a guard who is fled should CHASE (a short
+sprint), and on catch KNOCK OUT / drag to a LOCK-UP (cell + a held-time or bail), with repeat-offence
+heat scaling. **When:** the reactivity/crime-system pass (post-slice) — needs a chase AI + a jail location +
+a heat model. For now a flee just lapses to a proximity re-confront (fine never lost). **Milestone: POLISH/M2.**
+
 ## DAY/NIGHT CYCLE — wire the TimeOfDay clock to ADVANCE in the live Overworld (POLISH/system decision)
 The `TimeOfDay` system is built (HUD shows the phase; NpcLife is designed to retarget on phase changes;
 the legacy RegionScene advances it). But **OverworldScene never advances `tod`** during play — the clock is

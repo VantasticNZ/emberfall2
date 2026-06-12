@@ -34,7 +34,7 @@ import { Social } from '../systems/Social.js';
 import { EnemyController } from '../systems/EnemyController.js';
 import { PlayerCombat } from '../systems/Combat.js';
 import { ModifierRegistry } from '../systems/Modifiers.js';
-import { COMBAT, INTERACTION_RADIUS, GUARD_HEARING, REPAIR } from '../constants/standards.js';
+import { COMBAT, INTERACTION_RADIUS, GUARD_HEARING, GUARD, REPAIR } from '../constants/standards.js';
 import { DAY_LENGTH, RATE } from '../data/time.js';
 import { bindings } from '../constants/controls.js';
 import { AssetLoader } from '../art/AssetLoader.js';
@@ -926,6 +926,9 @@ export class OverworldScene extends Phaser.Scene {
   // ---- interaction → dialogue branch (mirror the discrete-scene logic) --------
   _npcInteract(n) {
     if (this._dlg || this._shopOpen || this._topicsOpen) return;
+    // GUARD + fine owed: talking to the guard IS complying — open the fine dialog now (interactable through the
+    // whole confront ladder; a deliberate "I'll settle up" instead of waiting out the comply window).
+    if (n.role === 'guard' && this._fineOwed > 0) { this._confront = null; this._guardConfront(null); return; }
     if (n.shop) { this._openShop(n.shop, n.name); return; }   // a keeper at the counter → the buy menu (shop buying v1)
     const st = n.quest ? this.quests.status(n.quest) : null;
     if (n.quest && (st === 'available' || st === 'active')) this._startQuestDialogue(n.quest);
@@ -1119,28 +1122,30 @@ export class OverworldScene extends Phaser.Scene {
     };
     this._activeQuest = null; this._dlg = new Dialogue({ start: 'd0', nodes }, this._dlgCtx()); this._openDlg();
   }
-  // ---- REACTIVITY: NOISE → GUARD HEARING ------------------------------------------------------------
-  // A noisy crime RADIATES noise from (x,y). Every guard whose post is within the hearing radius drops its
-  // chore and WALKS to investigate (NpcLife.summon); on arrival it confronts the player if they're still in
-  // range (else it inspects the scene — the fine remains owed for a later proximity confront). A guard OUT of
-  // earshot does nothing here, but the fine was already registered by _addFine (per the existing rules).
+  // ---- REACTIVITY: NOISE → GUARD HEARING → THE CONFRONT LADDER ---------------------------------------
+  // A noisy crime RADIATES noise from (x,y). Every guard within the hearing radius HEARS; the nearest one
+  // who heard begins the CONFRONT LADDER — he WALKS from his post to the player, shouts a warning, opens a
+  // comply window (see _confrontTick). A guard OUT of earshot does nothing here, but the fine was already
+  // registered by _addFine. (No teleport — the guard is visibly en route the whole way.)
   _emitNoise(x, y, radius, reason) {
     if (this._inInterior) return;                          // events fire on the overworld where the guards live
-    let heard = 0;
+    let nearest = null, nd = Infinity, heard = 0;
     for (const m of this.npcLife.movers) {
       const g = m.npc; if (!g.active || g.getData('role') !== 'guard') continue;
       if (Phaser.Math.Distance.Between(g.x, g.y, x, y) > radius) continue;   // out of earshot → no response
       heard++;
-      this.npcLife.summon(g, x, y, (guard) => {
-        if (this._fineOwed > 0 && !this._dlg && !this._shopOpen && !this._inInterior
-            && Phaser.Math.Distance.Between(guard.x, guard.y, this.player.x, this.player.y) <= GUARD_HEARING.ARRIVE_CONFRONT_PX) {
-          this._guardConfront(guard);                      // player still at the scene → confront HERE
-        } else {
-          this._banner('A guard reaches the door, scowling at the splintered wood.', 1800);   // player fled → fine stays owed
-        }
-      });
+      const dp = Phaser.Math.Distance.Between(g.x, g.y, this.player.x, this.player.y);
+      if (dp < nd) { nd = dp; nearest = g; }
     }
-    if (heard > 0) this._banner(`A guard heard that — coming to investigate.`, 1700);
+    if (nearest && this._fineOwed > 0) this._startConfront(nearest);   // the closest who heard comes for you
+    if (heard > 0) this._banner('A guard heard that — and is coming for you.', 1700);
+  }
+  // Begin a confront: the guard walks from where he IS to the player (APPROACH phase). Idempotent — won't
+  // restart a confrontation already underway, and respects the post-flee cooldown.
+  _startConfront(guard) {
+    if (this._confront || this._guardBusy || !(this._fineOwed > 0)) return;
+    if (this.time.now < (this._guardCooldown || 0)) return;
+    this._confront = { guard, phase: 'approach', warnUntil: 0, anchor: null };
   }
   _fineAction(mode) {
     if (mode === 'pay') { const f = this._fineOwed; this.inv.addGold(-f); if (this.inv.save) this.inv.save(); this._banner(`Fine paid (${f}g). "Keep your nose clean."`, 1700); this._fineOwed = 0; }
@@ -1148,16 +1153,47 @@ export class OverworldScene extends Phaser.Scene {
     else { this._banner('The guard\'s eyes narrow. "Refuse, will you. We\'ll be watching — and it won\'t go cheaper."', 2200); }   // refuse → fine stays, escalates next offence
     this._guardBusy = false;
   }
-  // Per-frame reactivity: a guard confronts a fined player on proximity; the repair worker advances.
+  // Per-frame reactivity: drive the guard CONFRONT LADDER + advance the repair worker.
   _reactivityTick(dlgOpen, now) {
-    if (this._fineOwed > 0 && !dlgOpen && !this._guardBusy && now > (this._guardCooldown || 0) && !this._inInterior) {
-      for (const m of this.npcLife.movers) {
-        const ng = m.npc; if (!ng.active || ng.getData('role') !== 'guard') continue;
-        if (Phaser.Math.Distance.Between(ng.x, ng.y, this.player.x, this.player.y) < 80) { this._guardConfront(ng); break; }
+    if (!dlgOpen && !this._inInterior) {
+      if (this._confront) this._confrontTick(now);
+      // No live confrontation: a fined player who strays near a guard triggers one (the same walk-up ladder).
+      else if (this._fineOwed > 0 && !this._guardBusy && now > (this._guardCooldown || 0)) {
+        for (const m of this.npcLife.movers) {
+          const ng = m.npc; if (!ng.active || ng.getData('role') !== 'guard') continue;
+          if (Phaser.Math.Distance.Between(ng.x, ng.y, this.player.x, this.player.y) < GUARD.NOTICE_RANGE_PX) { this._startConfront(ng); break; }
+        }
       }
     }
     this._repairTick(now);
   }
+  // THE CONFRONT LADDER (Fable-style): APPROACH (walk to the player) → WARN ("Stop right there!" + comply
+  // window) → comply (stand still) opens the fine dialog; flee (move off) lapses it (fine stays owed).
+  _confrontTick(now) {
+    const c = this._confront, g = c.guard;
+    if (!g.active || this._fineOwed <= 0) { this._confront = null; return; }   // guard gone / fine cleared
+    const dPlayer = Phaser.Math.Distance.Between(g.x, g.y, this.player.x, this.player.y);
+    if (c.phase === 'approach') {
+      this.npcLife.summon(g, this.player.x, this.player.y, null);   // re-aim each frame → he TRACKS you as you move
+      if (dPlayer <= GUARD.WARN_RANGE_PX) {                         // reached you → WARN
+        c.phase = 'warn'; c.warnUntil = now + GUARD.COMPLY_MS; c.anchor = { x: this.player.x, y: this.player.y };
+        this.npcLife.summon(g, g.x, g.y, null);                    // halt the guard where he stands
+        g.facing = this._faceToward(g, this.player); if (g.setState) g.setState('idle');
+        this._sfx('sfx_select', 0.5); this._banner('Town Guard: "Stop right there!"', 1700);
+      }
+    } else if (c.phase === 'warn') {
+      this.npcLife.summon(g, g.x, g.y, null);    // keep him planted (overrides his patrol) while he warns you
+      g.facing = this._faceToward(g, this.player);
+      const fledDist = Phaser.Math.Distance.Between(this.player.x, this.player.y, c.anchor.x, c.anchor.y);
+      if (fledDist > GUARD.FLEE_DIST_PX) {                         // you bolted → the confrontation lapses
+        this._confront = null; this._guardCooldown = now + GUARD.RECONFRONT_COOLDOWN_MS;
+        this._banner('You break away — the guard falls back, watching. (the fine stays owed)', 2200);
+      } else if (now >= c.warnUntil) {                            // you stood your ground → he reads you the fine
+        this._confront = null; this._guardConfront(g);
+      }
+    }
+  }
+  _faceToward(a, b) { const dx = b.x - a.x, dy = b.y - a.y; return Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up'); }
   // ---- REACTIVITY: REPAIR-WORKER EVENT ---------------------------------------------------------------
   // A forced door registers a repair JOB: a joiner works the door for a full DAY-PHASE — present the whole
   // time, swinging the hammer CONTINUOUSLY (the slash-as-work anim), with an occasional mutter — then the

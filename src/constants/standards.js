@@ -87,6 +87,18 @@ export const GUARD_HEARING = Object.freeze({
   ARRIVE_CONFRONT_PX: 130, // on arrival at the event, confront the player if they're still within this range
 });
 
+// GUARD CONFRONT LADDER (Fable-style) — a guard who HEARD a crime (or notices a fined player) WALKS from
+// his actual post to the player, shouts a WARNING, then opens a COMPLY window: stand still and he reads you
+// the fine (pay / can't-pay); flee and the confrontation LAPSES (fine stays owed, re-confront on proximity).
+// Chase / knock-out / lock-up are the DEFERRED escalation (step 5+). NOT a teleport — the guard is visibly en route.
+export const GUARD = Object.freeze({
+  NOTICE_RANGE_PX: 150,   // a fined player THIS close to a guard makes the guard start walking over
+  WARN_RANGE_PX: 96,      // the guard stops here, faces the player, and shouts "Stop right there!"
+  COMPLY_MS: 2000,        // stand still within this window = comply → the fine dialog opens
+  FLEE_DIST_PX: 70,       // move this far from where you were warned = flee → confrontation lapses (fine owed)
+  RECONFRONT_COOLDOWN_MS: 6000, // after a flee, the guard waits this long before trying again
+});
+
 // REPAIR PACING — a forced door is mended by a JOINER who works at it for a full day-phase: present the whole
 // time, swinging the hammer continuously, with an occasional mutter, THEN the door is restored. The duration is
 // one day-phase (derived from the time config in-scene), and it also completes on a real TimeOfDay phase change
