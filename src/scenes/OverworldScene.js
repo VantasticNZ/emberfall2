@@ -87,6 +87,9 @@ export class OverworldScene extends Phaser.Scene {
     // so it persists with the save automatically. A FRESH game (no time_skip) boots a CHILD; after the
     // childhood arc burns + the time-skip, the same save reads ADULT. Gates quests/items/doors/combat below.
     this.isChild = !this.karma.hasDeed('time_skip');
+    // TRANSITION (sys 4) — when M6 records `time_skip` (the village burns, the child flees), the childhood ENDS:
+    // a held "Ten winters gone" beat, then the child becomes the adult and returns to a changed Greenhollow.
+    this.karma.onDeed((id) => { if (id === 'time_skip' && this.isChild && !this._timeSkipping) this._doTimeSkip(); });
     // SPAWN: a fresh CHILD wakes in Mara's cottage (sys 2); an adult / a save with a position uses it.
     const childSpawn = CHILD_WAKE;   // Mara's cottage interior spawn (sys 2)
     const start = (hadSave && !this.save.worldReset) ? this.save.getPosition()
@@ -386,6 +389,32 @@ export class OverworldScene extends Phaser.Scene {
   }
 
   // ---- AREA TRANSITION (Phase 0): overworld ↔ interior ↔ floor, with a return-stack ----------------
+  // THE TIME-SKIP (sys 4) — the canon-toned childhood→adult transition. A held black card ("Ten winters gone"),
+  // then the child BECOMES the adult (real adult body + a sword) and wakes in a CHANGED Greenhollow (sys 5's
+  // growth flips because time_skip is now set). Fires once, from the M6 burning.
+  _doTimeSkip() {
+    if (this._timeSkipping) return; this._timeSkipping = true;
+    if (this._dlg) this._closeDialogue();
+    const W = this.scale.width, H = this.scale.height;
+    const cover = this.add.rectangle(0, 0, W, H, 0x05040a, 1).setOrigin(0, 0).setScrollFactor(0).setDepth(DEPTH.OVERLAY + 50);
+    const txt = this.add.text(W / 2, H / 2, 'Ten winters gone.', { fontFamily: 'Georgia, serif', fontSize: '34px', color: '#d8c8a0' }).setOrigin(0.5).setScrollFactor(0).setDepth(DEPTH.OVERLAY + 51).setAlpha(0);
+    this._registerUIPanel && this._registerUIPanel(cover); this._registerUIPanel && this._registerUIPanel(txt);
+    Movement.stop(this.player);
+    this.tweens.add({ targets: txt, alpha: 1, duration: 900 });
+    this.time.delayedCall(2400, () => {
+      // BECOME THE ADULT (under the cover)
+      this.isChild = false; this.player.isAdult = true; this.player.isMinor = false;
+      for (const p of ['body_ivory', 'head_ivory', 'pants_black', 'shoes_brown']) this.player.equip(p);   // child body → grown body
+      this.player.equip('sword'); this._scaleHead(this.player);
+      this._areaStack = []; this._inInterior = false;
+      this.player.x = GREENHOLLOW.player.x; this.player.y = GREENHOLLOW.player.y; this.player.body.reset(this.player.x, this.player.y);
+      this._unloadAllRegions(); this._maybeToggleRegion(true); this._restream(true);
+      this.cameras.main.centerOn(this.player.x, this.player.y);
+      if (this.saveGame) this.saveGame();   // persist the adult state immediately
+      this.tweens.add({ targets: [cover, txt], alpha: 0, duration: 1000, delay: 200, onComplete: () => { try { cover.destroy(); txt.destroy(); } catch (_) {} this._timeSkipping = false; this._banner('You return to Greenhollow, grown. The town is not as you left it.', 3200); } });
+    });
+  }
+
   // `to` = an interior region key (enter, pushing the current spot) OR 'back' (pop → exit/descend).
   // Reuses the proven streaming (interiors are REGIONS in a far corner) + SaveManager deltas, so a
   // looted interior chest stays looted, tools/quests/karma persist, and navGates validate interiors.
