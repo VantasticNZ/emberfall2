@@ -559,7 +559,11 @@ export class OverworldScene extends Phaser.Scene {
   }
 
   _buildRegionNpc(n) {
+    // AGE-VARIANT (sys 3/5) — the town the CHILD sees vs the ADULT's. childOnly NPCs (Bram, the playmate kids)
+    // are gone after the fire/time-skip; adultOnly NPCs (the slice cast who arrive/grow up) aren't there yet.
+    if (this.isChild && n.adultOnly) return; if (!this.isChild && n.childOnly) return;
     const npc = new Character(this, n.x, n.y, { parts: n.parts, facing: n.facing || 'down', speed: n.speed || 70 });
+    npc.name = n.name || '';   // tag the built sprite with its NPC name (age-variant proof + debugging)
     this.add.existing(npc); npc.body.setImmovable(false);
     // SOLID to the player + each other (item 1). pushable=false → a bump blocks, never shoves them away.
     // ghost:true exempts (schema for special cases — e.g. a vision/cutscene actor that must pass through).
@@ -1089,6 +1093,11 @@ export class OverworldScene extends Phaser.Scene {
   // REACTIVITY — the greeting reacts to the player's KARMA (warm if good, wary if cruel) + REPEAT-AVOIDANCE
   // rotates which line surfaces on re-talk (+ an occasional bark). Per-NPC index, session-persisted.
   _greetSet(n) {
+    // CHILD-DEED ECHO (sys 5 — the Fable trick): an adult NPC remembers what the CHILD did. The first matching
+    // deed's lines win; falls through to greetByKarma/greeting. Data: greetByDeed: [{ deed, lines }, ...].
+    if (n.greetByDeed && this.karma) {
+      for (const e of n.greetByDeed) if (this.karma.hasDeed(e.deed)) return Array.isArray(e.lines) ? e.lines : [e.lines];
+    }
     if (n.greetByKarma) {
       const m = (this.karma ? this.karma.morality : 0) || 0;
       const tier = m >= 15 ? 'good' : m <= -15 ? 'bad' : 'neutral';

@@ -168,7 +168,7 @@ export const WORLD = {
     { tx: 22, ty: 17, facing: 'down', name: 'Mara', speed: 70, expression: 'happy', parts: MARA, quests: ['GH1', 'M1', 'M2'],
       done: ['Off you go then — and mind Old Edda, she\'s in a mood this morning.'],
       schedule: sched([['dawn', 20, 16, 'chat'], ['day', 22, 17, 'tend'], ['dusk', 24, 19, 'idle'], ['night', 24, 21, 'sleep']]) },
-    { tx: 11, ty: 26, facing: 'down', name: 'Bram', tempo: 'ambler', speed: 70, expression: 'neutral', parts: BRAM, greeting: [
+    { tx: 11, ty: 26, facing: 'down', name: 'Bram', childOnly: true, tempo: 'ambler', speed: 70, expression: 'neutral', parts: BRAM, greeting: [
       "There's my little terror — up early for once! The forge is hot if you've come to watch me work.",
     ],
       social: { start: 'shop', nodes: {
@@ -209,14 +209,14 @@ export const WORLD = {
       schedule: sched([['dawn', 15, 16, 'tend'], ['day', 15, 16, 'tend'], ['dusk', 17, 18, 'chat'], ['night', 16, 18, 'sleep']]) },
     // MAREN — an ailing elder (GH2 "Nobody Answered"); the kids' gran. Static near her door, frail. After
     // GH2 she's on the mend (a warmer line). Reuses the elder-woman skin; her grandkids are the GH2 givers.
-    { tx: 36, ty: 14, facing: 'down', name: 'Maren', speed: 0, expression: 'sad', parts: ['body_fem', 'head_fem', 'brows_chestnut', 'hair_parted_gray', 'shirt_maroon', 'pants_brown', 'shoes_brown_fem'],   // item 6: distinct from Mara (was MARA's skin)
+    { tx: 36, ty: 14, facing: 'down', name: 'Maren', adultOnly: true, speed: 0, expression: 'sad', parts: ['body_fem', 'head_fem', 'brows_chestnut', 'hair_parted_gray', 'shirt_maroon', 'pants_brown', 'shoes_brown_fem'],   // item 6: distinct from Mara (was MARA's skin)
       schedule: sched([['dawn', 36, 14, 'sleep'], ['day', 36, 14, 'sleep'], ['dusk', 36, 14, 'sleep'], ['night', 36, 14, 'sleep']]),   // bedridden/frail — static (not a wandering villager)
       greetByKarma: {
         good: ["The kids tell everyone how you came when no one answered. ...Bless you, love. I'll not forget it."],
         neutral: ["*a thin, tired smile* I'm on the mend, thanks to that fenwort. The young ones were so frightened."],
         bad: ["...You're the one who put my door through, they say. A sick old woman's door. Mind how you go."] } },
     // BRACKEN — the orchard-keeper (GH3 "Teeth in the Orchard"). Weathered, proud of his trees.
-    { tx: 40, ty: 28, facing: 'down', name: 'Bracken', tempo: 'ambler', speed: 64, expression: 'neutral', parts: PHIL, quest: 'GH3',
+    { tx: 40, ty: 28, facing: 'down', name: 'Bracken', adultOnly: true, tempo: 'ambler', speed: 64, expression: 'neutral', parts: PHIL, quest: 'GH3',
       greeting: ['Forty years I\'ve kept this orchard. Never seen the like of what\'s in the back rows now.'],
       greetByKarma: {
         good: ["The orchard's yours to walk any time — you earned it, going in there. Take an apple, go on."],
@@ -224,7 +224,7 @@ export const WORLD = {
         bad: ['*keeps the billhook where he can reach it* ...The orchard\'s cleared. We\'re square. Move along.'] },
       schedule: sched([['dawn', 40, 28, 'tend'], ['day', 40, 28, 'tend'], ['dusk', 42, 30, 'idle'], ['night', 42, 31, 'sleep']]) },
     // ACOLYTE — tends the chapel ward (GH4 "The Boarded Cave"); uneasy, devout, relents once you've earned it.
-    { tx: 18, ty: 12, facing: 'down', name: 'Acolyte', tempo: 'normal', speed: 60, expression: 'neutral', parts: ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_parted_gray', 'shirt_plum', 'pants_black', 'shoes_brown'], quest: 'GH4',   // item 6: distinct robed acolyte (was MARA's skin)
+    { tx: 18, ty: 12, facing: 'down', name: 'Acolyte', adultOnly: true, tempo: 'normal', speed: 60, expression: 'neutral', parts: ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_parted_gray', 'shirt_plum', 'pants_black', 'shoes_brown'], quest: 'GH4',   // item 6: distinct robed acolyte (was MARA's skin)
       greeting: ['The Flame keep you. ...The boards on the old cave stay up. Tradition. Don\'t ask me why; I only tend the ward.'],
       greetByKarma: {
         good: ['You\'ve done right by Greenhollow. ...What you found down there — I think of it every time I tend the ward. Thank you for telling me.'],
@@ -239,11 +239,11 @@ export const WORLD = {
       schedule: sched([['dawn', 26, 11, 'idle'], ['day', 32, 12, 'idle'], ['dusk', 24, 13, 'chat'], ['night', 27, 10, 'idle']]) },   // item 4: day-post off the fountain (NE edge) to thin the plaza
     // KIDS — PROTECTED (unharmable/untargetable, hard rule). Smaller villager skins (proper child art = a
     // deferred ULPC fetch). Playful, with interconnection lines (they talk about the grown-ups).
-    { tx: 23, ty: 14, facing: 'down', name: 'Nettle', tempo: 'brisk', speed: 78, scale: 0.95, kid: true, protected: true, expression: 'happy', parts: ['child_body_tan', 'child_head', 'hair_blond', 'shirt_plum'],   // item 2: real child body
+    { tx: 23, ty: 14, facing: 'down', name: 'Nettle', childOnly: true, tempo: 'brisk', speed: 78, scale: 0.95, kid: true, protected: true, expression: 'happy', parts: ['child_body_tan', 'child_head', 'hair_blond', 'shirt_plum'],   // item 2: real child body
       greeting: ["Betcha can't catch me! ...Mum says don't bother Hodge when his hammer's going.", "I helped Pem stack the apples. She gave me one for it!"],
       bark: 'Last one to the chapel\'s a rotten egg!',
       schedule: sched([['dawn', 23, 17, 'idle'], ['day', 18, 20, 'chat'], ['dusk', 17, 19, 'chat'], ['night', 34, 25, 'sleep']]) },   // item 4: plays the SW plaza edge by day (off the fountain), the cottage at night
-    { tx: 27, ty: 17, facing: 'down', name: 'Wisp', tempo: 'ambler', speed: 74, scale: 0.95, kid: true, protected: true, expression: 'happy', parts: ['child_body', 'child_head', 'hair_chestnut', 'shirt_blue'],   // item 2: real child body   // item 2: was MARA's exact skin at 0.7 = a "mini-Mara"; now a distinct chestnut/blue child
+    { tx: 27, ty: 17, facing: 'down', name: 'Wisp', childOnly: true, tempo: 'ambler', speed: 74, scale: 0.95, kid: true, protected: true, expression: 'happy', parts: ['child_body', 'child_head', 'hair_chestnut', 'shirt_blue'],   // item 2: real child body   // item 2: was MARA's exact skin at 0.7 = a "mini-Mara"; now a distinct chestnut/blue child
       greeting: ["Are you a knight? You walk like a knight.", "Old Fatley sleeps in the tavern. Mum says don't grow up like Fatley."],
       bark: '*humming a little tune*',
       schedule: sched([['dawn', 27, 17, 'idle'], ['day', 31, 21, 'chat'], ['dusk', 30, 19, 'idle'], ['night', 34, 25, 'sleep']]) },   // item 4: plays the SE plaza edge by day (off Tam + the fountain)
@@ -265,10 +265,17 @@ export const WORLD = {
     // REMAINING ROLES — farmer (edge field, till loop), wood-chopper (ambient), the joiner (named presence).
     { tx: 10, ty: 34, facing: 'down', name: 'Ada', role: 'farmer', tempo: 'ambler', speed: 66, expression: 'neutral', parts: ['body_deep', 'head_deep', 'brows_chestnut', 'hair_black', 'shirt_amber', 'pants_brown', 'shoes_brown_fem'],
       greeting: [`The soil here is good, if you mind it. Mind it I do.`],
+      greetByDeed: [   // sys 5 — the Fable trick: Ada remembers the runaway hen from when you were small
+        { deed: 'chicken_helped', lines: [`You caught my Henrietta gentle, years back — a child then. I've not forgotten a kindness. Anything you need, you ask.`] },
+        { deed: 'chicken_kicked', lines: [`*her eyes go flat* I know you. You booted my hen when you were a brat. A grown face on the same mean streak. ...What do you want.`] },
+      ],
       bark: '*the scrape of a hoe through soil*',
       schedule: sched([['dawn', 10, 34, 'till'], ['day', 12, 35, 'till'], ['dusk', 14, 33, 'idle'], ['night', 13, 31, 'sleep']]) },
     { tx: 8, ty: 28, facing: 'right', name: 'Cob', role: 'chopper', tempo: 'normal', speed: 68, expression: 'neutral', parts: ['body_tan', 'head_tan', 'brows_chestnut', 'hair_auburn', 'shirt_forest', 'pants_brown', 'shoes_brown'],
       greeting: [`*thunk* ...Firewood does not split itself, friend.`],
+      greetByDeed: [   // sys 5 — Cob remembers the child who said hello round the square
+        { deed: 'greeted_warmly', lines: [`*thunk* ...You're the one who used to wave at everyone, small and grinning. Grew up alright, looks like. Good.`] },
+      ],
       bark: '*thunk — the steady fall of an axe*',
       schedule: sched([['dawn', 8, 28, 'chop'], ['day', 8, 28, 'chop'], ['dusk', 10, 27, 'chat'], ['night', 9, 25, 'idle']]) },
     { tx: 16, ty: 25, facing: 'down', name: 'Mason', role: 'joiner', tempo: 'ambler', speed: 70, expression: 'neutral', parts: ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_auburn', 'shirt_teal', 'pants_black', 'shoes_brown'],

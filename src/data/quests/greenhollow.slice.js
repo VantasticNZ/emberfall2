@@ -18,6 +18,7 @@ export const GREENHOLLOW_SLICE = [
   // ---------------------------------------------------------------------------
   {
     id: 'GH1', title: 'Cold Hearth', region: 'Greenhollow', act: 2,
+    requires: { deeds: ['time_skip'] },   // ADULT-only (sys 5): the slice arc opens after the childhood time-skip
     type: 'main', tone: 'wholesome', perm: true,
     unlocks: ['GH2'],
     reward: { gold: 8 },
