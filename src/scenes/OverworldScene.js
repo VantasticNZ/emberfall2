@@ -229,6 +229,10 @@ export class OverworldScene extends Phaser.Scene {
           const bandL = ccx - cw / 2, bandR = ccx + cw / 2;
           const mkSolid = (x0, x1) => { if (x1 - x0 < 4) return; const r = this.add.rectangle((x0 + x1) / 2, ccy, x1 - x0, ch, 0x000000, 0).setVisible(false); this.physics.add.existing(r, true); this.solids.add(r); this._regionObjs.push(r); };
           mkSolid(bandL, dCol * TILE); mkSolid((dCol + 1) * TILE, bandR);   // tile-aligned solids flanking the door column
+          // SEAL the door column ABOVE the doorway tile — the column was open the FULL building height, so you
+          // walked straight UP THROUGH the building and out the back (the entry-latency bug). Now only the
+          // doorway tile (dRow) is walkable: you step ONTO it (trigger fires) but can't cross the footprint.
+          { const sealTop = ccy - ch / 2, sealBot = dRow * TILE; if (sealBot - sealTop > 4) { const sr = this.add.rectangle(dCol * TILE + TILE / 2, (sealTop + sealBot) / 2, TILE, sealBot - sealTop, 0x000000, 0).setVisible(false); this.physics.add.existing(sr, true); this.solids.add(sr); this._regionObjs.push(sr); } }
           const dcx = dCol * TILE + TILE / 2, dcy = dRow * TILE + TILE / 2;
           // THE MIX + BROKEN persistence: open/none → dark threshold only (always-open); closed/locked → a
           // door sprite (the building's `doorArt`); a door BROKEN earlier (saved) stays broken on re-entry.
