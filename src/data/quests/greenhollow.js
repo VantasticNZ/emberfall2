@@ -75,12 +75,23 @@ export const GREENHOLLOW_CHILDHOOD = [
         karma: { purity: -5 }, deed: 'chicken_freed',
         note: 'A small chaos; a kid thinks you a legend.' },
     ],
+    // A real go-and-do (item 7a): Mara sets THREE tracked chores; the player works through them one at a
+    // time and the OBJECTIVE TRACKER advances eggs → water → hen (set:'advance:M2' fires quests.advance in the
+    // scene; harmless no-op in unit tests, so the childhood chain stays green) before the seeded hen-choice.
     dialogue: { start: 'chores', nodes: {
       chores: { speaker: 'Mara', text:
         "Three little jobs, if you've the legs for it: eggs from the far coop by the brook, water on " +
         "the orchard saplings, and Henrietta — the brown hen — back in her pen. She's an escape " +
         "artist, that one.",
-        options: [ { label: "I'm on it!", to: 'chase' } ] },
+        options: [ { label: "I'm on it — the coop first.", to: 'eggs' } ] },
+      eggs: { speaker: '', text:
+        "You trot down to the far coop by the brook and ferry the warm eggs back to the basket, careful " +
+        "not to crack a one. First job done — the saplings next.",
+        options: [ { label: '(On to the orchard saplings.)', set: 'advance:M2', to: 'water' } ] },
+      water: { speaker: '', text:
+        "You lug the watering can along the sapling row, tipping a good drink over each thirsty little " +
+        "tree. Two jobs down — and one brown blur of a runaway hen left to go.",
+        options: [ { label: '(Go and corner Henrietta.)', set: 'advance:M2', to: 'chase' } ] },
       chase: { speaker: 'Tam', text:
         "*Henrietta bolts across the whole meadow, wings flapping* Haha — look at her GO! " +
         "Bet you won't boot it. Bet you a sweet you won't.",

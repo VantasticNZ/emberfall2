@@ -1098,7 +1098,16 @@ export class OverworldScene extends Phaser.Scene {
   // the polished box/portrait is RegionScene's, deferred to the polish pass)
   // ===========================================================================
   _dlgCtx() { return { inv: this.inv, karma: this.karma, quests: this.quests, engine: this.quests, onSet: (cmd) => this._onDlgSet(cmd) }; }   // engine: lets a dialogue option's `choice:{quest,id}` fire the quest fork (karma+deed+unlocks, once)
-  _onDlgSet(cmd) { if (typeof cmd !== 'string') return; if (cmd.startsWith('door:')) this._doorAction(cmd.slice(5)); else if (cmd.startsWith('fine:')) this._fineAction(cmd.slice(5)); else if (cmd.startsWith('sfx:')) this._sfx('sfx_' + cmd.slice(4), 0.55); }   // WS3: a dialogue option can fire a sound (e.g. a knock)
+  _onDlgSet(cmd) {
+    if (typeof cmd !== 'string') return;
+    if (cmd.startsWith('door:')) this._doorAction(cmd.slice(5));
+    else if (cmd.startsWith('fine:')) this._fineAction(cmd.slice(5));
+    else if (cmd.startsWith('sfx:')) this._sfx('sfx_' + cmd.slice(4), 0.55);   // WS3: a dialogue option fires a sound (e.g. a knock)
+    // QUEST go-and-do (item 7a): a worldDriven quest advances its tracked step / completes from a dialogue
+    // option — so a multi-stop errand (accept here, do the thing there) works on the existing engine.
+    else if (cmd.startsWith('advance:')) { const q = cmd.slice(8); if (this.quests.status(q) === 'active') { this.quests.advance(q); this._refreshTracker && this._refreshTracker(); } }
+    else if (cmd.startsWith('complete:')) { const q = cmd.slice(9); if (this.quests.status(q) === 'active') { this.quests.complete(q); this._grantQuestReward(q); } }
+  }
 
   // DOOR-SYSTEM — the CLOSED / LOCKED entry choice (the morality entrance). Walking into a shut door ALWAYS
   // offers KNOCK / TRY-THE-HANDLE; a LOCKED one then offers BREAK-IT-DOWN. Try-uninvited = a small morality
