@@ -46,9 +46,20 @@ calling you").
 Every HUD panel, dialog box, **cutscene card**, and letterbox layout goes through the panel helper
 (`_registerUIPanel` / the uiCamera) so it is balanced, clamped on-screen, and correct at any viewport. Text
 word-wraps; nothing renders off-screen or off-centre.
-- The intro myth, the M6 fire, and the time-skip "Ten winters gone" card all run through the **cutscene card
-  player** (`_playCards`), which uses the panel helper.
+- The intro myth and the time-skip "Ten winters gone" card both run through the **reusable cutscene card
+  player** (`src/systems/CardSequence.js`), whose cover+text register with the panel helper / uiCamera.
 - **GATE: `panel-bounds-inside-viewport`** (existing) — UI panels register with the uiCamera, clamped.
+
+---
+
+## THE OPENING SHELL (S1–S4) — built on the laws
+The game-start shell (`src/scenes/TitleScene.js`) exercises the laws end-to-end on a fresh boot:
+- **S1 Title** (New Game / Continue-if-save / Settings) and **S2 Character select** (child presets, each an
+  L1-complete matched set; the pick persists to the Overworld via `ember:childPreset`).
+- **S3 Intro myth** → wake in the cottage as a child; Esc full-skip unlocks after the first viewing
+  (`ember:introSeen`).
+- **S4 CardSequence** is the reusable card player (L5) shared by the intro and the time-skip.
+- The wake obeys **L4** (cottage door blocked until Mara's talk) and **L3** (exit lands at the cottage door).
 
 ---
 
@@ -57,4 +68,4 @@ word-wraps; nothing renders off-screen or off-centre.
 2. Every new dialog: the speaker is present (L2). If it hands off, send the player to the other NPC.
 3. Every new interior: entered from a building door; the exit lands at that door (L3).
 4. Every mandatory beat: `blocking:true` on its step if progression must wait (L4).
-5. Every new overlay/card: through the panel helper / `_playCards` (L5).
+5. Every new overlay/card: through the panel helper / `CardSequence` (L5).
