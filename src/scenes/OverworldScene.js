@@ -1485,11 +1485,21 @@ export class OverworldScene extends Phaser.Scene {
   }
   // Build a face RenderTexture for `name` from its registered parts (idle, down-facing,
   // expression), scaled into the portrait box. Rebuilt only when the speaker changes.
+  // Role-generic villager faces for a named speaker we have no placed sprite for (item 3). A light feminine
+  // name-cue picks fem vs masc so e.g. "Mother Vell"/"Henwife" don't get a man's face; everything else masc.
+  static GENERIC_MASC = { parts: ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_chestnut', 'shirt_leather', 'pants_brown', 'shoes_brown'], expression: 'neutral' };
+  static GENERIC_FEM = { parts: ['body_fem', 'head_fem', 'brows_chestnut', 'hair_bob_blonde', 'shirt_blue', 'pants_brown', 'shoes_brown_fem'], expression: 'neutral' };
+  _genericFace(name) {
+    return /mother|wife|widow|edda|sela|amanda|vell|oracle|henwife|maid|lass|girl|nan|gran|sal\b/i.test(name || '')
+      ? OverworldScene.GENERIC_FEM : OverworldScene.GENERIC_MASC;
+  }
   _buildPortrait(name) {
     if (name === this._portraitSpeaker) return;
     this._portraitSpeaker = name;
     if (this._portrait) { this._portrait.destroy(); this._portrait = null; }
-    const face = name ? this._faces[name] : null;
+    // a placed NPC shows ITS face; a named-but-unplaced speaker (a quest-only voice) shows a role-generic
+    // villager face (item 3) — never a blank box. Pure narration (empty speaker) shows no portrait.
+    const face = name ? (this._faces[name] || this._genericFace(name)) : null;
     this.portraitFrame.setVisible(!!face);
     if (!face) return;
     const layers = [];
