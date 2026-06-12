@@ -1131,7 +1131,25 @@ export const LOST_CEMETERY = interiorRegion({
   chests: [{ tx: 19, ty: 4, id: 'cemetery_offering', gold: 22 }],
 });
 
-export const INTERIORS = [TANKARD_F1, TANKARD_F2, TEST_CAVE_F1, TEST_CAVE_F2, GH_FORGE, GH_STORE, GH_CHAPEL, GH_HOME1, GH_HOME2, HOUSE_GENERIC, HOUSE_V2, HOUSE_V3, HOUSE_V4, HOUSE_V5, FORGE_GENERIC, LOST_CEMETERY, MIREFEN_HUT, FENWICK_HOME, ...WORLD_LAYOUT];
+// MARA'S COTTAGE (childhood sys 2) — the family home where the CHILD wakes to open the game. Warm + small:
+// the child's bed (the wake-up), Mara's hearth, a table. Mara greets + sets the morning in motion (M1). The
+// door steps out into Greenhollow. The Mara here matches the GH Mara's look.
+export const MARA_COTTAGE = interiorRegion({
+  key: 'mara_cottage', otx: 440, oty: 632, W: 11, H: 9, floor: 'dirt', mapColor: 0x6a5238, groundTint: 0xb7a487, spawn: { tx: 5, ty: 7 },
+  doors: [{ tx: 5, ty: 7, to: 'back', label: 'Out into Greenhollow' }],
+  furniture: [
+    { tx: 2, ty: 2, key: 'prop_bed', solid: true, scale: 0.78 },        // the child's bed (the wake-up)
+    { tx: 8, ty: 2, key: 'prop_fireplace', solid: true, scale: 0.62 },  // Mara's hearth — the kept flame
+    { tx: 5, ty: 1, key: 'prop_dresser', solid: true, scale: 0.85 },    // backs the top wall
+    { tx: 4, ty: 5, key: 'prop_table', solid: true, scale: 0.62 }, { tx: 8, ty: 5, key: 'prop_barrel', solid: true, scale: 0.8 },
+  ],
+  npcs: [
+    { tx: 6, ty: 4, facing: 'down', name: 'Mara', speed: 0, expression: 'happy',
+      parts: ['body_fem', 'head_fem', 'brows_chestnut', 'hair_bob_blonde', 'shirt_forest', 'pants_brown', 'shoes_brown_fem'], quests: ['M1'] },
+  ],
+  chests: [],
+});
+export const INTERIORS = [TANKARD_F1, TANKARD_F2, TEST_CAVE_F1, TEST_CAVE_F2, GH_FORGE, GH_STORE, GH_CHAPEL, GH_HOME1, GH_HOME2, HOUSE_GENERIC, HOUSE_V2, HOUSE_V3, HOUSE_V4, HOUSE_V5, FORGE_GENERIC, LOST_CEMETERY, MIREFEN_HUT, FENWICK_HOME, MARA_COTTAGE, ...WORLD_LAYOUT];
 
 export const REGIONS = [GREENHOLLOW, ASHEN_MARSH, WEST_BELT, SUNDERED_PEAKS, FOOTHILL_ROUTE, TIDEWRECK_COAST, EMBERWOOD, HOLLOW_SPIRE, ...INTERIORS];
 const inBounds = (b, x, y) => x >= b.x && x < b.x + b.w && y >= b.y && y < b.y + b.h;

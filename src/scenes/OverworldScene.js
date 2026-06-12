@@ -138,6 +138,8 @@ export class OverworldScene extends Phaser.Scene {
     this._maybeToggleRegion(true);
     this._setupUICamera();   // isolate the HUD onto its own zoom-1 camera so the world can zoom past 1.0
     this._reconcileCameras();
+    // CHILDHOOD OPENING (sys 2) — a fresh CHILD game WAKES inside Mara's cottage; the door steps out to GH.
+    if (this._bootChild) this.time.delayedCall(120, () => { this._enterArea('mara_cottage'); this._objOn = true; });
     this.perf = () => ({ fps: Math.round(this.game.loop.actualFps), avgMs: +this._avg().toFixed(2), maxMs: +this._maxMs.toFixed(2), loaded: this.chunks.size, region: this.region ? this.region.key : null, npcs: this.npcLife.movers.length, saveMs: +this._lastSaveMs.toFixed(2), loadMs: +this._lastLoadMs.toFixed(2), pos: { x: this.player.x | 0, y: this.player.y | 0 }, gold: this.inv.gold });
   }
 
