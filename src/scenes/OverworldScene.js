@@ -478,6 +478,10 @@ export class OverworldScene extends Phaser.Scene {
     if (n.scale) npc.setScale(n.scale);                 // kids = a smaller villager (proper child skin = a deferred ULPC fetch)
     npc.setData('protected', !!n.protected);            // PROTECTED NPCs (kids) are never harmable/targetable — hard rule (gate-asserted)
     npc.setData('role', n.role || '');                  // 'guard' = confronts a player owing a fine
+    // POSTED — an interaction-ANCHOR NPC (shopkeeper / quest-giver / topic-or-social NPC) must STAY at its
+    // spot so the player can always find it (they still follow a schedule; they just never free-WANDER).
+    // Without this, a scheduleless keeper drifts off its counter and "the shop has no items" (item-5 regression).
+    npc.setData('posted', !!(n.shop || n.quest || n.topics || n.social));
     DepthSort.track(npc, npc.body.offset.y + npc.body.height);   // sort NPCs by their feet line too (same as the hero)
     this.npcLife.add(npc, n.schedule, n.tempo);
     this._regionObjs.push(npc);

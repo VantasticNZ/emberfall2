@@ -119,6 +119,7 @@ export class NpcLife {
   // MOTION BUDGET — a "free" NPC is an idle stroller (not a guard, not mid-chore); these wander + count to the cap.
   _isFree(m) {
     if (m.npc.getData && m.npc.getData('role') === 'guard') return false;   // guards hold / patrol their post
+    if (m.npc.getData && m.npc.getData('posted')) return false;             // shopkeepers / quest-givers stay at their spot (so the player can find them)
     return !NpcLife.POSTED.has(m.act);                          // idle/default = free; sweep/hammer/etc. stay put
   }
   _wanderPause(m) {

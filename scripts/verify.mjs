@@ -24,6 +24,8 @@ import { ITEM_IDS } from '../src/constants/items.js';
 import { QUESTS } from '../src/data/quests/index.js';
 import { ITEMS } from '../src/data/items/index.js';
 import { SHOPS, JOBS } from '../src/data/economy.js';
+import { availableStock, buyPrice } from '../src/systems/Economy.js';
+import { item as itemDef } from '../src/data/items/index.js';
 import { buildingDeed } from '../src/data/buildingDeeds.js';
 import { REGIONS, TILE } from '../src/data/worldmap.js';
 import { PROPS, solidBox } from '../src/data/assets.js';
@@ -684,6 +686,39 @@ const tile = (px) => Math.round(px / TILE);
   }
   if (dviol.length) fail('GAME-WIDE-DEPTH-RULE:' + dviol.map((v) => '\n      ' + v).join(''));
   else ok(`game-wide-depth-rule: depth = feet (baseY) for every world sprite — ${calls.length} actor track() are body-derived; all props use trackProp (one origin/scale-agnostic formula)`);
+}
+
+// 28) SHOP-STOCK-NON-EMPTY — a keeper's buy menu must have ITEMS the moment the player meets them on a FRESH
+//     save (act 1, no deeds/karma). The regression class: stock data, a keeper's `shop:` link, or the
+//     availableStock gating quietly empties a shop and only eyes-on catches it (there was NO test). This gate
+//     simulates the fresh-save buy menu for every shop AND every keeper NPC, asserting non-empty + buyable.
+{
+  const sviol = [];
+  const FRESH = { inv: { gold: 9999, items: {} }, karma: null };   // fresh save: no deeds → act 1
+  // (a) every SHOP offers at least one buyable item on a fresh save
+  const freshStock = {};
+  for (const sh of SHOPS) {
+    const ids = availableStock(sh.id, FRESH);
+    freshStock[sh.id] = ids;
+    if (!ids.length) { sviol.push(`shop '${sh.id}' (${sh.name}) is EMPTY on a fresh save — every stock entry is gated (act/deeds/karma). A new player sees no items.`); continue; }
+    for (const id of ids) {
+      const it = itemDef(id);
+      if (!it) { sviol.push(`shop '${sh.id}' stocks '${id}' but no such item is defined`); continue; }
+      const price = buyPrice(id, sh.region, 5);
+      if (!(price >= 0)) sviol.push(`shop '${sh.id}' item '${id}' has no valid buy price (${price})`);
+    }
+  }
+  // (b) every KEEPER NPC (data `shop:` is a shop-id string) links to a real shop with fresh stock
+  let keepers = 0;
+  for (const R of REGIONS) for (const n of (R.npcs || [])) {
+    if (typeof n.shop !== 'string') continue;   // dialogue-embedded shop objects are a separate system
+    keepers++;
+    const sh = SHOPS.find((s) => s.id === n.shop);
+    if (!sh) { sviol.push(`keeper '${n.name}' in '${R.key}' points to shop '${n.shop}' which does not exist`); continue; }
+    if (!(freshStock[n.shop] || []).length) sviol.push(`keeper '${n.name}' in '${R.key}' opens shop '${n.shop}' which is EMPTY on a fresh save`);
+  }
+  if (sviol.length) fail('SHOP-STOCK-NON-EMPTY:' + sviol.map((v) => '\n      ' + v).join(''));
+  else ok(`shop-stock-non-empty: all ${SHOPS.length} shops + ${keepers} keeper(s) offer buyable items on a fresh save (no empty buy menu)`);
 }
 
 // --- summary ------------------------------------------------------------------
