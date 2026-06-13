@@ -56,8 +56,9 @@ const FACE_VEC = { up: { x: 0, y: -1 }, down: { x: 0, y: 1 }, left: { x: -1, y: 
 
 const LOAD_RING = 2, UNLOAD_RING = 3;
 const WORLD_ZOOM = 1.25;          // the open-world camera zoom
-const INTERIOR_ZOOM_MAX = 4.2;    // cap when zooming IN to fill a small interior so NO void shows past the walls
-                                  // (RESIZE mode → camera = window size; the smallest 10x8 room needs ~4.0 at 1280w)
+const INTERIOR_ZOOM_MAX = 2.0;    // interior closeness is a CONSISTENT 2x (Van's call): zoom toward the room but
+                                  // cap at 2x. Small rooms are then centred+clamped (whole room in view, nothing
+                                  // cut off); a dark surround is accepted in trade for the steady, readable zoom.
 const CUT_REGROW_MS = 180000;   // a cut bush regrows only after you LEAVE the area + ~3 min (anti-farm)
 const HERO = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_chestnut', 'shirt_blue', 'pants_black', 'shoes_brown'];
 // The protagonist as a CHILD — fully-clothed child body (shirt+pants+shoes), child head (face baked, no adult
