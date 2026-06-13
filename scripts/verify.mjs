@@ -380,6 +380,25 @@ const tile = (px) => Math.round(px / TILE);
   else ok(`collision matches visual mass: no walk-through solid-mass props; water solid in ${waterRegions.length} region(s) with pond/pools (not walkable)`);
 }
 
+// PROP-WHOLE — every prop must render its FULL sprite (no crop/halving — the crates/barrels/fireplace report).
+// Props load as WHOLE images (AssetLoader load.image), so the declared {width,height} MUST equal the source PNG
+// dims: a smaller declared frame (or a prop loaded as a cropping sub-frame) would render cut. Decode the PNG
+// header per prop + assert frame == source. (Live: cottage + store + overworld decode → 0 clipped; render whole.)
+{
+  const offenders = [];
+  const pngDims = (file) => { try { const b = readFileSync(file); return b.readUInt32BE(0) === 0x89504e47 ? { w: b.readUInt32BE(16), h: b.readUInt32BE(20) } : null; } catch { return null; } };
+  let checked = 0;
+  for (const [key, d] of Object.entries(PROPS)) {
+    if (!d.src) continue;
+    const dim = pngDims(join(ROOT, 'public', d.src)); if (!dim) continue;
+    checked++;
+    if (d.width != null && d.width !== dim.w) offenders.push(`'${key}' declared width ${d.width} ≠ source ${dim.w}px (${d.src}) — frame crops the sprite`);
+    if (d.height != null && d.height !== dim.h) offenders.push(`'${key}' declared height ${d.height} ≠ source ${dim.h}px (${d.src}) — frame crops the sprite (cut/halved)`);
+  }
+  if (offenders.length) fail('PROP-WHOLE (cropped sprites):\n' + offenders.map((s) => '      ' + s).join('\n'));
+  else ok(`prop-whole: all ${checked} prop sprites render their FULL source frame (declared == source PNG; no crop/halving)`);
+}
+
 // 11) SEAM COHERENCE — adjacent regions share EXACT edge coords (no gap/overlap at a
 //     seam; WORLD-STRUCTURE Level-B seam lint). Catches a mis-placed/mis-sized region.
 {
