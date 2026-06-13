@@ -17,7 +17,7 @@ const BRAM = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_parted_gray', 
 const HODGE = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_black', 'beard_gray', 'shirt_amber', 'pants_brown', 'shoes_brown'];
 const TAM = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_ginger', 'shirt_red', 'pants_brown', 'shoes_brown'];
 const PHIL = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_parted_gray', 'shirt_teal', 'pants_black', 'shoes_brown'];
-const FATLEY = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_chestnut', 'beard_gray', 'shirt_maroon', 'pants_black', 'shoes_brown'];
+const FATLEY = ['body_ivory', 'head_plump', 'brows_chestnut', 'hair_chestnut', 'beard_gray', 'shirt_maroon', 'pants_black', 'shoes_brown'];   // plump/jowly head (fetch) — reads heavier; body fat variant still a miss (muscular/commission)
 const PEM = ['body_fem', 'head_fem', 'brows_chestnut', 'hair_bob_blonde', 'shirt_plum', 'pants_brown', 'shoes_brown_fem'];
 const GUARD = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_parted_gray', 'shirt_leather', 'pants_black', 'shoes_brown', 'helm_kettle'];   // town guard — kettle helm (ElizaWy, OGA-BY) over the head
 

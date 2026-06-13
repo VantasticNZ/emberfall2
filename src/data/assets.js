@@ -70,6 +70,9 @@ const Z = {
 export const PARTS = {
   body_ivory:    { slot: 'body',  label: 'Body',  layers: [{ tex: 'body', z: Z.body }] },
   head_ivory:    { slot: 'head',  label: 'Head',  layers: [{ tex: 'head', z: Z.head, expressive: true }] },
+  // FETCH: a PLUMP/jowly head (ULPC male_plump, CC-BY-SA/GPL, same ivory skin) for heavier-reading NPCs like
+  // Fazy Lastard — sits ~2px higher than the eliza head, so oy:2 reseats it onto the body's neck. Non-expressive.
+  head_plump:    { slot: 'head',  label: 'Head',  layers: [{ tex: 'head_plump', z: Z.head, oy: 2 }] },
   brows_chestnut:{ slot: 'brows', label: 'Brows', layers: [{ tex: 'eyebrows', z: Z.brows }] },
   hair_chestnut: { slot: 'hair',  label: 'Hair',  layers: [{ tex: 'hair', z: Z.hair }] }, // hero — full "Natural"
   shirt_blue:    { slot: 'torso', label: 'Shirt', layers: [{ tex: 'shirt', z: Z.torso }] },
