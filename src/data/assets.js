@@ -43,8 +43,14 @@ export const STATES = ['idle', 'walk', 'attack'];
 // (still matched) cycle. WALK_STRIDE is tuned to the eye.
 export const WALK_STRIDE = 21;
 
-// One-shot action states (settle back to idle when done).
-export const ONESHOT = new Set(['attack']);
+// One-shot action states (settle back to idle when done). `punch` = the UNARMED hit (no weapon): a forward
+// arm JAB built from the STRIKE frames of the slash sheet (no overhead wind-up — so it reads as a blunt hit,
+// not a weapon swing). The child (no weapon) uses it; an unarmed adult too. Hair stays locked (it reuses the
+// per-frame-seated __attack frames the child-hair bake already locks).
+export const ONESHOT = new Set(['attack', 'punch']);
+// PUNCH frame indices within the (slash) attack row: strike → follow → recover. The wind-up frames (1-3,
+// overhead) are DELIBERATELY skipped so there is no weapon-swing arc.
+export const PUNCH_FRAMES = [4, 5, 6];
 
 // EXPRESSIONS live on the head's Expressions sheet (expr.png): 12 expression
 // COLUMNS x rows [legend, West, South, East]. North (back of head) has no face,

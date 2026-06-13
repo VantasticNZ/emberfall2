@@ -1117,8 +1117,13 @@ export class OverworldScene extends Phaser.Scene {
     const now = this.time.now;
     if (now < this._atkReady || this.player.isBusy()) { this._atkBuffered = now + COMBAT.INPUT_BUFFER_MS; return; }
     this._atkBuffered = 0; this._atkReady = now + COMBAT.ATTACK_COOLDOWN_MS;
-    this.player.action('attack'); this._sfx('sfx_swing', 0.45);
-    this._cutSwing();   // the swing always cuts foliage — consistent in EVERY region (incl. safe zones)
+    // ARMED vs UNARMED: a weapon equipped (the Character weapon layer) = the slash SWING that cuts foliage; no
+    // weapon (the child, or an adult who unequipped) = a blunt PUNCH that does NOT cut/harvest. The punch is a
+    // forward jab (no overhead wind-up) so it never reads as a weapon swing, and it never moves the hair.
+    const armed = !!this.player.equippedIn('weapon');
+    this.player.action(armed ? 'attack' : 'punch');
+    this._sfx(armed ? 'sfx_swing' : 'sfx_hit', armed ? 0.45 : 0.4);
+    if (armed) this._cutSwing();   // only a bladed swing harvests foliage — a fist can't cut a bush
     // COMBAT damage only OUTSIDE a safe zone AND outside the town safe-hub (Peaks town = sword inert for combat).
     if (!this.combat || this.region?.safeZone || this._inSafeHub() || this.isChild) return;   // a CHILD deals no combat damage (age-gate, sys 1) — they can still cut foliage above
     const out = this.combat.playerAttack(this.player, COMBAT.ATTACK_DAMAGE, { tool: this.playerAttackTool() });

@@ -58,7 +58,7 @@ import { availableStock, buyPrice } from '../src/systems/Economy.js';
 import { item as itemDef } from '../src/data/items/index.js';
 import { buildingDeed } from '../src/data/buildingDeeds.js';
 import { REGIONS, TILE } from '../src/data/worldmap.js';
-import { PARTS, DIR_ROW, ANIMS } from '../src/data/assets.js';
+import { PARTS, DIR_ROW, ANIMS, ONESHOT } from '../src/data/assets.js';
 import { LOCATION_CLAIMS, DEED_TIMING } from '../src/data/quests/greenhollow.js';
 import { PROPS, solidBox } from '../src/data/assets.js';
 import { TERRAIN } from '../src/data/terrainTiles.js';
@@ -946,6 +946,33 @@ const tile = (px) => Math.round(px / TILE);
   }
   if (offenders.length) fail('CHILD-HAIR-TRACKS-HEAD (live-animation) broken:' + offenders.map((v) => '\n      ' + v).join(''));
   else ok('child-hair-tracks-head (live-animation): every frame of idle/walk/attack × all directions keeps the hair crown within 1px of the head crown — no walk bounce, no attack hair-swing');
+}
+
+// 25i) CHILD-UNARMED-ATTACK (the 3rd-recurrence fix) — the crown-only gate above MISSED the real bug: the
+//      attack-frame hair SILHOUETTE swooshed out like a swung weapon (crown-y tracked, but the shape flew).
+//      Add the silhouette metric: every attack-frame hair must be no WIDER than the seated idle hair (+ a few
+//      px) — a swoosh balloons the width. Plus the unarmed action must be a PUNCH (not the slash) and must NOT
+//      cut foliage: ONESHOT has 'punch', AssetLoader registers it, _playerAttack branches on armed + only the
+//      armed swing calls _cutSwing.
+{
+  const offenders = [];
+  const FR = 64;
+  const hairWidth = (img, c, r) => { let lo = 999, hi = -1; for (let y = 0; y < FR; y++) for (let x = 0; x < FR; x++) { const i = ((r * FR + y) * img.w + (c * FR + x)) * 4; if (img.data[i + 3] > 40) { if (x < lo) lo = x; if (x > hi) hi = x; } } return hi < 0 ? 0 : hi - lo + 1; };
+  const idleH = decodeRGBA(join(ROOT, 'public/art/eliza/child_hair_natural/idle.png'));
+  const atkH = decodeRGBA(join(ROOT, 'public/art/eliza/child_hair_natural/attack.png'));
+  if (!idleH || !atkH) offenders.push('cannot decode child_hair_natural idle/attack');
+  else for (let r = 0; r < 4; r++) {
+    const idleW = hairWidth(idleH, 0, r);
+    for (let c = 0; c < 7; c++) { const w = hairWidth(atkH, c, r); if (w > idleW + 5) offenders.push(`child hair attack dir${r} f${c}: silhouette ${w}px ≫ seated ${idleW}px — the hair SWOOSHES (weapon-swing look)`); }
+  }
+  if (!ONESHOT.has('punch')) offenders.push("ONESHOT missing 'punch' (the unarmed action)");
+  const al = readFileSync(join(ROOT, 'src/art/AssetLoader.js'), 'utf8');
+  if (!/_registerPunch/.test(al)) offenders.push('AssetLoader does not register the punch anim');
+  const ow = readFileSync(join(ROOT, 'src/scenes/OverworldScene.js'), 'utf8');
+  if (!/armed \? 'attack' : 'punch'/.test(ow)) offenders.push('_playerAttack does not pick punch when unarmed');
+  if (!/if \(armed\) this\._cutSwing\(\)/.test(ow)) offenders.push('unarmed attack still cuts foliage (cut not gated on armed)');
+  if (offenders.length) fail('CHILD-UNARMED-ATTACK broken:' + offenders.map((v) => '\n      ' + v).join(''));
+  else ok('child-unarmed-attack: hair silhouette stays seated every attack frame (no swoosh); unarmed = a PUNCH (not the slash) that does NOT cut foliage');
 }
 
 // 25f) SHOP-PRICES + DIALOGUE TOKENS — Van saw Bram's sword as a literal "(Price)": the `{price:steel_sword}`

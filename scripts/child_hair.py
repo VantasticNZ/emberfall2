@@ -25,27 +25,31 @@ def top_opaque(img, c, r):
 
 def bake(src_tex, out_dir):
     os.makedirs(out_dir, exist_ok=True)
+    # the SEATED idle hair pose per direction (row), col 0 — the shape used for EVERY frame so the hair never
+    # swooshes. (Crucial: the adult-hair ATTACK frames animate the hair FLYING with the slash — on the child that
+    # reads as 'hair-as-weapon'. We discard that motion and keep the seated shape, just re-seated per frame.)
+    idle_src = Image.open(f'public/art/eliza/{src_tex}/idle.png').convert('RGBA')
     for st in ['idle', 'walk', 'attack']:
-        hp = f'public/art/eliza/{src_tex}/{st}.png'
         headp = f'public/art/eliza/child_head/{st}.png'
-        if not (os.path.exists(hp) and os.path.exists(headp)):
+        if not os.path.exists(headp):
             continue
-        hair = Image.open(hp).convert('RGBA')
         head = Image.open(headp).convert('RGBA')
-        W, H = hair.size
+        W, H = head.size
         out = Image.new('RGBA', (W, H), (0, 0, 0, 0))
         cols, rows = W // FR, H // FR
         for r in range(rows):
+            # the seated idle-hair cell for this direction (its raw crown), reused for every frame of this state
+            seat_cell = idle_src.crop((0, r * FR, FR, r * FR + FR))
+            seat_top = top_opaque(idle_src, 0, r)
             for c in range(cols):
-                cell = hair.crop((c * FR, r * FR, c * FR + FR, r * FR + FR))
-                rawTop = top_opaque(hair, c, r)
                 headTop = top_opaque(head, c, r)
-                if rawTop is None or headTop is None:
-                    out.paste(cell, (c * FR, r * FR), cell)
+                if seat_top is None or headTop is None:
+                    out.paste(seat_cell, (c * FR, r * FR), seat_cell)
                     continue
-                # seat the hair crown G[dir] px above this frame's head crown
-                shift = (headTop - G.get(r, 3)) - rawTop
-                out.paste(cell, (c * FR, r * FR + shift), cell)
+                # place the SEATED hair shape so its crown sits G[dir] px above THIS frame's head crown — so the
+                # hair tracks the head's per-frame bob/tilt-shift but never swings (idle/walk/attack all seated).
+                shift = (headTop - G.get(r, 3)) - seat_top
+                out.paste(seat_cell, (c * FR, r * FR + shift), seat_cell)
         out.save(os.path.join(out_dir, st + '.png'))
 
 # src adult-hair tex -> baked child hair name (same colours the presets/kids reference)

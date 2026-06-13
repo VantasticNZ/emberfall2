@@ -9,7 +9,7 @@
 
 import {
   PARTS, ANIMS, STATES, EXPRESSIONS, EXPR_COLS, EXPR_ROW,
-  DIR_ROW, TILES, PROPS, DECALS, FRAME,
+  DIR_ROW, TILES, PROPS, DECALS, FRAME, PUNCH_FRAMES,
 } from '../data/assets.js';
 
 // Unique character layers used by any part -> a representative layer def.
@@ -48,7 +48,22 @@ export const AssetLoader = {
   build(scene) {
     for (const [tex, L] of layerDefs()) {
       for (const st of (L.states || STATES)) this._registerState(scene, tex, st);
+      this._registerPunch(scene, tex);   // UNARMED jab (reuses the __attack sheet's strike frames; no wind-up)
       if (L.expressive) this._registerExpressions(scene, tex);
+    }
+  },
+
+  // PUNCH — a forward arm jab for the no-weapon hit. Built from the SLASH sheet's strike→follow→recover frames
+  // (PUNCH_FRAMES) per direction, skipping the overhead wind-up so it never reads as a weapon swing. Every layer
+  // (body/head/hair) plays it; the child-hair bake keeps the hair seated on every __attack frame, so it stays
+  // locked to the head through the jab. Reverts to idle (one-shot).
+  _registerPunch(scene, tex) {
+    const sheet = `${tex}__attack`, cols = ANIMS.attack.frames;
+    for (const [facing, row] of Object.entries(DIR_ROW)) {
+      const key = `${tex}-punch-${facing}`;
+      if (scene.anims.exists(key)) continue;
+      const frames = PUNCH_FRAMES.map((c) => ({ key: sheet, frame: row * cols + c }));
+      scene.anims.create({ key, frames, frameRate: 16, repeat: 0 });
     }
   },
 
