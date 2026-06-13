@@ -2289,7 +2289,11 @@ export class OverworldScene extends Phaser.Scene {
     const g = this._objArrow; if (!g) return; g.clear();
     // WS2.7: the objective arrow is an OPTION — OFF by default; soft text-guidance (the QUESTS tracker) leads.
     // Toggled live in Settings (bindings.options.objArrow). Reads the setting each frame so the toggle is instant.
-    if (!bindings.options.objArrow || this._dlg) return;
+    // M2 EXCEPTION (discoverability): while the childhood chore-quest M2 is active, FORCE the arrow on so the
+    // coop / orchard / Henrietta are findable from the start point (Van couldn't find the coop). The adult
+    // open-world keeps the soft-text default (arrow off) unless the player opts in.
+    const forceArrow = this.isChild && this.quests.status('M2') === 'active';
+    if ((!bindings.options.objArrow && !forceArrow) || this._dlg) return;
     let target = null;
     for (const id of Object.keys(this.quests.state || {})) {
       if (this.quests.status(id) !== 'active') continue;

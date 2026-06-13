@@ -325,3 +325,24 @@ Nothing faked; every miss keeps its honest stopgap.
 - **Post-M1 TRIPLE-CHECK** (BUILD-PLAN §4b): after GH+Marsh+Shrine are BUILT, run the full cohesiveness +
   EXCELLENCE pass against the BUILT game (real cohesion, not paper) before M2 scales. **Status: pending M1
   completion (Shrine + deep M8–M10).**
+
+## CHILDHOOD ARC M4–M7 — authored but NOT WIRED to the overworld (quest-flow audit, 2026-06-13)
+The childhood beats M4–M7 exist as engine data (dialogue + choices; the unit tests walk them), but they have
+**no placed giver and no overworld start trigger** — so in normal play the childhood arc STALLS after M3, and the
+childhood→adult transition (M6 records `time_skip`, which the scene's `_doTimeSkip` listens for) is never reached
+by a fresh player. Per-quest gap + when-to-build:
+- **M4 "The Boarded Cave"** — the cave is placed (a `via:'gate'` tool_lantern interactable) but it does NOT start
+  M4 (its Tam/loose-plank `cave` dialogue is never opened). WIRE: when `isChild` + M4 available, the boarded-cave
+  examine should `_startQuestDialogue('M4')`. (Small, self-contained — do next childhood pass.)
+- **M5 "The Festival"** — needs a festival set-piece trigger (prep → festival → the Flame goes wrong). No trigger.
+- **M6 "The Night It Burned"** — the eruption/flee CUTSCENE that records `time_skip`. Needs a scripted sequence.
+- **M7 "Ten Winters Gone"** — the adult return (Sela the Oracle). No giver placed; starts after `time_skip`.
+WHEN: the next dedicated "childhood sequencer" pass (location/auto triggers + the M5–M7 cutscene chain). Until
+then the playable childhood is **M1 → M2 → M3**; document this to Van — NOT faked as complete.
+
+## CROSS-REGION "PEM WOZ ERE" CLUE TRAIL (SG2) — Pem reveal deferred
+Early Pem REMOVED from the GH plaza (he was a spoiler — SG2 handed over on sight). SG2 stays gated behind the four
+`pem_clue_*` deeds, which are NOT placed in the world yet (the clues span Marsh/Peaks/Coast/Emberwood — out of the
+GH slice). WIRE later: place a readable "PEM WOZ ERE" graffiti clue in each region (records `pem_clue_<region>`),
+then Pem's reveal NPC at a hidden final location gated behind all four. Trailhead hook in place (the kids' whisper
+about the gate graffiti). WHEN: the cross-region content pass.

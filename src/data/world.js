@@ -246,13 +246,15 @@ export const WORLD = {
     { tx: 30, ty: 18, facing: 'down', name: 'Fazy Lastard', tempo: 'dawdler', speed: 0, expression: 'neutral', parts: FATLEY, quest: 'SG1',
       greeting: ['*hic* Oi. You. ...nah, later. Me back\'s gone.'],
       schedule: sched([['dawn', 30, 18, 'idle'], ['day', 30, 18, 'chat'], ['dusk', 30, 18, 'chat'], ['night', 29, 18, 'idle']]) },   // the drunk never leaves the tavern
-    { tx: 26, ty: 11, facing: 'down', name: 'Pem', tempo: 'brisk', speed: 70, expression: 'happy', parts: PEM, quest: 'SG2',
-      greeting: ['*grins* You didn\'t see me. PEM WOZ ERE, though. Always.'],
-      schedule: sched([['dawn', 26, 11, 'idle'], ['day', 32, 12, 'idle'], ['dusk', 24, 13, 'chat'], ['night', 27, 10, 'idle']]) },   // item 4: day-post off the fountain (NE edge) to thin the plaza
+    // PEM is NOT placed here. Per LORE-CANON + SG2 ("PEM WOZ ERE"), Pem is a LATE-GAME reveal — an elusive
+    // figure found ONLY by following the cross-region graffiti trail (the pem_clue_* deeds), never a standing
+    // plaza NPC. The early Pem was a spoiler (SG2 handed over on sight). SG2 stays gated behind the four clues;
+    // Pem's reveal placement lands with the cross-region clue trail (docs/DEFERRED.md). The trailhead hook is
+    // the gate-graffiti clue + the kids' whisper below.
     // KIDS — PROTECTED (unharmable/untargetable, hard rule). Smaller villager skins (proper child art = a
     // deferred ULPC fetch). Playful, with interconnection lines (they talk about the grown-ups).
     { tx: 23, ty: 14, facing: 'down', name: 'Nettle', childOnly: true, tempo: 'brisk', speed: 78, scale: 0.95, kid: true, protected: true, expression: 'happy', parts: ['child_body_green', 'child_head', 'child_hair_blond'],   // L1: clothed child body + seated child hair (ivory skin matches the one child head)
-      greeting: ["Betcha can't catch me! ...Mum says don't bother Hodge when his hammer's going.", "I helped Pem stack the apples. She gave me one for it!"],
+      greeting: ["Betcha can't catch me! ...Mum says don't bother Hodge when his hammer's going.", "There's 'PEM WOZ ERE' scratched on the gate again. Nobody's ever SEEN Pem. Spooky, eh?"],
       bark: 'Last one to the chapel\'s a rotten egg!',
       schedule: sched([['dawn', 23, 17, 'idle'], ['day', 18, 20, 'chat'], ['dusk', 17, 19, 'chat'], ['night', 34, 25, 'sleep']]) },   // item 4: plays the SW plaza edge by day (off the fountain), the cottage at night
     { tx: 27, ty: 17, facing: 'down', name: 'Wisp', childOnly: true, tempo: 'ambler', speed: 74, scale: 0.95, kid: true, protected: true, expression: 'happy', parts: ['child_body_blue', 'child_head', 'child_hair_natural'],   // L1: clothed child + seated child hair (was a "mini-Mara")
