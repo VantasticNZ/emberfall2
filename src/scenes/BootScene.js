@@ -53,6 +53,9 @@ export class BootScene extends Phaser.Scene {
     this.load.audio('mus_home',     'audio/music/mus_home.ogg');       // shared indoor-home bed — "Forest - Under The Great Tree"
     this.load.audio('mus_tavern',   'audio/music/mus_tavern.mp3');     // tavern — "Tea Time For Cats"
     for (const m of MONSTER_SHEETS) this.load.spritesheet(`mon_${m.key}`, `art/monsters/${m.key}.png`, { frameWidth: m.fw, frameHeight: m.fw });
+    // HENRIETTA — the M2 chase hen ([LPC] Chicken Rework, daneeklu, CC-BY-3.0/GPL — see ASSET-LEDGER).
+    // 4 rows = the 4 LPC directions (up/left/down/right), 4 walk frames each (128×128 → 32px frames).
+    this.load.spritesheet('hen', 'art/fauna/chicken_walk.png', { frameWidth: 32, frameHeight: 32 });
   }
 
   create() {
@@ -66,6 +69,11 @@ export class BootScene extends Phaser.Scene {
         this.anims.create({ key, frames: this.anims.generateFrameNumbers(`mon_${m.key}`, { frames }), frameRate: 6, repeat: -1 });
       }
     }
+    // Henrietta's 4 directional walk anims (row = direction, 4 frames each) + a slow idle peck (down row).
+    for (const [dir, row] of Object.entries(MON_DIR_ROW)) {
+      if (!this.anims.exists(`hen_${dir}`)) this.anims.create({ key: `hen_${dir}`, frames: this.anims.generateFrameNumbers('hen', { frames: [0, 1, 2, 3].map((i) => row * 4 + i) }), frameRate: 9, repeat: -1 });
+    }
+    if (!this.anims.exists('hen_peck')) this.anims.create({ key: 'hen_peck', frames: this.anims.generateFrameNumbers('hen', { frames: [8, 9] }), frameRate: 3, repeat: -1 });   // down-row, slow
     // Boot into the SEAMLESS OVERWORLD (world-migration): a fresh, normal session
     // starts IN the one continuous world — you walk out of Greenhollow westward through
     // the green belt into Ashen Marsh with no wall, no console command. The discrete

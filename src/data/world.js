@@ -108,6 +108,13 @@ export const WORLD = {
     { key: 'prop_forge', tx: 10, ty: 24, solid: true, door: 'gh_forge', sign: 'prop_sign_forge' },
     { key: 'prop_barrel', tx: 8, ty: 26, solid: true }, { key: 'prop_barrel', tx: 13, ty: 25, solid: true },
 
+    // ---- HENRIETTA'S PEN (M2 "Chores + Mischief") — a small fenced coop in the SW meadow, by the brook.
+    //      Real fence sprites (no coop sheet in the library → an honest readable pen, not a colour-box).
+    //      The hen + the egg-nest are SPAWNED by the scene (childhood-coupled); see WORLD.m2 below + _buildM2.
+    //      Open to the SOUTH (the gate at 6,27) so you walk Henrietta back IN. Clear of the forge approach. ----
+    { key: 'prop_fence', tx: 5, ty: 26, solid: true }, { key: 'prop_fence', tx: 6, ty: 26, solid: true }, { key: 'prop_fence', tx: 7, ty: 26, solid: true },
+    { key: 'prop_fence', tx: 5, ty: 27, solid: true }, { key: 'prop_fence', tx: 7, ty: 27, solid: true },   // side posts; 6,27 = the open gate
+
     // ---- DISTRICT DIVIDERS (Pillar 1: barriers create places) — short hedges in the
     //      OPEN GRASS between districts, breaking the long E/W sightlines so plaza /
     //      homes / smithy read as separate places. Placed clear of every lane + NPC +
@@ -165,7 +172,9 @@ export const WORLD = {
 
   // THE CAST — in their districts; M1–M4 + hub side quests + the social system.
   npcs: [
-    { tx: 22, ty: 17, facing: 'down', name: 'Mara', speed: 70, expression: 'happy', parts: MARA, quests: ['GH1', 'M1', 'M2'],
+    // questNode:'chores' hosts M2's BRIEFING here (Mara sets the jobs; the doing is physical). M1/GH1 have no
+    // 'chores' node, so it falls back to their own start — safe across all three quests Mara carries.
+    { tx: 22, ty: 17, facing: 'down', name: 'Mara', speed: 70, expression: 'happy', parts: MARA, quests: ['GH1', 'M1', 'M2'], questNode: 'chores',
       done: ['Off you go then — and mind Old Edda, she\'s in a mood this morning.'],
       schedule: sched([['dawn', 20, 16, 'chat'], ['day', 22, 17, 'tend'], ['dusk', 24, 19, 'idle'], ['night', 24, 21, 'sleep']]) },
     // L2 STORY-CLAIM: Bram is AT THE FORGE (the building is at tx10,24) — exactly where Mara's M1 line sends
@@ -292,6 +301,18 @@ export const WORLD = {
   ],
 
   player: { tx: 22, ty: 19, facing: 'up', speed: 95, expression: 'neutral', parts: HERO },
+
+  // M2 "Chores + Mischief" — PHYSICAL objective sites (LOCAL tiles; the scene offsets by the region origin).
+  // Henrietta's chase is DONE, not narrated: you walk to the coop (eggs), the orchard (water), then chase +
+  // CATCH the physical hen — each step advances via the objective engine / a real interact, never a dialogue
+  // advance. pen/henHome sit inside the fenced coop above; eggs at the nest; water at the orchard saplings row.
+  m2: {
+    pen:     { tx: 6, ty: 27 },   // the open gate of the coop (south) — where you return her
+    henHome: { tx: 6, ty: 27 },   // the hen's roost inside the pen (idle/peck when not being chased)
+    eggs:    { tx: 6, ty: 27 },   // the egg-nest at the coop (interact: gather the eggs)
+    water:   { tx: 22, ty: 33 },  // the orchard saplings row (interact: water them)
+    roam:    { x0: 5, y0: 24, x1: 17, y1: 30 },   // the hen's flee bounds (open SW meadow)
+  },
 
   base: HERO,
   maraParts: MARA, bramParts: BRAM,

@@ -813,6 +813,34 @@ const tile = (px) => Math.round(px / TILE);
   else ok('modifier-applied-in-active-scene: big-head (_applyBigHead + headScale) + gore (mods.gore()) are applied in the active scene — toggles actually do something');
 }
 
+// 25b) M2-PHYSICAL (Henrietta is DONE, not narrated; PROCESS-RETRO #11 "working = exercised with real input") —
+//      M2 must advance by a REAL interact + a real CHASE, never a dialogue `advance:M2`. Each step carries a
+//      physical `objective` site marker; the dialogue has NO advance:M2; the catch choices complete:M2; the
+//      coop sites are placed; the scene wires _buildM2/_henCatch/_henTick; the hen spritesheet loads. (A future
+//      edit that reverts M2 to narrated advance, or drops the hen wiring, turns this RED.)
+{
+  const offenders = [];
+  const m2 = (Array.isArray(QUESTS) ? QUESTS.find((q) => q.id === 'M2') : QUESTS.M2);
+  if (!m2) offenders.push('M2 quest def not found');
+  else {
+    for (const s of (m2.steps || [])) if (!s.objective || !s.objective.type || !s.objective.site) offenders.push(`M2 step '${s.id}' has no physical objective{type,site} — it would be narrated`);
+    if (/advance:M2/.test(JSON.stringify(m2.dialogue || {}))) offenders.push('M2 dialogue still uses advance:M2 (narrated, not physical)');
+    const opts = (m2.dialogue?.nodes?.chase?.options || []).filter((o) => o.choice && o.choice.quest === 'M2');
+    if (opts.length < 3) offenders.push('M2 `chase` node is missing the 3 seeded choices (catch/kick/free)');
+    if (opts.some((o) => o.set !== 'complete:M2')) offenders.push('an M2 catch choice does not complete:M2 (the catch would not finish the quest)');
+  }
+  const gh = REGIONS.find((R) => R.key === 'Greenhollow');
+  if (!gh?.m2?.eggs || !gh?.m2?.water || !gh?.m2?.pen || !gh?.m2?.henHome) offenders.push('Greenhollow.m2 sites (eggs/water/pen/henHome) missing');
+  if ((gh?.props || []).filter((p) => p.key === 'prop_fence').length < 5) offenders.push('Greenhollow has no fenced coop (prop_fence) for the pen');
+  const ow = readFileSync(join(ROOT, 'src/scenes/OverworldScene.js'), 'utf8');
+  if (!/_buildM2\(/.test(ow)) offenders.push('OverworldScene missing _buildM2 (the coop/hen is never spawned)');
+  if (!/_henCatch\(/.test(ow) || !/_henTick\(/.test(ow)) offenders.push('OverworldScene missing the hen chase/catch wiring (_henCatch/_henTick)');
+  const boot = readFileSync(join(ROOT, 'src/scenes/BootScene.js'), 'utf8');
+  if (!/chicken_walk\.png/.test(boot)) offenders.push('BootScene does not load the hen spritesheet (chicken_walk.png)');
+  if (offenders.length) fail('M2-PHYSICAL broken:' + offenders.map((v) => '\n      ' + v).join(''));
+  else ok('m2-physical: Henrietta is a real chase — M2 advances by interact/catch (objective sites, no advance:M2; coop + hen placed; complete:M2 on the choice)');
+}
+
 // L2 DIALOG-SPEAKER-PRESENT (GAME-LAWS L2) — no disembodied speakers. A dialog node's named speaker, IF it is
 //   a PLACED NPC (a real wandering NPC somewhere), must be placed in a region the quest's GIVER is also in —
 //   so the line fires only where that NPC is present. (The bug: Bram, placed at the GH forge, spoke in M1

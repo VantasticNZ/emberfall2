@@ -103,10 +103,13 @@ export const GREENHOLLOW_CHILDHOOD = [
     type: 'main', tone: 'wholesome/funny', perm: true,
     unlocks: ['M3'],
     reward: { gold: 5 },
+    // PHYSICAL go-and-do (NOT narrated): each step carries an `objective` MARKER the scene resolves to a real
+    // world site (WORLD.m2) + drives via a genuine interact / chase — never a dialogue `advance:M2`. The
+    // `site` keys map to the coop / orchard / hen the scene places. (gate: greenhollow.m2-physical.test)
     steps: [
-      { id: 'eggs', desc: 'Fetch eggs from the far coop by the brook.' },
-      { id: 'water', desc: 'Water the orchard saplings at the brook.' },
-      { id: 'hen', desc: 'Get Henrietta the runaway hen back to her pen.' },
+      { id: 'eggs',  desc: 'Gather eggs from the coop by the brook.',          objective: { type: 'interact', site: 'eggs' } },
+      { id: 'water', desc: 'Water the orchard saplings.',                      objective: { type: 'interact', site: 'water' } },
+      { id: 'hen',   desc: 'Chase down Henrietta and get her back to her pen.', objective: { type: 'catch', site: 'hen' } },
     ],
     choices: [
       { id: 'catch', label: 'Catch the hen gently', impact: 'good',
@@ -120,31 +123,23 @@ export const GREENHOLLOW_CHILDHOOD = [
         karma: { purity: -5 }, deed: 'chicken_freed',
         note: 'A small chaos; a kid thinks you a legend.' },
     ],
-    // A real go-and-do (item 7a): Mara sets THREE tracked chores; the player works through them one at a
-    // time and the OBJECTIVE TRACKER advances eggs → water → hen (set:'advance:M2' fires quests.advance in the
-    // scene; harmless no-op in unit tests, so the childhood chain stays green) before the seeded hen-choice.
-    dialogue: { start: 'chores', nodes: {
-      chores: { speaker: 'Mara', text:
-        "Three little jobs, if you've the legs for it: eggs from the far coop by the brook, water on " +
-        "the orchard saplings, and Henrietta — the brown hen — back in her pen. She's an escape " +
-        "artist, that one.",
-        options: [ { label: "I'm on it — the coop first.", to: 'eggs' } ] },
-      eggs: { speaker: '', text:
-        "You trot down to the far coop by the brook and ferry the warm eggs back to the basket, careful " +
-        "not to crack a one. First job done — the saplings next.",
-        options: [ { label: '(On to the orchard saplings.)', set: 'advance:M2', to: 'water' } ] },
-      water: { speaker: '', text:
-        "You lug the watering can along the sapling row, tipping a good drink over each thirsty little " +
-        "tree. Two jobs down — and one brown blur of a runaway hen left to go.",
-        options: [ { label: '(Go and corner Henrietta.)', set: 'advance:M2', to: 'chase' } ] },
-      chase: { speaker: 'Tam', text:
-        "*Henrietta bolts across the whole meadow, wings flapping* Haha — look at her GO! " +
-        "Bet you won't boot it. Bet you a sweet you won't.",
+    // dialogue.start = `chase` = the PHYSICAL catch moment, opened by the scene (_henCatch) only once the player
+    // has actually cornered Henrietta in the world. It is ALSO the unit-test entry (walk start → the seeded
+    // choice). `complete:M2` on each option lets the scene complete + reward on the action. The `chores` node is
+    // Mara's briefing, opened via her questNode when M2 is active — it sets the jobs; the DOING is all physical.
+    dialogue: { start: 'chase', nodes: {
+      chase: { speaker: '', text:
+        "You've got Henrietta cornered — wings flapping, one beady eye on you. Tam catches up, breathless: " +
+        "\"You GOT her! ...or are you gonna boot it? Bet you a sweet you won't.\"",
         options: [
-          { label: 'Easy now, Henrietta... gotcha. Back you go.', choice: { quest: 'M2', id: 'catch' }, end: true },
-          { label: '(Wind up and boot the hen.)', choice: { quest: 'M2', id: 'kick' }, end: true },
-          { label: '(Fling the coop open — freedom for all the hens!)', choice: { quest: 'M2', id: 'free' }, end: true },
+          { label: 'Easy now, Henrietta... gotcha. Back in the pen you go.', choice: { quest: 'M2', id: 'catch' }, set: 'complete:M2', end: true },
+          { label: '(Wind up and boot the hen.)', choice: { quest: 'M2', id: 'kick' }, set: 'complete:M2', end: true },
+          { label: '(Fling the pen open — freedom for all the hens!)', choice: { quest: 'M2', id: 'free' }, set: 'complete:M2', end: true },
         ] },
+      chores: { speaker: 'Mara', text:
+        "Three little jobs, if you've the legs for it: eggs from the coop by the brook, water on the " +
+        "orchard saplings, and Henrietta — the brown hen — back in her pen. She's an escape artist, that one.",
+        options: [ { label: "I'm on it — the coop first.", end: true } ] },
     } },
   },
 

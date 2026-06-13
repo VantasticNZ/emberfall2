@@ -77,6 +77,7 @@ export const GREENHOLLOW = {
   terrain: WORLD.terrain,                       // autotile patches (gravel plaza/road/dirt lanes/soil) — local tiles
   decalLayers: [WORLD.dirt, WORLD.decals, WORLD.ferns],   // lived-in scatter (dirt patches, tufts/flowers, ferns)
   pond: WORLD.pond,                             // the SW brook (banked pool) — local tiles
+  m2: WORLD.m2,                                 // M2 physical-chore sites (LOCAL tiles; scene offsets by origin)
 };
 
 // ---- ASHEN MARSH — the low wet basin, placed WEST of Greenhollow (geography §2.1a).
