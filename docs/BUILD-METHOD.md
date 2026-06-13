@@ -144,4 +144,27 @@ Engine-agnostic in design; most are Phaser-3-flavoured in implementation but the
 
 ---
 
+## Asset generation — what's worth it (evidence-backed, 2026-06-13)
+
+Tested on the real local stack (RTX 4060, ComfyUI 0.18.1, SD1.5 + PixelArt LoRA + FLUX-schnell). See
+`docs/ASSET-GAP-RESOLUTION.md` for the images.
+
+- **Free local gen = a DRAFT pipeline for STANDALONE art only** (concept / icons / backgrounds / portraits),
+  and even then the output needs finishing (downscale, background removal, palette/flatten, hand-clean). It is
+  **NOT a source of rig-matched animated character frames** — proven: a "walk-cycle sprite sheet" request
+  returned 15 *unrelated* portraits — no direction rows, no frame consistency, no transparency, wrong rig.
+- **The consistency principle.** Animation consistency is solved by the **LAYER RIG** (ULPC / the forge derives
+  every frame deterministically from ONE authored part), **not by per-frame generation**. Independent samples
+  drift → flicker at sprite resolution. Even the strongest free chain (LoRA + ControlNet/OpenPose + IP-Adapter)
+  only reaches "same character, re-posed" as a *concept* — it cannot register/scale/transparent/rig-align frames,
+  so it never reaches "always-consistent." **Path to always-consistent:** generate/FETCH ONE canonical part →
+  let the rig animate it. **Never generate every frame.**
+- **Decision rule (any future game).** For a FINITE part list: **FETCH (cheapest) → stopgap → hand-art /
+  commission.** Build a generation *pipeline* ONLY when mass-producing across many games (it amortizes); for a
+  handful of parts, standing up a gen pipeline is the **infrastructure trap** — more time on the tool than the art.
+- **Prefer FETCH over local-gen even for standalone art** when a style-matched licensed asset exists. (Buy-UI
+  icons: `eliza-objects` win over local-gen with ZERO cleanup + a clean OGA-BY licence + native style match.)
+
+---
+
 *Append below as new lessons land. Keep it concise; each line should save a future session real time.*
