@@ -243,6 +243,11 @@ export const WORLD = {
         neutral: ['The Flame keep you. ...Whatever you saw beneath us, you carry it well.'],
         bad: ['*will not meet your eye* ...You went down there and you took from it. From a SHRINE. The Flame sees, even when I look away.'] },
       schedule: sched([['dawn', 18, 12, 'tend'], ['day', 18, 12, 'tend'], ['dusk', 19, 13, 'idle'], ['night', 19, 14, 'sleep']]) },
+    // SELA, of the Oracles (adult) — sent the orphaned child west after the burning; present in the rebuilt town
+    // for M7's charge. She hosts M7 (the adult-return beat also auto-opens on arrival; she's the in-world giver).
+    { tx: 21, ty: 12, facing: 'down', name: 'Sela', adultOnly: true, speed: 0, expression: 'neutral', parts: ['body_fem', 'head_fem', 'brows_chestnut', 'hair_parted_gray', 'shirt_plum', 'pants_brown', 'shoes_brown_fem'], quest: 'M7',
+      greeting: ['The west road gave you back to us. The Flame is tended again — by safer hands than a grieving child\'s. Walk easy in Greenhollow.'],
+      done: ['Tend to the living, child. The dead keep their own counsel — and so, for now, do the Oracles.'] },
     { tx: 30, ty: 18, facing: 'down', name: 'Fazy Lastard', tempo: 'dawdler', speed: 0, expression: 'neutral', parts: FATLEY, quest: 'SG1',
       greeting: ['*hic* Oi. You. ...nah, later. Me back\'s gone.'],
       schedule: sched([['dawn', 30, 18, 'idle'], ['day', 30, 18, 'chat'], ['dusk', 30, 18, 'chat'], ['night', 29, 18, 'idle']]) },   // the drunk never leaves the tavern

@@ -986,6 +986,29 @@ const tile = (px) => Math.round(px / TILE);
   else ok('hud-layout: help bar bottom-anchored + reflowed on resize; interiors inset the world viewport by HUD_SAFE so stats/minimap/quests/help never overlap the room');
 }
 
+// 25h) CHILDHOOD-SPINE — M4-M7 must be REACHABLE end-to-end (they were authored but had no overworld start, so
+//      the arc stalled after M3 and never reached the adult bridge). Lock the connective tissue: the quest chain
+//      M3→M4→M5→M6→M7, M6 records time_skip, Sela is placed (M7 giver), and the scene wires every start (M4
+//      cave-walk intercept · M5 festival trigger · M5→M6 auto-chain · M7 auto-start at the time-skip).
+{
+  const offenders = [];
+  const Q = (id) => (Array.isArray(QUESTS) ? QUESTS.find((q) => q.id === id) : null);
+  for (const [a, b] of [['M3', 'M4'], ['M4', 'M5'], ['M5', 'M6'], ['M6', 'M7']]) {
+    const def = Q(a); if (!def) { offenders.push(`${a} def missing`); continue; }
+    if (!(def.unlocks || []).includes(b)) offenders.push(`${a} does not unlock ${b} (chain broken)`);
+  }
+  if (!/time_skip/.test(JSON.stringify(Q('M6')?.dialogue || {}))) offenders.push('M6 dialogue never records time_skip (no child→adult bridge)');
+  const gh = REGIONS.find((R) => R.key === 'Greenhollow');
+  if (!(gh?.npcs || []).some((n) => n.name === 'Sela')) offenders.push('Sela (M7 giver) not placed in Greenhollow');
+  const ow = readFileSync(join(ROOT, 'src/scenes/OverworldScene.js'), 'utf8');
+  if (!/_buildChildhoodSpine/.test(ow)) offenders.push('OverworldScene missing _buildChildhoodSpine (M4/M5 start triggers)');
+  if (!/o\.to === 'cave_f1' && this\.isChild/.test(ow)) offenders.push('no M4 cave-walk intercept (child gets the empty cave, not the M4 beat)');
+  if (!/_onChildQuestComplete/.test(ow) || !/qid === 'M5' && this\.quests\.status\('M6'\)/.test(ow)) offenders.push('no M5→M6 auto-chain (the burning never follows the festival)');
+  if (!/status\('M7'\) === 'available'\) this\._startQuestDialogue\('M7'\)/.test(ow)) offenders.push('no M7 auto-start at the time-skip (adult return never begins)');
+  if (offenders.length) fail('CHILDHOOD-SPINE broken:' + offenders.map((v) => '\n      ' + v).join(''));
+  else ok('childhood-spine: M3→M4→M5→M6→M7 chain + M6 time_skip bridge + Sela placed + every start wired (M4 cave-walk · M5 festival · M5→M6 auto · M7 auto-start) — the arc plays to adulthood');
+}
+
 // L2 DIALOG-SPEAKER-PRESENT (GAME-LAWS L2) — no disembodied speakers. A dialog node's named speaker, IF it is
 //   a PLACED NPC (a real wandering NPC somewhere), must be placed in a region the quest's GIVER is also in —
 //   so the line fires only where that NPC is present. (The bug: Bram, placed at the GH forge, spoke in M1

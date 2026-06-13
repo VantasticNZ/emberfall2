@@ -326,7 +326,17 @@ Nothing faked; every miss keeps its honest stopgap.
   EXCELLENCE pass against the BUILT game (real cohesion, not paper) before M2 scales. **Status: pending M1
   completion (Shrine + deep M8–M10).**
 
-## CHILDHOOD ARC M4–M7 — authored but NOT WIRED to the overworld (quest-flow audit, 2026-06-13)
+## CHILDHOOD ARC M4–M7 — ✅ WIRED end-to-end (2026-06-13, childhood-spine)
+The arc now plays M1→M2→M3→M4→M5→M6(time-skip→adult)→M7→GH1, verified live on a fresh save + locked by the
+`childhood-spine` verify gate. Start triggers: M4 = walk to the boarded cave-mouth (child intercept → the
+loose-plank beat, not the empty cave); M5 = the Hearthflame Festival at the plaza well (press-E); M6 = auto-fires
+~1.1s after the festival (the burning that night) → records `time_skip` → `_doTimeSkip` → adult; M7 = auto-starts
+at the time-skip (Sela placed in town as the in-world giver). **Conservative choices flagged for Van:** (a) the
+festival is a press-E gathering at the well + the dialogue beat (lanterns/dance narrated), not a crowd/mini-game
+set-piece; (b) M7's "earn your first blade from Hodge" is granted as the M7 reward (wooden_sword), not a separate
+physical Hodge visit; (c) M6 is an auto-cutscene (you don't walk to a catastrophe). Upgrade any later if wanted.
+
+### (superseded — the gap this fixed) CHILDHOOD ARC M4–M7 — authored but NOT WIRED to the overworld
 The childhood beats M4–M7 exist as engine data (dialogue + choices; the unit tests walk them), but they have
 **no placed giver and no overworld start trigger** — so in normal play the childhood arc STALLS after M3, and the
 childhood→adult transition (M6 records `time_skip`, which the scene's `_doTimeSkip` listens for) is never reached

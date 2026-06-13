@@ -369,6 +369,39 @@ export class OverworldScene extends Phaser.Scene {
     if (R.keep) this._buildPeaksKeep(R);
     if (R.records) this._buildPeaksRecords(R);
     if (R.m2) this._buildM2(R);   // M2 "Chores + Mischief": the physical coop / egg-nest / saplings / Henrietta
+    if (R.key === 'Greenhollow' && this.isChild) this._buildChildhoodSpine(R);   // M4/M5 start triggers (the playable childhood spine)
+  }
+
+  // CHILDHOOD SPINE (M4-M7) — the connective tissue so the arc plays end-to-end. M4-M7 are authored dialogue
+  // beats with no overworld start; here we give the early ones a DISCOVERABLE physical trigger (per L-laws), and
+  // the later ones chain automatically (the festival → that night's burning → the ten-winter skip → adult). The
+  // dialogue → _closeDialogue path auto-completes each beat + unlocks the next, so a START is all each needs.
+  _buildChildhoodSpine(R) {
+    const O = R.origin, T = TILE;
+    this._childSites = {
+      M4: { x: O.x + 37 * T + T / 2, y: O.y + 4 * T + T / 2 + 10 },    // the boarded cave-mouth at the north meadow edge (rendered marker)
+      M5: { x: O.x + 20 * T + T / 2, y: O.y + 14 * T + T / 2 + 12 },   // the plaza well — the Hearthflame Festival gathering
+    };
+    // M4 starts by WALKING to the boarded cave-mouth (the rendered cave entrance) — intercepted in _checkDoorWalk
+    // so a child gets the M4 beat (the loose-plank peek) instead of entering the empty adult cave. M5 is a
+    // press-E at the plaza well (the festival gathering). The arrow (forced for the child) points at _childSites.
+    Interaction.register({ x: this._childSites.M5.x, y: this._childSites.M5.y, prompt: 'Help with the Hearthflame Festival', onInteract: () => this._childStart('M5') });
+  }
+  // Start a childhood beat from its physical trigger (or a flavour line if it's not its turn yet / already done).
+  _childStart(qid) {
+    if (this._dlg) return;
+    const st = this.quests.status(qid);
+    if (st === 'available' || st === 'active') this._startQuestDialogue(qid);
+    else if (st === 'complete') this._startGreeting('', [qid === 'M4' ? 'The cold weeping-flame carving is just as you left it.' : 'The festival fire is banked low now; the night feels wrong.']);
+    else this._startGreeting('', ['(There are chores to finish before this.)']);   // locked behind the prior beat
+  }
+  // After a childhood beat completes, fire the next NON-physical link: the festival's wrong night → the burning
+  // (M6, the catastrophe — no "go-to" trigger; it comes to you). M6 then records time_skip → _doTimeSkip → adult.
+  _onChildQuestComplete(qid) {
+    if (!this.isChild) return;
+    if (qid === 'M5' && this.quests.status('M6') === 'available') {
+      this.time.delayedCall(1100, () => { if (this.isChild && this.quests.status('M6') === 'available' && !this._dlg) this._startQuestDialogue('M6'); });
+    }
   }
 
   // ---- M2 "Chores + Mischief" — the PHYSICAL go-and-do (no narrated advance) ------------------------------
@@ -534,7 +567,12 @@ export class OverworldScene extends Phaser.Scene {
         this._applyInteriorCamera(false);   // the child may have been in a clamped interior — restore the open-world camera
         this.cameras.main.centerOn(this.player.x, this.player.y);
         if (this.saveGame) this.saveGame();   // persist the adult state immediately
-        this.tweens.add({ targets: [seq.cover, seq.txt], alpha: 0, duration: 1000, delay: 200, onComplete: () => { seq.destroy(); this._timeSkipping = false; this._banner('You return to Greenhollow, grown. The town is not as you left it.', 3200); } });
+        this.tweens.add({ targets: [seq.cover, seq.txt], alpha: 0, duration: 1000, delay: 200, onComplete: () => {
+          seq.destroy(); this._timeSkipping = false; this._banner('You return to Greenhollow, grown. The town is not as you left it.', 3200);
+          // M7 "Ten Winters Gone" — the adult-return beat auto-starts here (no giver to find at the gate; Sela is
+          // placed in town for the charge). Plays arrive → reactive welcome → forge → Sela's charge → unlocks GH1+.
+          this.time.delayedCall(1400, () => { if (!this.isChild && !this._dlg && this.quests.status('M7') === 'available') this._startQuestDialogue('M7'); });
+        } });
       },
     });
     this._registerUIPanel && this._registerUIPanel(seq.cover); this._registerUIPanel && this._registerUIPanel(seq.txt);   // L5: on the zoom-1 uiCamera, balanced + clamped
@@ -597,7 +635,17 @@ export class OverworldScene extends Phaser.Scene {
       if (reg && reg.interactables) {
         for (const o of reg.interactables) {
           if (o.via !== 'door') continue;
-          if (Math.round((o.x - T / 2) / T) === ptx && Math.round((o.y - T / 2) / T) === pty) { this._lastTile = { tx: ptx, ty: pty }; this._enterArea(o.to); return; }
+          if (Math.round((o.x - T / 2) / T) === ptx && Math.round((o.y - T / 2) / T) === pty) {
+            this._lastTile = { tx: ptx, ty: pty };
+            // CHILDHOOD SPINE — a child at the boarded cave-mouth gets the M4 'loose plank' beat (the weeping-flame
+            // carving), NOT the empty adult cave interior. Once M4 is done (or as an adult) it's a normal entrance.
+            if (o.to === 'cave_f1' && this.isChild && this.quests.status('M4') !== 'complete') {
+              const st = this.quests.status('M4');
+              if (st === 'available' || st === 'active') { this._childStart('M4'); return; }
+              this._startGreeting('', ['Boards and a loose plank — just wide enough for someone small. (Mara had chores first.)']); return;
+            }
+            this._enterArea(o.to); return;
+          }
         }
       }
     }
@@ -885,7 +933,7 @@ export class OverworldScene extends Phaser.Scene {
 
   _unloadAllRegions() {
     for (const o of (this._regionObjs || [])) { DepthSort.untrack(o); if (o.body) this.solids.remove(o); o.destroy(); }
-    this._regionObjs = []; this._chestSprites = []; this._hen = null; this._m2Sites = null;   // M2 hen/sites belong to the loaded region
+    this._regionObjs = []; this._chestSprites = []; this._hen = null; this._m2Sites = null; this._childSites = null;   // M2 hen/sites + childhood-spine triggers belong to the loaded region
     if (this.combat) this.combat.destroyAll();   // despawn enemies (killed state persists in save deltas)
     this._bossActive = false; this.boss = null;
     this.npcLife = new NpcLife(this);   // schedule STATE re-derives from TimeOfDay+deeds on reload; quest/karma/inv persist in the systems
@@ -1897,12 +1945,14 @@ export class OverworldScene extends Phaser.Scene {
   }
   _closeDialogue() {
     const qid = this._activeQuest;
+    let completed = null;
     if (qid && this.quests.status(qid) === 'active') {   // dialogue-driven quests complete on dialogue close (unless multi-step world-driven)
       const def = this.quests.defs[qid];
-      if (!(def && def.worldDriven)) { this.quests.complete(qid); this._grantQuestReward(qid); }
+      if (!(def && def.worldDriven)) { this.quests.complete(qid); this._grantQuestReward(qid); completed = qid; }
     }
     this.dlgBox.setVisible(false); this._optTexts.forEach((t) => t.destroy()); this._optTexts = []; this._dlg = null; this._activeQuest = null;
     this._buildPortrait(null);   // clear the speaker face
+    if (completed) this._onChildQuestComplete(completed);   // childhood spine: chain the festival → the burning
   }
   // Grant a completed quest's DATA reward (Gate F) — gold / item(s) / weapon / skill — and banner it.
   // Property/flag unlocks ride on a recorded DEED (the shop reads it), so they're not handled here.
@@ -2292,10 +2342,16 @@ export class OverworldScene extends Phaser.Scene {
     // M2 EXCEPTION (discoverability): while the childhood chore-quest M2 is active, FORCE the arrow on so the
     // coop / orchard / Henrietta are findable from the start point (Van couldn't find the coop). The adult
     // open-world keeps the soft-text default (arrow off) unless the player opts in.
-    const forceArrow = this.isChild && this.quests.status('M2') === 'active';
+    // CHILDHOOD SPINE: guide the child to the NEXT beat's physical trigger (M4 boarded cave / M5 festival) while
+    // it's available OR active, so the arc is discoverable end-to-end (Van couldn't find where M4-M7 start).
+    let spineTarget = null;
+    if (this.isChild && this._childSites) {
+      for (const qid of ['M4', 'M5']) { const s = this.quests.status(qid); if ((s === 'available' || s === 'active') && this._childSites[qid]) { spineTarget = this._childSites[qid]; break; } }
+    }
+    const forceArrow = this.isChild && (this.quests.status('M2') === 'active' || !!spineTarget);
     if ((!bindings.options.objArrow && !forceArrow) || this._dlg) return;
-    let target = null;
-    for (const id of Object.keys(this.quests.state || {})) {
+    let target = spineTarget;
+    if (!target) for (const id of Object.keys(this.quests.state || {})) {
       if (this.quests.status(id) !== 'active') continue;
       // M2 — the physical chore sites (eggs/water) / the live hen (chase). Its step objectives are `site`
       // markers (no fixed tile), so the arrow is resolved here from the placed coop / saplings / Henrietta.
