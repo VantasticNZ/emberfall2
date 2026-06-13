@@ -282,9 +282,9 @@ export const WORLD = {
       bark: '*thunk — the steady fall of an axe*',
       schedule: sched([['dawn', 8, 28, 'chop'], ['day', 8, 28, 'chop'], ['dusk', 10, 27, 'chat'], ['night', 9, 25, 'idle']]) },
     { tx: 16, ty: 25, facing: 'down', name: 'Mason', role: 'joiner', tempo: 'ambler', speed: 70, expression: 'neutral', parts: ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_auburn', 'shirt_teal', 'pants_black', 'shoes_brown'],
-      greeting: [`A joiner is never short of work in a town with rough hands.`],
+      greeting: [`Doors, fences, roofs — if it's broke, I mend it. A joiner's never short of work in a town with rough hands.`],
       topics: [
-        { q: 'Your trade', a: [`"Doors, shutters, a coffin now and then. I mend what folk break — and they break plenty."`] },
+        { q: 'Your trade', a: [`"Doors, fences, roofs — if it's broke, I mend it. Folk break plenty, so I'm never idle."`] },
         { q: 'Broken doors', a: [`"Someone forces a door, I am the one called to board it up and hang it true. Keeps me in bread."`] },
       ],
       bark: '*the rasp of a plane over wood*',
