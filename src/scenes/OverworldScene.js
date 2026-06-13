@@ -63,6 +63,11 @@ const INTERIOR_ZOOM_MAX = 2.0;    // interior closeness is a CONSISTENT 2x (Van'
                                   // cap at 2x. Small rooms are then centred+clamped (whole room in view, nothing
                                   // cut off); a dark surround is accepted in trade for the steady, readable zoom.
 const CUT_REGROW_MS = 180000;   // a cut bush regrows only after you LEAVE the area + ~3 min (anti-farm)
+// HUD SAFE-AREA LAYOUT LAW (systemic, not one-off) — the screen-space HUD lives in fixed bands: the stats panel
+// top-left + minimap/quests top-right (TOP band, RIGHT margin) and the controls help bar at the very BOTTOM.
+// Interiors INSET the world viewport into the area these bands leave free, so the HUD never overlaps the room
+// (the room frames inside; the dark border carries the HUD). The layout gate asserts these bands stay clear.
+const HUD_SAFE = { top: 138, right: 198, bottom: 30 };
 const HERO = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_chestnut', 'shirt_blue', 'pants_black', 'shoes_brown'];
 // The protagonist as a CHILD — fully-clothed child body (shirt+pants+shoes), child head (face baked, no adult
 // brows), and SEATED child hair (oy-offset so it sits on the smaller child skull). L1: complete, matched.
@@ -157,7 +162,7 @@ export class OverworldScene extends Phaser.Scene {
 
     this.auto = false; this._autoT = 0; this._lastSaveMs = 0; this._lastLoadMs = 0; this._resetPerf();
     this._buildWorldHud();
-    this._helpText = this.add.text(8, 412, 'WASD move · SHIFT run · E talk · J attack · Space dodge · C block · M map · T quests · H hide HUD · B/Q close · Esc menu · F5/F9 save/load · F8 fresh game', { fontFamily: 'monospace', fontSize: '10px', color: '#9fb89a', backgroundColor: '#000a', padding: { x: 4, y: 2 } }).setScrollFactor(0).setDepth(DEPTH.OVERLAY + 10);
+    this._helpText = this.add.text(8, this.scale.height - 18, 'WASD move · SHIFT run · E talk · J attack · Space dodge · C block · M map · T quests · H hide HUD · B/Q close · Esc menu · F5/F9 save/load · F8 fresh game', { fontFamily: 'monospace', fontSize: '10px', color: '#9fb89a', backgroundColor: '#000a', padding: { x: 4, y: 2 } }).setScrollFactor(0).setDepth(DEPTH.OVERLAY + 10);   // ALWAYS at the very bottom (anchored to viewport height; reflowed on resize) — never mid-screen
 
     this._restream(true);
     this._maybeToggleRegion(true);
@@ -666,12 +671,18 @@ export class OverworldScene extends Phaser.Scene {
   // region's own bounds (interiorRegion declares `bounds` + `interior:true`), so it applies to ALL interiors.
   _applyInteriorCamera(on) {
     const cam = this.cameras.main, b = this.region && this.region.bounds;
+    const vw = this.scale.width, vh = this.scale.height;
     if (on && this.region && this.region.interior && b) {
-      const vw = this.scale.width, vh = this.scale.height;
-      const zoom = Math.min(INTERIOR_ZOOM_MAX, Math.max(WORLD_ZOOM, vw / b.w, vh / b.h));
+      // INSET the world viewport into the HUD-free safe area (HUD_SAFE) so the room frames inside it and the
+      // stats panel / minimap / quests / help bar sit on the dark border — never over the room. Systemic: every
+      // interior, any window size. The cover-zoom uses the inset dims so the room still fills the framed area.
+      const iw = Math.max(64, vw - HUD_SAFE.right), ih = Math.max(64, vh - HUD_SAFE.top - HUD_SAFE.bottom);
+      cam.setViewport(0, HUD_SAFE.top, iw, ih);
+      const zoom = Math.min(INTERIOR_ZOOM_MAX, Math.max(WORLD_ZOOM, iw / b.w, ih / b.h));
       cam.setZoom(zoom);
       cam.setBounds(b.x, b.y, b.w, b.h);
     } else {
+      cam.setViewport(0, 0, vw, vh);   // full screen outdoors
       cam.setZoom(WORLD_ZOOM);
       cam.setBounds(0, 0, WORLD_PX, WORLD_PX);
     }
@@ -2381,7 +2392,13 @@ export class OverworldScene extends Phaser.Scene {
     this.uiCamera = this.cameras.add(0, 0, this.scale.width, this.scale.height);
     this.uiCamera.setScroll(0, 0);
     this.cameras.main.ignore(this._uiList);   // world camera never draws the HUD
-    this.scale.on('resize', (sz) => { if (this.uiCamera) this.uiCamera.setSize(sz.width, sz.height); });
+    this.scale.on('resize', (sz) => { if (this.uiCamera) this.uiCamera.setSize(sz.width, sz.height); this._layoutHud(); });
+  }
+  // Re-anchor the screen-space HUD to the live viewport (the help bar to the very bottom) + re-inset the interior
+  // camera. Called on resize so nothing drifts mid-screen when the window changes (the help-bar-mid-screen bug).
+  _layoutHud() {
+    if (this._helpText) this._helpText.setY(this.scale.height - 18);
+    if (this._inInterior) this._applyInteriorCamera(true);
   }
   _mainOnly() { const ui = this._uiList || []; return this.children.list.filter((o) => !ui.includes(o)); }
   _reconcileCameras() { if (this.uiCamera) this.uiCamera.ignore(this._mainOnly()); }   // keep streamed world objects off the HUD camera

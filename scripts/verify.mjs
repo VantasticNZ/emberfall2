@@ -970,6 +970,22 @@ const tile = (px) => Math.round(px / TILE);
   else ok('shop-prices: every shop item resolves a numeric price; every {price:} dialogue token is a real item + OverworldScene fills it (no literal "(Price)") + dialogue-shop buy wired');
 }
 
+// 25g) HUD-LAYOUT LAW (no-overlap, systemic) — the help bar floated MID-SCREEN (fixed y=412 on a taller RESIZE
+//      canvas) and the HUD overlapped the interior room (room cover-zoomed to the full viewport). Codify: the
+//      help bar is bottom-anchored to the live viewport (+ reflowed on resize), and interiors INSET the world
+//      viewport by HUD_SAFE so the stats panel / minimap / quests / help sit on the dark border, never over the
+//      room. (Panel overlap is separately covered by panel-bounds-inside-viewport.)
+{
+  const ow = readFileSync(join(ROOT, 'src/scenes/OverworldScene.js'), 'utf8');
+  const offenders = [];
+  if (!/_helpText\s*=\s*this\.add\.text\(\s*8,\s*this\.scale\.height\s*-/.test(ow)) offenders.push('help bar not bottom-anchored to this.scale.height — risks floating mid-screen');
+  if (!/const HUD_SAFE\s*=\s*\{/.test(ow)) offenders.push('HUD_SAFE safe-area constants missing');
+  if (!/setViewport\(0,\s*HUD_SAFE\.top,/.test(ow)) offenders.push('interior camera does not inset by HUD_SAFE — HUD overlaps the room');
+  if (!/_layoutHud\s*\(\)/.test(ow) || !/resize'.*_layoutHud\(\)/s.test(ow)) offenders.push('HUD not re-anchored on resize (_layoutHud in the resize handler)');
+  if (offenders.length) fail('HUD-LAYOUT broken:' + offenders.map((v) => '\n      ' + v).join(''));
+  else ok('hud-layout: help bar bottom-anchored + reflowed on resize; interiors inset the world viewport by HUD_SAFE so stats/minimap/quests/help never overlap the room');
+}
+
 // L2 DIALOG-SPEAKER-PRESENT (GAME-LAWS L2) — no disembodied speakers. A dialog node's named speaker, IF it is
 //   a PLACED NPC (a real wandering NPC somewhere), must be placed in a region the quest's GIVER is also in —
 //   so the line fires only where that NPC is present. (The bug: Bram, placed at the GH forge, spoke in M1
