@@ -972,11 +972,19 @@ export class OverworldScene extends Phaser.Scene {
   // tinted to the biome (murky for the bog).
   _buildRegionWater(R) {
     const pools = R.pools && R.pools.length ? R.pools : (R.pond ? [R.pond] : []);
-    for (const p of pools) for (let y = 0; y < p.h; y++) for (let x = 0; x < p.w; x++) {
-      const v = (y === 0 ? 'n' : y === p.h - 1 ? 's' : '') + (x === 0 ? 'w' : x === p.w - 1 ? 'e' : '');
-      const img = this.add.image(R.origin.x + (p.tx + x) * TILE, R.origin.y + (p.ty + y) * TILE, `pond_${v || 'c'}`).setOrigin(0, 0).setDepth(DEPTH.FLOOR + 1);
-      if (R.waterTint != null) img.setTint(R.waterTint);
-      this._regionObjs.push(img);
+    for (const p of pools) {
+      for (let y = 0; y < p.h; y++) for (let x = 0; x < p.w; x++) {
+        const v = (y === 0 ? 'n' : y === p.h - 1 ? 's' : '') + (x === 0 ? 'w' : x === p.w - 1 ? 'e' : '');
+        const img = this.add.image(R.origin.x + (p.tx + x) * TILE, R.origin.y + (p.ty + y) * TILE, `pond_${v || 'c'}`).setOrigin(0, 0).setDepth(DEPTH.FLOOR + 1);
+        if (R.waterTint != null) img.setTint(R.waterTint);
+        this._regionObjs.push(img);
+      }
+      // WATER IS SOLID (collision-rule: water is NOT walkable — no swim ability yet; swimming/wading is FLAGGED
+      // for a later pass). ONE static collider over the WHOLE pool rect so the player's FEET-body (which sits a
+      // tile below the sprite centre) reliably hits it — you walk up to the bank and stop. Matches the pond mass.
+      const wx = R.origin.x + p.tx * TILE, wy = R.origin.y + p.ty * TILE, ww = p.w * TILE, wh = p.h * TILE;
+      const wr = this.add.rectangle(wx + ww / 2, wy + wh / 2, ww, wh, 0x000000, 0).setVisible(false);
+      this.physics.add.existing(wr, true); this.solids.add(wr); wr.setData('waterSolid', true); this._regionObjs.push(wr);
     }
   }
   // lived-in DECALS — scattered over the region (seeded, edge+water-avoided), FLOOR-

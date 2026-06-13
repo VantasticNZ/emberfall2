@@ -370,8 +370,14 @@ const tile = (px) => Math.round(px / TILE);
       if (b.h < 24) offenders.push(`building '${p.key}' base band ${b.h}px too thin (tunnel risk)`);
     }
   }
+  // WATER IS NOT WALKABLE (collision-rule) — the scene must add a solid collider per pond/pool, in this.solids
+  // (so the player↔solids collider blocks it). The pools/ponds are region data.
+  const owSrc = readFileSync(join(ROOT, 'src/scenes/OverworldScene.js'), 'utf8');
+  if (!/setData\('waterSolid', true\)/.test(owSrc) || !/this\.solids\.add\(wr\)/.test(owSrc)) offenders.push('WATER has no collider in _buildRegionWater — ponds/pools are walkable');
+  const waterRegions = REGIONS.filter((R) => (R.pools && R.pools.length) || R.pond);
+  if (!waterRegions.length) offenders.push('no region declares pond/pools — water-collision rule untested');
   if (offenders.length) fail('COLLISION-MATCHES-VISUAL-MASS violation(s):\n' + offenders.map((s) => '      ' + s).join('\n'));
-  else ok('collision matches visual mass: no walk-through solid-mass props (visual mass is solid OR collider-backed)');
+  else ok(`collision matches visual mass: no walk-through solid-mass props; water solid in ${waterRegions.length} region(s) with pond/pools (not walkable)`);
 }
 
 // 11) SEAM COHERENCE — adjacent regions share EXACT edge coords (no gap/overlap at a
