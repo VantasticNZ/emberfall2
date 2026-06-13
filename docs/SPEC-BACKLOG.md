@@ -28,4 +28,6 @@
 | **Performance budget** | fps floor (~55), streamed-region cap, draw-call/texture budget, the stale-scene preventatives (done). | ongoing |
 | **Onboarding** | first-5-minutes teach (move/talk/attack/dodge/enter), the legible-gating tutorialisation, no wall-of-text. | M1+ |
 
+| **Child held-item overlay + building-damage** | (a) render a carried item on the CHILD (the wooden toy) + a stick-POKE attack anim — needs a hand-tracked per-frame weapon overlay sized to the child (the adult `sword` layer is a 128px combat prop; NO stick/toy art exists) = an ElizaWy-format child weapon sheet (commission) + a Character child-weapon slot. The toy is a REGISTERED keepsake now (shows in inventory); the on-body visual + poke wait on this art. Age-gate (no sword, no damage) already holds. (b) BUILDING-DAMAGE so the joiner has a real purpose (doors/fences/roofs break → he mends them; the repair-worker event already exists for forced doors). | childhood / town polish |
+
 *New rows get added here as systems surface; each is spec'd at its step, never blob-built.*

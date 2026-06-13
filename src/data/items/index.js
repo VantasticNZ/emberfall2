@@ -17,6 +17,9 @@ export const ITEMS = [
   // dark gear — only stocked where the player is Corrupt (gating on the shop entry)
   { id: 'corrupt_blade', name: 'Bloodbound Blade', type: 'weapon', tier: 3, value: 200, equipSlot: 'weapon', effects: [{ atk: 15, lifesteal: true }] },
 
+  // --- keepsakes (story mementos; not sold, not equipped) ------------------
+  { id: 'wooden_toy', name: 'Wooden Toy', type: 'trinket', tier: 1, value: 0, effects: [], note: "Bram carved it for you. Not a sword — splinters are adventure enough at your age." },
+
   // --- armour --------------------------------------------------------------
   { id: 'leather_jerkin', name: 'Leather Jerkin', type: 'armour', tier: 1, value: 25, equipSlot: 'body', effects: [{ def: 2 }] },
   { id: 'peak_mail',      name: 'Peak Mail',      type: 'armour', tier: 2, value: 120, equipSlot: 'body', effects: [{ def: 6 }] },
