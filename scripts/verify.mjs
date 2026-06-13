@@ -58,7 +58,7 @@ import { availableStock, buyPrice } from '../src/systems/Economy.js';
 import { item as itemDef } from '../src/data/items/index.js';
 import { buildingDeed } from '../src/data/buildingDeeds.js';
 import { REGIONS, TILE } from '../src/data/worldmap.js';
-import { PARTS, DIR_ROW, ANIMS, ONESHOT } from '../src/data/assets.js';
+import { PARTS, DIR_ROW, ANIMS, ONESHOT, PUNCH_FRAMES } from '../src/data/assets.js';
 import { LOCATION_CLAIMS, DEED_TIMING } from '../src/data/quests/greenhollow.js';
 import { PROPS, solidBox } from '../src/data/assets.js';
 import { TERRAIN } from '../src/data/terrainTiles.js';
@@ -972,13 +972,19 @@ const tile = (px) => Math.round(px / TILE);
     for (let c = 0; c < 7; c++) { const w = hairWidth(atkH, c, r); if (w > idleW + 5) offenders.push(`child hair attack dir${r} f${c}: silhouette ${w}px ≫ seated ${idleW}px — the hair SWOOSHES (weapon-swing look)`); }
   }
   if (!ONESHOT.has('punch')) offenders.push("ONESHOT missing 'punch' (the unarmed action)");
+  // VISIBLE-not-no-op (the 'J does nothing' regression): the punch must ADVANCE through ≥2 distinct frames at a
+  // SEEN frameRate (not a 1-frame blink) AND fire visible impact feedback — else it plays but flashes past unseen.
+  if (!Array.isArray(PUNCH_FRAMES) || new Set(PUNCH_FRAMES).size < 2) offenders.push('PUNCH_FRAMES has <2 distinct frames — the jab would not visibly advance');
   const al = readFileSync(join(ROOT, 'src/art/AssetLoader.js'), 'utf8');
   if (!/_registerPunch/.test(al)) offenders.push('AssetLoader does not register the punch anim');
+  const frM = al.match(/_registerPunch[\s\S]*?frameRate:\s*(\d+)/);
+  if (!frM || Number(frM[1]) > 12) offenders.push(`punch frameRate ${frM ? frM[1] : '?'} too fast (>12) — the jab blinks past invisibly`);
   const ow = readFileSync(join(ROOT, 'src/scenes/OverworldScene.js'), 'utf8');
   if (!/armed \? 'attack' : 'punch'/.test(ow)) offenders.push('_playerAttack does not pick punch when unarmed');
   if (!/if \(armed\) this\._cutSwing\(\)/.test(ow)) offenders.push('unarmed attack still cuts foliage (cut not gated on armed)');
+  if (!/else this\._punchFx\(\)/.test(ow) || !/_punchFx\(\)\s*\{/.test(ow)) offenders.push('no _punchFx on the unarmed punch — the blunt hit has no visible feedback (the "nothing happens" look)');
   if (offenders.length) fail('CHILD-UNARMED-ATTACK broken:' + offenders.map((v) => '\n      ' + v).join(''));
-  else ok('child-unarmed-attack: hair silhouette stays seated every attack frame (no swoosh); unarmed = a PUNCH (not the slash) that does NOT cut foliage');
+  else ok('child-unarmed-attack: punch advances ≥2 frames at ≤12fps + impact puff (VISIBLE, not a no-op blink); hair seated every frame; unarmed = a PUNCH (not slash) that does NOT cut');
 }
 
 // 25f) SHOP-PRICES + DIALOGUE TOKENS — Van saw Bram's sword as a literal "(Price)": the `{price:steel_sword}`

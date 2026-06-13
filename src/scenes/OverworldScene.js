@@ -1124,6 +1124,7 @@ export class OverworldScene extends Phaser.Scene {
     this.player.action(armed ? 'attack' : 'punch');
     this._sfx(armed ? 'sfx_swing' : 'sfx_hit', armed ? 0.45 : 0.4);
     if (armed) this._cutSwing();   // only a bladed swing harvests foliage — a fist can't cut a bush
+    else this._punchFx();          // UNARMED: a visible impact puff + lunge-pop so the blunt jab READS (no weapon to see)
     // COMBAT damage only OUTSIDE a safe zone AND outside the town safe-hub (Peaks town = sword inert for combat).
     if (!this.combat || this.region?.safeZone || this._inSafeHub() || this.isChild) return;   // a CHILD deals no combat damage (age-gate, sys 1) — they can still cut foliage above
     const out = this.combat.playerAttack(this.player, COMBAT.ATTACK_DAMAGE, { tool: this.playerAttackTool() });
@@ -1140,6 +1141,22 @@ export class OverworldScene extends Phaser.Scene {
       else if (r.outcome === 'recoil') this._banner('It is charged — wait for the window!', 1400);
       if (r.killed && r.e.boss) this._onBossDefeated();
     }
+  }
+  // UNARMED PUNCH feedback — a blunt impact PUFF a step in front of the fist + a quick forward lunge-pop on the
+  // player, so the hit READS even though there is no weapon and the arm frames are small (the 'J does nothing'
+  // regression was the punch firing but flashing past invisibly). Pure VFX — no cut, no damage.
+  _punchFx() {
+    const f = FACE_VEC[this.player.facing] || FACE_VEC.down;
+    const px = this.player.x + f.x * 16, py = this.player.y - 6 + f.y * 16;
+    const ring = this.add.circle(px, py, 3, 0xffe6b0, 0).setStrokeStyle(2, 0xffe6b0, 0.95).setDepth(DEPTH.OVERLAY + 5);
+    this.tweens.add({ targets: ring, scale: 3.4, alpha: 0, duration: 240, ease: 'Quad.out', onComplete: () => { try { ring.destroy(); } catch (_) {} } });
+    for (let i = 0; i < 3; i++) {
+      const a = Math.atan2(f.y, f.x) + (i - 1) * 0.5, d = this.add.circle(px, py, 1.6, 0xe8d8b0, 0.9).setDepth(DEPTH.OVERLAY + 5);
+      this.tweens.add({ targets: d, x: px + Math.cos(a) * 13, y: py + Math.sin(a) * 13, alpha: 0, duration: 240, ease: 'Quad.out', onComplete: () => { try { d.destroy(); } catch (_) {} } });
+    }
+    // forward lunge-pop: a small visible thrust toward the target + back (the body, then it settles)
+    const lx = this.player.x + f.x * 5, ly = this.player.y + f.y * 5;
+    this.tweens.add({ targets: this.player, x: lx, y: ly, duration: 80, yoyo: true, ease: 'Quad.out', onComplete: () => { if (this.player.body) this.player.body.reset(this.player.x, this.player.y); } });
   }
   _tryDodge() {
     const now = this.time.now; let { dx, dy } = this._inputDir;

@@ -62,8 +62,11 @@ export const AssetLoader = {
     for (const [facing, row] of Object.entries(DIR_ROW)) {
       const key = `${tex}-punch-${facing}`;
       if (scene.anims.exists(key)) continue;
-      const frames = PUNCH_FRAMES.map((c) => ({ key: sheet, frame: row * cols + c }));
-      scene.anims.create({ key, frames, frameRate: 16, repeat: 0 });
+      // hold each strike frame longer (9 fps, not 16) + a final recover beat so the jab is VISIBLE, not a 0.19s
+      // blink (the 'J does nothing' regression: the punch fired but flashed past unseen).
+      const seq = [...PUNCH_FRAMES, PUNCH_FRAMES[PUNCH_FRAMES.length - 1]];
+      const frames = seq.map((c) => ({ key: sheet, frame: row * cols + c }));
+      scene.anims.create({ key, frames, frameRate: 9, repeat: 0 });
     }
   },
 
