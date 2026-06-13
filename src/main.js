@@ -55,3 +55,25 @@ if (import.meta.hot) {
   import.meta.hot.on('vite:afterUpdate', () => window.location.reload());
   import.meta.hot.accept(() => window.location.reload());
 }
+
+// STALE-CLIENT ASSERTION — make a cached/old bundle OBVIOUS, not silent.
+// vite.config's stamp plugin injects window.__BUILD__ into every fresh HTML response.
+// A pre-stamp bundle (e.g. the old Jun-8 dist) has NO __BUILD__ → that is a dead giveaway
+// the client is running stale code. Log the live stamp loudly; scream + banner if it's absent.
+{
+  const b = window.__BUILD__;
+  if (b && b.hash) {
+    // eslint-disable-next-line no-console
+    console.log(`%c[EMBERFALL] build ${b.hash}${b.time ? ' · ' + b.time.replace('_', ' ') : ''}`,
+      'color:#8fe39a;font-weight:bold');
+  } else {
+    // eslint-disable-next-line no-console
+    console.error('[EMBERFALL] STALE CLIENT — no build stamp. You are running a CACHED/OLD bundle. '
+      + 'Hard-reload (Ctrl+Shift+R) or restart the dev server. See docs/DELIVERY.md.');
+    const w = document.createElement('div');
+    w.textContent = '⚠ STALE BUILD — hard-reload (Ctrl+Shift+R)';
+    w.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:999999;background:#a11;color:#fff;'
+      + 'font:bold 13px/1.6 monospace;text-align:center;padding:4px;';
+    (document.body || document.documentElement).appendChild(w);
+  }
+}
