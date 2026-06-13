@@ -101,4 +101,44 @@ small: a true fat body, a true roll, and the child weapon overlay.
 
 **Verdict on the bigger question:** **No — the free-tool chain does NOT get near "always" for rig-matched animation frames.** It gets near "same character concept, re-posed" (useful for concept/reference/portraits, i.e. Class A), but the consistency that ANIMATION needs (identical sprite, registered on a grid, transparent, across 4 directions × N frames) is not achievable from this stack without per-frame hand-redrawing. Class B rig parts remain **FETCH (LPC) where it exists, else commission** — unchanged by the spike. The spike's positive: this chain IS a credible **concept/portrait** generator (Class A), which the prior Class-A test already supports.
 
-*Evidence images: `docs/asset-gap-evidence/` — icon_potion, icon_ore, icon_sword, rigtest_walksheet, pose_idle, pose_walk, spike_idle, spike_walk.*
+---
+
+## SPIKE 2 — generate-one → SAM-segment → rig-derive: viable future-games infra? (evidence, 2026-06-13)
+
+Tested the full architecture on ONE character, free tools only. Images in `docs/asset-gap-evidence/`.
+
+**1. Generate one clean idle** — ✅ feasible. Two tries gave a clean blue knight, front, plain bg
+(`spike2_idleA`). Local-gen does standalone character CONCEPTS fine.
+
+**2. SAM-segment** — SAM is **free + installs fast** (pip `segment-anything` + the ViT-B checkpoint, 357 MB in
+~6 s; needs `opencv-python` too, also free). But on the detailed pixel-art knight `SamAutomaticMaskGenerator`
+returned **57 masks** = one full-frame background blob + dozens of **armor-plate / shading fragments**, NOT body
+parts (`spike2_sam_masks.png` — coloured patches scattered over the plates, not head/torso/arms/legs). To get
+riggable limbs you'd have to **manually merge/recut ~56 fragments**, and armour plates cross the joint lines so
+even merged they aren't limb-shaped. SAM segments by *visual region*, not *skeleton*.
+
+**3. Rig + derive poses** — gave the rig its BEST case (a CLEAN manual limb split, bypassing SAM's mess) and
+transformed parts into a walk + a turn (`spike2_derived_walk.png`, `spike2_derived_turn.png`):
+- **Identity holds ✅** — same pixels, recognizably the same knight (as expected).
+- **Walk frame ❌ joints break** — rotating/shifting flat parts leaves **gaps, seams, and detached limbs** at
+  the shoulders/hips (white holes where the rotation exposes nothing behind). Flat parts don't foreshorten or
+  bend; each derived frame needs **hand inpaint/cleanup**.
+- **Turn ❌ impossible by transform** — a FRONT-only image has **no side data**, so a 3/4 or side view can't be
+  derived; the "turn" is just a squashed front (still facing the camera). Turns/other directions need WHOLLY
+  NEW art every time.
+
+**Per-character effort (honest):** generate (retry to a clean one) + segment (SAM over-segments → manual
+regroup, or just manual-split) + rig setup + per-pose transform + **per-frame hole-fill** + **a fresh generation
+per direction** (front-only can't turn). That is **more** work than (a) the LPC layer-rig — author/FETCH one
+canonical part, get ALL frames × 4 directions deterministically — or (b) hand-pixeling, and the consistency only
+"holds" inside the mild transforms of one source view.
+
+**VERDICT: NOT viable as cheap future-games infrastructure.** generate-one→segment→rig can jitter a front
+character into rough pose variants (with hand-fill), but it cannot produce the 4-direction, clean-jointed,
+registered animation set a game needs — turns alone break it, and SAM doesn't hand you limbs. The **LPC
+layer-rig stays the answer** (one authored/fetched part → deterministic frames everywhere). Local-gen's real,
+proven role is the **standalone concept/icon/portrait DRAFT** (Class A) — not character animation. No pipeline
+commitment.
+
+*Evidence images: `docs/asset-gap-evidence/` — spike2_idleA/B, spike2_idle_cut, spike2_sam_masks,
+spike2_derived_walk, spike2_derived_turn (+ the earlier icon_*, rigtest_walksheet, pose_*, spike_idle/walk).*
