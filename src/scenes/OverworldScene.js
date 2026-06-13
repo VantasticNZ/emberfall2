@@ -154,7 +154,7 @@ export class OverworldScene extends Phaser.Scene {
 
     this.auto = false; this._autoT = 0; this._lastSaveMs = 0; this._lastLoadMs = 0; this._resetPerf();
     this._buildWorldHud();
-    this._helpText = this.add.text(8, 412, 'WASD move · SHIFT run · E talk · J attack · Space dodge · C block · M map · T quests · H hide HUD · Esc settings · F5/F9 save/load · F8 fresh game', { fontFamily: 'monospace', fontSize: '10px', color: '#9fb89a', backgroundColor: '#000a', padding: { x: 4, y: 2 } }).setScrollFactor(0).setDepth(DEPTH.OVERLAY + 10);
+    this._helpText = this.add.text(8, 412, 'WASD move · SHIFT run · E talk · J attack · Space dodge · C block · M map · T quests · H hide HUD · B/Q close · Esc menu · F5/F9 save/load · F8 fresh game', { fontFamily: 'monospace', fontSize: '10px', color: '#9fb89a', backgroundColor: '#000a', padding: { x: 4, y: 2 } }).setScrollFactor(0).setDepth(DEPTH.OVERLAY + 10);
 
     this._restream(true);
     this._maybeToggleRegion(true);
@@ -1200,7 +1200,7 @@ export class OverworldScene extends Phaser.Scene {
     const bg = this.add.rectangle(20, 60, 728, 300, 0x0c1410, 0.96).setOrigin(0, 0).setStrokeStyle(2, 0x3c5a3c).setScrollFactor(0);
     this._topicTitle = this.add.text(34, 70, n.name || '', { fontFamily: 'monospace', fontSize: '15px', color: '#9fd8a0', fontStyle: 'bold' }).setScrollFactor(0);
     this._topicSaid = this.add.text(34, 96, this._cycleLines(n).join('  '), { fontFamily: 'monospace', fontSize: '14px', color: '#e8f5e0', wordWrap: { width: 700 } }).setScrollFactor(0);
-    this._topicHint = this.add.text(34, 336, '↑↓ choose · E ask · Q / Esc leave', { fontFamily: 'monospace', fontSize: '11px', color: '#7a9a7a' }).setScrollFactor(0);
+    this._topicHint = this.add.text(34, 336, '↑↓ choose · E ask · B/Q close', { fontFamily: 'monospace', fontSize: '11px', color: '#7a9a7a' }).setScrollFactor(0);
     this._topicBox.add([bg, this._topicTitle, this._topicSaid, this._topicHint]);
     this._topicOpts = [...(n.topics || []).map((t) => t.q), 'Leave.'];
     this._topicRows = [];
@@ -1237,7 +1237,7 @@ export class OverworldScene extends Phaser.Scene {
     const bg = this.add.rectangle(20, 60, 728, 300, 0x0c1410, 0.96).setOrigin(0, 0).setStrokeStyle(2, 0x3c5a3c).setScrollFactor(0);
     this._shopTitle = this.add.text(34, 70, '', { fontFamily: 'monospace', fontSize: '15px', color: '#ffe66d', fontStyle: 'bold' }).setScrollFactor(0);
     this._shopGold = this.add.text(540, 72, '', { fontFamily: 'monospace', fontSize: '13px', color: '#9fd8a0' }).setScrollFactor(0);
-    this._shopHint = this.add.text(34, 336, '↑↓ choose · E buy · Q / Esc leave', { fontFamily: 'monospace', fontSize: '11px', color: '#7a9a7a' }).setScrollFactor(0);
+    this._shopHint = this.add.text(34, 336, '↑↓ choose · E buy · B/Q close', { fontFamily: 'monospace', fontSize: '11px', color: '#7a9a7a' }).setScrollFactor(0);
     this._shopBox.add([bg, this._shopTitle, this._shopGold, this._shopHint]);
     this._shopRows = [];
     for (let i = 0; i < Math.max(1, this._shopStock.length); i++) {
@@ -1648,7 +1648,7 @@ export class OverworldScene extends Phaser.Scene {
       const t = this.add.text(this._dlgTextX, 344 + i * 20, `${sel ? '▶ ' : '  '}${view.length > 1 ? `${i + 1}. ` : ''}${v.tag}${v.opt.label}`, { fontFamily: 'monospace', fontSize: '13px', color: locked ? '#6b6275' : sel ? '#ffe66d' : v.tag ? '#8fd6ff' : '#cfe8d6' }).setScrollFactor(0).setDepth(DEPTH.OVERLAY + 12);
       this.dlgBox.add(t); this._optTexts.push(t);
     });
-    this.dlgHint.setText(view.length > 1 ? '↑↓ pick · E confirm' : 'E continue ▸');
+    this.dlgHint.setText(view.length > 1 ? '↑↓ pick · E confirm · B close' : 'E continue ▸ · B close');
   }
   _dlgNav(d) { const view = this._optView || []; if (view.length < 2) return; let i = Phaser.Math.Clamp(this._selOpt + d, 0, view.length - 1); if (view[i] && view[i].st !== 'locked') this._selOpt = i; this._renderOptions(); }
   _dlgConfirm() {
@@ -1662,6 +1662,12 @@ export class OverworldScene extends Phaser.Scene {
     // cottage with him absent. So close after `wake`; M1 (worldDriven) stays active until Bram completes it.
     if (wasQuest === 'M1' && wasNode === 'wake') return this._closeDialogue();
     if (this._dlg.done || !this._dlg.node()) this._closeDialogue(); else this._renderNode();
+  }
+  // WS1.4 — B/Q cancels a dialog box cleanly: dismiss WITHOUT the quest-completion logic (so cancelling a quest
+  // conversation never auto-completes it; re-talk to resume). Greetings just close.
+  _cancelDialogue() {
+    this.dlgBox.setVisible(false); this._optTexts.forEach((t) => t.destroy()); this._optTexts = []; this._dlg = null; this._activeQuest = null;
+    this._buildPortrait(null); this._sfx('sfx_select', 0.4);
   }
   _closeDialogue() {
     const qid = this._activeQuest;
@@ -1738,8 +1744,11 @@ export class OverworldScene extends Phaser.Scene {
     this.input.keyboard.on('keydown-E', () => { if (this._shopOpen) this._shopBuy(); else if (this._topicsOpen) this._topicPick(); else if (this._dlg) this._dlgConfirm(); else Interaction.tryInteract(); });
     this.input.keyboard.on('keydown-UP', () => { if (this._shopOpen) this._shopNav(-1); else if (this._topicsOpen) this._topicNav(-1); else if (this._dlg) this._dlgNav(-1); });
     this.input.keyboard.on('keydown-DOWN', () => { if (this._shopOpen) this._shopNav(1); else if (this._topicsOpen) this._topicNav(1); else if (this._dlg) this._dlgNav(1); });
-    this.input.keyboard.on('keydown-Q', () => { if (this._shopOpen) this._closeShop(); else if (this._topicsOpen) this._closeTopics(); });
-    this.input.keyboard.on('keydown-ESC', () => { if (this._shopOpen) this._closeShop(); else if (this._topicsOpen) this._closeTopics(); });
+    // CLOSE KEY (WS1.4): B (or Q) closes ANY open panel/dialog. Esc is reserved for the game menu ONLY (below)
+    // — never a dual meaning. A dialog cancels cleanly (no quest auto-complete on cancel).
+    const closePanel = () => { if (this._shopOpen) this._closeShop(); else if (this._topicsOpen) this._closeTopics(); else if (this._dlg) this._cancelDialogue(); };
+    this.input.keyboard.on('keydown-Q', closePanel);
+    this.input.keyboard.on('keydown-B', closePanel);
     this.input.keyboard.on('keydown-J', () => { if (this._canAct()) this._playerAttack(); });    // attack (swing+cut everywhere; combat damage gated inside _playerAttack)
     this.input.keyboard.on('keydown-SPACE', () => { if (this._canAct()) this._tryDodge(); });                              // dodge-roll
     this.input.keyboard.on('keydown-F5', () => this.saveGame());
@@ -1751,7 +1760,8 @@ export class OverworldScene extends Phaser.Scene {
     this.input.keyboard.on('keydown-M', toggleMap);   // M = the full WORLD MAP / plan view
     this.input.keyboard.on('keydown-T', () => { if (!this._dlg) this._trkState = (this._trkState + 2) % 3; });   // cycle tracker: full→title→off
     this.input.keyboard.on('keydown-H', () => { if (!this._dlg) { this._hudHidden = !this._hudHidden; this.hud2.setVisible(!this._hudHidden); } });
-    this.input.keyboard.on('keydown-ESC', () => this._openSettings());
+    // Esc = the GAME MENU only (never a panel-close). Ignored while a panel/dialog is open (close those with B/Q).
+    this.input.keyboard.on('keydown-ESC', () => { if (this._shopOpen || this._topicsOpen || this._dlg) return; this._openSettings(); });
     this._setupDebug();   // dev-only world-skeleton walkthrough aids (gated by ?debug)
   }
 
