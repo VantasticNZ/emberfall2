@@ -64,7 +64,7 @@ export class OptionsScene extends Phaser.Scene {
     for (const [a, label] of Object.entries(ACTION_LABELS)) r.push({ k: 'bind', action: a, label });
     r.push({ k: 'head', label: '— AUDIO —' });
     r.push({ k: 'slider', key: 'master', label: 'Master Volume' }, { k: 'slider', key: 'sfx', label: 'SFX Volume' }, { k: 'slider', key: 'music', label: 'Music Volume' });
-    r.push({ k: 'head', label: '— OPTIONS —' }, { k: 'aimInvert', label: 'Invert Aim (Y axis)' }, { k: 'threatInd', label: 'Threat Indicators' });
+    r.push({ k: 'head', label: '— OPTIONS —' }, { k: 'aimInvert', label: 'Invert Aim (Y axis)' }, { k: 'threatInd', label: 'Threat Indicators' }, { k: 'objArrow', label: 'Objective Arrow' });
     r.push({ k: 'head', label: '— MODIFIERS —' });
     for (const m of this.mods.list().filter((d) => d.category !== 'adult')) r.push({ k: 'mod', id: m.id, label: m.name });
     r.push({ k: 'head', label: '— ADULT MODE (18+) —' });
@@ -102,6 +102,7 @@ export class OptionsScene extends Phaser.Scene {
     if (row.k === 'slider') { const a = bindings.options.audio; a[row.key] = Phaser.Math.Clamp(+(a[row.key] + d * 0.1).toFixed(2), 0, 1); this.game.sound.volume = a.master; }
     else if (row.k === 'aimInvert') bindings.options.aimInvert = !bindings.options.aimInvert;
     else if (row.k === 'threatInd') bindings.options.threatIndicators = !bindings.options.threatIndicators;
+    else if (row.k === 'objArrow') bindings.options.objArrow = !bindings.options.objArrow;
     else if (row.k === 'mod') this._toggleMod(row.id);
     this._render();
   }
@@ -111,6 +112,7 @@ export class OptionsScene extends Phaser.Scene {
     else if (row.k === 'mod') this._toggleMod(row.id);
     else if (row.k === 'aimInvert') { bindings.options.aimInvert = !bindings.options.aimInvert; this._render(); }
     else if (row.k === 'threatInd') { bindings.options.threatIndicators = !bindings.options.threatIndicators; this._render(); }
+    else if (row.k === 'objArrow') { bindings.options.objArrow = !bindings.options.objArrow; this._render(); }
     else if (row.k === 'adultMaster') { this.mods.setAdultMaster(!this.mods.adultMasterEnabled); this._render(); }
     else if (row.k === 'reset') { resetBindings(); this._render(); }
     else if (row.k === 'close') this._close();
@@ -142,6 +144,7 @@ export class OptionsScene extends Phaser.Scene {
     if (row.k === 'slider') return `${Math.round(bindings.options.audio[row.key] * 100)}%`;
     if (row.k === 'aimInvert') return bindings.options.aimInvert ? 'ON' : 'OFF';
     if (row.k === 'threatInd') return bindings.options.threatIndicators ? 'ON' : 'OFF';
+    if (row.k === 'objArrow') return bindings.options.objArrow ? 'ON' : 'OFF';
     if (row.k === 'adultMaster') return this.mods.adultMasterEnabled ? 'ENABLED' : 'DISABLED';
     if (row.k === 'mod') { const on = this.mods.isOn(row.id); return on ? 'ON' : (row.id === 'adult_mode' && !this.mods.adultConfirmed ? 'OFF (needs 18+)' : 'OFF'); }
     return '';

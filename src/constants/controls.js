@@ -59,12 +59,12 @@ export const DEFAULT_GAMEPAD = Object.freeze({
 export const bindings = {
   keyboard: { ...DEFAULT_KEYBOARD },
   gamepad: { ...DEFAULT_GAMEPAD },
-  options: { aimInvert: false, threatIndicators: false, audio: { master: 0.8, sfx: 0.8, music: 0.6 } },
+  options: { aimInvert: false, threatIndicators: false, objArrow: false, audio: { master: 0.8, sfx: 0.8, music: 0.6 } },
 };
 
 /** Reset all bindings + control options to the canonical defaults. */
 export function resetBindings() {
   bindings.keyboard = { ...DEFAULT_KEYBOARD };
   bindings.gamepad = { ...DEFAULT_GAMEPAD };
-  bindings.options = { aimInvert: false, audio: { master: 0.8, sfx: 0.8, music: 0.6 } };
+  bindings.options = { aimInvert: false, threatIndicators: false, objArrow: false, audio: { master: 0.8, sfx: 0.8, music: 0.6 } };
 }

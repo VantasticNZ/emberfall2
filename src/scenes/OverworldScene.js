@@ -1289,6 +1289,7 @@ export class OverworldScene extends Phaser.Scene {
   _onPledge(opt) {
     const c = opt.choice || {};
     this._pledge = { quest: c.quest, id: c.id, kind: opt.pledge, greeted: new Set(), spotX: this.player.x, spotY: this.player.y };
+    if (c.quest === 'M1' && this.quests.step['M1'] === 1) { this.quests.advance('M1'); this._refreshTracker && this._refreshTracker(); }   // step 1 forge → 2 'Say hello around the square'
     if (opt.pledge === 'greet') this._banner('Say hello around the square.', 2200);
     else this._banner('You keep your head down, and pass on by.', 2000);
   }
@@ -1660,7 +1661,7 @@ export class OverworldScene extends Phaser.Scene {
     // L2 STORY-CLAIM split: M1's cottage beat (Mara) ENDS here. The engine tree links wake→forge for the unit
     // tests, but in the running game Bram's `forge` line must play AT the forge (where he is placed), not in the
     // cottage with him absent. So close after `wake`; M1 (worldDriven) stays active until Bram completes it.
-    if (wasQuest === 'M1' && wasNode === 'wake') return this._closeDialogue();
+    if (wasQuest === 'M1' && wasNode === 'wake') { if (this.quests.step['M1'] === 0) { this.quests.advance('M1'); this._refreshTracker && this._refreshTracker(); } return this._closeDialogue(); }   // step 0 wake → 1 'Find Bram at the forge'
     if (this._dlg.done || !this._dlg.node()) this._closeDialogue(); else this._renderNode();
   }
   // WS1.4 — B/Q cancels a dialog box cleanly: dismiss WITHOUT the quest-completion logic (so cancelling a quest
@@ -2056,7 +2057,9 @@ export class OverworldScene extends Phaser.Scene {
   // directional chevron near the player pointing toward the active quest's NPC
   _updateObjective() {
     const g = this._objArrow; if (!g) return; g.clear();
-    if (!this._objOn || this._dlg) return;
+    // WS2.7: the objective arrow is an OPTION — OFF by default; soft text-guidance (the QUESTS tracker) leads.
+    // Toggled live in Settings (bindings.options.objArrow). Reads the setting each frame so the toggle is instant.
+    if (!bindings.options.objArrow || this._dlg) return;
     let target = null;
     for (const id of Object.keys(this.quests.state || {})) {
       if (this.quests.status(id) !== 'active') continue;
