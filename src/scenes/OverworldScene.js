@@ -1153,10 +1153,18 @@ export class OverworldScene extends Phaser.Scene {
     if (qid && n.questNode && st === 'available') { qid = null; st = null; }
     if (qid && (st === 'available' || st === 'active')) this._startQuestDialogue(qid, n.questNode);
     else if (n.social) this._startDialogue(n.social, n.name);
-    else if (n.topics) this._openTopics(n);   // a named villager with topics → the selectable topic menu
+    else if (n.topics) { this._tallyGreet(n); this._openTopics(n); }   // a named villager with topics → the selectable topic menu
     else if (st === 'complete' && n.done) this._startGreeting(n.name, n.done);
-    else if (n.greeting || n.greetByKarma) this._startGreeting(n.name, this._cycleLines(n));
+    else if (n.greeting || n.greetByKarma) { this._tallyGreet(n); this._startGreeting(n.name, this._cycleLines(n)); }
     else if (n.done) this._startGreeting(n.name, n.done);
+  }
+  // L6 — a real GREETING just happened. If the player pledged to "say hello around the square" (M1), tally the
+  // distinct villager; once ≥2 have actually been greeted, the greeted_warmly deed + M1 fire (the DOING, not the
+  // earlier intent). Greeting nobody (and passing on by) resolves to kept_to_self via _pledgeTick.
+  _tallyGreet(n) {
+    const p = this._pledge; if (!p || p.kind !== 'greet' || !n || !n.name) return;
+    p.greeted.add(n.name);
+    if (p.greeted.size >= 2) this._resolvePledge('greeted');
   }
   // REACTIVITY — the greeting reacts to the player's KARMA (warm if good, wary if cruel) + REPEAT-AVOIDANCE
   // rotates which line surfaces on re-talk (+ an occasional bark). Per-NPC index, session-persisted.
@@ -1274,7 +1282,32 @@ export class OverworldScene extends Phaser.Scene {
   // DIALOGUE (minimal but real — reuses the Dialogue engine + Social gating;
   // the polished box/portrait is RegionScene's, deferred to the polish pass)
   // ===========================================================================
-  _dlgCtx() { return { inv: this.inv, karma: this.karma, quests: this.quests, engine: this.quests, onSet: (cmd) => this._onDlgSet(cmd) }; }   // engine: lets a dialogue option's `choice:{quest,id}` fire the quest fork (karma+deed+unlocks, once)
+  _dlgCtx() { return { inv: this.inv, karma: this.karma, quests: this.quests, engine: this.quests, onSet: (cmd) => this._onDlgSet(cmd), onPledge: (opt) => this._onPledge(opt) }; }   // engine: a `choice:{quest,id}` fires the quest fork; onPledge: a `defer:true` option pledges the choice to the ACTION (L6)
+
+  // L6 ACTION-BASED KARMA — a deferred dialogue option records the PLEDGE (which fork the player intends) but
+  // does NOT move karma/deeds yet. The deed fires from the ACTION handler when the doing actually happens.
+  _onPledge(opt) {
+    const c = opt.choice || {};
+    this._pledge = { quest: c.quest, id: c.id, kind: opt.pledge, greeted: new Set(), spotX: this.player.x, spotY: this.player.y };
+    if (opt.pledge === 'greet') this._banner('Say hello around the square.', 2200);
+    else this._banner('You keep your head down, and pass on by.', 2000);
+  }
+  // Fire a pending pledge's choice + complete its quest — called from the action handlers (a real greeting
+  // happened / you passed on by). Exactly-once via clearing the pledge.
+  _resolvePledge(reason) {
+    const p = this._pledge; if (!p) return; this._pledge = null;
+    if (this.quests.status(p.quest) === 'active') {
+      this.quests.choose(p.quest, p.id);            // NOW the karma/deed moves (the action occurred)
+      this.quests.complete(p.quest); this._grantQuestReward(p.quest);
+    }
+    this._refreshTracker && this._refreshTracker();
+  }
+  // L6 — the "keep your head down and pass by" pledge resolves to kept_to_self once the player has actually
+  // PASSED BY (walked ~6 tiles from where they pledged). The doing = moving on without greeting.
+  _pledgeTick() {
+    const p = this._pledge; if (!p || p.kind !== 'ignore') return;
+    if (Math.hypot(this.player.x - p.spotX, this.player.y - p.spotY) > 6 * TILE) this._resolvePledge('passed-by');
+  }
   _onDlgSet(cmd) {
     if (typeof cmd !== 'string') return;
     if (cmd.startsWith('door:')) this._doorAction(cmd.slice(5));
@@ -1869,6 +1902,7 @@ export class OverworldScene extends Phaser.Scene {
     while (this.loadQueue.length) this._spawn(this.loadQueue.shift());
 
     if (this.npcLife.has()) this.npcLife.update(dt, dlgOpen);
+    this._pledgeTick();                                     // L6: an "ignore/pass by" pledge resolves once you walk on
     this._reactivityTick(dlgOpen, now);                     // guard confront/fine + repair-worker event
     if (this.combat) this.combat.update(dt, this.player);   // enemies behave (no-op when none spawned)
     if (this.uiCamera) this._reconcileCameras();   // keep this frame's new streamed/combat objects off the HUD camera (before render)

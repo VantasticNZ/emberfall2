@@ -59,7 +59,7 @@ import { item as itemDef } from '../src/data/items/index.js';
 import { buildingDeed } from '../src/data/buildingDeeds.js';
 import { REGIONS, TILE } from '../src/data/worldmap.js';
 import { PARTS } from '../src/data/assets.js';
-import { LOCATION_CLAIMS } from '../src/data/quests/greenhollow.js';
+import { LOCATION_CLAIMS, DEED_TIMING } from '../src/data/quests/greenhollow.js';
 import { PROPS, solidBox } from '../src/data/assets.js';
 import { TERRAIN } from '../src/data/terrainTiles.js';
 import { OPAQUE_BOUNDS } from '../src/data/opaqueBounds.js';
@@ -822,6 +822,37 @@ const tile = (px) => Math.round(px / TILE);
   }
   if (bad.length) fail('L2 LOCATION-CLAIM (line claims a place the NPC is not):' + bad.map((v) => '\n      ' + v).join(''));
   else ok(`location-claims (L2): all ${LOCATION_CLAIMS.length} audited NPC-location claim(s) match the NPC's actual placement — no "X is at the forge" while X is elsewhere`);
+}
+
+// L6 DEED-TIMING (GAME-LAWS L6) — karma/deeds move ONLY when the action occurs, never on announcing intent.
+// Every karma-moving quest CHOICE in the childhood (M1-M7) + slice (GH1-4) must be CLASSIFIED in DEED_TIMING,
+// and a 'deferred' choice's dialogue option must actually carry defer:true (so it can't silently move karma on
+// the line). 'action-at-site'/'speech-act' choices legitimately fire on the line; the manifest makes that an
+// explicit audited decision, not an exemption by silence.
+{
+  const SCOPED = /^(M[1-7]|GH[1-4])$/;
+  const bad = []; let checked = 0;
+  for (const q of QUESTS) {
+    if (!SCOPED.test(q.id)) continue;
+    const fires = [];   // dialogue options that fire a choice for THIS quest
+    if (q.dialogue && q.dialogue.nodes) for (const k of Object.keys(q.dialogue.nodes)) for (const o of (q.dialogue.nodes[k].options || [])) if (o.choice && o.choice.quest === q.id) fires.push(o);
+    for (const c of (q.choices || [])) {
+      const movesKarma = c.deed || (c.karma && ((c.karma.morality || 0) !== 0 || (c.karma.purity || 0) !== 0));
+      if (!movesKarma) continue;
+      checked++;
+      const key = `${q.id}:${c.id}`; const cls = DEED_TIMING[key];
+      const opt = fires.find((o) => o.choice.id === c.id);
+      if (!cls) { bad.push(`${key}: deed-moving choice NOT classified in DEED_TIMING (audit it: action-at-site / speech-act / deferred)`); continue; }
+      if (cls === 'deferred') {
+        if (!opt) bad.push(`${key}: classified 'deferred' but no dialogue option fires it`);
+        else if (!opt.defer) bad.push(`${key}: classified 'deferred' but its option lacks defer:true — it would move karma on the LINE (intent), not the action`);
+      } else if (opt && opt.defer) {
+        bad.push(`${key}: classified '${cls}' (fires on the line) but its option carries defer:true`);
+      }
+    }
+  }
+  if (bad.length) fail('L6 DEED-TIMING (karma must move on the action, not the intent):' + bad.map((v) => '\n      ' + v).join(''));
+  else ok(`deed-timing (L6): all ${checked} karma-moving childhood+slice choices are classified; 'deferred' forks (M1 greet/ignore) defer to the action, the rest are audited action-at-site/speech-acts`);
 }
 
 // 25a2) QUEST-OPENER-IS-GIVER (dialog-routing item 3) — the NPC you TALK TO must speak first / own the box.

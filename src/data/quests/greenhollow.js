@@ -22,6 +22,31 @@ export const LOCATION_CLAIMS = [
   { quest: 'M7', npc: 'Hodge', region: 'Greenhollow', line: "see Hodge. You'll not go unarmed. (the GH smith, at the forge)" },
 ];
 
+// L6 ACTION-BASED KARMA MANIFEST (GAME-LAWS L6) — karma/deeds move ONLY when the action actually occurs, never
+// on announcing intent. Every karma-moving quest CHOICE (childhood M1-M7 + slice GH1-4) is audited here:
+//   'deferred'      — the choice ANNOUNCES intent; the deed fires LATER from an action handler (defer:true on
+//                     the option; the scene fires it when the doing happens). e.g. M1 greet/ignore.
+//   'action-at-site'— the choice EXECUTES the action at the present site (hand it over, break it, pocket it,
+//                     kick the hen, free the pups) — legitimately fires on the line.
+//   'speech-act'    — the choice is SAID to a present NPC (vow to Sela, tell the Acolyte) — fires on the line.
+// The `deed-timing` verify gate asserts every quest choice is classified here AND that a 'deferred' choice's
+// option actually carries defer:true (so an intent-fork can never silently move karma on the line).
+export const DEED_TIMING = {
+  // CHILDHOOD
+  'M1:greet': 'deferred',     'M1:ignore': 'deferred',
+  'M2:catch': 'action-at-site', 'M2:kick': 'action-at-site', 'M2:free': 'action-at-site',
+  'M3:return': 'action-at-site', 'M3:keep': 'action-at-site', 'M3:gift': 'action-at-site',
+  'M4:tell': 'speech-act', 'M4:explore': 'action-at-site', 'M4:dare': 'speech-act',
+  'M5:comfort': 'action-at-site', 'M5:ignore': 'action-at-site',
+  'M6:vengeance': 'speech-act', 'M6:protect': 'speech-act',
+  'M7:accept': 'speech-act', 'M7:press': 'speech-act',
+  // SLICE
+  'GH1:share': 'action-at-site', 'GH1:job': 'action-at-site', 'GH1:take': 'action-at-site',
+  'GH2:gentle': 'action-at-site', 'GH2:break': 'action-at-site', 'GH2:comfort': 'action-at-site', 'GH2:healed': 'action-at-site',
+  'GH3:mercy': 'action-at-site', 'GH3:cull': 'action-at-site', 'GH3:letter_keep': 'action-at-site',
+  'GH4:tell': 'speech-act', 'GH4:keep': 'speech-act', 'GH4:desecrate': 'action-at-site',
+};
+
 export const GREENHOLLOW_CHILDHOOD = [
   // ---------------------------------------------------------------------------
   // M1 — A Greenhollow Morning (tutorial; the warm world, before the loss)
@@ -61,8 +86,10 @@ export const GREENHOLLOW_CHILDHOOD = [
         "splinters and that's adventure enough at your age. Now: mind the hens, and mind Old Edda — " +
         "she bites worse'n the hens.",
         options: [
-          { label: '(Run and say hello to everyone in the square.)', choice: { quest: 'M1', id: 'greet' }, set: 'complete:M1', end: true },
-          { label: '(Keep your head down and slip past.)', choice: { quest: 'M1', id: 'ignore' }, set: 'complete:M1', end: true },
+          // L6: these ANNOUNCE intent — the deed fires when the greeting (or the passing-by) actually happens in
+          // the square, tracked by the scene. defer:true → the scene pledges + fires the choice from the action.
+          { label: '(Run and say hello to everyone in the square.)', choice: { quest: 'M1', id: 'greet' }, defer: true, pledge: 'greet', end: true },
+          { label: '(Keep your head down and slip past.)', choice: { quest: 'M1', id: 'ignore' }, defer: true, pledge: 'ignore', end: true },
         ] },
     } },
   },

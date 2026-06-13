@@ -50,6 +50,20 @@ word-wraps; nothing renders off-screen or off-centre.
   player** (`src/systems/CardSequence.js`), whose cover+text register with the panel helper / uiCamera.
 - **GATE: `panel-bounds-inside-viewport`** (existing) — UI panels register with the uiCamera, clamped.
 
+## L6 — ACTION-BASED KARMA (the deed moves on the doing, never on the intent)
+Morality / purity / deeds move **only when the action actually occurs in the world** — never on selecting a
+dialog option that merely *announces* intent. Choosing "(Run and say hello)" is intent; `greeted_warmly` fires
+when the greetings actually happen (the scene tracks the doing).
+- A dialog option that announces intent carries **`defer:true`** + its `choice` — selecting it **pledges**
+  (sets the objective) but moves no karma; the deed fires from the **action handler** when the doing happens
+  (M1 greet → after greeting villagers; ignore → after passing by). Forks whose **choice IS the action**
+  (action-at-site: hand it over / break it / pocket it / kick the hen; or a **speech-act**: vow to Sela, tell
+  the Acolyte) legitimately fire on the line — but each is **explicitly classified**, never exempt by silence.
+- Every karma-moving childhood (M1-M7) + slice (GH1-4) choice is audited in `DEED_TIMING`
+  (`src/data/quests/greenhollow.js`): `deferred` | `action-at-site` | `speech-act`.
+- **GATE: `deed-timing`** — every karma-moving choice is classified, and a `deferred` choice's option must
+  carry `defer:true` (so an intent-fork can never silently move karma on the line). Negative-proven.
+
 ---
 
 ## THE OPENING SHELL (S1–S4) — built on the laws
@@ -69,3 +83,5 @@ The game-start shell (`src/scenes/TitleScene.js`) exercises the laws end-to-end 
 3. Every new interior: entered from a building door; the exit lands at that door (L3).
 4. Every mandatory beat: `blocking:true` on its step if progression must wait (L4).
 5. Every new overlay/card: through the panel helper / `CardSequence` (L5).
+6. Every karma-moving choice: classified in `DEED_TIMING`; if it announces intent, `defer:true` so the deed
+   fires on the action, not the line (L6).

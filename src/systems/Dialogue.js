@@ -47,6 +47,12 @@ export class Dialogue {
   select(i) {
     const opt = this.options()[i];
     if (!opt) return this.node();
+    // L6 ACTION-BASED KARMA: a `defer:true` option ANNOUNCES intent — its choice/deed must fire when the action
+    // actually happens in the world, not on this line. In the SCENE (ctx.onPledge present) the option is handed
+    // to the pledge handler, which sets an objective + fires the choice later from the action handler. In a
+    // unit-test ctx (no onPledge) it falls through to the normal immediate path, so the engine tests are
+    // unaffected. Non-deferred options keep firing on the line (action-at-site + speech-acts).
+    if (opt.defer && this.ctx.onPledge) { this.ctx.onPledge(opt); if (opt.end || !opt.to) { this.done = true; this.nodeId = null; return null; } this.nodeId = opt.to; this._route(); return this.node(); }
     if (opt.deed && this.ctx.karma) this.ctx.karma.recordDeed(opt.deed, opt.meta || {});
     if (opt.choice && this.ctx.engine) this.ctx.engine.choose(opt.choice.quest, opt.choice.id);
     if (opt.set && this.ctx.onSet) this.ctx.onSet(opt.set);
