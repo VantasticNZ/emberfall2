@@ -298,6 +298,16 @@ eyes-on + the live VAN-TEST per slice step.
 Cost: ~medium (one harness, then each assertion is cheap). CHEAP widenings already done inline: L1 leg-coverage
 now checks idle AND walk (pixel, negative-proven); L6 deed-timing data invariant (negative-proven).
 
+## FREE-FETCH EXHAUSTED (2026-06-13) — 3 rig gaps: stopgaps held, no fake (see docs/ASSET-GAP-RESOLUTION.md)
+Searched all free LPC-compatible sources (the full Universal-LPC library `C:/GameAssets/lpc-full`, the repo
+working set, the lpc-env haul, the ULPC CREDITS manifest). Results:
+| Gap | Free-fetch result | Held / next |
+|---|---|---|
+| **(a) Fazy fat/heavy body** | **HEAD: WIRED** — ULPC `male_plump` head fetched + reconciled (reads heavier). **BODY: MISS** — no fat/heavy/plump/obese body exists in the ULPC set (only `muscular`/`pregnant`). | head done; body = `muscular` stopgap OR **hand-edit/commission a fat body** later. |
+| **(b) Roll / dodge frames** | **MISS** — the ULPC body has no `roll`/`dodge`/`tumble` anim (only the standard 15; the only "roll" hits are eye-roll faces). | **jump-as-roll stopgap** held; hand-draw/commission a true roll later. |
+| **(c) Child held stick/toy overlay** | **MISS** — ULPC weapons author male/muscular/teen, **not the child body**; no child-held item sheet. | **no-stick stopgap** held; hand-art/commission a child weapon overlay + a Character child-weapon slot later. |
+Nothing faked; every miss keeps its honest stopgap.
+
 ## MILESTONE GATES (must pass before advancing)
 - **Post-M1 TRIPLE-CHECK** (BUILD-PLAN §4b): after GH+Marsh+Shrine are BUILT, run the full cohesiveness +
   EXCELLENCE pass against the BUILT game (real cohesion, not paper) before M2 scales. **Status: pending M1
