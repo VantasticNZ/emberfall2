@@ -105,15 +105,18 @@ export const PARTS = {
   child_body_rust:  { slot: 'body', label: 'Body', layers: [{ tex: 'child_body_rust',  z: Z.body }], childClothed: true },
   child_body_tan_green:   { slot: 'body', label: 'Body', layers: [{ tex: 'child_body_tan_green',   z: Z.body }], childClothed: true },
   child_body_brown_rust:  { slot: 'body', label: 'Body', layers: [{ tex: 'child_body_brown_rust',  z: Z.body }], childClothed: true },
-  // CHILD HAIR (L1 seating) — the adult hair textures sit ~6px high on the SMALLER child head (its crown is
-  // lower in the cell), so a child-fitted hair part re-seats the SAME texture down onto the child skull via a
-  // per-style `oy` offset (childSeat:true marks it for the L1 seat-offset gate). No new texture; just seated.
-  child_hair_natural: { slot: 'hair', label: 'Hair', layers: [{ tex: 'hair',        z: Z.hair, oy: 6 }], childSeat: true },
-  child_hair_black:   { slot: 'hair', label: 'Hair', layers: [{ tex: 'hair_black',   z: Z.hair, oy: 6 }], childSeat: true },
-  child_hair_ginger:  { slot: 'hair', label: 'Hair', layers: [{ tex: 'hair_ginger',  z: Z.hair, oy: 6 }], childSeat: true },
-  child_hair_blond:   { slot: 'hair', label: 'Hair', layers: [{ tex: 'hair_blond',   z: Z.hair, oy: 6 }], childSeat: true },
-  child_hair_auburn:  { slot: 'hair', label: 'Hair', layers: [{ tex: 'hair_auburn',  z: Z.hair, oy: 6 }], childSeat: true },
-  child_hair_bob:     { slot: 'hair', label: 'Hair', layers: [{ tex: 'hair_mara',    z: Z.hair, oy: 5 }], childSeat: true },
+  // CHILD HAIR (L1 seating, BOUNCE-FIXED) — a constant oy couldn't fix the kids' hair bounce because the child
+  // head sits lower than the adult by a DIFFERENT amount per facing (up ~4px, others ~6px), so one offset
+  // mis-seats a direction and the hair jumps on turning. FIXED by BAKING the per-direction shift into child-
+  // fitted hair sheets (scripts/child_hair.py) → the hair caps the child skull identically in every frame of
+  // every direction. The parts use the BAKED textures with no runtime offset. childSeat marks them for the
+  // per-frame seat gate (which pixel-checks the baked seating holds across all frames/directions).
+  child_hair_natural: { slot: 'hair', label: 'Hair', layers: [{ tex: 'child_hair_natural', z: Z.hair }], childSeat: true },
+  child_hair_black:   { slot: 'hair', label: 'Hair', layers: [{ tex: 'child_hair_black',   z: Z.hair }], childSeat: true },
+  child_hair_ginger:  { slot: 'hair', label: 'Hair', layers: [{ tex: 'child_hair_ginger',  z: Z.hair }], childSeat: true },
+  child_hair_blond:   { slot: 'hair', label: 'Hair', layers: [{ tex: 'child_hair_blond',   z: Z.hair }], childSeat: true },
+  child_hair_auburn:  { slot: 'hair', label: 'Hair', layers: [{ tex: 'child_hair_auburn',  z: Z.hair }], childSeat: true },
+  child_hair_bob:     { slot: 'hair', label: 'Hair', layers: [{ tex: 'child_hair_bob',      z: Z.hair }], childSeat: true },
   // MONSTER child (asset-first verdict: NO owned creature rig → a goblin-child COMPOSITED from owned parts —
   // green-tinted child body + a tattered outfit, green head + small composited horns). A true creature rig is
   // a commission (DEFERRED). Complete matched sets; childClothed so the L1 leg-coverage gate validates them.

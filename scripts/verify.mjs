@@ -752,12 +752,35 @@ const tile = (px) => Math.round(px / TILE);
     const e1 = legCheck(idleF, 'idle'); if (e1) bad.push(`${key}: ${e1}`);
     if (existsSync(walkF)) { const e2 = legCheck(walkF, 'walk'); if (e2) bad.push(`${key}: ${e2}`); }
   }
-  // PER-PART SEAT OFFSETS VALIDATED (L1 seating) — a child-fitted hair part (childSeat) must declare a non-zero
-  // `oy` seat offset on its layer (adult hair floats ~6px high on the smaller child head without it).
+  // PER-FRAME SEAT (L1 seating, the kids'-hair-BOUNCE gate) — a child-fitted hair part (childSeat) must cap the
+  // child head CONSISTENTLY across EVERY frame of EVERY direction. The bounce root cause was a per-DIRECTION
+  // gap mismatch (up vs others) under a single offset; this decodes each baked child_hair texture + the child
+  // head and asserts the crown-gap (head_top - hair_top) is (a) a CAP (hair near/above the crown) and (b) STABLE
+  // — its spread across all idle+walk frames/directions ≤ 3px (a bigger spread = the hair jumps on turning).
+  const topOf = (img, col, row, FR = 64) => {
+    for (let y = 0; y < FR; y++) for (let x = 0; x < FR; x++) { const i = ((row*FR + y) * img.w + (col*FR + x)) * 4; if (img.data[i+3] > 32) return y; }
+    return null;
+  };
+  const headIdle = decodeRGBA(join(ROOT, 'public/art/eliza/child_head/idle.png'));
+  const headWalk = decodeRGBA(join(ROOT, 'public/art/eliza/child_head/walk.png'));
   for (const [key, def] of Object.entries(PARTS)) {
-    if (!def.childSeat) continue;
-    const seated = (def.layers || []).some((l) => typeof l.oy === 'number' && l.oy !== 0);
-    if (!seated) bad.push(`${key}: childSeat hair has NO oy seat offset — it will float high on the child head`);
+    if (!def.childSeat || !def.layers || !def.layers[0]) continue;
+    const tex = def.layers[0].tex, hdir = join(ROOT, 'public/art/eliza', tex);
+    const sheets = [['idle', 3, headIdle], ['walk', 8, headWalk]];
+    const gaps = [];
+    for (const [st, cols, head] of sheets) {
+      const f = join(hdir, st + '.png'); if (!existsSync(f) || !head) continue;
+      const hair = decodeRGBA(f); if (!hair) continue;
+      for (let r = 0; r < 4; r++) for (let c = 0; c < cols; c++) {
+        const ht = topOf(head, c, r), pt = topOf(hair, c, r);
+        if (ht == null || pt == null) continue;
+        gaps.push(ht - pt);   // + = hair caps above the crown
+      }
+    }
+    if (!gaps.length) continue;
+    const mn = Math.min(...gaps), mx = Math.max(...gaps);
+    if (mx - mn > 3) bad.push(`${key}: hair BOUNCES — crown-gap ranges ${mn}..${mx}px across frames/directions (spread ${mx-mn} > 3); the seat must hold every frame`);
+    if (mn < -2 || mx > 8) bad.push(`${key}: hair not seated — crown-gap ${mn}..${mx}px (should cap the head ~0-4px above, every frame)`);
   }
 
   if (bad.length) fail('L1 COMPOSITION-COMPLETE:' + bad.map((v) => '\n      ' + v).join(''));
