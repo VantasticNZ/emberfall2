@@ -911,7 +911,7 @@ export class OverworldScene extends Phaser.Scene {
     this.playerHpUI.add([panel, this._hpBarBg, this._hpBarFill, this._hpLabel]);
     this.banner = this.add.text(this.scale.width / 2, 92, '', { fontFamily: 'monospace', fontSize: '15px', color: '#ffe9c2', backgroundColor: '#10171acc', padding: { x: 10, y: 5 }, align: 'center' }).setOrigin(0.5, 0).setScrollFactor(0).setDepth(DEPTH.OVERLAY + 12).setVisible(false);
   }
-  _canAct() { return !this._dlg && !this._shopOpen && !this._topicsOpen && this._hitFreeze <= 0 && !!this.combat; }
+  _canAct() { return !this._dlg && !this._shopOpen && !this._topicsOpen && !this._menuOpen && this._hitFreeze <= 0 && !!this.combat; }
   // SAFE HUB: within a combat region's no-aggro `safe` ring (the Peaks town) → the sword swings +
   // cuts foliage but deals NO combat damage (matching a GH-style safe zone). See the safe-zone rule.
   _inSafeHub() {
@@ -1277,6 +1277,62 @@ export class OverworldScene extends Phaser.Scene {
     this._sfx('sfx_coin', 0.8); this._banner(`Bought ${s.name} for ${s.price}g.`, 1300); this._renderShop();   // coin clink (WS3)
   }
   _closeShop() { if (!this._shopOpen) return; this._shopOpen = false; if (this._shopBox) { this._unregisterUIPanel(this._shopBox); this._shopBox.destroy(true); this._shopBox = null; } if (this.hud2) this.hud2.setVisible(true); if (this._helpText) this._helpText.setVisible(true); this._sfx('sfx_select', 0.5); }
+
+  // ===========================================================================
+  // GAME MENU (Esc) — Zelda-style screens: Items · Gear & Stats · Map · Settings.
+  // A uiCamera overlay (panel laws: registered + clamped); the world is frozen while open (movement gated via
+  // _menuOpen in dlgOpen). Keyboard: ←→ tab · ↑↓ scroll the item list · Enter (Settings) · B/Q/Esc close.
+  // ===========================================================================
+  _openMenu() {
+    if (this._menuOpen || this._dlg || this._shopOpen || this._topicsOpen) return;
+    this._menuOpen = true; this._menuTab = 0; this._menuScroll = 0; Movement.stop(this.player);
+    if (this.hud2) this.hud2.setVisible(false); if (this._helpText) this._helpText.setVisible(false);
+    const W = 728, H = 372, X = 20, Y = 30, OD = DEPTH.OVERLAY;
+    this._menuBox = this.add.container(0, 0).setScrollFactor(0).setDepth(OD + 13);
+    const bg = this.add.rectangle(X, Y, W, H, 0x0b0f17, 0.97).setOrigin(0, 0).setStrokeStyle(2, 0x7fa86a).setScrollFactor(0);
+    this._menuBg = bg;
+    this._menuTabsTxt = this.add.text(X + 18, Y + 14, '', { fontFamily: 'monospace', fontSize: '16px', color: '#cfc3a8', fontStyle: 'bold' }).setScrollFactor(0);
+    this._menuBody = this.add.text(X + 18, Y + 52, '', { fontFamily: 'monospace', fontSize: '14px', color: '#e8f5e0', wordWrap: { width: W - 40 }, lineSpacing: 5 }).setScrollFactor(0);
+    this._menuHint = this.add.text(X + 18, Y + H - 26, '←→ tab · ↑↓ scroll · Enter (Settings) · B/Esc close', { fontFamily: 'monospace', fontSize: '11px', color: '#7a9a7a' }).setScrollFactor(0);
+    this._menuBox.add([bg, this._menuTabsTxt, this._menuBody, this._menuHint]);   // all CHILDREN of the box (one registered panel)
+    this._registerUIPanel(this._menuBox, X, Y, W, H);
+    this._sfx('sfx_select', 0.5); this._renderMenu();
+  }
+  _closeMenu() {
+    if (!this._menuOpen) return; this._menuOpen = false;
+    if (this._menuBox) { this._unregisterUIPanel(this._menuBox); this._menuBox.destroy(true); }
+    this._menuBox = this._menuTabsTxt = this._menuHint = this._menuBody = null;
+    if (this._fullMap) { this._fullMap.setVisible(false).setDepth(DEPTH.OVERLAY + 2); }
+    if (this.hud2) this.hud2.setVisible(!this._hudHidden); if (this._helpText) this._helpText.setVisible(true);
+    this._sfx('sfx_select', 0.5);
+  }
+  _menuNav(d) { if (!this._menuOpen) return; this._menuTab = (this._menuTab + d + 4) % 4; this._menuScroll = 0; this._sfx('sfx_select', 0.4); this._renderMenu(); }
+  _menuScrollBy(d) { if (!this._menuOpen || this._menuTab !== 0) return; this._menuScroll = Math.max(0, this._menuScroll + d); this._renderMenu(); }
+  _menuActivate() { if (this._menuOpen && this._menuTab === 3) this._openSettings(); }
+  _renderMenu() {
+    if (!this._menuOpen) return;
+    const TABS = ['Items', 'Gear & Stats', 'Map', 'Settings'];
+    this._menuTabsTxt.setText(TABS.map((t, i) => (i === this._menuTab ? '▶ ' : '  ') + t).join('    '));
+    const onMap = this._menuTab === 2;
+    if (this._fullMap) this._fullMap.setVisible(onMap).setDepth(DEPTH.OVERLAY + 14);   // the Map tab = the full world map (reused), raised above the menu
+    this._menuBox.setVisible(!onMap);                                                  // hide the menu panel under the full-screen map; ←→ returns, B/Esc closes
+    const nm = (id) => { if (!id) return '(none)'; try { return itemDef(id).name; } catch (_) { return id; } };
+    let body = '';
+    if (this._menuTab === 0) {
+      const ids = Object.keys(this.inv.items || {});
+      const rows = ids.slice(this._menuScroll, this._menuScroll + 12).map((id) => `  • ${nm(id)}  ×${this.inv.items[id]}`);
+      body = `Gold:  ${this.inv.gold}g       Carried: ${this.inv.count()} item(s)\n\n` + (ids.length ? rows.join('\n') : '  (empty — no items yet)');
+      if (ids.length > this._menuScroll + 12) body += '\n  …(↓ for more)';
+    } else if (this._menuTab === 1) {
+      const st = this.inv.stats(), ks = this.karma.getStatus();
+      body = `WORN / HELD\n  Weapon:  ${nm(this.inv.equipped('weapon'))}\n  Shield:  ${nm(this.inv.equipped('shield'))}\n\n`
+        + `STATS\n  HP:   ${this.inv.hp} / ${st.maxHp}\n  ATK:  ${st.atk}      DEF:  ${st.def}\n\n`
+        + `STANDING\n  Morality:  ${ks.morality >= 0 ? '+' : ''}${ks.morality}  (${ks.moralityTier})\n  Purity:    ${ks.purity >= 0 ? '+' : ''}${ks.purity}  (${ks.purityTier})\n  Gold:      ${this.inv.gold}g`;
+    } else if (this._menuTab === 3) {
+      body = 'SETTINGS\n\n  Press Enter to open the full settings menu:\n  controls · audio · invert aim · threat indicators ·\n  objective arrow · modifiers.';
+    }
+    this._menuBody.setText(body);
+  }
 
   // ===========================================================================
   // DIALOGUE (minimal but real — reuses the Dialogue engine + Social gating;
@@ -1742,12 +1798,15 @@ export class OverworldScene extends Phaser.Scene {
   }
   _buildInput() {
     this.keys = this.input.keyboard.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,SHIFT,O,C');
-    this.input.keyboard.on('keydown-E', () => { if (this._shopOpen) this._shopBuy(); else if (this._topicsOpen) this._topicPick(); else if (this._dlg) this._dlgConfirm(); else Interaction.tryInteract(); });
-    this.input.keyboard.on('keydown-UP', () => { if (this._shopOpen) this._shopNav(-1); else if (this._topicsOpen) this._topicNav(-1); else if (this._dlg) this._dlgNav(-1); });
-    this.input.keyboard.on('keydown-DOWN', () => { if (this._shopOpen) this._shopNav(1); else if (this._topicsOpen) this._topicNav(1); else if (this._dlg) this._dlgNav(1); });
-    // CLOSE KEY (WS1.4): B (or Q) closes ANY open panel/dialog. Esc is reserved for the game menu ONLY (below)
+    this.input.keyboard.on('keydown-E', () => { if (this._shopOpen) this._shopBuy(); else if (this._topicsOpen) this._topicPick(); else if (this._dlg) this._dlgConfirm(); else if (this._menuOpen) this._menuActivate(); else Interaction.tryInteract(); });
+    this.input.keyboard.on('keydown-UP', () => { if (this._shopOpen) this._shopNav(-1); else if (this._topicsOpen) this._topicNav(-1); else if (this._dlg) this._dlgNav(-1); else if (this._menuOpen) this._menuScrollBy(-1); });
+    this.input.keyboard.on('keydown-DOWN', () => { if (this._shopOpen) this._shopNav(1); else if (this._topicsOpen) this._topicNav(1); else if (this._dlg) this._dlgNav(1); else if (this._menuOpen) this._menuScrollBy(1); });
+    this.input.keyboard.on('keydown-LEFT', () => { if (this._menuOpen) this._menuNav(-1); });
+    this.input.keyboard.on('keydown-RIGHT', () => { if (this._menuOpen) this._menuNav(1); });
+    this.input.keyboard.on('keydown-ENTER', () => { if (this._menuOpen) this._menuActivate(); });
+    // CLOSE KEY (WS1.4): B (or Q) closes ANY open panel/dialog/menu. Esc toggles the GAME MENU only (below)
     // — never a dual meaning. A dialog cancels cleanly (no quest auto-complete on cancel).
-    const closePanel = () => { if (this._shopOpen) this._closeShop(); else if (this._topicsOpen) this._closeTopics(); else if (this._dlg) this._cancelDialogue(); };
+    const closePanel = () => { if (this._shopOpen) this._closeShop(); else if (this._topicsOpen) this._closeTopics(); else if (this._dlg) this._cancelDialogue(); else if (this._menuOpen) this._closeMenu(); };
     this.input.keyboard.on('keydown-Q', closePanel);
     this.input.keyboard.on('keydown-B', closePanel);
     this.input.keyboard.on('keydown-J', () => { if (this._canAct()) this._playerAttack(); });    // attack (swing+cut everywhere; combat damage gated inside _playerAttack)
@@ -1755,14 +1814,14 @@ export class OverworldScene extends Phaser.Scene {
     this.input.keyboard.on('keydown-F5', () => this.saveGame());
     this.input.keyboard.on('keydown-F9', () => this.loadGame());
     this.input.keyboard.on('keydown-F8', () => this.newGame());   // FRESH GAME — clear the save + reload (stale-save preventative)
-    // HUD toggles (control SSOT: O map · T quests · H hide HUD · Esc settings)
-    const toggleMap = () => { if (!this._dlg) this._fullMap.setVisible(!this._fullMap.visible); };
+    // HUD toggles (control SSOT: O/M map · T quests · H hide HUD · Esc game menu). Gated while the menu is open.
+    const toggleMap = () => { if (!this._dlg && !this._menuOpen) this._fullMap.setVisible(!this._fullMap.visible); };
     this.input.keyboard.on('keydown-O', toggleMap);
     this.input.keyboard.on('keydown-M', toggleMap);   // M = the full WORLD MAP / plan view
-    this.input.keyboard.on('keydown-T', () => { if (!this._dlg) this._trkState = (this._trkState + 2) % 3; });   // cycle tracker: full→title→off
-    this.input.keyboard.on('keydown-H', () => { if (!this._dlg) { this._hudHidden = !this._hudHidden; this.hud2.setVisible(!this._hudHidden); } });
-    // Esc = the GAME MENU only (never a panel-close). Ignored while a panel/dialog is open (close those with B/Q).
-    this.input.keyboard.on('keydown-ESC', () => { if (this._shopOpen || this._topicsOpen || this._dlg) return; this._openSettings(); });
+    this.input.keyboard.on('keydown-T', () => { if (!this._dlg && !this._menuOpen) this._trkState = (this._trkState + 2) % 3; });   // cycle tracker: full→title→off
+    this.input.keyboard.on('keydown-H', () => { if (!this._dlg && !this._menuOpen) { this._hudHidden = !this._hudHidden; this.hud2.setVisible(!this._hudHidden); } });
+    // Esc = the GAME MENU (Items/Gear/Map/Settings). Toggles it; ignored while a panel/dialog is open (use B/Q).
+    this.input.keyboard.on('keydown-ESC', () => { if (this._shopOpen || this._topicsOpen || this._dlg) return; if (this._menuOpen) this._closeMenu(); else this._openMenu(); });
     this._setupDebug();   // dev-only world-skeleton walkthrough aids (gated by ?debug)
   }
 
@@ -1876,7 +1935,7 @@ export class OverworldScene extends Phaser.Scene {
 
   update(time, delta) {
     const dt = Math.min(delta / 1000, 0.05), now = this.time.now;
-    const dlgOpen = !!this._dlg || !!this._shopOpen || !!this._topicsOpen;   // shop/topic menu freezes movement like a dialogue
+    const dlgOpen = !!this._dlg || !!this._shopOpen || !!this._topicsOpen || !!this._menuOpen;   // shop/topic/game-menu freezes movement like a dialogue
     const k = this.keys, run = k.SHIFT.isDown;
     const combatLive = !!this._combatRegion();
 
