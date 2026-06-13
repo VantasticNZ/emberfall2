@@ -53,7 +53,7 @@ they're trending toward without it being a checklist — Status display + NPC re
 ================================================================
 ## 5. TONE MIX PRESENT THROUGHOUT? ✓
 ================================================================
-Wholesome (childhood, rebuilding, lighthouse), funny/rude (Fatley, frog, tavern songs, gestures,
+Wholesome (childhood, rebuilding, lighthouse), funny/rude (Fazy Lastard, frog, tavern songs, gestures,
 funny names, "suck it"), dark (catastrophe, the god's agony, betrayals), heartfelt (Bram, Weeping
 Tree, the choice). Spread across all acts, not clustered. COHERENT. Funny names on side chars only;
 main cast (Bram/Hagga/Sela) stay serious. ✓
@@ -63,9 +63,9 @@ main cast (Bram/Hagga/Sela) stay serious. ✓
 ================================================================
 Quests reward weapons/armour/trinkets/spells/abilities that exist in Systems. Tools (lantern etc.)
 are both quest rewards AND Metroidvania keys AND combat/puzzle. Skill tree unlocks (see-markers via
-Fatley, dash, spin-hit) tie to quests. Economy sinks (repair, oil, property) have income sources
+Fazy Lastard, dash, spin-hit) tie to quests. Economy sinks (repair, oil, property) have income sources
 (jobs, bounties). Difficulty setting scales combat. COHERENT.
-GAP FIXED: the "see-quest-markers" unlock requires Fatley (G1) done FIRST — ensure G1 is available
+GAP FIXED: the "see-quest-markers" unlock requires Fazy Lastard (G1) done FIRST — ensure G1 is available
 early in Greenhollow return (M7). ✓
 
 ================================================================
@@ -81,7 +81,7 @@ quests can be added as data to reach 30hr. Quality-over-quantity rule holds.
 ## 8. IDENTIFIED GAPS / TODOs (resolve in/before build)
 ================================================================
 A) BUILD-ORDER PRIORITY: deed-memory + karma systems FIRST (everything hooks them).
-B) Need NAMED main cast consistency doc (Bram, Mara, Sela, Hagga, Yssa, Hodge, Pem, Fatley, Tam) —
+B) Need NAMED main cast consistency doc (Bram, Mara, Sela, Hagga, Yssa, Hodge, Pem, Fazy Lastard, Tam) —
    minor; create a CAST.md during build.
 C) ~30hr volume: the design supports it structurally; actual hours come from side-quest fill — add
    more quality side quests as data per region during build (not now).

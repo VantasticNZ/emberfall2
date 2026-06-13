@@ -100,7 +100,7 @@ ET12 all-cruel + Tyrant -> the darkest card
 # Format: id "title" | region | type | choice(s) | karma/deed | unlocks/locks | ending infl
 ================================================================
 ## GREENHOLLOW (hub)
-S-G1 "Fatley's Mug" | hub | tutorial/fun | do it | unlocks SEE-MARKERS skill path | -
+S-G1 "Fazy Lastard's Mug" | hub | tutorial/fun | do it | unlocks SEE-MARKERS skill path | -
 S-G2 "PEM WOZ ERE" | hub | clue-hunt | assemble clues across ALL regions (needs S-A?,S-P?,S-T?,S-E? clue finds) | unlocks Pem -> epic reward | ET9
 S-G3 "Hodge's Apprentice" | hub | job | help smith | gear discount + repair skill | -
 S-G4 "Mara's Letters" | hub | morality | return(+M)/keep/expose(-M, deed:mara_exposed) | mara_exposed locks her epilogue | ET3

@@ -61,18 +61,18 @@ function newHub({ kick = false, grief = 'vengeance', extra = [] } = {}) {
 const probe = new QuestEngine({ karma: new KarmaEngine({ storage: memoryStorage() }), storage: memoryStorage(), quests: QUESTS });
 assert.match(probe.defs.SG1.dialogue.nodes.fatley.text, /can't be arsed/);
 assert.match(probe.defs.SG5.dialogue.nodes.tavern.text, /Wayne Kerr|songs/);
-pass('real hub dialogue present (Fatley, the Tankard songs)');
+pass('real hub dialogue present (Fazy Lastard, the Tankard songs)');
 
-// 1) SG1 Fatley — the Gate-D exception unlocks see-markers; HOOK-PACED behind GH1 (item 7b) -----
+// 1) SG1 Fazy Lastard — the Gate-D exception unlocks see-markers; HOOK-PACED behind GH1 (item 7b) -----
 {
   const { karma, engine } = newHub();
-  assert.equal(engine.status('SG1'), 'locked');    // unlocked by M7 but GATED behind GH1 — Fatley's hook does NOT pile on at return
+  assert.equal(engine.status('SG1'), 'locked');    // unlocked by M7 but GATED behind GH1 — Fazy Lastard's hook does NOT pile on at return
   play(engine, karma, 'GH1', 'job');               // finish the first slice quest
-  assert.equal(engine.status('SG1'), 'available'); // NOW Fatley's hook opens (one task at a time)
+  assert.equal(engine.status('SG1'), 'available'); // NOW Fazy Lastard's hook opens (one task at a time)
   assert.equal(karma.hasDeed('skill_see_markers'), false);
   play(engine, karma, 'SG1', 'fetch');
   assert.equal(karma.hasDeed('skill_see_markers'), true);
-  pass('SG1 Fatley: hook-paced behind GH1 (locked at return → available once GH1 done) → completing unlocks skill_see_markers');
+  pass('SG1 Fazy Lastard: hook-paced behind GH1 (locked at return → available once GH1 done) → completing unlocks skill_see_markers');
 }
 
 // 2) SG2 Pem hunt — gated until clues from EVERY region, then pem_found ------

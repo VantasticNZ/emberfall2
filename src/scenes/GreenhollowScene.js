@@ -40,7 +40,7 @@ export class GreenhollowScene extends RegionScene {
       faces: {
         ...FACE('Mara', WORLD.maraParts, 'happy'), ...FACE('Bram', WORLD.bramParts),
         ...FACE('Hodge', WORLD.hodgeParts), ...FACE('Tam', WORLD.tamParts, 'happy'),
-        ...FACE('Phil McCracken', WORLD.philParts), ...FACE('Fatley', WORLD.fatleyParts),
+        ...FACE('Phil McCracken', WORLD.philParts), ...FACE('Fazy Lastard', WORLD.fatleyParts),
         ...FACE('Pem', WORLD.pemParts, 'happy'),
       },
       questHud: { show: true, id: 'M1', label: 'A Greenhollow Morning' },
@@ -70,7 +70,7 @@ export class GreenhollowScene extends RegionScene {
   }
 
   onCreateExtra() {
-    // DEMO seed: make the hub return-side quests (Fatley's mug etc.) available now
+    // DEMO seed: make the hub return-side quests (Fazy Lastard's mug etc.) available now
     // so they're playable in the village (they gate behind M7 in the full chain).
     for (const id of ['SG1', 'SG2', 'SG3', 'SG4']) { this.quests.unlocked.add(id); if (this.quests.state[id]) this.quests.state[id] = 'available'; }
     this._buildChests();

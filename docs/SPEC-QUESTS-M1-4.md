@@ -350,7 +350,7 @@ wall of tasks. The rule, now standing for every quest:
 
 1. **One task lands at a time.** A new OPTIONAL hook gates on PROGRESSION (`requires.quests`/`requires.deeds`)
    or on DAY (`requires.phase`) so it opens only after the player has cleared what's already on their plate.
-   *Applied:* `SG1` (Fatley's Mug) now `requires: { quests: ['GH1'] }` — it no longer piles on with the main
+   *Applied:* `SG1` (Fazy Lastard's Mug) now `requires: { quests: ['GH1'] }` — it no longer piles on with the main
    arc; it opens once GH1 is done. The same gating is the lever for every future hook.
 2. **At most one NEW hook per `QUEST_HOOKS.HOOK_MIN_INTERVAL_DAYS`** (standards.js, default 1 in-game day) —
    the design target so offers fan out across days rather than dropping together. A soft ceiling

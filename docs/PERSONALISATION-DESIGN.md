@@ -205,7 +205,7 @@ EDG1/EDG2, GAG1, NIGHT1. New/enriched:
 ---
 
 ## 6.5 FATLEY — the lazy-quest-guy (the marker-onboarding character, REDESIGN)
-An original comedic NPC, not a cameo of a real figure. Fatley is the diegetic teacher of the
+An original comedic NPC, not a cameo of a real figure. Fazy Lastard is the diegetic teacher of the
 quest-marker system (see §quest-marker onboarding in STORY-AND-QUESTS / QUESTS-SIDE-FLESH G1) — but
 the redesign makes his *characterisation* do the teaching, and resequences him to late childhood.
 
@@ -226,7 +226,7 @@ the redesign makes his *characterisation* do the teaching, and resequences him t
       it's a whole— it's a *family* thing. You wouldn't get it. Fetch us it, would you, champion."
     - *(you pick up the mug — it is, indeed, right there)* "…Knew you had it in you. Right, since
       you've gone and *earned* it — folk with work to give wear a little mark, see. A **'?'**. Most
-      can't see 'em. You want the knack of it, you can **get** it now. Don't go telling 'em Fatley
+      can't see 'em. You want the knack of it, you can **get** it now. Don't go telling 'em Fazy Lastard
       gave you nowt. *[burps, settles back down]*"
 - **TONE GUARDRAILS:** affectionate, never cruel; he's a likeable bludger, not a target. No fat-shaming
   punchline — the joke is the **laziness + the made-up quest**, his shape is just instant read.
@@ -234,7 +234,7 @@ the redesign makes his *characterisation* do the teaching, and resequences him t
 **REWARD = an UNLOCK, not a grant (preserve the opt-in).** Completing the mug bit does **NOT
 force-grant** marker sight. It **opens the OPTION to acquire** the "marker-observing" trait — it
 becomes **buyable / learnable** (a Rogue/Social skill point), and the player still **chooses** to take
-it. Fatley is the **template** for the established "the lazy-guy *teaches*, you still *buy* the skill —
+it. Fazy Lastard is the **template** for the established "the lazy-guy *teaches*, you still *buy* the skill —
 choice intact" rule (`docs/SYSTEMS-DESIGN-V2` see-quest-markers). The marker trait is the *door that
 opens*, not a thing pushed on you.
 

@@ -51,7 +51,7 @@ catastrophe → mystery → revelation → allegiance) with a definite ending be
 
 ### Quests (~M1–M10 + ~8–10 sides) — the curated set that fits 5h
 - **Main:** M1–M10 (the full arc above).
-- **Greenhollow sides:** SG1 Fatley's Mug (the see-markers skill) · SG3 Hodge's Apprentice (forge/gear)
+- **Greenhollow sides:** SG1 Fazy Lastard's Mug (the see-markers skill) · SG3 Hodge's Apprentice (forge/gear)
   · SG5 the Tankard Songs · SG7 the Orchard Thief (deed-locked by the chicken).
 - **Marsh sides:** SA1 Bog-Folk Troubles · SA3 The Sunken Dead (lantern-loot) · **SA4 The Frog** (the
   puzzle-not-fight good-monster beat).
@@ -60,7 +60,7 @@ catastrophe → mystery → revelation → allegiance) with a definite ending be
 - *(The PEM clue-hunt SG2 is seeded here — 1 of its 4 marks in the Marsh — but pays off in the full game.)*
 
 ### NPCs (~13)
-GH: Mara · Bram · Hodge · Tam · Phil McCracken · Fatley · Pem · **Wiremu** (the constable). Marsh:
+GH: Mara · Bram · Hodge · Tam · Phil McCracken · Fazy Lastard · Pem · **Wiremu** (the constable). Marsh:
 Elder Yssa · Hagga · Old Karl. + Sela (the oracle, in dialogue). With NPC-WORLD reaction types
 (coward/defender), the **safe-mode non-lethal** default, and a couple of disposition reactions.
 

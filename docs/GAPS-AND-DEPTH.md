@@ -93,7 +93,7 @@ is the first thing that's *done-done* and could be shown/shipped while the rest 
   **PERSONALISATION-DESIGN.md §6.5** + **STORY-AND-QUESTS** (marker onboarding) + **QUESTS-SIDE-FLESH G1**.
 - **Why:** the opening 30 minutes decide whether a player stays; teaching by doing (Zelda/Ocarina
   Kokiri-forest model) respects them and sets tone. Marker-free early = the world reads *explored*, and
-  the late opt-in keeps player agency (and characterises Fatley).
+  the late opt-in keeps player agency (and characterises Fazy Lastard).
 - **Tags:** `[FREE NOW]` (quest/dialogue DATA + placement; the systems all exist). *(Build note: this
   resequences SG1 from the act-2 hub to late act-1 + makes its reward opt-in — the side-quest test will
   need updating; see QUESTS-SIDE-FLESH G1.)*

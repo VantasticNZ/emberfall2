@@ -4,7 +4,7 @@
 // seeds (the village REACTS to chicken_kicked / coin_returned / cave_lore /
 // grief_vow) and closes cross-region links (the Pem hunt; the Mara letter).
 //
-// GATE D for all but the deliberate exception (SG1 Fatley): objectives are
+// GATE D for all but the deliberate exception (SG1 Fazy Lastard): objectives are
 // spread (the gate graffiti, scattered love-letters, the orchard, the tavern).
 // SG1 is the ONE sanctioned item-in-front quest — a joke that TEACHES the marker
 // system (the bible's named Gate-D exception). Canonical deed-ids so callbacks +
@@ -14,18 +14,18 @@
 // =============================================================================
 
 export const GREENHOLLOW_SIDE = [
-  // SG1 — Fatley's Mug (THE Gate-D EXCEPTION: marker-onboarding). Unlocked by M7
+  // SG1 — Fazy Lastard's Mug (THE Gate-D EXCEPTION: marker-onboarding). Unlocked by M7
   // 'accept'. Completing it unlocks SEEING the "?" markers (skill_see_markers).
   {
-    id: 'SG1', title: "Fatley's Mug", region: 'Greenhollow', act: 2,
+    id: 'SG1', title: "Fazy Lastard's Mug", region: 'Greenhollow', act: 2,
     type: 'side', tone: 'funny', perm: false,
-    // HOOK PACING (item 7b/7c): unlocked at M7 with SG2/SG3, but GATED behind GH1 complete so Fatley's
+    // HOOK PACING (item 7b/7c): unlocked at M7 with SG2/SG3, but GATED behind GH1 complete so Fazy Lastard's
     // hook doesn't pile onto the player at the same moment as GH1-GH4 (the temporal-crowding fix). One
     // task lands, you finish it, THEN the next hook opens. See docs/SPEC-QUESTS-M1-4.md "HOOK PACING".
     requires: { quests: ['GH1'] },
     reward: { skill: 'see_markers' },
     steps: [
-      { id: 'mug', desc: "Fetch Fatley's mug (it is, deliberately, right by his foot)." },
+      { id: 'mug', desc: "Fetch Fazy Lastard's mug (it is, deliberately, right by his foot)." },
     ],
     choices: [
       // GATE-D EXCEPTION (sanctioned): the item IS right in front — the gag + the
@@ -35,13 +35,13 @@ export const GREENHOLLOW_SIDE = [
         note: 'The ONE sanctioned item-in-front quest (Gate-D exception): it teaches + unlocks the "?" marker sight.' },
     ],
     dialogue: { start: 'fatley', nodes: {
-      fatley: { speaker: 'Fatley', text:
+      fatley: { speaker: 'Fazy Lastard', text:
         "Oi. You. See that mug? There. By me foot. ...Nah, I can't be arsed, me back's gone. Hand it " +
         "here and I'll learn you summat worth more than the three steps it'd take me.",
         options: [ { label: '(Pick up the mug. It is, indeed, right there.)', to: 'reward' } ] },
-      reward: { speaker: 'Fatley', text:
+      reward: { speaker: 'Fazy Lastard', text:
         "Champion. Right — see, folk with work to give get a little mark over 'em, a '?'. You couldn't " +
-        "see 'em before, could you? Now you can. Don't say Fatley never gave you nowt. *burps*",
+        "see 'em before, could you? Now you can. Don't say Fazy Lastard never gave you nowt. *burps*",
         options: [ { label: '(You can see the quest markers now.)', choice: { quest: 'SG1', id: 'fetch' }, end: true } ] },
     } },
   },

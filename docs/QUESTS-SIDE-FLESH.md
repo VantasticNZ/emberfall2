@@ -6,7 +6,7 @@
 ================================================================
 # GREENHOLLOW (hub)
 ================================================================
-## G1 "Fatley's Mug" (marker tutorial — the Gate-D exception) — REDESIGNED + RESEQUENCED 2026-06-07
+## G1 "Fazy Lastard's Mug" (marker tutorial — the Gate-D exception) — REDESIGNED + RESEQUENCED 2026-06-07
 FATLEY: **very fat, SITTING** in a **quiet out-of-the-way spot** (not the plaza), a **"?"** over his
 head (not "!"). He acts like he **forgot he had a quest**, **stutters + improvises one on the spot**,
 and the thing he "needs" (the mug) is **right in front of him** (too lazy to reach it). The ONE
@@ -15,7 +15,7 @@ dialogue + the full character note: **PERSONALISATION-DESIGN.md §6.5**.
 
 - **REWARD = an UNLOCK, not a grant:** completing it does **not** force `skill_see_markers`; it **opens
   the OPTION** to acquire the marker-observing trait (a Rogue/Social skill point — **buyable/learnable**,
-  the player still **chooses**). Fatley is the template for the "lazy-guy teaches, you buy the skill" rule.
+  the player still **chooses**). Fazy Lastard is the template for the "lazy-guy teaches, you buy the skill" rule.
 - **PLACEMENT:** **late CHILDHOOD** (one of the last kid-phase goals, ~M5, before M6) — **moved from**
   the current act-2 adult-return hub. Markers become a *late discovered reward*, after the player has
   learned to find their own way; early childhood runs **marker-free** (see GAPS-AND-DEPTH §4).
@@ -28,7 +28,7 @@ dialogue + the full character note: **PERSONALISATION-DESIGN.md §6.5**.
     the Pem hunt uses `pem_clue_*` (a separate "Pem marker"), not `skill_see_markers`.
   - **`greenhollow.side.test.js` WILL need updating**: it currently asserts completion → `skill_see_markers`
     true; under the opt-in it should assert completion → *offered*, then *acquire* → `skill_see_markers`.
-  - ⚑ ASSET/RENDER FLAGS: a sitting/heavyset Fatley pose + a "?" marker indicator (omit + flag until art
+  - ⚑ ASSET/RENDER FLAGS: a sitting/heavyset Fazy Lastard pose + a "?" marker indicator (omit + flag until art
     lands; never a placeholder).
   - PROPOSED ids (list only, add at build): `marker_sight_offered`, `child_late`, a "?"-marker encounter
     tag. `skill_see_markers` already exists in `src/constants/flags.js`.

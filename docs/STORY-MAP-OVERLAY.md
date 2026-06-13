@@ -56,7 +56,7 @@ firefrost(M16)+4 shards→ **opens Spire**. shard_1(M9)→ **opens Peaks** (the 
 
 | Quest | Spot | Giver | Trigger / gate |
 |---|---|---|---|
-| SG1 Fatley's Mug | quiet bench off the plaza (x322,y314) | Fatley (sitting, "?" marker) | M7; **GATE-D marker tutorial** → skill_see_markers |
+| SG1 Fazy Lastard's Mug | quiet bench off the plaza (x322,y314) | Fazy Lastard (sitting, "?" marker) | M7; **GATE-D marker tutorial** → skill_see_markers |
 | SG2 PEM WOZ ERE | the Crossroads waystone (x330,y298) | Pem (note) | M7 + **all 4 pem_clue_* deeds** → pem_found (ET9) |
 | SG3 Hodge's Apprentice | the forge (x336,y304) | Hodge | M7 → skill_repair_discount |
 | SG4 Mara's Letters | Mara's cottage (x310,y302) | Mara | M7; reactive to **drowned_letter** (SA5) |

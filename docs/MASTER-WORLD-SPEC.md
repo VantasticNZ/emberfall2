@@ -55,7 +55,7 @@ just-built greybox used **halved** placeholders (Saltbreak 56×40 etc.), noted w
 ## 2. PER-PLACE CONTENTS MANIFEST (who/what lives there) + the cross-check
 | Place | NPCs (incl. standouts) | Quests | Items/loot | Enterable buildings (→ interiors) |
 |---|---|---|---|---|
-| **Greenhollow** | Mara, Bram, Hodge, Tam, Phil McCracken, Fatley, Pem, **Constable Wiremu** (jandal-cop, CAM7), Ben Dover/Dixie (GAG1), Old Sisyph (CAM2) | M1-M7 · SG1-7 · GHUB · PH3/PH6 | wooden→steel sword, leather, potions, 3 caches | Tankard(+upstairs) · Pem's Store · Forge · Chapel · Manor · 2 homes (**7 built**) |
+| **Greenhollow** | Mara, Bram, Hodge, Tam, Phil McCracken, Fazy Lastard, Pem, **Constable Wiremu** (jandal-cop, CAM7), Ben Dover/Dixie (GAG1), Old Sisyph (CAM2) | M1-M7 · SG1-7 · GHUB · PH3/PH6 | wooden→steel sword, leather, potions, 3 caches | Tankard(+upstairs) · Pem's Store · Forge · Chapel · Manor · 2 homes (**7 built**) |
 | **Mirefen / Marsh** | Elder Yssa, **Hagga** (exiled oracle), Old Karl (CAM4), Mother Vell (PH5) | M8-M10 · SA1-5 · PH5 · NIGHT1 | lantern (M9) · shard 1 · epic blade (SA3) | Yssa's longhouse · Hagga's hut · (Shrine ⇲) |
 | **Sunken Shrine** ⇲ | Drowned Guardian (boss) | M9 · SA3 crypts | **lantern** · **shard 1** | 3 floors + crypts |
 | **Stonereach / Peaks** | Miner, **Mike Hunt**, Stonewright, Bounty-Master, **Lord Pellamy** (CAM1 mansion), Desperate Stranger (SP5) | M11 · SP1-5 · PH1 (the cart) | grapple (M12) · shard 2 · Crag Maul · sky-iron charm | town hall · mine office · Order seat · **Marble Hall** (CAM1) ⇲ |

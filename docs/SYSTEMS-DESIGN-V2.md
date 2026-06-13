@@ -18,7 +18,7 @@ XP from enemies + quests. Level-up -> +HP, +1 stat point, +1 skill point. Soft c
 - WARRIOR: power attack, dodge-roll upgrade, block->parry, bleed, weapon mastery.
 - MAGE: unlock/upgrade spells, +slots, faster cast, elemental potency.
 - SURVIVOR: +HP, +carry, cheaper repair, durability saver, lockpicking.
-- ROGUE/SOCIAL: SEE QUEST MARKERS (the Fatley unlock), better prices, persuade, crit, sneak.
+- ROGUE/SOCIAL: SEE QUEST MARKERS (the Fazy Lastard unlock), better prices, persuade, crit, sneak.
 Points are scarce -> meaningful builds, not all-unlocks.
 
 ================================================================
@@ -90,7 +90,7 @@ not new code. Everything references the asset manifest (art-agnostic).
 - DASH: cross gaps + fast getaway (i-frames brief).
 - DODGE-ROLL: i-frames, directional.
 - SWIRL / SPIN HIT: hits all directions at once, any weapon (AoE melee).
-- SEE-QUEST-MARKERS: reveals "?" over quest-givers — UNLOCKS only AFTER the Fatley quest, via a
+- SEE-QUEST-MARKERS: reveals "?" over quest-givers — UNLOCKS only AFTER the Fazy Lastard quest, via a
   Rogue/Social skill point.
 - Branch unlocks also give: power attack, parry (block upgrade), bleed, crit, weapon mastery,
   +carry, cheaper repair, durability-saver, lockpicking, better prices, persuade, sneak.

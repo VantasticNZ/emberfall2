@@ -234,7 +234,7 @@ export const WORLD = {
         neutral: ['The Flame keep you. ...Whatever you saw beneath us, you carry it well.'],
         bad: ['*will not meet your eye* ...You went down there and you took from it. From a SHRINE. The Flame sees, even when I look away.'] },
       schedule: sched([['dawn', 18, 12, 'tend'], ['day', 18, 12, 'tend'], ['dusk', 19, 13, 'idle'], ['night', 19, 14, 'sleep']]) },
-    { tx: 30, ty: 18, facing: 'up', name: 'Fatley', tempo: 'dawdler', speed: 70, expression: 'neutral', parts: FATLEY, quest: 'SG1',
+    { tx: 30, ty: 18, facing: 'down', name: 'Fazy Lastard', tempo: 'dawdler', speed: 0, expression: 'neutral', parts: FATLEY, quest: 'SG1',
       greeting: ['*hic* Oi. You. ...nah, later. Me back\'s gone.'],
       schedule: sched([['dawn', 30, 18, 'idle'], ['day', 30, 18, 'chat'], ['dusk', 30, 18, 'chat'], ['night', 29, 18, 'idle']]) },   // the drunk never leaves the tavern
     { tx: 26, ty: 11, facing: 'down', name: 'Pem', tempo: 'brisk', speed: 70, expression: 'happy', parts: PEM, quest: 'SG2',
@@ -247,7 +247,7 @@ export const WORLD = {
       bark: 'Last one to the chapel\'s a rotten egg!',
       schedule: sched([['dawn', 23, 17, 'idle'], ['day', 18, 20, 'chat'], ['dusk', 17, 19, 'chat'], ['night', 34, 25, 'sleep']]) },   // item 4: plays the SW plaza edge by day (off the fountain), the cottage at night
     { tx: 27, ty: 17, facing: 'down', name: 'Wisp', childOnly: true, tempo: 'ambler', speed: 74, scale: 0.95, kid: true, protected: true, expression: 'happy', parts: ['child_body_blue', 'child_head', 'child_hair_natural'],   // L1: clothed child + seated child hair (was a "mini-Mara")
-      greeting: ["Are you a knight? You walk like a knight.", "Old Fatley sleeps in the tavern. Mum says don't grow up like Fatley."],
+      greeting: ["Are you a knight? You walk like a knight.", "Old Fazy Lastard sleeps in the tavern. Mum says don't grow up like him."],
       bark: '*humming a little tune*',
       schedule: sched([['dawn', 27, 17, 'idle'], ['day', 31, 21, 'chat'], ['dusk', 30, 19, 'idle'], ['night', 34, 25, 'sleep']]) },   // item 4: plays the SE plaza edge by day (off Tam + the fountain)
     // THE GUARD PAIR (role: patrol route + post). Garrick walks a patrol (phase positions); Bess holds the

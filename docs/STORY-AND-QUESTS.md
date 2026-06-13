@@ -118,9 +118,9 @@ THE ~DOZEN TWISTS: deed-memory callbacks reshape the epilogue - e.g. the kicked 
   like he forgot he had a quest, **stutters + improvises one on the spot**, and the mug he "needs" is
   **right in front of him** (the Gate-D exception + a laugh). Character + sample dialogue:
   **PERSONALISATION-DESIGN.md §6.5**.
-- Completing Fatley's quest **OPENS THE OPTION** to acquire the marker sight — **a skill-tree point
+- Completing Fazy Lastard's quest **OPENS THE OPTION** to acquire the marker sight — **a skill-tree point
   unlocks SEEING the "?" markers**; the player still **chooses** to take it (opt-in, choice intact —
-  Fatley is the "lazy-guy teaches, you buy the skill" template). The trait is the door that opens,
+  Fazy Lastard is the "lazy-guy teaches, you buy the skill" template). The trait is the door that opens,
   never force-granted. *(Build note: resequences the current act-2 SG1 to late act-1 — see
   QUESTS-SIDE-FLESH G1.)*
 
@@ -134,7 +134,7 @@ THE ~DOZEN TWISTS: deed-memory callbacks reshape the epilogue - e.g. the kicked 
 - VIGNETTES: discovered comedic/rude/sad scenes (not always "quests").
 
 ## GREENHOLLOW (hub) SIDE QUESTS
-G1 "Fatley's Mug" - the lazy-guy marker tutorial (Gate-D exception).
+G1 "Fazy Lastard's Mug" - the lazy-guy marker tutorial (Gate-D exception).
 G2 "PEM WOZ ERE" clue-hunt - read the gate sign -> find clues across regions -> find Pem -> epic
    reward (a callback thread spanning the game).
 G3 "Hodge's Apprentice" (JOB) - smithing help; unlocks gear discounts + a repair skill.
