@@ -11,11 +11,22 @@ const SAVE_KEY = 'emberfall:world:overworld';
 const PRESET_KEY = 'ember:childPreset';
 const store = defaultStorage();
 
-// 3 child appearance presets — each a COMPLETE matched child set (L1: clothed child body + child head + hair).
-const PRESETS = [
-  { id: 'child_body_blue',       hair: 'hair_chestnut', label: 'Blue romper' },
-  { id: 'child_body_green',      hair: 'hair_ginger',   label: 'Green romper' },
-  { id: 'child_body_brown_rust', hair: 'hair_black',    label: 'Rust romper' },
+// CHARACTER SELECT v2 — four base KINDS, each with colour variants + style/accessory options, every combination
+// a COMPLETE matched child set (L1: clothed child body + child head + seated child hair). MONSTER = the honest
+// goblin-child built from owned parts (green-tinted body + horned head); a true creature rig is a commission.
+const BASES = [
+  { key: 'boy',  label: 'Boy',  head: 'child_head',
+    colours: [{ l: 'Blue', body: 'child_body_blue' }, { l: 'Green', body: 'child_body_green' }, { l: 'Rust', body: 'child_body_rust' }],
+    styles:  [{ l: 'Chestnut crop', hair: 'child_hair_natural' }, { l: 'Black crop', hair: 'child_hair_black' }, { l: 'Ginger crop', hair: 'child_hair_ginger' }] },
+  { key: 'girl', label: 'Girl', head: 'child_head',
+    colours: [{ l: 'Blue', body: 'child_body_blue' }, { l: 'Green', body: 'child_body_green' }, { l: 'Rust', body: 'child_body_rust' }],
+    styles:  [{ l: 'Blonde bob', hair: 'child_hair_bob' }, { l: 'Auburn crop', hair: 'child_hair_auburn' }] },
+  { key: 'nb',   label: 'Child', head: 'child_head',
+    colours: [{ l: 'Blue', body: 'child_body_blue' }, { l: 'Green', body: 'child_body_green' }, { l: 'Rust', body: 'child_body_rust' }],
+    styles:  [{ l: 'Blond crop', hair: 'child_hair_blond' }, { l: 'Chestnut crop', hair: 'child_hair_natural' }] },
+  { key: 'monster', label: 'Goblin', head: 'child_head_monster',
+    colours: [{ l: 'Mossy', body: 'child_body_monster_mossy' }, { l: 'Ash', body: 'child_body_monster_ash' }, { l: 'Blood', body: 'child_body_monster_blood' }],
+    styles:  [{ l: 'Horned', hair: null }] },
 ];
 
 // The intro myth — 3 cards in the LORE-CANON voice (the believed story; the truth is seeded later).
@@ -42,6 +53,7 @@ export class TitleScene extends Phaser.Scene {
     this.input.keyboard.on('keydown-RIGHT', () => this._navX(1));
     this.input.keyboard.on('keydown-ENTER', () => this._confirm());
     this.input.keyboard.on('keydown-E', () => this._confirm());
+    this.input.keyboard.on('keydown-TAB', (e) => { if (e && e.preventDefault) e.preventDefault(); this._navStyle(1); });
     this.input.keyboard.on('keydown-ESC', () => this._onEsc());
   }
 
@@ -65,11 +77,35 @@ export class TitleScene extends Phaser.Scene {
   }
   _render() {
     if (this._mode === 'menu') this._rows.forEach((t, i) => { const s = i === this._sel; t.setColor(s ? '#ffe08a' : '#cfc3a8').setText((s ? '▸ ' : '  ') + this._items[i].label); });
-    if (this._mode === 'select') this._presetRows.forEach((t, i) => t.setColor(i === this._psel ? '#ffe08a' : '#cfc3a8'));
+    if (this._mode === 'select') {
+      this._baseTabs.forEach((t, i) => t.setColor(i === this._bsel ? '#ffe08a' : '#9a8f7a').setText((i === this._bsel ? '▸ ' : '  ') + BASES[i].label));
+      const b = BASES[this._bsel];
+      this._colourLabel.setText('Colour  ' + b.colours[this._csel].l + '   ‹↑↓›');
+      this._styleLabel.setText((b.key === 'monster' ? 'Look    ' : 'Hair    ') + b.styles[this._ssel].l + (b.styles.length > 1 ? '   ‹Tab›' : ''));
+    }
   }
-  _nav(d) { if (this._mode !== 'menu') return; this._sel = Phaser.Math.Clamp(this._sel + d, 0, this._items.length - 1); this._render(); }
-  _navX(d) { if (this._mode !== 'select') return; this._psel = (this._psel + d + PRESETS.length) % PRESETS.length; this._buildPreview(); this._render(); }
+  _nav(d) {                                   // UP/DOWN: menu rows, OR colour variant in select
+    if (this._mode === 'menu') { this._sel = Phaser.Math.Clamp(this._sel + d, 0, this._items.length - 1); this._render(); }
+    else if (this._mode === 'select') { const n = BASES[this._bsel].colours.length; this._csel = (this._csel + d + n) % n; this._buildPreview(); this._render(); }
+  }
+  _navX(d) {                                  // LEFT/RIGHT: base KIND in select
+    if (this._mode !== 'select') return;
+    this._bsel = (this._bsel + d + BASES.length) % BASES.length;
+    this._csel = Math.min(this._csel, BASES[this._bsel].colours.length - 1);
+    this._ssel = Math.min(this._ssel, BASES[this._bsel].styles.length - 1);
+    this._buildPreview(); this._render();
+  }
+  _navStyle(d) {                              // TAB: style/accessory within the base
+    if (this._mode !== 'select') return;
+    const n = BASES[this._bsel].styles.length; this._ssel = (this._ssel + d + n) % n;
+    this._buildPreview(); this._render();
+  }
   _onEsc() { if (this._mode === 'select') { this._buildMenu(); this._mode = 'menu'; } else if (this._mode === 'cards') this._skipCards(); }
+
+  _curParts() {
+    const b = BASES[this._bsel];
+    return [b.colours[this._csel].body, b.head, b.styles[this._ssel].hair].filter(Boolean);
+  }
 
   _confirm() {
     if (this._mode === 'menu') {
@@ -78,26 +114,30 @@ export class TitleScene extends Phaser.Scene {
       if (k === 'settings') { this.scene.launch('Options', { caller: 'Title', mods: null, im: null }); return; }
       if (k === 'new') return this._buildSelect();
     } else if (this._mode === 'select') {
-      store.write(PRESET_KEY, PRESETS[this._psel].id + '|' + PRESETS[this._psel].hair);
+      store.write(PRESET_KEY, this._curParts().join('|'));   // full L1-complete parts list
       this._playCards(INTRO_CARDS, () => this._startGame(true));
     } else if (this._mode === 'cards') this._advanceCard();
   }
 
-  // ---- S2: CHARACTER SELECT --------------------------------------------------
+  // ---- S2: CHARACTER SELECT v2 (kind × colour × style) -----------------------
   _buildSelect() {
-    this._clear(); this._mode = 'select'; this._psel = 0;
+    this._clear(); this._mode = 'select'; this._bsel = 0; this._csel = 0; this._ssel = 0;
     const cx = this._W / 2;
-    this._made.push(this.add.text(cx, this._H * 0.2, 'Who will you be?', { fontFamily: 'Georgia, serif', fontSize: '30px', color: '#ffcf6a' }).setOrigin(0.5));
-    this._made.push(this.add.text(cx, this._H * 0.2 + 36, '(a child of Greenhollow — you grow into who you choose to become)', { fontFamily: 'monospace', fontSize: '13px', color: '#8a8068' }).setOrigin(0.5));
-    this._presetRows = PRESETS.map((p, i) => { const t = this.add.text(cx - 120 + i * 120, this._H * 0.72, p.label, { fontFamily: 'monospace', fontSize: '13px', color: '#cfc3a8' }).setOrigin(0.5); this._made.push(t); return t; });
-    this._hint = this.add.text(cx, this._H - 36, '←→ choose · Enter begin · Esc back', { fontFamily: 'monospace', fontSize: '12px', color: '#6a6050' }).setOrigin(0.5); this._made.push(this._hint);
+    this._made.push(this.add.text(cx, this._H * 0.13, 'Who will you be?', { fontFamily: 'Georgia, serif', fontSize: '30px', color: '#ffcf6a' }).setOrigin(0.5));
+    this._made.push(this.add.text(cx, this._H * 0.13 + 32, '(a child of Greenhollow — you grow into who you choose to become)', { fontFamily: 'monospace', fontSize: '13px', color: '#8a8068' }).setOrigin(0.5));
+    // base KIND tabs, evenly spread + centred
+    const span = 360, x0 = cx - span / 2;
+    this._baseTabs = BASES.map((b, i) => { const t = this.add.text(x0 + (i + 0.5) * (span / BASES.length), this._H * 0.27, b.label, { fontFamily: 'monospace', fontSize: '16px', color: '#9a8f7a' }).setOrigin(0.5); this._made.push(t); return t; });
+    // colour + style read-outs
+    this._colourLabel = this.add.text(cx, this._H * 0.78, '', { fontFamily: 'monospace', fontSize: '15px', color: '#cfc3a8' }).setOrigin(0.5); this._made.push(this._colourLabel);
+    this._styleLabel  = this.add.text(cx, this._H * 0.78 + 26, '', { fontFamily: 'monospace', fontSize: '15px', color: '#cfc3a8' }).setOrigin(0.5); this._made.push(this._styleLabel);
+    this._hint = this.add.text(cx, this._H - 30, '←→ kind   ↑↓ colour   Tab style   Enter begin   Esc back', { fontFamily: 'monospace', fontSize: '12px', color: '#6a6050' }).setOrigin(0.5); this._made.push(this._hint);
     this._buildPreview(); this._render();
   }
   _buildPreview() {
-    if (this._preview) { try { this._preview.destroy(); } catch (_) {} }
-    const p = PRESETS[this._psel];
+    if (this._preview) { try { this._preview.destroy(); } catch (_) {} this._preview = null; }
     try {
-      const ch = new Character(this, this._W / 2, this._H * 0.5, { parts: [p.id, 'child_head', 'brows_chestnut', p.hair], facing: 'down', speed: 0 });
+      const ch = new Character(this, this._W / 2, this._H * 0.52, { parts: this._curParts(), facing: 'down', speed: 0 });   // FORWARD-FACING, full L1 set
       this.add.existing(ch); if (ch.body) ch.body.enable = false; ch.setScale(4); this._preview = ch;
     } catch (_) { this._preview = null; }
   }

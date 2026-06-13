@@ -706,6 +706,18 @@ const tile = (px) => Math.round(px / TILE);
     const parts = m[2].split(',').map((p) => p.trim().replace(/['"]/g, '')).filter(Boolean);
     bad.push(...validate(`player:${m[1]}`, parts));
   }
+  // CHARACTER-SELECT v2 presets (TitleScene BASES): every kind references a clothed-child BODY + a child HEAD,
+  // and every hair is a child-fitted hair part — so no select combination can ship an L1-incomplete child.
+  const ts = readFileSync(join(ROOT, 'src/scenes/TitleScene.js'), 'utf8');
+  for (const m of ts.matchAll(/body:\s*'([^']+)'/g)) {
+    const p = m[1]; if (!(PARTS[p] && PARTS[p].slot === 'body' && PARTS[p].childClothed)) bad.push(`select:${p} is not a clothed child body`);
+  }
+  for (const m of ts.matchAll(/head:\s*'([^']+)'/g)) {
+    const p = m[1]; if (!(PARTS[p] && PARTS[p].slot === 'head' && /^child_/.test(p))) bad.push(`select:${p} is not a child head`);
+  }
+  for (const m of ts.matchAll(/hair:\s*'([^']+)'/g)) {
+    const p = m[1]; if (!(PARTS[p] && PARTS[p].slot === 'hair' && PARTS[p].childSeat)) bad.push(`select:${p} is not a seated child hair`);
+  }
 
   // GAP THE OLD GATE MISSED (it trusted the childClothed FLAG, never the pixels → a torso-only romper with
   // BARE LEGS passed). PIXEL leg-coverage: decode each clothed child body's idle DOWN frame and assert the
