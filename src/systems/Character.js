@@ -13,7 +13,7 @@
 // =============================================================================
 
 import Phaser from 'phaser';
-import { PARTS, ONESHOT, ANIMS, WALK_STRIDE, CHAR_FOOTPRINT, animFor } from '../data/assets.js';
+import { PARTS, ONESHOT, ANIMS, WALK_STRIDE, CHAR_FOOTPRINT, animFor, DIR_ROW } from '../data/assets.js';
 
 export class Character extends Phaser.GameObjects.Container {
   /**
@@ -157,6 +157,20 @@ export class Character extends Phaser.GameObjects.Container {
     return !st || st.includes(this.actState);
   }
 
+  // The correct STATIC frame for this layer's facing — the first frame of the facing's ROW in the state sheet.
+  // PIXEL-TRUTH FIX: play() is a silent no-op when the anim isn't registered in the current scene (e.g. the
+  // Title char-select preview builds before AssetLoader.build runs in the game scene). A no-op left every sprite
+  // on texture default FRAME 0 = row 0 = the 'up'/BACK view — so `facing:'down'` rendered the BACK. When the anim
+  // is absent we now seat the correct directional frame instead, so the avatar always faces the way it's told.
+  _staticDirFrame(spr) {
+    const L = spr._layerDef;
+    const useTex = L.overrides?.[this.actState] || L.tex;
+    const sheet = `${useTex}__${this.actState}`;
+    const frames = (ANIMS[this.actState] || ANIMS.idle).frames || 1;
+    const row = DIR_ROW[this.facing] != null ? DIR_ROW[this.facing] : DIR_ROW.down;
+    return { sheet, frame: row * frames };
+  }
+
   // Play the current state+facing on every layer (hiding state-limited gear).
   _applyState() {
     const ts = this._timeScale();
@@ -164,8 +178,9 @@ export class Character extends Phaser.GameObjects.Container {
       for (const spr of sprites) {
         if (!this._shownIn(spr)) { spr.setVisible(false); continue; }
         spr.setVisible(true);
-        spr.play(this._animKeyFor(spr), true);
-        spr.anims.timeScale = ts;
+        const key = this._animKeyFor(spr);
+        if (this.scene.anims.exists(key)) { spr.play(key, true); spr.anims.timeScale = ts; }
+        else { const f = this._staticDirFrame(spr); if (this.scene.textures.exists(f.sheet)) spr.setTexture(f.sheet, f.frame); }   // anims not built in this scene → seat the correct directional frame (never frame 0/back)
       }
     }
   }
@@ -178,6 +193,7 @@ export class Character extends Phaser.GameObjects.Container {
         if (!this._shownIn(spr)) { spr.setVisible(false); continue; }
         spr.setVisible(true);
         const key = this._animKeyFor(spr);
+        if (!this.scene.anims.exists(key)) { const f = this._staticDirFrame(spr); if (this.scene.textures.exists(f.sheet)) spr.setTexture(f.sheet, f.frame); continue; }   // no anim in this scene → static directional frame (not frame 0/back)
         if (spr.anims.currentAnim?.key !== key || !spr.anims.isPlaying) spr.play(key, true);
         spr.anims.timeScale = ts; // keep legs matched to current speed every frame
       }

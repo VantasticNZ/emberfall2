@@ -6,6 +6,7 @@
 import { Character } from '../systems/Character.js';
 import { defaultStorage } from '../systems/storage.js';
 import { CardSequence } from '../systems/CardSequence.js';
+import { AssetLoader } from '../art/AssetLoader.js';
 
 const SAVE_KEY = 'emberfall:world:overworld';
 const PRESET_KEY = 'ember:childPreset';
@@ -41,6 +42,10 @@ export class TitleScene extends Phaser.Scene {
 
   create() {
     this.cameras.main.setBackgroundColor('#0a0808');
+    // Register the CHARACTER animations HERE (Phaser anims are game-global) so the char-select preview actually
+    // PLAYS its idle-down — without this, AssetLoader.build only ran in the game scene (after the Title), so the
+    // preview's play() was a no-op and every layer showed frame 0 = row 0 = the 'up'/BACK view. (PIXEL-TRUTH bug.)
+    AssetLoader.build(this);
     this._W = this.scale.width; this._H = this.scale.height;
     this.hasSave = !!store.read(SAVE_KEY);
     this._mode = 'menu';

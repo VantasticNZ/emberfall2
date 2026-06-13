@@ -58,7 +58,7 @@ import { availableStock, buyPrice } from '../src/systems/Economy.js';
 import { item as itemDef } from '../src/data/items/index.js';
 import { buildingDeed } from '../src/data/buildingDeeds.js';
 import { REGIONS, TILE } from '../src/data/worldmap.js';
-import { PARTS } from '../src/data/assets.js';
+import { PARTS, DIR_ROW, ANIMS } from '../src/data/assets.js';
 import { LOCATION_CLAIMS, DEED_TIMING } from '../src/data/quests/greenhollow.js';
 import { PROPS, solidBox } from '../src/data/assets.js';
 import { TERRAIN } from '../src/data/terrainTiles.js';
@@ -861,6 +861,57 @@ const tile = (px) => Math.round(px / TILE);
   if (!/_menuIcons/.test(ow)) offenders.push('menu Items list has no icon column (_menuIcons)');
   if (offenders.length) fail('ITEM-ICONS broken:' + offenders.map((v) => '\n      ' + v).join(''));
   else ok(`item-icons: ${ids.length} eliza-objects item pictures wired into the buy/sell + inventory rows (rest fall back to name)`);
+}
+
+// 25d) CHARSELECT-FRONT (PIXEL-TRUTH, verification-integrity) — the prior "facing:'down'" gate read a DATA field
+//      while the screen rendered the BACK: the char-select preview built before AssetLoader.build, so play() was a
+//      silent no-op and every layer showed FRAME 0 = row 0 = the 'up'/BACK row. This gate decodes the ACTUAL head
+//      idle SHEET and asserts the ROW the preview renders has a FACE (eye pixels), while the 'up'/back row (the
+//      frame-0 default) does NOT — so a back-facing render, a row-swap, or a facing→back change FAILS. It also
+//      locks the render-path invariants that stop the silent-frame-0 recurrence (Title builds the anims; Character
+//      seats the directional static frame when an anim is missing). [Limit: decodes the sheet at the rendered
+//      frame, not the live GPU canvas — no headless browser; the live Playwright shot is the runtime proof.]
+{
+  const offenders = [];
+  // eye-band signal: peak count of dark (non-skin) pixels across the central scanlines of a row's col-0 cell.
+  // a FRONT face adds an eye cluster there; the BACK (bald skull) is just the 2px head outline.
+  const eyePeak = (img, row, FW, FH) => {
+    let peak = 0;
+    for (let y = Math.floor(FH * 0.42); y <= Math.floor(FH * 0.55); y++) {
+      let d = 0;
+      for (let x = Math.floor(FW * 0.31); x < Math.floor(FW * 0.69); x++) {
+        const i = ((row * FH + y) * img.w + x) * 4;
+        if (img.data[i + 3] > 128 && Math.max(img.data[i], img.data[i + 1], img.data[i + 2]) < 100) d++;
+      }
+      if (d > peak) peak = d;
+    }
+    return peak;
+  };
+  const head = decodeRGBA(join(ROOT, 'public/art/eliza/head/idle.png'));
+  if (!head) offenders.push('cannot decode public/art/eliza/head/idle.png');
+  else {
+    const FW = Math.round(head.w / (ANIMS.idle.frames || 3)), FH = Math.round(head.h / 4);
+    // the facing the char-select preview is BUILT with (read from source — the render path), → its sheet ROW
+    const title = readFileSync(join(ROOT, 'src/scenes/TitleScene.js'), 'utf8');
+    const fm = title.match(/new Character\([\s\S]*?facing:\s*'([a-z]+)'/);
+    const facing = fm ? fm[1] : null;
+    if (!facing) offenders.push('char-select preview Character has no explicit facing in TitleScene');
+    const renderRow = facing != null && DIR_ROW[facing] != null ? DIR_ROW[facing] : null;
+    if (renderRow == null) offenders.push(`char-select facing '${facing}' has no DIR_ROW`);
+    else {
+      const frontPeak = eyePeak(head, renderRow, FW, FH), backPeak = eyePeak(head, DIR_ROW.up, FW, FH);
+      // the RENDERED row must show a face; the back/frame-0 row must NOT (negative-prove the gate fails a back render)
+      if (frontPeak < 5) offenders.push(`char-select renders row ${renderRow} (facing '${facing}') but its eye-band has NO face pixels (peak ${frontPeak}) — that frame is back-facing`);
+      if (backPeak > 3) offenders.push(`the 'up'/back row reads as having a face (peak ${backPeak}) — face signal not discriminating; gate unreliable`);
+    }
+  }
+  // render-path invariants: the silent-frame-0 bug recurs if EITHER guard is removed
+  const title = readFileSync(join(ROOT, 'src/scenes/TitleScene.js'), 'utf8');
+  if (!/AssetLoader\.build\(this\)/.test(title)) offenders.push('TitleScene does not register character anims (AssetLoader.build) — preview play() would no-op to frame 0/back');
+  const chr = readFileSync(join(ROOT, 'src/systems/Character.js'), 'utf8');
+  if (!/_staticDirFrame/.test(chr) || !/anims\.exists\(key\)/.test(chr)) offenders.push('Character lacks the anim-missing → directional-static-frame fallback (a no-op play would show frame 0/back)');
+  if (offenders.length) fail('CHARSELECT-FRONT (pixel-truth) broken:' + offenders.map((v) => '\n      ' + v).join(''));
+  else ok('charselect-front (pixel-truth): the head row the preview renders has eye pixels (front); the back row does not; anims built at Title + Character static-frame fallback prevent the silent frame-0/back render');
 }
 
 // L2 DIALOG-SPEAKER-PRESENT (GAME-LAWS L2) — no disembodied speakers. A dialog node's named speaker, IF it is
