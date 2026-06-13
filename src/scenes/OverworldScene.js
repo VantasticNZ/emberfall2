@@ -60,14 +60,17 @@ const INTERIOR_ZOOM_MAX = 4.2;    // cap when zooming IN to fill a small interio
                                   // (RESIZE mode → camera = window size; the smallest 10x8 room needs ~4.0 at 1280w)
 const CUT_REGROW_MS = 180000;   // a cut bush regrows only after you LEAVE the area + ~3 min (anti-farm)
 const HERO = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_chestnut', 'shirt_blue', 'pants_black', 'shoes_brown'];
-const HERO_CHILD = ['child_body_blue', 'child_head', 'brows_chestnut', 'hair_chestnut'];   // the protagonist as a CHILD — clothed child body (L1: complete, matched, no adult parts)
-// S2: the child appearance the player picked at the title's character-select (stored "body|hair"); falls back
-// to the default child set. Always a COMPLETE matched child set (L1) — clothed body + child head + brows + hair.
+// The protagonist as a CHILD — fully-clothed child body (shirt+pants+shoes), child head (face baked, no adult
+// brows), and SEATED child hair (oy-offset so it sits on the smaller child skull). L1: complete, matched.
+const HERO_CHILD = ['child_body_blue', 'child_head', 'child_hair_natural'];
+// S2: the child appearance the player picked at the title's character-select. Stored as the FULL parts list
+// pipe-joined (e.g. "child_body_blue|child_head|child_hair_natural"), so monster/accessory presets carry their
+// own head + hair. Falls back to the default child set. Always a COMPLETE matched child set (L1).
 function heroChild(store) {
   try {
     const raw = (store && store.read('ember:childPreset')) || '';
-    const [body, hair] = raw.split('|');
-    if (body) return [body, 'child_head', 'brows_chestnut', hair || 'hair_chestnut'];
+    const parts = raw.split('|').filter(Boolean);
+    if (parts.length) return parts;
   } catch (_) {}
   return HERO_CHILD;
 }

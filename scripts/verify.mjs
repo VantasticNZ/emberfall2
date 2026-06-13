@@ -17,6 +17,36 @@ import { execSync } from 'node:child_process';
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import zlib from 'node:zlib';
+
+// minimal 8-bit RGBA PNG decoder (colorType 6, non-interlaced) → { w, h, data:Buffer(RGBA) }, else null.
+// Used by the L1 leg-coverage pixel gate. Same unfilter approach as fitcheck/furniture-whole.test.mjs.
+function decodeRGBA(file) {
+  const buf = readFileSync(file);
+  if (buf.readUInt32BE(0) !== 0x89504e47) return null;
+  let off = 8, w = 0, h = 0, bd = 0, ct = 0, il = 0; const idat = [];
+  while (off < buf.length) {
+    const len = buf.readUInt32BE(off); const type = buf.toString('ascii', off + 4, off + 8); const data = buf.slice(off + 8, off + 8 + len);
+    if (type === 'IHDR') { w = data.readUInt32BE(0); h = data.readUInt32BE(4); bd = data[8]; ct = data[9]; il = data[12]; }
+    else if (type === 'IDAT') idat.push(data); else if (type === 'IEND') break;
+    off += 12 + len;
+  }
+  if (bd !== 8 || ct !== 6 || il !== 0) return null;
+  const raw = zlib.inflateSync(Buffer.concat(idat)); const stride = w * 4; const out = Buffer.alloc(w * h * 4);
+  const cur = Buffer.alloc(stride), prev = Buffer.alloc(stride); let p = 0;
+  for (let y = 0; y < h; y++) {
+    const f = raw[p++]; cur.fill(0);
+    for (let x = 0; x < stride; x++) {
+      const rb = raw[p++], a = x >= 4 ? cur[x - 4] : 0, b = prev[x], c = x >= 4 ? prev[x - 4] : 0;
+      let v = rb;
+      if (f === 1) v = rb + a; else if (f === 2) v = rb + b; else if (f === 3) v = rb + ((a + b) >> 1);
+      else if (f === 4) { const pa = Math.abs(b - c), pb = Math.abs(a - c), pc = Math.abs(a + b - 2 * c); v = rb + (pa <= pb && pa <= pc ? a : pb <= pc ? b : c); }
+      cur[x] = v & 0xff;
+    }
+    cur.copy(out, y * stride); cur.copy(prev);
+  }
+  return { w, h, data: out };
+}
 
 import { DEEDS } from '../src/constants/deeds.js';
 import { TOOLS, SHARDS, SKILLS, FACTIONS } from '../src/constants/flags.js';
@@ -676,8 +706,39 @@ const tile = (px) => Math.round(px / TILE);
     const parts = m[2].split(',').map((p) => p.trim().replace(/['"]/g, '')).filter(Boolean);
     bad.push(...validate(`player:${m[1]}`, parts));
   }
+
+  // GAP THE OLD GATE MISSED (it trusted the childClothed FLAG, never the pixels → a torso-only romper with
+  // BARE LEGS passed). PIXEL leg-coverage: decode each clothed child body's idle DOWN frame and assert the
+  // leg band (central columns, lower body) is NOT mostly bare skin. Catches a pantless child.
+  const isSkin = (r, g, b, a) => a > 32 && r > 175 && r >= g && g >= b && (r - b) > 32;   // peachy bare skin
+  for (const [key, def] of Object.entries(PARTS)) {
+    if (!(def.childClothed && def.layers && def.layers[0])) continue;
+    const tex = def.layers[0].tex; const file = join(ROOT, 'public/art/eliza', tex, 'idle.png');
+    if (!existsSync(file)) { bad.push(`${key}: clothed child body texture missing (${tex}/idle.png)`); continue; }
+    const img = decodeRGBA(file); if (!img) continue;   // unsupported encoding → skip, don't false-fail
+    const FR = 64, col = 0, row = 2;                     // idle sheet: 3 cols × 4 rows; row 2 = DOWN facing
+    const at = (x, y) => { const i = ((row*FR + y) * img.w + (col*FR + x)) * 4; return [img.data[i], img.data[i+1], img.data[i+2], img.data[i+3]]; };
+    let y0 = 64, y1 = 0, x0 = 64, x1 = 0;
+    for (let y = 0; y < FR; y++) for (let x = 0; x < FR; x++) { const a = at(x, y)[3]; if (a > 32) { if (y < y0) y0 = y; if (y > y1) y1 = y; if (x < x0) x0 = x; if (x > x1) x1 = x; } }
+    if (y1 <= y0) { bad.push(`${key}: empty idle DOWN frame`); continue; }
+    const bh = y1 - y0, bw = x1 - x0, cx = (x0 + x1) / 2;
+    const la = y0 + Math.floor(bh*0.60), lb = y0 + Math.floor(bh*0.86);   // the LEG band
+    let skin = 0, opaque = 0;
+    for (let y = la; y <= lb; y++) for (let x = Math.ceil(cx - 0.30*bw); x <= Math.floor(cx + 0.30*bw); x++) {
+      const [r, g, b, a] = at(x, y); if (a <= 32) continue; opaque++; if (isSkin(r, g, b, a)) skin++;
+    }
+    if (opaque > 8 && skin / opaque > 0.45) bad.push(`${key}: BARE LEGS — ${Math.round(100*skin/opaque)}% of the leg band is skin (pantless); the outfit must cover the legs`);
+  }
+  // PER-PART SEAT OFFSETS VALIDATED (L1 seating) — a child-fitted hair part (childSeat) must declare a non-zero
+  // `oy` seat offset on its layer (adult hair floats ~6px high on the smaller child head without it).
+  for (const [key, def] of Object.entries(PARTS)) {
+    if (!def.childSeat) continue;
+    const seated = (def.layers || []).some((l) => typeof l.oy === 'number' && l.oy !== 0);
+    if (!seated) bad.push(`${key}: childSeat hair has NO oy seat offset — it will float high on the child head`);
+  }
+
   if (bad.length) fail('L1 COMPOSITION-COMPLETE:' + bad.map((v) => '\n      ' + v).join(''));
-  else ok('composition-complete (L1): every placed character + the player presets render a complete matched set — no bare child bodies, no cross-body-type parts');
+  else ok('composition-complete (L1): every placed character + presets are complete matched sets; clothed child bodies cover the LEGS (pixel-checked, no pantless); child hair declares a seat offset');
 }
 
 // 25a) MODIFIER-APPLIED-IN-ACTIVE-SCENE (big-head regression guard) — the game runs on OverworldScene now;

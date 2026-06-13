@@ -239,11 +239,11 @@ export const WORLD = {
       schedule: sched([['dawn', 26, 11, 'idle'], ['day', 32, 12, 'idle'], ['dusk', 24, 13, 'chat'], ['night', 27, 10, 'idle']]) },   // item 4: day-post off the fountain (NE edge) to thin the plaza
     // KIDS — PROTECTED (unharmable/untargetable, hard rule). Smaller villager skins (proper child art = a
     // deferred ULPC fetch). Playful, with interconnection lines (they talk about the grown-ups).
-    { tx: 23, ty: 14, facing: 'down', name: 'Nettle', childOnly: true, tempo: 'brisk', speed: 78, scale: 0.95, kid: true, protected: true, expression: 'happy', parts: ['child_body_tan_green', 'child_head', 'brows_chestnut', 'hair_blond'],   // L1: clothed child body
+    { tx: 23, ty: 14, facing: 'down', name: 'Nettle', childOnly: true, tempo: 'brisk', speed: 78, scale: 0.95, kid: true, protected: true, expression: 'happy', parts: ['child_body_green', 'child_head', 'child_hair_blond'],   // L1: clothed child body + seated child hair (ivory skin matches the one child head)
       greeting: ["Betcha can't catch me! ...Mum says don't bother Hodge when his hammer's going.", "I helped Pem stack the apples. She gave me one for it!"],
       bark: 'Last one to the chapel\'s a rotten egg!',
       schedule: sched([['dawn', 23, 17, 'idle'], ['day', 18, 20, 'chat'], ['dusk', 17, 19, 'chat'], ['night', 34, 25, 'sleep']]) },   // item 4: plays the SW plaza edge by day (off the fountain), the cottage at night
-    { tx: 27, ty: 17, facing: 'down', name: 'Wisp', childOnly: true, tempo: 'ambler', speed: 74, scale: 0.95, kid: true, protected: true, expression: 'happy', parts: ['child_body_blue', 'child_head', 'brows_chestnut', 'hair_chestnut'],   // L1: clothed child   // item 2: real child body   // item 2: was MARA's exact skin at 0.7 = a "mini-Mara"; now a distinct chestnut/blue child
+    { tx: 27, ty: 17, facing: 'down', name: 'Wisp', childOnly: true, tempo: 'ambler', speed: 74, scale: 0.95, kid: true, protected: true, expression: 'happy', parts: ['child_body_blue', 'child_head', 'child_hair_natural'],   // L1: clothed child + seated child hair (was a "mini-Mara")
       greeting: ["Are you a knight? You walk like a knight.", "Old Fatley sleeps in the tavern. Mum says don't grow up like Fatley."],
       bark: '*humming a little tune*',
       schedule: sched([['dawn', 27, 17, 'idle'], ['day', 31, 21, 'chat'], ['dusk', 30, 19, 'idle'], ['night', 34, 25, 'sleep']]) },   // item 4: plays the SE plaza edge by day (off Tam + the fountain)

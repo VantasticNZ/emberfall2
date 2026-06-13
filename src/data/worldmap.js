@@ -152,7 +152,7 @@ export const ASHEN_MARSH = {
         { q: 'The shrine', a: [`"The Sunken Shrine? Drowned-guardian country. I keep my nets this side of the black water and I keep my skin."`] },
       ],
       schedule: [{ phase: 'dawn', tx: MARSH_OT.x + 13, ty: MARSH_OT.y + 11, do: 'tend' }, { phase: 'day', tx: MARSH_OT.x + 12, ty: MARSH_OT.y + 12, do: 'tend' }, { phase: 'dusk', tx: MARSH_OT.x + 11, ty: MARSH_OT.y + 14, do: 'chat' }, { phase: 'night', tx: MARSH_OT.x + 13, ty: MARSH_OT.y + 16, do: 'sleep' }] },
-    { name: 'Reed-boy Tam', x: mx(7) + TILE / 2, y: my(18) + TILE / 2, facing: 'down', speed: 60, scale: 0.95, kid: true, protected: true, expression: 'happy', parts: ['child_body_blue', 'child_head', 'brows_chestnut', 'hair_ginger'],   // L1: clothed child   // item 2: real child body
+    { name: 'Reed-boy Tam', x: mx(7) + TILE / 2, y: my(18) + TILE / 2, facing: 'down', speed: 60, scale: 0.95, kid: true, protected: true, expression: 'happy', parts: ['child_body_blue', 'child_head', 'child_hair_ginger'],   // L1: clothed child + seated child hair
       greeting: ["Bet you can't skip a stone all the way to the witch's hut! ...Don't, though. Mum says don't.", "I caught a frog THIS big. It got away. It always gets away."] },
     // MIRE-FOLK — a slow bog-stroller (the spec's 'mire-folk: slow stroll').
     { name: 'Old Sedge', x: mx(11) + TILE / 2, y: my(16) + TILE / 2, facing: 'down', speed: 28, expression: 'neutral', parts: MARSH.base,
@@ -507,7 +507,7 @@ export const SUNDERED_PEAKS = {
       ],
       schedule: [{ phase: 'dawn', tx: PEAKS_OT.x + 26, ty: PEAKS_OT.y + 37, do: 'tend' }, { phase: 'day', tx: PEAKS_OT.x + 27, ty: PEAKS_OT.y + 36, do: 'tend' }, { phase: 'dusk', tx: PEAKS_OT.x + 26, ty: PEAKS_OT.y + 38, do: 'idle' }, { phase: 'night', tx: PEAKS_OT.x + 25, ty: PEAKS_OT.y + 39, do: 'sleep' }] },
     // CRAG-CHILD — protected (HARD RULE: kids unharmable/untargetable); pinned to the safe town hub.
-    { name: 'Crag-child Pib', x: pkx(31) + TILE / 2, y: pky(43) + TILE / 2, facing: 'down', speed: 58, scale: 0.95, kid: true, protected: true, expression: 'happy', parts: ['child_body_brown_rust', 'child_head', 'brows_chestnut', 'hair_chestnut'],   // L1: clothed child   // item 2: real child body
+    { name: 'Crag-child Pib', x: pkx(31) + TILE / 2, y: pky(43) + TILE / 2, facing: 'down', speed: 58, scale: 0.95, kid: true, protected: true, expression: 'happy', parts: ['child_body_rust', 'child_head', 'child_hair_natural'],   // L1: clothed child + seated child hair (ivory skin matches the one child head)
       greeting: ["I can name every peak! ...That one's Big Tooth. That one's the Other Tooth. I'm still working on the rest.", "Da says don't climb the scree. So I only climb the SMALL scree."],
       schedule: [{ phase: 'dawn', tx: PEAKS_OT.x + 31, ty: PEAKS_OT.y + 43, do: 'idle' }, { phase: 'day', tx: PEAKS_OT.x + 30, ty: PEAKS_OT.y + 42, do: 'idle' }, { phase: 'dusk', tx: PEAKS_OT.x + 32, ty: PEAKS_OT.y + 43, do: 'chat' }, { phase: 'night', tx: PEAKS_OT.x + 31, ty: PEAKS_OT.y + 44, do: 'sleep' }] },
     // THE KEEPER — peaks_merchant stock on the frozen shop system. Posted at the plaza stall (no schedule).

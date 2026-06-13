@@ -105,6 +105,22 @@ export const PARTS = {
   child_body_rust:  { slot: 'body', label: 'Body', layers: [{ tex: 'child_body_rust',  z: Z.body }], childClothed: true },
   child_body_tan_green:   { slot: 'body', label: 'Body', layers: [{ tex: 'child_body_tan_green',   z: Z.body }], childClothed: true },
   child_body_brown_rust:  { slot: 'body', label: 'Body', layers: [{ tex: 'child_body_brown_rust',  z: Z.body }], childClothed: true },
+  // CHILD HAIR (L1 seating) — the adult hair textures sit ~6px high on the SMALLER child head (its crown is
+  // lower in the cell), so a child-fitted hair part re-seats the SAME texture down onto the child skull via a
+  // per-style `oy` offset (childSeat:true marks it for the L1 seat-offset gate). No new texture; just seated.
+  child_hair_natural: { slot: 'hair', label: 'Hair', layers: [{ tex: 'hair',        z: Z.hair, oy: 6 }], childSeat: true },
+  child_hair_black:   { slot: 'hair', label: 'Hair', layers: [{ tex: 'hair_black',   z: Z.hair, oy: 6 }], childSeat: true },
+  child_hair_ginger:  { slot: 'hair', label: 'Hair', layers: [{ tex: 'hair_ginger',  z: Z.hair, oy: 6 }], childSeat: true },
+  child_hair_blond:   { slot: 'hair', label: 'Hair', layers: [{ tex: 'hair_blond',   z: Z.hair, oy: 6 }], childSeat: true },
+  child_hair_auburn:  { slot: 'hair', label: 'Hair', layers: [{ tex: 'hair_auburn',  z: Z.hair, oy: 6 }], childSeat: true },
+  child_hair_bob:     { slot: 'hair', label: 'Hair', layers: [{ tex: 'hair_mara',    z: Z.hair, oy: 5 }], childSeat: true },
+  // MONSTER child (asset-first verdict: NO owned creature rig → a goblin-child COMPOSITED from owned parts —
+  // green-tinted child body + a tattered outfit, green head + small composited horns). A true creature rig is
+  // a commission (DEFERRED). Complete matched sets; childClothed so the L1 leg-coverage gate validates them.
+  child_head_monster:        { slot: 'head', label: 'Head', layers: [{ tex: 'child_head_monster',        z: Z.head }] },
+  child_body_monster_mossy:  { slot: 'body', label: 'Body', layers: [{ tex: 'child_body_monster_mossy',  z: Z.body }], childClothed: true },
+  child_body_monster_ash:    { slot: 'body', label: 'Body', layers: [{ tex: 'child_body_monster_ash',    z: Z.body }], childClothed: true },
+  child_body_monster_blood:  { slot: 'body', label: 'Body', layers: [{ tex: 'child_body_monster_blood',  z: Z.body }], childClothed: true },
   body_tan:  { slot: 'body', label: 'Body', layers: [{ tex: 'body_tan',  z: Z.body }] },
   head_tan:  { slot: 'head', label: 'Head', layers: [{ tex: 'head_tan',  z: Z.head, expressive: true }] },
   body_deep: { slot: 'body', label: 'Body', layers: [{ tex: 'body_deep', z: Z.body }] },
