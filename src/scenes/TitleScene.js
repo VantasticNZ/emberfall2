@@ -21,7 +21,7 @@ const BASES = [
   { key: 'girl', label: 'Girl', head: 'child_head',
     colours: [{ l: 'Blue', body: 'child_body_blue' }, { l: 'Green', body: 'child_body_green' }, { l: 'Rust', body: 'child_body_rust' }],
     styles:  [{ l: 'Blonde bob', hair: 'child_hair_bob' }, { l: 'Auburn crop', hair: 'child_hair_auburn' }] },
-  { key: 'nb',   label: 'Child', head: 'child_head',
+  { key: 'nb',   label: 'Non-binary', head: 'child_head',
     colours: [{ l: 'Blue', body: 'child_body_blue' }, { l: 'Green', body: 'child_body_green' }, { l: 'Rust', body: 'child_body_rust' }],
     styles:  [{ l: 'Blond crop', hair: 'child_hair_blond' }, { l: 'Chestnut crop', hair: 'child_hair_natural' }] },
   { key: 'monster', label: 'Goblin', head: 'child_head_monster',
@@ -126,7 +126,7 @@ export class TitleScene extends Phaser.Scene {
     this._made.push(this.add.text(cx, this._H * 0.13, 'Who will you be?', { fontFamily: 'Georgia, serif', fontSize: '30px', color: '#ffcf6a' }).setOrigin(0.5));
     this._made.push(this.add.text(cx, this._H * 0.13 + 32, '(a child of Greenhollow — you grow into who you choose to become)', { fontFamily: 'monospace', fontSize: '13px', color: '#8a8068' }).setOrigin(0.5));
     // base KIND tabs, evenly spread + centred
-    const span = 360, x0 = cx - span / 2;
+    const span = 520, x0 = cx - span / 2;   // wide enough for the 'Non-binary' tab without overlap
     this._baseTabs = BASES.map((b, i) => { const t = this.add.text(x0 + (i + 0.5) * (span / BASES.length), this._H * 0.27, b.label, { fontFamily: 'monospace', fontSize: '16px', color: '#9a8f7a' }).setOrigin(0.5); this._made.push(t); return t; });
     // colour + style read-outs
     this._colourLabel = this.add.text(cx, this._H * 0.78, '', { fontFamily: 'monospace', fontSize: '15px', color: '#cfc3a8' }).setOrigin(0.5); this._made.push(this._colourLabel);
