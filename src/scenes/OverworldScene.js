@@ -47,7 +47,7 @@ import { TERRAIN } from '../data/terrainTiles.js';
 import { GREENHOLLOW_CHILDHOOD, GREENHOLLOW_SLICE, GREENHOLLOW_SIDE, ASHEN_MARSH, SUNDERED_PEAKS as PEAKS_QUESTS, SUNDERED_PEAKS_SIDE } from '../data/quests/index.js';
 import { TILE, CHUNK_PX, WORLD_CHUNKS, WORLD_PX, chunkContent, groundTintAt, GREENHOLLOW, ASHEN_MARSH as MARSH_REGION, REGIONS, regionAt, inGreenhollow, inMarsh } from '../data/worldmap.js';
 import { item as itemDef } from '../data/items/index.js';
-import { shop as shopDef, buyPrice, availableStock } from '../systems/Economy.js';
+import { shop as shopDef, buyPrice, sellPrice, availableStock } from '../systems/Economy.js';
 import { ShopStock } from '../systems/ShopStock.js';
 import { ENTRANCES } from '../data/entrances.js';
 import { generateDungeon, generateCave } from '../data/gen/index.js';
@@ -1225,45 +1225,76 @@ export class OverworldScene extends Phaser.Scene {
   // ---- SHOP BUYING v1 — a keeper's buy menu (E at the counter) -----------------------------------
   _openShop(shopId, keeperName) {
     const sh = shopDef(shopId); if (!sh) return;
-    Movement.stop(this.player); this._shopOpen = true; this._shopId = shopId; this._shopSel = 0; this._shopName = sh.name;
+    Movement.stop(this.player); this._shopOpen = true; this._shopId = shopId; this._shopSel = 0; this._shopName = sh.name; this._shopRegion = sh.region; this._shopMode = 'buy';
     if (this.hud2) this.hud2.setVisible(false); if (this._helpText) this._helpText.setVisible(false);   // clear the HUD so it doesn't overlap the buy panel
     if (this.shopStock) this.shopStock.maybeRestock(shopId, this.tod ? this.tod.dayCount() : 0, this.time.now);   // shelves refill on the day cadence (real-time fallback while the clock is frozen)
-    this._shopStock = availableStock(shopId, { inv: this.inv, karma: this.karma }).map((id) => {
-      const it = itemDef(id); return { id, name: it ? it.name : id, price: buyPrice(id, sh.region, 5), qty: this.shopStock ? this.shopStock.qtyOf(shopId, id) : 99 };
-    });
+    this._buildShopList();
     // panel — REBUILT each open (its own container so it never collides with dialogue, no stale-cache)
     if (this._shopBox) { this._shopBox.destroy(true); }
     this._shopBox = this.add.container(0, 0).setScrollFactor(0).setDepth(DEPTH.OVERLAY + 13);
     const bg = this.add.rectangle(20, 60, 728, 300, 0x0c1410, 0.96).setOrigin(0, 0).setStrokeStyle(2, 0x3c5a3c).setScrollFactor(0);
     this._shopTitle = this.add.text(34, 70, '', { fontFamily: 'monospace', fontSize: '15px', color: '#ffe66d', fontStyle: 'bold' }).setScrollFactor(0);
     this._shopGold = this.add.text(540, 72, '', { fontFamily: 'monospace', fontSize: '13px', color: '#9fd8a0' }).setScrollFactor(0);
-    this._shopHint = this.add.text(34, 336, '↑↓ choose · E buy · B/Q close', { fontFamily: 'monospace', fontSize: '11px', color: '#7a9a7a' }).setScrollFactor(0);
+    this._shopHint = this.add.text(34, 336, '', { fontFamily: 'monospace', fontSize: '11px', color: '#7a9a7a' }).setScrollFactor(0);
     this._shopBox.add([bg, this._shopTitle, this._shopGold, this._shopHint]);
     this._shopRows = [];
-    for (let i = 0; i < Math.max(1, this._shopStock.length); i++) {
+    for (let i = 0; i < 11; i++) {   // fixed rows (the buy/sell list lengths differ; render into these)
       const t = this.add.text(40, 100 + i * 22, '', { fontFamily: 'monospace', fontSize: '14px', color: '#cfe8d6' }).setScrollFactor(0);
       this._shopRows.push(t); this._shopBox.add(t);
     }
     this._registerUIPanel(this._shopBox, 20, 60, 728, 300);   // on the zoom-1 uiCamera, clamped on-screen
     this._renderShop();
   }
+  // WS3.9 — build the active list for the shop's MODE. buy = the keeper's stock; sell = the player's items the
+  // shop will buy (anything with real value > 0 — keepsakes like the wooden_toy, value 0, are never bought).
+  _buildShopList() {
+    if (this._shopMode === 'sell') {
+      this._shopStock = Object.keys(this.inv.items || {}).map((id) => {
+        const it = itemDef(id); return it && it.value > 0 ? { id, name: it.name, price: sellPrice(id, this._shopRegion, 5), have: this.inv.items[id] } : null;
+      }).filter(Boolean);
+    } else {
+      this._shopStock = availableStock(this._shopId, { inv: this.inv, karma: this.karma }).map((id) => {
+        const it = itemDef(id); return { id, name: it ? it.name : id, price: buyPrice(id, this._shopRegion, 5), qty: this.shopStock ? this.shopStock.qtyOf(this._shopId, id) : 99 };
+      });
+    }
+    this._shopSel = Phaser.Math.Clamp(this._shopSel, 0, Math.max(0, this._shopStock.length - 1));
+  }
+  _shopToggleMode() { if (!this._shopOpen) return; this._shopMode = this._shopMode === 'buy' ? 'sell' : 'buy'; this._shopSel = 0; this._buildShopList(); this._sfx('sfx_select', 0.5); this._renderShop(); }
   _renderShop() {
     if (!this._shopOpen) return;
-    this._shopTitle.setText(this._shopName);
+    const sell = this._shopMode === 'sell';
+    this._shopTitle.setText(`${this._shopName}   [${sell ? 'SELL' : 'BUY'}]`);
     this._shopGold.setText(`Your gold: ${this.inv.gold}g`);
+    this._shopHint.setText(`↑↓ choose · E ${sell ? 'sell' : 'buy'} · TAB ${sell ? 'buy' : 'sell'} · B/Q close`);
     this._shopRows.forEach((t, i) => {
       const s = this._shopStock[i];
       if (!s) { t.setText(''); return; }
-      const qty = this.shopStock ? this.shopStock.qtyOf(this._shopId, s.id) : (s.qty ?? 99);   // live on-hand
-      const out = qty <= 0;
-      const sel = i === this._shopSel, afford = this.inv.gold >= s.price && !out;
-      const owned = this.inv.items[s.id] ? `  (have ${this.inv.items[s.id]})` : '';
-      const stock = out ? '  (out)' : `  x${qty}`;   // replenishing stock: on-hand or sold-out
-      t.setText(`${sel ? '▶ ' : '  '}${s.name.padEnd(20)} ${String(s.price).padStart(3)}g${stock}${owned}`);
-      t.setColor(out ? '#6b6b6b' : sel ? '#ffe66d' : afford ? '#cfe8d6' : '#8a6b6b');
+      const sel = i === this._shopSel;
+      if (sell) {
+        t.setText(`${sel ? '▶ ' : '  '}${s.name.padEnd(20)} ${String(s.price).padStart(3)}g   (have ${s.have})`);
+        t.setColor(sel ? '#ffe66d' : '#cfe8d6');
+      } else {
+        const qty = this.shopStock ? this.shopStock.qtyOf(this._shopId, s.id) : (s.qty ?? 99);
+        const out = qty <= 0, afford = this.inv.gold >= s.price && !out;
+        const owned = this.inv.items[s.id] ? `  (have ${this.inv.items[s.id]})` : '';
+        t.setText(`${sel ? '▶ ' : '  '}${s.name.padEnd(20)} ${String(s.price).padStart(3)}g${out ? '  (out)' : `  x${qty}`}${owned}`);
+        t.setColor(out ? '#6b6b6b' : sel ? '#ffe66d' : afford ? '#cfe8d6' : '#8a6b6b');
+      }
     });
+    if (!this._shopStock.length) this._shopRows[0].setText(sell ? '  (nothing to sell)' : '  (nothing in stock)').setColor('#6b6b6b');
   }
   _shopNav(d) { if (!this._shopOpen || !this._shopStock.length) return; this._shopSel = Phaser.Math.Clamp(this._shopSel + d, 0, this._shopStock.length - 1); this._renderShop(); }
+  // WS3.9 — SELL the selected held item at the shop's margin; persists gold + inventory (+ unequips if the last
+  // copy of an equipped item is sold). Mirrors _shopBuy.
+  _shopSell() {
+    if (!this._shopOpen) return; const s = this._shopStock[this._shopSel]; if (!s) return;
+    if (!this.inv.has(s.id)) { this._sfx('sfx_deny', 0.8); this._banner('You no longer have that.', 1200); return; }
+    this.inv.remove(s.id, 1); this.inv.addGold(s.price);
+    for (const slot of ['weapon', 'shield', 'body', 'trinket']) if (this.inv.equipped(slot) === s.id && !this.inv.has(s.id)) this.inv.unequip(slot);   // sold the last one → take it off
+    if (this.inv.save) this.inv.save();
+    this._sfx('sfx_coin', 0.8); this._banner(`Sold ${s.name} for ${s.price}g.`, 1300);
+    this._buildShopList(); this._renderShop();
+  }
   _shopBuy() {
     if (!this._shopOpen) return; const s = this._shopStock[this._shopSel]; if (!s) return;
     // AGE-GATE (sys 1) — a CHILD can't buy weapons/armour/shields (no arming a child).
@@ -1798,7 +1829,8 @@ export class OverworldScene extends Phaser.Scene {
   }
   _buildInput() {
     this.keys = this.input.keyboard.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,SHIFT,O,C');
-    this.input.keyboard.on('keydown-E', () => { if (this._shopOpen) this._shopBuy(); else if (this._topicsOpen) this._topicPick(); else if (this._dlg) this._dlgConfirm(); else if (this._menuOpen) this._menuActivate(); else Interaction.tryInteract(); });
+    this.input.keyboard.on('keydown-E', () => { if (this._shopOpen) (this._shopMode === 'sell' ? this._shopSell() : this._shopBuy()); else if (this._topicsOpen) this._topicPick(); else if (this._dlg) this._dlgConfirm(); else if (this._menuOpen) this._menuActivate(); else Interaction.tryInteract(); });
+    this.input.keyboard.on('keydown-TAB', (e) => { if (e && e.preventDefault) e.preventDefault(); if (this._shopOpen) this._shopToggleMode(); });   // WS3.9: TAB switches a shop between BUY and SELL
     this.input.keyboard.on('keydown-UP', () => { if (this._shopOpen) this._shopNav(-1); else if (this._topicsOpen) this._topicNav(-1); else if (this._dlg) this._dlgNav(-1); else if (this._menuOpen) this._menuScrollBy(-1); });
     this.input.keyboard.on('keydown-DOWN', () => { if (this._shopOpen) this._shopNav(1); else if (this._topicsOpen) this._topicNav(1); else if (this._dlg) this._dlgNav(1); else if (this._menuOpen) this._menuScrollBy(1); });
     this.input.keyboard.on('keydown-LEFT', () => { if (this._menuOpen) this._menuNav(-1); });
