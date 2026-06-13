@@ -22,7 +22,16 @@ assert.equal(buildingDoorTrigger([door('closed')], 10, 10, 'left', T).action, 'w
 assert.equal(buildingDoorTrigger([door('open')], 10, 10, 'down', T).action, 'wait', 'facing away → wait');
 
 // NOT on a door tile → none.
-assert.equal(buildingDoorTrigger([door('open')], 11, 10, 'up', T).action, 'none', 'off the threshold → none');
+assert.equal(buildingDoorTrigger([door('open')], 11, 10, 'up', T).action, 'none', 'off the threshold (to the side) → none');
+
+// RESPONSIVE ENTRY: the APPROACH tile (one tile back from an up-door = below it) + facing the door → enter,
+// so you don't need a pixel-perfect threshold landing. Wrong facing on the approach still WAITS (no false entry).
+assert.equal(buildingDoorTrigger([door('open')], 10, 11, 'up', T).action, 'enter', 'approach tile + facing door → enter (forgiving)');
+assert.equal(buildingDoorTrigger([door('open')], 10, 11, 'right', T).action, 'wait', 'approach tile + facing along → wait (no false entry walking past)');
+assert.equal(buildingDoorTrigger([door('open')], 10, 12, 'up', T).action, 'none', 'two tiles back → none (only threshold + one approach)');
+for (const o of [{ dy: -40, dx: 0, face: 'up', ax: 10, ay: 11 }, { dy: 40, dx: 0, face: 'down', ax: 10, ay: 9 }, { dy: 0, dx: -40, face: 'left', ax: 11, ay: 10 }, { dy: 0, dx: 40, face: 'right', ax: 9, ay: 10 }]) {
+  assert.equal(buildingDoorTrigger([door('open', o.dy, o.dx)], o.ax, o.ay, o.face, T).action, 'enter', `approach (${o.ax},${o.ay}) + facing ${o.face} → enter`);
+}
 
 // THE REGRESSION: a mismatch returns 'wait' (caller must NOT consume) — then facing the door on the SAME tile
 // enters. (Before the fix this path consumed the trigger and the player was stranded.)
