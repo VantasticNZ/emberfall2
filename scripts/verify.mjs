@@ -948,6 +948,28 @@ const tile = (px) => Math.round(px / TILE);
   else ok('child-hair-tracks-head (live-animation): every frame of idle/walk/attack × all directions keeps the hair crown within 1px of the head crown — no walk bounce, no attack hair-swing');
 }
 
+// 25f) SHOP-PRICES + DIALOGUE TOKENS — Van saw Bram's sword as a literal "(Price)": the `{price:steel_sword}`
+//      template was only filled in RegionScene, not the live OverworldScene. This gate asserts: every shop
+//      stock item resolves a real numeric price; every {price:id} token in NPC/quest dialogue is a real item;
+//      and OverworldScene actually applies _template (text + labels) + handles `buy:` — so no literal token,
+//      and a dialogue-shop purchase isn't a no-op.
+{
+  const offenders = [];
+  for (const sh of SHOPS) for (const st of (sh.stock || [])) {
+    let p; try { p = buyPrice(st.item, sh.region, 5); } catch (e) { p = NaN; }
+    if (!(p > 0)) offenders.push(`${sh.id}: '${st.item}' has no numeric buy price`);
+  }
+  const srcs = [];
+  for (const R of REGIONS) for (const n of (R.npcs || [])) if (n.social) srcs.push(JSON.stringify(n.social));
+  for (const q of (Array.isArray(QUESTS) ? QUESTS : [])) if (q.dialogue) srcs.push(JSON.stringify(q.dialogue));
+  for (const s of srcs) for (const m of s.matchAll(/\{price:(\w+)\}/g)) { try { itemDef(m[1]); } catch (e) { offenders.push(`{price:${m[1]}} references a non-item`); } }
+  const ow = readFileSync(join(ROOT, 'src/scenes/OverworldScene.js'), 'utf8');
+  if (!/_template\(node\.text\)/.test(ow) || !/_template\(v\.opt\.label\)/.test(ow)) offenders.push('OverworldScene does not apply _template to dialogue text/labels — {price:} tokens render literally as "(Price)"');
+  if (!/startsWith\('buy:'\)/.test(ow)) offenders.push('OverworldScene has no buy: handler — dialogue-shop purchases no-op');
+  if (offenders.length) fail('SHOP-PRICES / DIALOGUE-TOKENS broken:' + offenders.map((v) => '\n      ' + v).join(''));
+  else ok('shop-prices: every shop item resolves a numeric price; every {price:} dialogue token is a real item + OverworldScene fills it (no literal "(Price)") + dialogue-shop buy wired');
+}
+
 // L2 DIALOG-SPEAKER-PRESENT (GAME-LAWS L2) — no disembodied speakers. A dialog node's named speaker, IF it is
 //   a PLACED NPC (a real wandering NPC somewhere), must be placed in a region the quest's GIVER is also in —
 //   so the line fires only where that NPC is present. (The bug: Bram, placed at the GH forge, spoke in M1

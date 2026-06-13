@@ -1346,7 +1346,7 @@ export class OverworldScene extends Phaser.Scene {
   _renderShop() {
     if (!this._shopOpen) return;
     const sell = this._shopMode === 'sell';
-    this._shopTitle.setText(`${this._shopName}   [${sell ? 'SELL' : 'BUY'}]`);
+    this._shopTitle.setText(`${this._shopName}    ${sell ? '[ SELL ]  ·  buy (TAB)' : '[ BUY ]  ·  sell (TAB)'}`);   // the BUY/SELL toggle is always visible + labelled
     this._shopGold.setText(`Your gold: ${this.inv.gold}g`);
     this._shopHint.setText(`↑↓ choose · E ${sell ? 'sell' : 'buy'} · TAB ${sell ? 'buy' : 'sell'} · B/Q close`);
     this._shopRows.forEach((t, i) => {
@@ -1478,6 +1478,25 @@ export class OverworldScene extends Phaser.Scene {
   // ===========================================================================
   _dlgCtx() { return { inv: this.inv, karma: this.karma, quests: this.quests, engine: this.quests, onSet: (cmd) => this._onDlgSet(cmd), onPledge: (opt) => this._onPledge(opt) }; }   // engine: a `choice:{quest,id}` fires the quest fork; onPledge: a `defer:true` option pledges the choice to the ACTION (L6)
 
+  // DIALOGUE TEMPLATING — {price:itemId} → the live buy price (region-adjusted). Ported from RegionScene: the game
+  // runs on OverworldScene, where it was MISSING, so dialogue-shop tokens (Bram's steel sword) rendered LITERALLY
+  // as "(Price)". Applied to every node's text + every option label.
+  _template(str) {
+    if (!str) return str;
+    const region = (this.region && this.region.key) || 'Greenhollow';
+    return String(str).replace(/\{price:(\w+)\}/g, (_, id) => String(buyPrice(id, region, 5)));
+  }
+  // A dialogue-shop BUY (e.g. Bram's `set:'buy:steel_sword'`) — OverworldScene had no handler, so the purchase
+  // was a silent no-op. Buys at the live price, honours the child weapon age-gate, persists.
+  _dlgBuy(itemId) {
+    const it = itemDef(itemId); if (!it) return;
+    if (this.isChild && ['weapon', 'armour', 'shield'].includes(it.type)) { this._sfx('sfx_deny', 0.8); this._banner('"That\'s no blade for a child," he says, and won\'t sell it.', 1800); return; }
+    const price = buyPrice(itemId, (this.region && this.region.key) || 'Greenhollow', 5);
+    if (this.inv.gold < price) { this._sfx('sfx_deny', 0.8); this._banner('Not enough gold.', 1200); return; }
+    this.inv.addGold(-price); this.inv.add(itemId, 1); if (this.inv.save) this.inv.save();
+    this._sfx('sfx_coin', 0.8); this._banner(`Bought ${it.name} for ${price}g.`, 1400);
+  }
+
   // L6 ACTION-BASED KARMA — a deferred dialogue option records the PLEDGE (which fork the player intends) but
   // does NOT move karma/deeds yet. The deed fires from the ACTION handler when the doing actually happens.
   _onPledge(opt) {
@@ -1512,6 +1531,7 @@ export class OverworldScene extends Phaser.Scene {
     // option — so a multi-stop errand (accept here, do the thing there) works on the existing engine.
     else if (cmd.startsWith('advance:')) { const q = cmd.slice(8); if (this.quests.status(q) === 'active') { this.quests.advance(q); this._refreshTracker && this._refreshTracker(); } }
     else if (cmd.startsWith('complete:')) { const q = cmd.slice(9); if (this.quests.status(q) === 'active') { this.quests.complete(q); this._grantQuestReward(q); } }
+    else if (cmd.startsWith('buy:')) this._dlgBuy(cmd.slice(4));   // a dialogue-shop purchase (e.g. Bram's steel sword)
   }
 
   // DOOR-SYSTEM — the CLOSED / LOCKED entry choice (the morality entrance). Walking into a shut door ALWAYS
@@ -1830,7 +1850,7 @@ export class OverworldScene extends Phaser.Scene {
   _renderNode() {
     const node = this._dlg && this._dlg.node(); if (!node) return this._closeDialogue();
     this._buildPortrait(node.speaker || null);
-    this.dlgName.setText(node.speaker || '—'); this.dlgBody.setText(node.text || '');
+    this.dlgName.setText(node.speaker || '—'); this.dlgBody.setText(this._template(node.text) || '');
     const ctx = { inv: this.inv, karma: this.karma };
     this._optView = this._dlg.options().map((opt, idx) => ({ opt, idx, st: Social.state(opt, ctx), tag: Social.tag(opt) })).filter((v) => v.st !== 'hidden');
     if (this._optView.length && this._optView[this._selOpt] && this._optView[this._selOpt].st === 'locked') { const f = this._optView.findIndex((v) => v.st !== 'locked'); this._selOpt = f >= 0 ? f : 0; }
@@ -1840,7 +1860,7 @@ export class OverworldScene extends Phaser.Scene {
     const view = this._optView || []; this._optTexts.forEach((t) => t.destroy()); this._optTexts = [];
     view.forEach((v, i) => {
       const locked = v.st === 'locked', sel = i === this._selOpt && !locked;
-      const t = this.add.text(this._dlgTextX, 344 + i * 20, `${sel ? '▶ ' : '  '}${view.length > 1 ? `${i + 1}. ` : ''}${v.tag}${v.opt.label}`, { fontFamily: 'monospace', fontSize: '13px', color: locked ? '#6b6275' : sel ? '#ffe66d' : v.tag ? '#8fd6ff' : '#cfe8d6' }).setScrollFactor(0).setDepth(DEPTH.OVERLAY + 12);
+      const t = this.add.text(this._dlgTextX, 344 + i * 20, `${sel ? '▶ ' : '  '}${view.length > 1 ? `${i + 1}. ` : ''}${v.tag}${this._template(v.opt.label)}`, { fontFamily: 'monospace', fontSize: '13px', color: locked ? '#6b6275' : sel ? '#ffe66d' : v.tag ? '#8fd6ff' : '#cfe8d6' }).setScrollFactor(0).setDepth(DEPTH.OVERLAY + 12);
       this.dlgBox.add(t); this._optTexts.push(t);
     });
     this.dlgHint.setText(view.length > 1 ? '↑↓ pick · E confirm · B close' : 'E continue ▸ · B close');
