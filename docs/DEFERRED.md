@@ -62,6 +62,19 @@ systems (victorian set) on the greybox streets; (3) interiors per SPEC-INTERIORS
 (4) cast per the coast ROLE PALETTE (keeper/guard/fisherfolk) on NpcLife schedules + topics; (5) music zone =
 coast-storm bed (mus_coast) per Van's map; (6) traversal rule held + gates green; pixel-truth + VAN-TEST + frozen
 tables after every commit.
+**ASSET/DECISION STATUS (audited 2026-06-13, this WS-A pass — NOT built; do-not-fake held):**
+- (5) music: **DONE** — `mus_coast` is already mapped for the Coast region (`_musicForRegion`).
+- (1) terrain: **part-buildable** — owned terrain is cliff/dirt/grass/rock; NO sand/water set is wired, but
+  sand+water tiles exist in the owned LPC atlas `terrain-v7.png` (croppable, like the dirt/grass crops were) —
+  a build prerequisite, not a blocker.
+- (1) coast PROPS (wreck/driftwood/dock/net/boat): **MISSING** from every owned library → fetch (OGA LPC
+  beach/harbour set) or commission. A "tidewreck coast" can't read right without these.
+- (2) buildings: the victorian set is in `asset-library/2d/buildings/lpc-victorian` (NOT extracted to
+  public/art) → an extract+ledger pass; the inline LAYOUT is a design decision.
+- (4) cast: the coast ROLE PALETTE (keeper/guard/fisherfolk) needs the spec + placement decisions.
+- **Why not built this run:** a convincing coast needs the sand/water crop + the MISSING coast props + a town
+  layout/cast decision + eyes-on feel (HARD RULE 9). Building it from owned bits = a dirt-channel-with-barrels
+  fake → violates do-not-fake. Held for a focused eyes-on session; music already in place.
 *Each: place the built buildings/NPCs/interior-doors INLINE in the host region at the map position;
 remove the enter-door; add to gate #19 `SEAMLESS_DONE`; make the town a no-aggro safe hub; navGate + perf
 + eyes-on walk-through.* **Polish:** widen the inline streets (Mirefen's are navigable but tight); the
