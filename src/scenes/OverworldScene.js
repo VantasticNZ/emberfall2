@@ -1144,10 +1144,14 @@ export class OverworldScene extends Phaser.Scene {
     if (n.shop) { this._openShop(n.shop, n.name); return; }   // a keeper at the counter → the buy menu (shop buying v1)
     // an NPC may offer ONE quest (n.quest) OR several (n.quests) — pick the first that's offerable now
     // (so a slice giver can carry GH-arc + childhood quests without clobbering either; Decision A).
-    const qid = (n.quest && ['available', 'active'].includes(this.quests.status(n.quest))) ? n.quest
+    let qid = (n.quest && ['available', 'active'].includes(this.quests.status(n.quest))) ? n.quest
       : (n.quests || []).find((id) => ['available', 'active'].includes(this.quests.status(id)));
-    const st = qid ? this.quests.status(qid) : null;
-    if (qid && (st === 'available' || st === 'active')) this._startQuestDialogue(qid);
+    let st = qid ? this.quests.status(qid) : null;
+    // A questNode NPC (e.g. Bram at the forge) hosts a LATER beat of a multi-location quest: engage only once
+    // the quest is ACTIVE (started by the first giver). While it's merely 'available' here, greet instead —
+    // never skip the first beat (the L4 block keeps the player from reaching this beat early anyway).
+    if (qid && n.questNode && st === 'available') { qid = null; st = null; }
+    if (qid && (st === 'available' || st === 'active')) this._startQuestDialogue(qid, n.questNode);
     else if (n.social) this._startDialogue(n.social, n.name);
     else if (n.topics) this._openTopics(n);   // a named villager with topics → the selectable topic menu
     else if (st === 'complete' && n.done) this._startGreeting(n.name, n.done);
@@ -1585,10 +1589,14 @@ export class OverworldScene extends Phaser.Scene {
     this._activeQuest = null; this._dlg = new Dialogue({ start: 'g0', nodes }, this._dlgCtx()); this._openDlg();
   }
   _startDialogue(graph, speakerName) { this._activeQuest = null; this._dlg = new Dialogue(graph, this._dlgCtx()); this._openDlg(); }
-  _startQuestDialogue(qid) {
+  _startQuestDialogue(qid, startNode) {
     const def = this.quests.defs[qid]; if (!def || !def.dialogue) return;
     if (this.quests.status(qid) === 'available') this.quests.start(qid);
-    this._activeQuest = qid; this._dlg = new Dialogue(def.dialogue, this._dlgCtx()); this._openDlg();
+    this._activeQuest = qid;
+    // startNode lets a SECOND NPC host a later beat of a multi-location quest (e.g. Bram opens M1 at the
+    // 'forge' node, where he is placed) — L2 story-claim consistency.
+    const graph = startNode && def.dialogue.nodes[startNode] ? { ...def.dialogue, start: startNode } : def.dialogue;
+    this._dlg = new Dialogue(graph, this._dlgCtx()); this._openDlg();
   }
   _openDlg() { this._selOpt = 0; Movement.stop(this.player); this.dlgBox.setVisible(true); this._clampPanel(this.dlgBox, 20, 266, 728, 158); this._renderNode(); }   // dialog box already on the uiCamera; clamp for narrow windows
   _renderNode() {
@@ -1616,6 +1624,10 @@ export class OverworldScene extends Phaser.Scene {
     this._dlg.select(v ? v.idx : this._selOpt); this._selOpt = 0;
     // M9 "Raise the Lantern" at the guardian beat → the real boss fight (mirror MarshScene)
     if (wasQuest === 'M9' && wasNode === 'guardian') { this._startBossFight(); return; }
+    // L2 STORY-CLAIM split: M1's cottage beat (Mara) ENDS here. The engine tree links wake→forge for the unit
+    // tests, but in the running game Bram's `forge` line must play AT the forge (where he is placed), not in the
+    // cottage with him absent. So close after `wake`; M1 (worldDriven) stays active until Bram completes it.
+    if (wasQuest === 'M1' && wasNode === 'wake') return this._closeDialogue();
     if (this._dlg.done || !this._dlg.node()) this._closeDialogue(); else this._renderNode();
   }
   _closeDialogue() {
@@ -1632,9 +1644,12 @@ export class OverworldScene extends Phaser.Scene {
   _grantQuestReward(qid) {
     const def = this.quests.defs[qid]; const r = (def && def.reward) || null; if (!r) return;
     const got = [];
-    const nameOf = (id) => { const it = itemDef(id); return it ? it.name : id; };
+    const known = (id) => { try { return !!itemDef(id); } catch (_) { return false; } };   // itemDef THROWS on unknown
+    const nameOf = (id) => { try { const it = itemDef(id); return it ? it.name : id; } catch (_) { return id; } };
     if (r.gold) { this.inv.addGold(r.gold); got.push(`${r.gold}g`); }
-    for (const it of [r.item, ...(r.items || []), r.weapon].filter(Boolean)) { if (this.inv.add(it)) got.push(nameOf(it)); }
+    // a reward item must be a REGISTERED item — skip (don't crash) a narrative-only keepsake (e.g. M1's
+    // wooden_toy is a story beat, not an inventory item). Guards quest completion against an unknown-item throw.
+    for (const it of [r.item, ...(r.items || []), r.weapon].filter(Boolean)) { if (known(it) && this.inv.add(it)) got.push(nameOf(it)); }
     if (r.weapon && this.inv.equip) this.inv.equip(r.weapon);
     if (r.skill && this.inv.learnSkill) this.inv.learnSkill(r.skill);
     if (this.inv.save) this.inv.save();

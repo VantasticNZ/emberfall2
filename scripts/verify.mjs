@@ -59,6 +59,7 @@ import { item as itemDef } from '../src/data/items/index.js';
 import { buildingDeed } from '../src/data/buildingDeeds.js';
 import { REGIONS, TILE } from '../src/data/worldmap.js';
 import { PARTS } from '../src/data/assets.js';
+import { LOCATION_CLAIMS } from '../src/data/quests/greenhollow.js';
 import { PROPS, solidBox } from '../src/data/assets.js';
 import { TERRAIN } from '../src/data/terrainTiles.js';
 import { OPAQUE_BOUNDS } from '../src/data/opaqueBounds.js';
@@ -804,6 +805,23 @@ const tile = (px) => Math.round(px / TILE);
   }
   if (bad.length) fail('L2 DISEMBODIED SPEAKER (not present where the dialog plays):' + bad.map((v) => '\n      ' + v).join(''));
   else ok('dialog-speaker-present (L2): every placed-NPC dialog speaker shares a region with the quest giver — no disembodied speakers');
+}
+
+// L2 LOCATION-CLAIMS (GAME-LAWS L2 extension) — a dialog line that claims WHERE a named NPC is must match the
+// NPC's actual placement. The audited manifest (LOCATION_CLAIMS) maps each claim → {npc, region}; assert the
+// NPC is placed in that region. (The bug: Mara's M1 line said Bram was at the forge while he stood in the
+// cottage; fixed by placing Bram at the forge. This gate stops that class of contradiction recurring.)
+{
+  const placed = {};   // name -> Set(region keys)
+  for (const R of REGIONS) for (const n of (R.npcs || [])) if (n.name) (placed[n.name] = placed[n.name] || new Set()).add(R.key);
+  const bad = [];
+  for (const c of LOCATION_CLAIMS) {
+    const where = placed[c.npc];
+    if (!where) bad.push(`${c.quest}: claims '${c.npc}' at ${c.region} but ${c.npc} is placed NOWHERE`);
+    else if (!where.has(c.region)) bad.push(`${c.quest}: claims '${c.npc}' at ${c.region} but ${c.npc} is placed in [${[...where].join(',')}] — line: ${c.line}`);
+  }
+  if (bad.length) fail('L2 LOCATION-CLAIM (line claims a place the NPC is not):' + bad.map((v) => '\n      ' + v).join(''));
+  else ok(`location-claims (L2): all ${LOCATION_CLAIMS.length} audited NPC-location claim(s) match the NPC's actual placement — no "X is at the forge" while X is elsewhere`);
 }
 
 // 25a2) QUEST-OPENER-IS-GIVER (dialog-routing item 3) — the NPC you TALK TO must speak first / own the box.

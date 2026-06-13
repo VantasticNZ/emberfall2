@@ -1146,10 +1146,8 @@ export const MARA_COTTAGE = interiorRegion({
   npcs: [
     { tx: 6, ty: 4, facing: 'down', name: 'Mara', speed: 0, expression: 'happy',
       parts: ['body_fem', 'head_fem', 'brows_chestnut', 'hair_bob_blonde', 'shirt_forest', 'pants_brown', 'shoes_brown_fem'], quests: ['M1'] },
-    // L2 — Bram is HOME this morning (he speaks in M1, so he must be PRESENT in the same scene). Father/smith.
-    { tx: 3, ty: 3, facing: 'right', name: 'Bram', speed: 0, expression: 'neutral',
-      parts: ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_parted_gray', 'beard_gray', 'shirt_leather', 'pants_black', 'shoes_brown'],
-      greeting: ["*ruffles your hair* There's my little terror. Mind your mother, and mind the day."] },
+    // L2 STORY-CLAIM: Bram is NOT here — Mara's M1 line says he's at the forge, so he is PLACED at the forge
+    // (GH_FORGE npcs). The opening sends you out to find him there; his M1 forge-beat plays where he stands.
   ],
   chests: [],
 });

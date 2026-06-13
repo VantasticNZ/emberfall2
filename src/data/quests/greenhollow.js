@@ -11,6 +11,17 @@
 // terminal option applies a quest choice via { choice: { quest, id } }.
 // =============================================================================
 
+// L2 LOCATION-CLAIM MANIFEST (GAME-LAWS L2 extension) — every dialog line that asserts WHERE a named NPC is,
+// audited from the childhood (M1-M7) + GH1-4 dialogue. The line is AUTHORITATIVE: the NPC must be PLACED in the
+// claimed region. The `location-claims` verify gate checks each entry against the live placements, so a line
+// can never again claim an NPC is somewhere they are not (the Bram-at-the-forge bug). Place/item tasks ("the
+// coin-purse by the market", "the cave at the meadow", "the orchard den", brook chores) claim no NPC → exempt.
+export const LOCATION_CLAIMS = [
+  { quest: 'M1', npc: 'Bram',  region: 'Greenhollow', line: "Bram's down at the forge already, asking after you. (Bram is at the forge building, tx10,24)" },
+  { quest: 'M1', npc: 'Bram',  region: 'Greenhollow', line: "Find Bram at the forge. (step)" },
+  { quest: 'M7', npc: 'Hodge', region: 'Greenhollow', line: "see Hodge. You'll not go unarmed. (the GH smith, at the forge)" },
+];
+
 export const GREENHOLLOW_CHILDHOOD = [
   // ---------------------------------------------------------------------------
   // M1 — A Greenhollow Morning (tutorial; the warm world, before the loss)
@@ -18,6 +29,8 @@ export const GREENHOLLOW_CHILDHOOD = [
   {
     id: 'M1', title: 'A Greenhollow Morning', region: 'Greenhollow', act: 1,
     type: 'main', tone: 'wholesome', perm: false,
+    worldDriven: true,   // L2 story-claim: the opening SPANS cottage→forge — Mara sends you out, Bram (placed AT
+                         // the forge, per his line) completes it. So it can't auto-complete on the cottage talk.
     unlocks: ['M2'],
     reward: { item: 'wooden_toy' }, // Bram's keepsake (callback item; M6)
     steps: [
@@ -34,17 +47,22 @@ export const GREENHOLLOW_CHILDHOOD = [
         note: 'A cooler, lonelier childhood tone.' },
     ],
     dialogue: { start: 'wake', nodes: {
+      // BEAT 1 — Mara, in the cottage. She sends you to the forge (the claim is now TRUE: Bram IS at the forge).
+      // The engine tree links wake→forge (so the whole arc walks in one pass for the unit tests); the SCENE
+      // intercepts after `wake` and CLOSES the cottage talk (it does not play Bram's line in the cottage) —
+      // you then walk to the forge and Bram hosts the `forge` node where he stands. See _dlgConfirm M1 split.
       wake: { speaker: 'Mara', text:
         "Up you get, sleepyhead — the morning's wasting and the hens won't feed themselves. " +
-        "Bram's down at the forge already, asking after you.",
-        options: [ { label: 'Coming, Mara!', to: 'forge' } ] },
+        "Bram's down at the forge already, asking after you. Go on and see him.",
+        options: [ { label: 'Coming, Mara! (off to the forge)', to: 'forge' } ] },
+      // BEAT 2 — Bram, AT the forge (his own placement). Talking to him here completes M1.
       forge: { speaker: 'Bram', text:
         "There's my little terror. Here — I carved you something. Not a sword, mind; you'll get " +
         "splinters and that's adventure enough at your age. Now: mind the hens, and mind Old Edda — " +
         "she bites worse'n the hens.",
         options: [
-          { label: '(Run and say hello to everyone in the square.)', choice: { quest: 'M1', id: 'greet' }, end: true },
-          { label: '(Keep your head down and slip past.)', choice: { quest: 'M1', id: 'ignore' }, end: true },
+          { label: '(Run and say hello to everyone in the square.)', choice: { quest: 'M1', id: 'greet' }, set: 'complete:M1', end: true },
+          { label: '(Keep your head down and slip past.)', choice: { quest: 'M1', id: 'ignore' }, set: 'complete:M1', end: true },
         ] },
     } },
   },
