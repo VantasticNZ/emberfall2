@@ -841,6 +841,28 @@ const tile = (px) => Math.round(px / TILE);
   else ok('m2-physical: Henrietta is a real chase — M2 advances by interact/catch (objective sites, no advance:M2; coop + hen placed; complete:M2 on the choice)');
 }
 
+// 25c) ITEM-ICONS (buy/sell + inventory PICTURES, not just names) — every id in BootScene.ITEM_ICONS must have a
+//      real public/art/icons/<id>.png, be a REAL game item, and the scene must wire the pictures into the shop
+//      rows + the menu Items list (itemIconKey). Items WITHOUT an icon fall back to their name (honest).
+{
+  const offenders = [];
+  const boot = readFileSync(join(ROOT, 'src/scenes/BootScene.js'), 'utf8');
+  const m = boot.match(/export const ITEM_ICONS\s*=\s*\[([^\]]*)\]/);
+  const ids = m ? [...m[1].matchAll(/'([^']+)'/g)].map((x) => x[1]) : [];
+  if (!ids.length) offenders.push('BootScene.ITEM_ICONS is empty/missing');
+  for (const id of ids) {
+    if (!existsSync(join(ROOT, `public/art/icons/${id}.png`))) offenders.push(`icon file missing: public/art/icons/${id}.png`);
+    if (!(Array.isArray(ITEMS) ? ITEMS.some((it) => it.id === id) : false)) offenders.push(`icon '${id}' is not a real game item`);
+  }
+  if (!/this\.load\.image\(`icon_\$\{id\}`/.test(boot)) offenders.push('BootScene does not load the item icons');
+  const ow = readFileSync(join(ROOT, 'src/scenes/OverworldScene.js'), 'utf8');
+  if (!/itemIconKey\(/.test(ow)) offenders.push('OverworldScene never resolves itemIconKey (icons not wired)');
+  if (!/_shopIcons/.test(ow)) offenders.push('shop buy/sell rows have no icon column (_shopIcons)');
+  if (!/_menuIcons/.test(ow)) offenders.push('menu Items list has no icon column (_menuIcons)');
+  if (offenders.length) fail('ITEM-ICONS broken:' + offenders.map((v) => '\n      ' + v).join(''));
+  else ok(`item-icons: ${ids.length} eliza-objects item pictures wired into the buy/sell + inventory rows (rest fall back to name)`);
+}
+
 // L2 DIALOG-SPEAKER-PRESENT (GAME-LAWS L2) — no disembodied speakers. A dialog node's named speaker, IF it is
 //   a PLACED NPC (a real wandering NPC somewhere), must be placed in a region the quest's GIVER is also in —
 //   so the line fires only where that NPC is present. (The bug: Bram, placed at the GH forge, spoke in M1

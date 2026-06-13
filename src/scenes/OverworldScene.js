@@ -28,6 +28,9 @@ import { TimeOfDay } from '../systems/TimeOfDay.js';
 import { Inventory } from '../systems/Inventory.js';
 import { NpcLife } from '../systems/NpcLife.js';
 import { Interaction } from '../systems/Interaction.js';
+import { ITEM_ICONS } from './BootScene.js';   // item ids with an eliza-objects icon (buy/sell + inventory pictures)
+const ITEM_ICON_SET = new Set(ITEM_ICONS);
+const itemIconKey = (id) => (ITEM_ICON_SET.has(id) ? `icon_${id}` : null);   // texture key or null (name fallback)
 import { buildingDoorTrigger } from '../systems/doorTrigger.js';
 import { stageAt, travelProgress } from '../systems/repairPacing.js';
 import { stepObjective, objectiveSatisfied, objectiveArrowTarget } from '../systems/questObjective.js';
@@ -1316,10 +1319,11 @@ export class OverworldScene extends Phaser.Scene {
     this._shopGold = this.add.text(540, 72, '', { fontFamily: 'monospace', fontSize: '13px', color: '#9fd8a0' }).setScrollFactor(0);
     this._shopHint = this.add.text(34, 336, '', { fontFamily: 'monospace', fontSize: '11px', color: '#7a9a7a' }).setScrollFactor(0);
     this._shopBox.add([bg, this._shopTitle, this._shopGold, this._shopHint]);
-    this._shopRows = [];
+    this._shopRows = []; this._shopIcons = [];
     for (let i = 0; i < 11; i++) {   // fixed rows (the buy/sell list lengths differ; render into these)
+      const ic = this.add.image(48, 100 + i * 22 + 9, 'icon_bread').setScale(0.6).setScrollFactor(0).setVisible(false);   // per-row item picture (eliza-objects), set in _renderShop
       const t = this.add.text(40, 100 + i * 22, '', { fontFamily: 'monospace', fontSize: '14px', color: '#cfe8d6' }).setScrollFactor(0);
-      this._shopRows.push(t); this._shopBox.add(t);
+      this._shopIcons.push(ic); this._shopRows.push(t); this._shopBox.add(ic); this._shopBox.add(t);
     }
     this._registerUIPanel(this._shopBox, 20, 60, 728, 300);   // on the zoom-1 uiCamera, clamped on-screen
     this._renderShop();
@@ -1347,7 +1351,12 @@ export class OverworldScene extends Phaser.Scene {
     this._shopHint.setText(`↑↓ choose · E ${sell ? 'sell' : 'buy'} · TAB ${sell ? 'buy' : 'sell'} · B/Q close`);
     this._shopRows.forEach((t, i) => {
       const s = this._shopStock[i];
-      if (!s) { t.setText(''); return; }
+      const ic = this._shopIcons[i];
+      if (!s) { t.setText(''); if (ic) ic.setVisible(false); return; }
+      // per-row picture (eliza-objects) when we have one; else the row just indents back + shows the name
+      const key = itemIconKey(s.id);
+      if (ic) { if (key) { ic.setTexture(key).setVisible(true); } else ic.setVisible(false); }
+      t.setX(key ? 64 : 40);
       const sel = i === this._shopSel;
       if (sell) {
         t.setText(`${sel ? '▶ ' : '  '}${s.name.padEnd(20)} ${String(s.price).padStart(3)}g   (have ${s.have})`);
@@ -1405,6 +1414,13 @@ export class OverworldScene extends Phaser.Scene {
     this._menuBody = this.add.text(X + 18, Y + 52, '', { fontFamily: 'monospace', fontSize: '14px', color: '#e8f5e0', wordWrap: { width: W - 40 }, lineSpacing: 5 }).setScrollFactor(0);
     this._menuHint = this.add.text(X + 18, Y + H - 26, '←→ tab · ↑↓ scroll · Enter (Settings) · B/Esc close', { fontFamily: 'monospace', fontSize: '11px', color: '#7a9a7a' }).setScrollFactor(0);
     this._menuBox.add([bg, this._menuTabsTxt, this._menuBody, this._menuHint]);   // all CHILDREN of the box (one registered panel)
+    // Items tab — per-row PICTURE (eliza-objects) + label, populated in _renderMenu. Hidden on other tabs.
+    this._menuRows = []; this._menuIcons = []; this._menuRowY0 = Y + 96; this._menuRowH = 23;
+    for (let i = 0; i < 11; i++) {
+      const ic = this.add.image(X + 30, this._menuRowY0 + i * this._menuRowH + 9, 'icon_bread').setScale(0.62).setScrollFactor(0).setVisible(false);
+      const t = this.add.text(X + 50, this._menuRowY0 + i * this._menuRowH, '', { fontFamily: 'monospace', fontSize: '14px', color: '#e8f5e0' }).setScrollFactor(0).setVisible(false);
+      this._menuIcons.push(ic); this._menuRows.push(t); this._menuBox.add(ic); this._menuBox.add(t);
+    }
     this._registerUIPanel(this._menuBox, X, Y, W, H);
     this._sfx('sfx_select', 0.5); this._renderMenu();
   }
@@ -1412,6 +1428,7 @@ export class OverworldScene extends Phaser.Scene {
     if (!this._menuOpen) return; this._menuOpen = false;
     if (this._menuBox) { this._unregisterUIPanel(this._menuBox); this._menuBox.destroy(true); }
     this._menuBox = this._menuTabsTxt = this._menuHint = this._menuBody = null;
+    this._menuRows = null; this._menuIcons = null;
     if (this._fullMap) { this._fullMap.setVisible(false).setDepth(DEPTH.OVERLAY + 2); }
     if (this.hud2) this.hud2.setVisible(!this._hudHidden); if (this._helpText) this._helpText.setVisible(true);
     this._sfx('sfx_select', 0.5);
@@ -1427,12 +1444,23 @@ export class OverworldScene extends Phaser.Scene {
     if (this._fullMap) this._fullMap.setVisible(onMap).setDepth(DEPTH.OVERLAY + 14);   // the Map tab = the full world map (reused), raised above the menu
     this._menuBox.setVisible(!onMap);                                                  // hide the menu panel under the full-screen map; ←→ returns, B/Esc closes
     const nm = (id) => { if (!id) return '(none)'; try { return itemDef(id).name; } catch (_) { return id; } };
+    // hide the per-row item pictures/labels by default; only the Items tab repopulates them
+    (this._menuRows || []).forEach((t) => t.setVisible(false));
+    (this._menuIcons || []).forEach((ic) => ic.setVisible(false));
     let body = '';
     if (this._menuTab === 0) {
       const ids = Object.keys(this.inv.items || {});
-      const rows = ids.slice(this._menuScroll, this._menuScroll + 12).map((id) => `  • ${nm(id)}  ×${this.inv.items[id]}`);
-      body = `Gold:  ${this.inv.gold}g       Carried: ${this.inv.count()} item(s)\n\n` + (ids.length ? rows.join('\n') : '  (empty — no items yet)');
-      if (ids.length > this._menuScroll + 12) body += '\n  …(↓ for more)';
+      body = `Gold:  ${this.inv.gold}g       Carried: ${this.inv.count()} item(s)`;
+      if (!ids.length) body += '\n\n  (empty — no items yet)';
+      ids.slice(this._menuScroll, this._menuScroll + 11).forEach((id, i) => {
+        const key = itemIconKey(id), t = this._menuRows[i], ic = this._menuIcons[i];
+        if (key) ic.setTexture(key).setVisible(true); else ic.setVisible(false);   // picture when we have one; else a bullet
+        t.setText(`${key ? '' : '• '}${nm(id)}  ×${this.inv.items[id]}`).setVisible(true);
+      });
+      // "more" goes on the HINT line (appending to the top header would overlap row 0)
+      if (this._menuHint) this._menuHint.setText(ids.length > this._menuScroll + 11
+        ? `↓ ${ids.length - this._menuScroll - 11} more · ←→ tab · ↑↓ scroll · B/Esc close`
+        : '←→ tab · ↑↓ scroll · Enter (Settings) · B/Esc close');
     } else if (this._menuTab === 1) {
       const st = this.inv.stats(), ks = this.karma.getStatus();
       body = `WORN / HELD\n  Weapon:  ${nm(this.inv.equipped('weapon'))}\n  Shield:  ${nm(this.inv.equipped('shield'))}\n\n`

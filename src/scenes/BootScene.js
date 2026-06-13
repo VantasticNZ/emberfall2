@@ -13,6 +13,10 @@ export const MONSTER_SHEETS = [
 // LPC row order (same as the player Character's DIR_ROW): up=0, left=1, down=2, right=3.
 const MON_DIR_ROW = { up: 0, left: 1, down: 2, right: 3 };
 
+// Item ids that HAVE an extracted eliza-objects icon (public/art/icons/<id>.png). The SSOT for which buy/sell
+// + inventory rows show a picture; everything else falls back to its name. Shared with OverworldScene (ITEM_ICON_SET).
+export const ITEM_ICONS = ['bread', 'cheese', 'apple', 'stew', 'meat_pie', 'fish', 'iron_ore', 'bog_iron', 'timber'];
+
 export class BootScene extends Phaser.Scene {
   constructor() { super('Boot'); }
 
@@ -56,6 +60,9 @@ export class BootScene extends Phaser.Scene {
     // HENRIETTA — the M2 chase hen ([LPC] Chicken Rework, daneeklu, CC-BY-3.0/GPL — see ASSET-LEDGER).
     // 4 rows = the 4 LPC directions (up/left/down/right), 4 walk frames each (128×128 → 32px frames).
     this.load.spritesheet('hen', 'art/fauna/chicken_walk.png', { frameWidth: 32, frameHeight: 32 });
+    // ITEM ICONS — inventory/buy/sell pictures (eliza-objects Small Items, OGA-BY 3.0; scripts/build_item_icons.py).
+    // Only the items eliza-objects clearly covers (food + materials); the rest show their name (honest fallback).
+    for (const id of ITEM_ICONS) this.load.image(`icon_${id}`, `art/icons/${id}.png`);
   }
 
   create() {
