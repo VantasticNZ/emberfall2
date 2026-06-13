@@ -47,6 +47,21 @@ through its streets seamlessly). Apply the SAME pattern to the rest.
 | **Saltbreak · Cribbins** | Coast (E) | next pass |
 | **Thornwell** | Emberwood (S) | next pass |
 | **Mirage Oasis** | needs a Desert region (M3) | M3 |
+
+### NEXT-AREA build (WS4 of the long-push) — CHOSEN + planned, deferred to an eyes-on session
+**Choice: COAST / SALTBREAK town** (over deepening the Marsh). Why: the Marsh (Mirefen) is already deep —
+inline town, Elder Yssa's moot-hall, Hagga, the hut interior, M8/M9; "deepening" it has no locked *what-to-add*
+spec (= design decisions). The Coast is the better-specified next build: MASTER-WORLD-SPEC + Van's map give
+Saltbreak greybox streets, and victorian-fit buildings are in the library. It is the highest-value UNBUILT
+settlement. **Deferred (not built blind this run)** because a full region is multi-commit visual/feel work that
+HARD RULE 9 reserves for Van's eyes, the inline-town conversion + cast/layout still need a few decisions
+(violating "no design decisions"), and a half-built region risks frozen-table reverts late in an unattended run.
+**Build plan (one focused session):** (1) dress TIDEWRECK_COAST terrain to coast style (sand/shingle/tide
+water/wreck props) per the region style; (2) place Saltbreak's buildings inline via the FROZEN door/sign/deed
+systems (victorian set) on the greybox streets; (3) interiors per SPEC-INTERIORS R-rules (shop/tavern/homes);
+(4) cast per the coast ROLE PALETTE (keeper/guard/fisherfolk) on NpcLife schedules + topics; (5) music zone =
+coast-storm bed (mus_coast) per Van's map; (6) traversal rule held + gates green; pixel-truth + VAN-TEST + frozen
+tables after every commit.
 *Each: place the built buildings/NPCs/interior-doors INLINE in the host region at the map position;
 remove the enter-door; add to gate #19 `SEAMLESS_DONE`; make the town a no-aggro safe hub; navGate + perf
 + eyes-on walk-through.* **Polish:** widen the inline streets (Mirefen's are navigable but tight); the
