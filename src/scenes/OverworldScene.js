@@ -1291,7 +1291,10 @@ export class OverworldScene extends Phaser.Scene {
     // A questNode NPC (e.g. Bram at the forge) hosts a LATER beat of a multi-location quest: engage only once
     // the quest is ACTIVE (started by the first giver). While it's merely 'available' here, greet instead —
     // never skip the first beat (the L4 block keeps the player from reaching this beat early anyway).
-    if (qid && n.questNode && st === 'available') { qid = null; st = null; }
+    // EXCEPTION (`questStart`): when this NPC is the quest's PRIMARY giver AND its questNode IS the opening beat
+    // (e.g. Mara starts M2 at her 'chores' briefing), it MUST be allowed to START the available quest — without
+    // this, a sole-giver questNode quest could never begin (the M2 "can't find where it starts" root cause).
+    if (qid && n.questNode && st === 'available' && !n.questStart) { qid = null; st = null; }
     if (qid && (st === 'available' || st === 'active')) this._startQuestDialogue(qid, n.questNode);
     else if (n.social) this._startDialogue(n.social, n.name);
     else if (n.topics) { this._tallyGreet(n); this._openTopics(n); }   // a named villager with topics → the selectable topic menu
@@ -1929,6 +1932,10 @@ export class OverworldScene extends Phaser.Scene {
     const view = this._optView || [], v = view[this._selOpt]; if (v && v.st === 'locked') return;
     const wasNode = this._dlg.nodeId, wasQuest = this._activeQuest;
     this._dlg.select(v ? v.idx : this._selOpt); this._selOpt = 0;
+    // RE-ENTRANT CLOSE GUARD: an option's deed/onSet can synchronously close the dialogue (e.g. M6's `time_skip`
+    // deed fires _doTimeSkip → _closeDialogue, nulling _dlg) — without this, the lines below deref a null _dlg and
+    // throw in the keydown handler (the child→adult bridge crashed on the real keypress).
+    if (!this._dlg) return;
     // M9 "Raise the Lantern" at the guardian beat → the real boss fight (mirror MarshScene)
     if (wasQuest === 'M9' && wasNode === 'guardian') { this._startBossFight(); return; }
     // L2 STORY-CLAIM split: M1's cottage beat (Mara) ENDS here. The engine tree links wake→forge for the unit

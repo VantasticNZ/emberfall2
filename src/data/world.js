@@ -174,7 +174,7 @@ export const WORLD = {
   npcs: [
     // questNode:'chores' hosts M2's BRIEFING here (Mara sets the jobs; the doing is physical). M1/GH1 have no
     // 'chores' node, so it falls back to their own start — safe across all three quests Mara carries.
-    { tx: 22, ty: 17, facing: 'down', name: 'Mara', speed: 70, expression: 'happy', parts: MARA, quests: ['GH1', 'M1', 'M2'], questNode: 'chores',
+    { tx: 22, ty: 17, facing: 'down', name: 'Mara', speed: 70, expression: 'happy', parts: MARA, quests: ['GH1', 'M1', 'M2'], questNode: 'chores', questStart: true,
       done: ['Off you go then — and mind Old Edda, she\'s in a mood this morning.'],
       schedule: sched([['dawn', 20, 16, 'chat'], ['day', 22, 17, 'tend'], ['dusk', 24, 19, 'idle'], ['night', 24, 21, 'sleep']]) },
     // L2 STORY-CLAIM: Bram is AT THE FORGE (the building is at tx10,24) — exactly where Mara's M1 line sends
