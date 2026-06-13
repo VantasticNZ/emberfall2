@@ -1,30 +1,51 @@
-# KIDS' HAIR BOUNCE — root cause: the adult hair textures are drawn for the ADULT head's per-direction
-# position. On the smaller child head the crown sits LOWER, but by a DIFFERENT amount per facing — UP ~4px,
-# left/down/right ~6px (measured: child_head_top - adult_head_top). A single constant `oy` offset (the old fix)
-# therefore mis-seats one direction by ~2px, so the hair JUMPS when the child turns/walks UP — the "bounce".
-# A per-layer oy can't vary by direction, so BAKE the per-direction shift into child-fitted hair sheets: shift
-# each direction's rows DOWN by its own amount, per frame, so the hair caps the child head identically in every
-# frame of every direction. The child_hair_* PARTS then use these baked textures with oy:0 (no runtime offset).
+# KIDS' HAIR BOUNCE / HAIR-AS-WEAPON — real root cause (live-animation decode): the old bake shifted each
+# direction's hair DOWN by a single per-direction CONSTANT. But the head bobs by a DIFFERENT amount PER FRAME,
+# and the child hair is baked from the ADULT hair animation (adult per-frame bob != child head per-frame bob).
+# A per-direction constant can't track a per-FRAME mismatch — so walk/idle mostly tracked but the ATTACK frames
+# displaced the hair 2-4px frame-to-frame (the "hair swings like a weapon"), and any per-frame drift reads as a
+# bounce on the moving child.
+#
+# FIX: seat the hair PER (direction, frame) against the CHILD HEAD's actual crown that frame. For every cell we
+# measure the child_head crown-top and the raw adult-hair crown-top, then shift the hair so its crown sits a
+# fixed CAP inset G[dir] above the head crown — EVERY frame. Result: the hair caps the head identically in every
+# frame of every state/direction (idle/walk/attack) → no bounce, no attack-swing. oy stays 0 (no runtime offset).
+# G[dir] = the natural cap inset taken from the already-good WALK frames (up 1px, others 3px).
 from PIL import Image
 import os
 FR = 64
-# LPC row order: up=0, left=1, down=2, right=3. Per-direction downward shift onto the child skull.
-SHIFT = {0: 4, 1: 6, 2: 6, 3: 6}
+G = {0: 1, 1: 3, 2: 3, 3: 3}   # LPC rows up=0,left=1,down=2,right=3 — hair-crown px above head-crown
+
+def top_opaque(img, c, r):
+    px = img.load()
+    for y in range(FR):
+        for x in range(FR):
+            if px[c * FR + x, r * FR + y][3] > 40:
+                return y
+    return None
 
 def bake(src_tex, out_dir):
     os.makedirs(out_dir, exist_ok=True)
     for st in ['idle', 'walk', 'attack']:
-        p = f'public/art/eliza/{src_tex}/{st}.png'
-        if not os.path.exists(p): continue
-        img = Image.open(p).convert('RGBA'); W, H = img.size
+        hp = f'public/art/eliza/{src_tex}/{st}.png'
+        headp = f'public/art/eliza/child_head/{st}.png'
+        if not (os.path.exists(hp) and os.path.exists(headp)):
+            continue
+        hair = Image.open(hp).convert('RGBA')
+        head = Image.open(headp).convert('RGBA')
+        W, H = hair.size
         out = Image.new('RGBA', (W, H), (0, 0, 0, 0))
         cols, rows = W // FR, H // FR
         for r in range(rows):
-            sh = SHIFT.get(r, 6)
             for c in range(cols):
-                cell = img.crop((c*FR, r*FR, c*FR+FR, r*FR+FR))
-                # paste the cell shifted DOWN by `sh` (hair lives at the top of the cell, so it stays in-frame)
-                out.paste(cell, (c*FR, r*FR + sh), cell)
+                cell = hair.crop((c * FR, r * FR, c * FR + FR, r * FR + FR))
+                rawTop = top_opaque(hair, c, r)
+                headTop = top_opaque(head, c, r)
+                if rawTop is None or headTop is None:
+                    out.paste(cell, (c * FR, r * FR), cell)
+                    continue
+                # seat the hair crown G[dir] px above this frame's head crown
+                shift = (headTop - G.get(r, 3)) - rawTop
+                out.paste(cell, (c * FR, r * FR + shift), cell)
         out.save(os.path.join(out_dir, st + '.png'))
 
 # src adult-hair tex -> baked child hair name (same colours the presets/kids reference)
@@ -38,4 +59,4 @@ STYLES = {
 }
 for src, name in STYLES.items():
     bake(src, f'public/art/eliza/{name}')
-print('child hair baked (per-direction seat: up 4px, others 6px) — no more bounce')
+print('child hair re-baked PER-FRAME (hair crown tracks the child head crown every frame; cap inset up 1px / others 3px) — no bounce, no attack-swing')

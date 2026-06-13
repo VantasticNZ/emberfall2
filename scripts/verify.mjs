@@ -914,6 +914,40 @@ const tile = (px) => Math.round(px / TILE);
   else ok('charselect-front (pixel-truth): the head row the preview renders has eye pixels (front); the back row does not; anims built at Title + Character static-frame fallback prevent the silent frame-0/back render');
 }
 
+// 25e) CHILD-HAIR-TRACKS-HEAD (LIVE-ANIMATION pixel-truth) — the prior sheet-only/paused check missed that the
+//      hair displaced 2-4px PER FRAME on the ATTACK (the "hair swings like a weapon") and could drift on the
+//      moving child (the "bounce"). This gate decodes EVERY frame of EVERY state (idle/walk/attack) × EVERY
+//      direction for each baked child-hair sheet and asserts the hair-crown tracks the child-head crown within
+//      1px across the WHOLE cycle (gap spread ≤ 1). The old per-direction-constant bake (attack spread 4) FAILS
+//      this; the per-(dir,frame) bake passes. (Decodes the exact sheet frames the sprite plays.)
+{
+  const offenders = [];
+  const FR = 64;
+  const topOpaque = (img, c, r) => { for (let y = 0; y < FR; y++) for (let x = 0; x < FR; x++) { const i = ((r * FR + y) * img.w + (c * FR + x)) * 4; if (img.data[i + 3] > 40) return y; } return -1; };
+  const states = [['idle', 3], ['walk', 8], ['attack', 7]];
+  const hairs = ['child_hair_natural', 'child_hair_black', 'child_hair_ginger', 'child_hair_blond', 'child_hair_auburn', 'child_hair_bob'];
+  const TOL = 1;   // px: max allowed gap-spread across a (state,dir) cycle
+  for (const [st, nf] of states) {
+    const head = decodeRGBA(join(ROOT, `public/art/eliza/child_head/${st}.png`));
+    if (!head) { offenders.push(`cannot decode child_head/${st}.png`); continue; }
+    for (const hairTex of hairs) {
+      const hp = join(ROOT, `public/art/eliza/${hairTex}/${st}.png`);
+      if (!existsSync(hp)) continue;
+      const hair = decodeRGBA(hp);
+      if (!hair) { offenders.push(`cannot decode ${hairTex}/${st}.png`); continue; }
+      for (let r = 0; r < 4; r++) {
+        const gaps = [];
+        for (let c = 0; c < nf; c++) { const ht = topOpaque(head, c, r), hr = topOpaque(hair, c, r); if (ht >= 0 && hr >= 0) gaps.push(ht - hr); }
+        if (gaps.length < 2) continue;
+        const spread = Math.max(...gaps) - Math.min(...gaps);
+        if (spread > TOL) offenders.push(`${hairTex} ${st} dir${r}: hair-crown drifts ${spread}px across the cycle (>${TOL}) — bounce/swing [gaps ${gaps.join(',')}]`);
+      }
+    }
+  }
+  if (offenders.length) fail('CHILD-HAIR-TRACKS-HEAD (live-animation) broken:' + offenders.map((v) => '\n      ' + v).join(''));
+  else ok('child-hair-tracks-head (live-animation): every frame of idle/walk/attack × all directions keeps the hair crown within 1px of the head crown — no walk bounce, no attack hair-swing');
+}
+
 // L2 DIALOG-SPEAKER-PRESENT (GAME-LAWS L2) — no disembodied speakers. A dialog node's named speaker, IF it is
 //   a PLACED NPC (a real wandering NPC somewhere), must be placed in a region the quest's GIVER is also in —
 //   so the line fires only where that NPC is present. (The bug: Bram, placed at the GH forge, spoke in M1
