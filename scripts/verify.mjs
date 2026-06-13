@@ -828,6 +828,12 @@ const tile = (px) => Math.round(px / TILE);
     const opts = (m2.dialogue?.nodes?.chase?.options || []).filter((o) => o.choice && o.choice.quest === 'M2');
     if (opts.length < 3) offenders.push('M2 `chase` node is missing the 3 seeded choices (catch/kick/free)');
     if (opts.some((o) => o.set !== 'complete:M2')) offenders.push('an M2 catch choice does not complete:M2 (the catch would not finish the quest)');
+    if (!m2.worldDriven) offenders.push('M2 is not worldDriven — closing Mara\'s briefing would AUTO-COMPLETE it (the "completes on chat" bug)');
+  }
+  // PRINCIPLE (talk-completes guard): any quest with physical `objective` STEPS must be worldDriven, else
+  // _closeDialogue auto-completes it when its giver/briefing dialogue closes — letting chat finish a go-and-do.
+  for (const q of (Array.isArray(QUESTS) ? QUESTS : [])) {
+    if ((q.steps || []).some((s) => s.objective) && !q.worldDriven) offenders.push(`${q.id} has physical objective steps but is not worldDriven — it would complete on dialogue-close, not its physical action`);
   }
   const gh = REGIONS.find((R) => R.key === 'Greenhollow');
   if (!gh?.m2?.eggs || !gh?.m2?.water || !gh?.m2?.pen || !gh?.m2?.henHome) offenders.push('Greenhollow.m2 sites (eggs/water/pen/henHome) missing');

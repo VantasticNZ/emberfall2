@@ -103,6 +103,9 @@ export const GREENHOLLOW_CHILDHOOD = [
     type: 'main', tone: 'wholesome/funny', perm: true,
     unlocks: ['M3'],
     reward: { gold: 5 },
+    // WORLD-DRIVEN: M2 must NOT auto-complete when Mara's briefing dialogue closes (that was the 'completes on
+    // chat' bug). It completes ONLY from the physical hen-catch (the `chase` choice fires `set:'complete:M2'`).
+    worldDriven: true,
     // PHYSICAL go-and-do (NOT narrated): each step carries an `objective` MARKER the scene resolves to a real
     // world site (WORLD.m2) + drives via a genuine interact / chase — never a dialogue `advance:M2`. The
     // `site` keys map to the coop / orchard / hen the scene places. (gate: greenhollow.m2-physical.test)
