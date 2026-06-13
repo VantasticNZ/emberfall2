@@ -80,4 +80,25 @@ Class B** (rig-matched frames) — proven by the rig test. Of the five rig gaps,
 monster tail/wings), one has a **stopgap FETCH** (muscular for Fazy), and the genuinely-must-commission set is
 small: a true fat body, a true roll, and the child weapon overlay.
 
-*Evidence images: `docs/asset-gap-evidence/` (icon_potion, icon_ore, icon_sword, rigtest_walksheet).*
+---
+
+## SPIKE — the consistency chain (LoRA + ControlNet/OpenPose + IP-Adapter): does free-tool consistency near "always"?
+
+**Chain availability (checked):** PixelArt LoRA ✅ · ControlNet **OpenPose model present** (`control_v11p_sd15_openpose_fp16`) + ControlNet nodes ✅ · **IP-Adapter NOT installed** (no `models/ipadapter`, no `clip_vision`, no IPAdapter custom node). So I ran the installed half — **LoRA + ControlNet(OpenPose) + a LOCKED seed + identical prompt** — across two poses (the identity-locking IP-Adapter would slot in here but isn't present).
+
+**Test:** drew two OpenPose COCO-18 skeletons (`pose_idle` legs-together / `pose_walk` legs-apart, arms swung) and generated the SAME character (green-tunic brown-hair boy) on each, same seed 4242, same prompt.
+
+| | idle pose | walk pose |
+|---|---|---|
+| Pose followed? | ✅ stands, legs together | ✅ wider stance, legs apart, arms shifted |
+| Evidence | `spike_idle_00001_.png` (+ `pose_idle.png`) | `spike_walk_00001_.png` (+ `pose_walk.png`) |
+
+**Honest result:**
+- **Pose control works** — ControlNet drove the stance from the skeleton in both.
+- **Identity is *roughly* consistent** — same green tunic, brown hair, apron, boots, palette — better than expected from seed+prompt alone (and IP-Adapter, if installed, would tighten it further). Good enough for **concept art / a portrait set**.
+- **But NOT frame-consistent for animation.** Each is a full illustrated FOREST SCENE (the prompt's "plain white" was ignored), at a **different scale, position, and registration**; **no transparency**; the **face, proportions, and exact garment pixels DRIFT** between the two. Forced into aligned transparent frames they would visibly wobble — turning these into real walk frames = redrawing each frame by hand = MORE work than hand-pixeling or using the LPC rig.
+- **IP-Adapter (the missing piece) can't rescue it.** It improves *identity* match; it does nothing for *registration / scale / transparency / 4-direction rig alignment* — the parts that actually block animation. And it isn't installed (installing = the IPAdapter-plus node + ~1 GB of ip-adapter + clip_vision models — a setup task, not a runnable-as-is path).
+
+**Verdict on the bigger question:** **No — the free-tool chain does NOT get near "always" for rig-matched animation frames.** It gets near "same character concept, re-posed" (useful for concept/reference/portraits, i.e. Class A), but the consistency that ANIMATION needs (identical sprite, registered on a grid, transparent, across 4 directions × N frames) is not achievable from this stack without per-frame hand-redrawing. Class B rig parts remain **FETCH (LPC) where it exists, else commission** — unchanged by the spike. The spike's positive: this chain IS a credible **concept/portrait** generator (Class A), which the prior Class-A test already supports.
+
+*Evidence images: `docs/asset-gap-evidence/` — icon_potion, icon_ore, icon_sword, rigtest_walksheet, pose_idle, pose_walk, spike_idle, spike_walk.*
