@@ -721,26 +721,36 @@ const tile = (px) => Math.round(px / TILE);
   }
 
   // GAP THE OLD GATE MISSED (it trusted the childClothed FLAG, never the pixels → a torso-only romper with
-  // BARE LEGS passed). PIXEL leg-coverage: decode each clothed child body's idle DOWN frame and assert the
-  // leg band (central columns, lower body) is NOT mostly bare skin. Catches a pantless child.
+  // BARE LEGS passed). PIXEL leg-coverage on the idle AND walk sheets (WIDENED — a body clothed standing but
+  // bare-legged WALKING now also fails). idle (legs together) → the central leg band must not be mostly skin;
+  // walk (legs may spread) → the full-width leg band must carry real CLOTHED pixels.
   const isSkin = (r, g, b, a) => a > 32 && r > 175 && r >= g && g >= b && (r - b) > 32;   // peachy bare skin
-  for (const [key, def] of Object.entries(PARTS)) {
-    if (!(def.childClothed && def.layers && def.layers[0])) continue;
-    const tex = def.layers[0].tex; const file = join(ROOT, 'public/art/eliza', tex, 'idle.png');
-    if (!existsSync(file)) { bad.push(`${key}: clothed child body texture missing (${tex}/idle.png)`); continue; }
-    const img = decodeRGBA(file); if (!img) continue;   // unsupported encoding → skip, don't false-fail
-    const FR = 64, col = 0, row = 2;                     // idle sheet: 3 cols × 4 rows; row 2 = DOWN facing
+  const legCheck = (file, mode) => {
+    const img = decodeRGBA(file); if (!img) return null;   // unsupported encoding → skip, don't false-fail
+    const FR = 64, col = 0, row = 2;                       // sheets: row 2 = DOWN facing, col 0 = first frame
     const at = (x, y) => { const i = ((row*FR + y) * img.w + (col*FR + x)) * 4; return [img.data[i], img.data[i+1], img.data[i+2], img.data[i+3]]; };
     let y0 = 64, y1 = 0, x0 = 64, x1 = 0;
     for (let y = 0; y < FR; y++) for (let x = 0; x < FR; x++) { const a = at(x, y)[3]; if (a > 32) { if (y < y0) y0 = y; if (y > y1) y1 = y; if (x < x0) x0 = x; if (x > x1) x1 = x; } }
-    if (y1 <= y0) { bad.push(`${key}: empty idle DOWN frame`); continue; }
+    if (y1 <= y0) return `empty ${mode} DOWN frame`;
     const bh = y1 - y0, bw = x1 - x0, cx = (x0 + x1) / 2;
     const la = y0 + Math.floor(bh*0.60), lb = y0 + Math.floor(bh*0.86);   // the LEG band
+    const lx = mode === 'idle' ? Math.ceil(cx - 0.30*bw) : x0;            // idle: central; walk: full width (spread legs)
+    const rx = mode === 'idle' ? Math.floor(cx + 0.30*bw) : x1;
     let skin = 0, opaque = 0;
-    for (let y = la; y <= lb; y++) for (let x = Math.ceil(cx - 0.30*bw); x <= Math.floor(cx + 0.30*bw); x++) {
-      const [r, g, b, a] = at(x, y); if (a <= 32) continue; opaque++; if (isSkin(r, g, b, a)) skin++;
-    }
-    if (opaque > 8 && skin / opaque > 0.45) bad.push(`${key}: BARE LEGS — ${Math.round(100*skin/opaque)}% of the leg band is skin (pantless); the outfit must cover the legs`);
+    for (let y = la; y <= lb; y++) for (let x = lx; x <= rx; x++) { const [r, g, b, a] = at(x, y); if (a <= 32) continue; opaque++; if (isSkin(r, g, b, a)) skin++; }
+    // both modes: the LEG band must not be mostly bare skin (idle = central columns; walk = full width so spread
+    // legs are included). bare child legs read ~60% skin; clothed legs ~0%. (clothed-pixel counts are fooled by
+    // outline/shadow pixels, so the SKIN FRACTION is the discriminator for both.)
+    if (opaque > 8 && skin / opaque > 0.45) return `BARE LEGS (${mode}) — ${Math.round(100*skin/opaque)}% of the leg band is skin (pantless)`;
+    return null;
+  };
+  for (const [key, def] of Object.entries(PARTS)) {
+    if (!(def.childClothed && def.layers && def.layers[0])) continue;
+    const tex = def.layers[0].tex, dir = join(ROOT, 'public/art/eliza', tex);
+    const idleF = join(dir, 'idle.png'), walkF = join(dir, 'walk.png');
+    if (!existsSync(idleF)) { bad.push(`${key}: clothed child body texture missing (${tex}/idle.png)`); continue; }
+    const e1 = legCheck(idleF, 'idle'); if (e1) bad.push(`${key}: ${e1}`);
+    if (existsSync(walkF)) { const e2 = legCheck(walkF, 'walk'); if (e2) bad.push(`${key}: ${e2}`); }
   }
   // PER-PART SEAT OFFSETS VALIDATED (L1 seating) — a child-fitted hair part (childSeat) must declare a non-zero
   // `oy` seat offset on its layer (adult hair floats ~6px high on the smaller child head without it).

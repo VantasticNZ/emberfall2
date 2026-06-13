@@ -268,6 +268,21 @@ childhood-spec prerequisite is met.
 | (a) **Buy-UI item ICONS** | 🟡 READY-TO-BUILD, per-item curation flagged | The widened fetch added CHARACTER parts (clothing/child bodies), NOT item art — so this is unchanged: the same PIL-slice pipeline on `eliza-objects/Small Items/Food` (sheets are clean 32px grids — confirmed sliceable) + a buy-UI Image-per-row render. Covers ~5 food items (bread/cheese/apple/fish/meat); the other ~32 (gear/potions/books) have NO library art → text fallback stays. Per the task, the per-item cell choice (which bread/cheese sprite) is **flagged for Van's eye** before wiring; the buy UI is fully functional with name·price·xN/(out) today. |
 | Child bodies (was blocked on fetch) | ✅ CLOSED | Fetched + wired (fixes item 2 above). The childhood-spec prerequisite is met. |
 
+## RUNTIME-ASSERTION HARNESS (the gate-robustness residuals — see docs/GATE-PROMISE-AUDIT.md)
+The gate-robustness audit (GATE-PROMISE-AUDIT.md) found the laws whose PROMISE is behavioural/runtime assert
+only their DATA proxy — honest residual gaps, all closable by ONE build: a standing **Playwright runtime-
+assertion harness** in CI (boot a fresh save, drive input, assert state/pixel). Until then each is covered by
+eyes-on + the live VAN-TEST per slice step.
+| Residual gap | Promise the gate can't yet assert | Closes when the harness can… |
+| --- | --- | --- |
+| **L3 landing-tile** | exit an interior → land at THAT building's door tile | enter→exit→assert player tile == door tile |
+| **L4 actual-block** | a blocking beat truly stops you | try-exit-before-beat → assert still inside |
+| **L5 exotic-viewport** | panels stay on-screen at ANY size | resize sweep → read panel bounds inside the viewport |
+| **L6 deferred-fires** | a pledged deed actually fires on the action (no pledge-then-stuck) | pledge → do the action → assert the deed recorded |
+| per-build pixel re-proofs | door-in-painted-opening, modifier-visual, hair-seating composite | snapshotPixel each, per build, not once |
+Cost: ~medium (one harness, then each assertion is cheap). CHEAP widenings already done inline: L1 leg-coverage
+now checks idle AND walk (pixel, negative-proven); L6 deed-timing data invariant (negative-proven).
+
 ## MILESTONE GATES (must pass before advancing)
 - **Post-M1 TRIPLE-CHECK** (BUILD-PLAN §4b): after GH+Marsh+Shrine are BUILT, run the full cohesiveness +
   EXCELLENCE pass against the BUILT game (real cohesion, not paper) before M2 scales. **Status: pending M1
