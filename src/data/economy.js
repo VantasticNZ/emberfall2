@@ -30,6 +30,11 @@ export const SHOPS = [
     { item: 'book_repair' },
     { item: 'greenhollow_house', requires: { deeds: ['cave_lore'] } },   // GH4 arc-complete unlocks the property (you belong here now)
   ] },
+  // Bram's forge (the CHILD era — Bram is childOnly). Sells the blunt PRACTICE SWORD (childSafe) + a whetstone:
+  // a child's first armoury corner. Opened via the list+sell UI (openshop:bram_forge) from Bram's dialogue.
+  { id: 'bram_forge', name: "Bram's Forge", region: 'Greenhollow', stock: [
+    { item: 'wooden_sword' }, { item: 'whetstone' },
+  ] },
   // Pem's general store — the GH starter wares (food + sundries). Buying-only (v1).
   { id: 'pem_store', name: "Pem's Store", region: 'Greenhollow', stock: [
     { item: 'bread' }, { item: 'cheese' }, { item: 'apple' },

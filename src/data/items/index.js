@@ -10,7 +10,9 @@
 
 export const ITEMS = [
   // --- weapons -------------------------------------------------------------
-  { id: 'wooden_sword', name: 'Wooden Sword', type: 'weapon', tier: 1, value: 15, equipSlot: 'weapon', effects: [{ atk: 3 }] },
+  // The PRACTICE SWORD — a blunt wooden trainer. childSafe: a child may buy/own it (fists → stick → practice
+  // sword); blunt: equipping it swings like a sword but does NOT cut/harvest (a trainer, not a live blade).
+  { id: 'wooden_sword', name: 'Wooden Practice Sword', type: 'weapon', tier: 1, value: 15, equipSlot: 'weapon', childSafe: true, blunt: true, effects: [{ atk: 3 }], note: 'A blunt wooden trainer — swings like a sword, bites like a stick. Safe for small hands.' },
   { id: 'steel_sword',  name: 'Steel Sword',  type: 'weapon', tier: 2, value: 80, equipSlot: 'weapon', effects: [{ atk: 8 }] },
   { id: 'crag_maul',    name: 'Crag Maul',    type: 'weapon', tier: 3, value: 250, equipSlot: 'weapon', effects: [{ atk: 14 }] }, // SP2 bounty
   { id: 'tideglass_blade', name: 'Tideglass Blade', type: 'weapon', tier: 3, value: 260, equipSlot: 'weapon', effects: [{ atk: 13 }] }, // ST4 bounty

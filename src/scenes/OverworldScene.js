@@ -1192,10 +1192,12 @@ export class OverworldScene extends Phaser.Scene {
     // weapon (the child, or an adult who unequipped) = a blunt PUNCH that does NOT cut/harvest. The punch is a
     // forward jab (no overhead wind-up) so it never reads as a weapon swing, and it never moves the hair.
     const armed = !!this.player.equippedIn('weapon');
+    const wid = this.inv && this.inv.equipped('weapon');
+    const blunt = !!(wid && itemDef(wid) && itemDef(wid).blunt);   // a childSafe practice sword swings but does NOT cut
     this.player.action(armed ? 'attack' : 'punch');
     this._sfx(armed ? 'sfx_swing' : 'sfx_hit', armed ? 0.45 : 0.4);
-    if (armed) this._cutSwing();   // only a bladed swing harvests foliage — a fist can't cut a bush
-    else this._punchFx();          // UNARMED: a visible impact puff + lunge-pop so the blunt jab READS (no weapon to see)
+    if (armed && !blunt) this._cutSwing();   // only a SHARP bladed swing harvests foliage — a fist or a blunt trainer can't cut a bush
+    else if (!armed) this._punchFx();        // UNARMED: a visible impact puff + lunge-pop so the blunt jab READS (no weapon to see)
     this._applyHitReactions();     // HIT verb: nearby hen/NPCs REACT (flee/squawk · flinch/protest) — armed or not
     // COMBAT damage only OUTSIDE a safe zone AND outside the town safe-hub (Peaks town = sword inert for combat).
     if (!this.combat || this.region?.safeZone || this._inSafeHub() || this.isChild) return;   // a CHILD deals no combat damage (age-gate, sys 1) — they can still cut foliage above
@@ -1455,6 +1457,9 @@ export class OverworldScene extends Phaser.Scene {
     if (!this._topicsOpen) return; const n = this._topicNpc, topics = n.topics || [];
     if (this._topicSel >= topics.length) { this._closeTopics(); return; }   // "Leave."
     const topic = topics[this._topicSel];
+    // a topic can OPEN the real list+sell shop (a keeper who also gives quests/topics, e.g. Hodge) — close the
+    // topic menu and open the shop UI (the systemic "shops show a list + sell" path).
+    if (topic.openshop) { this._closeTopics(); this._openShop(topic.openshop, n.name); return; }
     const ans = Array.isArray(topic.a) ? topic.a : [topic.a];   // REPEAT-AVOIDANCE: cycle the answer line per (npc,topic)
     const key = `${n.name}:${this._topicSel}`; const i = (this._npcSaid[key] = ((this._npcSaid[key] | 0) + 1));
     this._topicSaid.setText(ans[(i - 1) % ans.length]); this._sfx('sfx_select', 0.4);
@@ -1541,8 +1546,9 @@ export class OverworldScene extends Phaser.Scene {
   }
   _shopBuy() {
     if (!this._shopOpen) return; const s = this._shopStock[this._shopSel]; if (!s) return;
-    // AGE-GATE (sys 1) — a CHILD can't buy weapons/armour/shields (no arming a child).
-    if (this.isChild) { const it = itemDef(s.id); if (it && ['weapon', 'armour', 'shield'].includes(it.type)) { this._sfx('sfx_deny', 0.8); this._banner('"That\'s no toy for a child," the keeper says, and won\'t sell it.', 1800); return; } }
+    // AGE-GATE (sys 1) — a CHILD can't buy real weapons/armour/shields, EXCEPT childSafe trainers (the wooden
+    // practice sword). The rule reads the item flag, not a hardcoded type list (fix the class, not the instance).
+    if (this.isChild) { const it = itemDef(s.id); if (it && ['weapon', 'armour', 'shield'].includes(it.type) && !it.childSafe) { this._sfx('sfx_deny', 0.8); this._banner('"That\'s no toy for a child," the keeper says, and won\'t sell it.', 1800); return; } }
     if (this.shopStock && !this.shopStock.inStock(this._shopId, s.id)) { this._sfx('sfx_deny', 0.8); this._banner(`${s.name} is sold out — come back tomorrow.`, 1400); return; }
     if (this.inv.gold < s.price) { this._sfx('sfx_deny', 0.8); this._banner('Not enough gold.', 1200); return; }
     if (this.shopStock && !this.shopStock.take(this._shopId, s.id)) { this._sfx('sfx_deny', 0.8); this._banner(`${s.name} is sold out — come back tomorrow.`, 1400); return; }   // depletes the shelf
@@ -1657,7 +1663,7 @@ export class OverworldScene extends Phaser.Scene {
   // was a silent no-op. Buys at the live price, honours the child weapon age-gate, persists.
   _dlgBuy(itemId) {
     const it = itemDef(itemId); if (!it) return;
-    if (this.isChild && ['weapon', 'armour', 'shield'].includes(it.type)) { this._sfx('sfx_deny', 0.8); this._banner('"That\'s no blade for a child," he says, and won\'t sell it.', 1800); return; }
+    if (this.isChild && ['weapon', 'armour', 'shield'].includes(it.type) && !it.childSafe) { this._sfx('sfx_deny', 0.8); this._banner('"That\'s no blade for a child," he says, and won\'t sell it.', 1800); return; }
     const price = buyPrice(itemId, (this.region && this.region.key) || 'Greenhollow', 5);
     if (this.inv.gold < price) { this._sfx('sfx_deny', 0.8); this._banner('Not enough gold.', 1200); return; }
     this.inv.addGold(-price); this.inv.add(itemId, 1); if (this.inv.save) this.inv.save();
@@ -1698,7 +1704,11 @@ export class OverworldScene extends Phaser.Scene {
     // option — so a multi-stop errand (accept here, do the thing there) works on the existing engine.
     else if (cmd.startsWith('advance:')) { const q = cmd.slice(8); if (this.quests.status(q) === 'active') { this.quests.advance(q); this._refreshTracker && this._refreshTracker(); } }
     else if (cmd.startsWith('complete:')) { const q = cmd.slice(9); if (this.quests.status(q) === 'active') { this.quests.complete(q); this._grantQuestReward(q); } }
-    else if (cmd.startsWith('buy:')) this._dlgBuy(cmd.slice(4));   // a dialogue-shop purchase (e.g. Bram's steel sword)
+    else if (cmd.startsWith('buy:')) this._dlgBuy(cmd.slice(4));   // a single-item dialogue purchase
+    // OPEN the real list+sell shop UI from a dialogue/topic option — the systemic fix for "shops show no list/no
+    // sell": a keeper who ALSO gives quests/topics (Bram, Hodge) opens the full _openShop list via this command,
+    // instead of a one-line dialogue buy. Deferred a tick so the closing dialogue doesn't swallow the new panel.
+    else if (cmd.startsWith('openshop:')) { const id = cmd.slice(9), nm = this._dlg && this._dlg.speaker; this._cancelDialogue && this._cancelDialogue(); this.time.delayedCall(10, () => { if (!this._shopOpen && !this._dlg) this._openShop(id, nm); }); }
   }
 
   // DOOR-SYSTEM — the CLOSED / LOCKED entry choice (the morality entrance). Walking into a shut door ALWAYS

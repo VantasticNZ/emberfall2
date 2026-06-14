@@ -901,6 +901,30 @@ const tile = (px) => Math.round(px / TILE);
   else ok('verb-system: action resolves to real VERBS — COLLECT (eggs are physical objects, destroyed on pickup), CARRY (Henrietta picked up overhead), HIT (hen flees, NPC flinches+protests; wired into _playerAttack)');
 }
 
+// 25b3) SHOP-ACCESS + PRACTICE SWORD — the keeper Van actually reaches must open the real LIST+SELL shop, not a
+//   one-line dialogue buy (the recurring "no item list, no sell" bug was Bram's dialogue-stub + Hodge having no
+//   shop wired). A keeper who ALSO gives quests/topics opens the list via an openshop command. The wooden sword
+//   is a childSafe + blunt PRACTICE sword a child can buy and train with (the age-gate reads the flag).
+{
+  const offenders = [];
+  const ow = readFileSync(join(ROOT, 'src/scenes/OverworldScene.js'), 'utf8');
+  const world = readFileSync(join(ROOT, 'src/data/world.js'), 'utf8');
+  const econ = readFileSync(join(ROOT, 'src/data/economy.js'), 'utf8');
+  const items = readFileSync(join(ROOT, 'src/data/items/index.js'), 'utf8');
+  if (!/cmd\.startsWith\('openshop:'\)/.test(ow)) offenders.push('no openshop: dialogue command — a keeper-with-quests cannot open the list+sell shop');
+  if (!/topic\.openshop/.test(ow)) offenders.push('_topicPick does not handle topic.openshop — a topic-keeper (Hodge) cannot open his shop');
+  if (!/id: 'bram_forge'/.test(econ)) offenders.push('bram_forge shop missing from economy (the child smith shop)');
+  if (!/id: 'wooden_sword'[^}]*childSafe: true/.test(items)) offenders.push('wooden_sword is not childSafe — a child cannot buy the practice sword');
+  if (!/id: 'wooden_sword'[^}]*blunt: true/.test(items)) offenders.push('wooden_sword is not blunt — the practice swing would cut foliage');
+  const gateHits = (ow.match(/\['weapon', 'armour', 'shield'\]\.includes\(it\.type\) && !it\.childSafe/g) || []).length;
+  if (gateHits < 2) offenders.push(`the child age-gate reads it.childSafe in only ${gateHits}/2 buy paths (_shopBuy + _dlgBuy)`);
+  if (!/openshop:bram_forge/.test(world)) offenders.push("Bram's dialogue does not open the bram_forge list shop");
+  if (/set: 'buy:steel_sword'/.test(world)) offenders.push('a childOnly smith still sells STEEL via a one-line dialogue buy (no list/sell)');
+  if (!/openshop: 'hodge_forge'/.test(world)) offenders.push("Hodge has no 'Show me your wares' topic opening hodge_forge");
+  if (offenders.length) fail('SHOP-ACCESS / practice-sword broken:' + offenders.map((v) => '\n      ' + v).join(''));
+  else ok('shop-access: the smith Van reaches opens the real LIST+SELL shop (Bram→bram_forge via dialogue, Hodge→hodge_forge via topic); the wooden practice sword is childSafe+blunt — a child can buy + train, real weapons stay age-gated');
+}
+
 // 25c) ITEM-ICONS (buy/sell + inventory PICTURES, not just names) — every id in BootScene.ITEM_ICONS must have a
 //      real public/art/icons/<id>.png, be a REAL game item, and the scene must wire the pictures into the shop
 //      rows + the menu Items list (itemIconKey). Items WITHOUT an icon fall back to their name (honest).
@@ -1035,8 +1059,8 @@ const tile = (px) => Math.round(px / TILE);
   if (!frM || Number(frM[1]) > 12) offenders.push(`punch frameRate ${frM ? frM[1] : '?'} too fast (>12) — the jab blinks past invisibly`);
   const ow = readFileSync(join(ROOT, 'src/scenes/OverworldScene.js'), 'utf8');
   if (!/armed \? 'attack' : 'punch'/.test(ow)) offenders.push('_playerAttack does not pick punch when unarmed');
-  if (!/if \(armed\) this\._cutSwing\(\)/.test(ow)) offenders.push('unarmed attack still cuts foliage (cut not gated on armed)');
-  if (!/else this\._punchFx\(\)/.test(ow) || !/_punchFx\(\)\s*\{/.test(ow)) offenders.push('no _punchFx on the unarmed punch — the blunt hit has no visible feedback (the "nothing happens" look)');
+  if (!/if \(armed && !blunt\) this\._cutSwing\(\)/.test(ow)) offenders.push('cut not gated on (armed && !blunt) — a fist OR a blunt practice sword must not cut foliage');
+  if (!/else if \(!armed\) this\._punchFx\(\)/.test(ow) || !/_punchFx\(\)\s*\{/.test(ow)) offenders.push('no _punchFx on the unarmed punch — the blunt hit has no visible feedback (the "nothing happens" look)');
   if (offenders.length) fail('CHILD-UNARMED-ATTACK broken:' + offenders.map((v) => '\n      ' + v).join(''));
   else ok('child-unarmed-attack: punch advances ≥2 frames at ≤12fps + impact puff (VISIBLE, not a no-op blink); hair seated every frame; unarmed = a PUNCH (not slash) that does NOT cut');
 }

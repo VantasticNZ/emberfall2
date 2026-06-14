@@ -183,16 +183,17 @@ export const WORLD = {
       quests: ['M1'], questNode: 'forge', greeting: [
       "There's my little terror — up early for once! The forge is hot if you've come to watch me work.",
     ],
+      // SHOP (child era): Bram offers the blunt PRACTICE SWORD via the real list+sell UI (openshop:bram_forge),
+      // not a one-line buy. Coherent for a childOnly smith — steel is gated behind "earn some years" (Hodge sells
+      // steel in the adult era). [Reactive depth — offer-after-greeting / "mind the edge" when broke — deferred.]
       social: { start: 'shop', nodes: {
-        shop: { speaker: 'Bram', text: "Grown now, and after steel. A good steel sword runs {price:steel_sword}g — and I price by the cut of a person, mind.",
+        shop: { speaker: 'Bram', text: "Swinging your fists at the hens again? Here — every smith starts with wood. Blunt as a spoon, but it'll teach your arm the grip.",
           options: [
-            { label: 'Buy the steel sword ({price:steel_sword}g)', set: 'buy:steel_sword', to: 'bought' },
-            { label: 'Haggle him down', check: { type: 'persuade', dc: 6, onPass: 'haggled', onFail: 'refused', onPassDeed: 'haggled_bram' } },
+            { label: 'Look over his wares', set: 'openshop:bram_forge', end: true },
+            { label: 'Ask about a real sword', to: 'steel' },
             { label: '(Maybe later.)', end: true },
           ] },
-        bought: { speaker: 'Bram', text: 'Mind the edge — it bites truer than your tongue.', options: [{ label: '(Take it.)', end: true }] },
-        haggled: { speaker: 'Bram', text: "...Hah. Silver tongue on you. Fine — a few coins off, just this once.", options: [{ label: '(Pocket the saving.)', end: true }] },
-        refused: { speaker: 'Bram', text: 'Nice try. The price is the price — earn a name first.', options: [{ label: '(Let it stand.)', end: true }] },
+        steel: { speaker: 'Bram', text: "Steel? Hah — earn some years first. Master the practice blade, then we'll talk edges.", options: [{ label: '(Fair enough.)', end: true }] },
       } },
       schedule: sched([['dawn', 12, 25, 'idle'], ['day', 11, 26, 'hammer'], ['dusk', 13, 23, 'chat'], ['night', 15, 24, 'sleep']]) },
     { tx: 9, ty: 23, facing: 'right', name: 'Hodge', tempo: 'ambler', speed: 70, expression: 'neutral', parts: HODGE, quest: 'SG3',
@@ -204,6 +205,9 @@ export const WORLD = {
       },
       bark: '*the ring of hammer on anvil*',
       topics: [
+        // OPEN the real forge shop (list + sell) from the topic menu — Hodge is a quest-giver AND a keeper, so his
+        // shop rides a topic (openshop) instead of the bare n.shop path that would pre-empt SG3.
+        { q: 'Show me your wares', openshop: 'hodge_forge', a: [`"Coin first, then the goods — and mind you don't finger the blades."`] },
         { q: 'About your steel', a: [`"Folded a hundred times. A blade off my anvil outlasts the arm that swings it."`, `"Bram taught me the trade, years back. I have passed him now — best not tell him I said so."`] },
         { q: 'News of the town', a: [`"Quiet, mostly. Pem's prices creep up, the guards drink at the Tankard. Same as ever."`, `"There's an old cave up the north hills. Tam won't shut up about it. I'd leave it be."`] },
         { q: 'Any work?', a: [`"Bring me iron ore and I'll see you right. Or buy a sword and stop pestering me."`] },
