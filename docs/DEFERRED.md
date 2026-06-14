@@ -356,3 +356,9 @@ Early Pem REMOVED from the GH plaza (he was a spoiler — SG2 handed over on sig
 GH slice). WIRE later: place a readable "PEM WOZ ERE" graffiti clue in each region (records `pem_clue_<region>`),
 then Pem's reveal NPC at a hidden final location gated behind all four. Trailhead hook in place (the kids' whisper
 about the gate graffiti). WHEN: the cross-region content pass.
+
+## CARRY-POSE — asset acquired, integration deferred (2026-06-15)
+| Item | State | Why | Need / when |
+|---|---|---|---|
+| **Overhead carry-pose frames** | 🟢 ASSET IN-LIBRARY, integration deferred | The LPC "push and carry" pack (overhead-carry + push/grab/jump, 64×64, CC-BY-SA 3.0 · GPL 3.0, AI-safe) is fetched + vetted + parked at `asset-library/2d/lpc-carry/` (attribution in its `LICENSE-AND-ATTRIBUTION.md`). NOT wired in: it's a base-LPC (wulax) body; the live rig is ElizaWy-revised + a child variant → matching/recolour + child frames + verb wiring needs Van's eye on style-match (HARD RULE 3: don't disturb the pipeline carelessly). Until then the seated-overhead hen is the minimum-coherent carry (flagged, not faked). | A dedicated carry-pose pass: (a) match/recolour the carry frames to the ElizaWy revised body, (b) author the child variant, (c) wire the CARRY verb (`_henTick` 'carried' branch) to play the overhead frames instead of the seated hen. Frames are now in-library so the blocking dependency is cleared. |
+| **Throw / place arc** | 🟡 DEFERRED (asset gap) | No throw arc frames; place/free is instantaneous. | Same carry-pose pass — add a short toss/place arc tween once carry frames are integrated. |

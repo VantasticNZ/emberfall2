@@ -46,6 +46,14 @@ A **two-tier** expansion (see `docs/ASSET-LEDGER.md` → "TWO-TIER ASSET LIBRARY
 | weapons | 33 | Universal-LPC | OGA-BY/CC-BY-SA/GPL ✅ |
 | shields | 24 | Universal-LPC | OGA-BY ✅ |
 
+**CARRY / PUSH / GRAB / JUMP animations** (added 2026-06-15, `2d/lpc-carry/`) — fills the
+**carry-pose gap** (the working set above only has idle/walk/slash). LPC "push and carry" by
+Evert + contributors (OGA): `body/male/carry.png` etc. are 64×64 frames, **576×256 = 9 cols ×
+4 rows** (1 idle + 8 walkcycle × up/left/down/right), layered hair/shoes/pants/longsleeve/
+tunic/belt. Licence **CC-BY-SA 3.0 · GPL 3.0** (AI-safe). Full attribution + source +
+**PARKED-not-integrated** status in `2d/lpc-carry/LICENSE-AND-ATTRIBUTION.md`. Integration onto
+the live ElizaWy-revised rig (+ child variant) is deferred — see `docs/DEFERRED.md` (carry-pose).
+
 ## ✅ USABLE — LPC environment/monsters/props/effects (gap hunt, committed 2026-06-07)
 LPC-style assets filling Emberfall's flagged gaps (two-tier; full hauls at
 `C:\GameAssets\lpc-env`, NOT in git). 364 files / ~5 MB. Manifest `2d/ENV-MANIFEST.json`,
