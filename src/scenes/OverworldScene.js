@@ -45,7 +45,7 @@ import { COMBAT, INTERACTION_RADIUS, GUARD_HEARING, GUARD, REPAIR, DOOR } from '
 import { DAY_LENGTH, RATE } from '../data/time.js';
 import { bindings } from '../constants/controls.js';
 import { AssetLoader } from '../art/AssetLoader.js';
-import { PROPS, PARTS, DIR_ROW, ANIMS, EXPRESSIONS, EXPR_COLS, EXPR_ROW, solidBox } from '../data/assets.js';
+import { PROPS, PARTS, DIR_ROW, ANIMS, EXPRESSIONS, EXPR_COLS, EXPR_ROW, FRAME, solidBox } from '../data/assets.js';
 import { TERRAIN } from '../data/terrainTiles.js';
 import { GREENHOLLOW_CHILDHOOD, GREENHOLLOW_SLICE, GREENHOLLOW_SIDE, ASHEN_MARSH, SUNDERED_PEAKS as PEAKS_QUESTS, SUNDERED_PEAKS_SIDE } from '../data/quests/index.js';
 import { TILE, CHUNK_PX, WORLD_CHUNKS, WORLD_PX, chunkContent, groundTintAt, GREENHOLLOW, ASHEN_MARSH as MARSH_REGION, REGIONS, regionAt, inGreenhollow, inMarsh } from '../data/worldmap.js';
@@ -125,6 +125,7 @@ export class OverworldScene extends Phaser.Scene {
     if (!hadSave && this.isChild) { this._bootChild = true; }   // a fresh child game → load the cottage interior on create
 
     const childParts = this.isChild ? heroChild(defaultStorage()) : HERO;
+    this._playerParts = childParts;   // remembered for the Gear & Stats paper-doll (same forge rig the world uses)
     this.player = new Character(this, start.x, start.y, { parts: childParts, facing: 'down', speed: this.isChild ? 130 : 150 });
     this.player.isAdult = !this.isChild; this.player.isMinor = this.isChild;
     if (!this.isChild) this.player.equip('sword');   // a CHILD carries no weapon (age-gate); the adult swings a visible sword
@@ -1601,6 +1602,7 @@ export class OverworldScene extends Phaser.Scene {
     if (this._menuBox) { this._unregisterUIPanel(this._menuBox); this._menuBox.destroy(true); }
     this._menuBox = this._menuTabsTxt = this._menuHint = this._menuBody = this._menuDesc = null;
     this._menuRows = null; this._menuIcons = null; this._itemActionOpen = false; this._itemActions = null;
+    this._paperDoll = null;   // destroyed with _menuBox (destroy(true)); drop the dangling ref
     if (this._fullMap) { this._fullMap.setVisible(false).setDepth(DEPTH.OVERLAY + 2); }
     if (this._fullMapTitle) this._fullMapTitle.setVisible(true);   // restore the header for the standalone M/O world map
     if (this.hud2) this.hud2.setVisible(!this._hudHidden); if (this._helpText) this._helpText.setVisible(true);
@@ -1698,6 +1700,7 @@ export class OverworldScene extends Phaser.Scene {
     (this._menuRows || []).forEach((t) => t.setVisible(false));
     (this._menuIcons || []).forEach((ic) => ic.setVisible(false));
     if (this._menuDesc) this._menuDesc.setVisible(false);
+    if (this._paperDoll) this._paperDoll.setVisible(false);   // only the Gear & Stats tab shows the doll
     let body = '';
     if (this._menuTab === 0) {
       const ids = Object.keys(this.inv.items || {});
@@ -1729,9 +1732,14 @@ export class OverworldScene extends Phaser.Scene {
       }
     } else if (this._menuTab === 1) {
       const st = this.inv.stats(), ks = this.karma.getStatus();
-      body = `WORN / HELD\n  Weapon:  ${nm(this.inv.equipped('weapon'))}\n  Shield:  ${nm(this.inv.equipped('shield'))}\n\n`
+      body = `WORN / HELD\n  Weapon:  ${nm(this.inv.equipped('weapon'))}\n  Shield:  ${nm(this.inv.equipped('shield'))}\n  Armour:  ${nm(this.inv.equipped('body'))}\n  Trinket: ${nm(this.inv.equipped('trinket'))}\n\n`
         + `STATS\n  HP:   ${this.inv.hp} / ${st.maxHp}\n  ATK:  ${st.atk}      DEF:  ${st.def}\n\n`
         + `STANDING\n  Morality:  ${ks.morality >= 0 ? '+' : ''}${ks.morality}  (${ks.moralityTier})\n  Purity:    ${ks.purity >= 0 ? '+' : ''}${ks.purity}  (${ks.purityTier})\n  Gold:      ${this.inv.gold}g`;
+      // PAPER-DOLL — the actual player character (forge rig) with the current loadout, on the right of the panel.
+      // Rebuilt each time the tab renders so it reflects equip changes. (item 4)
+      const doll = this._buildPaperDoll();
+      if (doll) { doll.setPosition(20 + 728 - 150, 30 + 195).setScale(3.2).setVisible(true); }
+      if (this._menuHint) this._menuHint.setText('←→ tab · B/Esc close');
     } else if (this._menuTab === 3) {
       body = 'SETTINGS\n\n  Press Enter to open the full settings menu:\n  controls · audio · invert aim · threat indicators ·\n  objective arrow · modifiers.';
     }
@@ -2229,6 +2237,28 @@ export class OverworldScene extends Phaser.Scene {
     const { x, y, size } = this.portraitBox, scale = Math.min((size - 6) / cw, (size - 6) / ch);
     rt.setOrigin(0.5, 0.5).setPosition(x + size / 2, y + size / 2).setScale(scale).setScrollFactor(0).setDepth(DEPTH.OVERLAY + 11);
     this.dlgBox.add(rt); this._portrait = rt;   // inside dlgBox → inherits its camera visibility
+  }
+  // GEAR & STATS PAPER-DOLL — a full-body picture of the actual player character, composited from the SAME forge
+  // layer rig the world uses (body/head/hair/clothes, idle + front). Rendered into the menu panel (uiCamera).
+  // FLAG: the equipped weapon/shield/armour are LISTED in WORN/HELD, not drawn on the doll — the rig's weapon
+  // sprite is attack-only (no held/idle pose frame), and armour/trinket have no body layer yet. Rendering gear
+  // in-hand on the static doll is deferred to a held-pose asset.
+  _buildPaperDoll() {
+    if (this._paperDoll) { this._paperDoll.destroy(); this._paperDoll = null; }
+    if (!this._playerParts) return null;
+    const layers = [];
+    for (const pk of this._playerParts) { const part = PARTS[pk]; if (!part) continue; for (const L of part.layers) { if (L.states && !L.states.includes('idle')) continue; layers.push({ ...L }); } }
+    layers.sort((a, b) => a.z - b.z);
+    const idleFrame = DIR_ROW.down * ANIMS.idle.frames, exprFrame = EXPR_ROW.down * EXPR_COLS + (EXPRESSIONS.neutral ?? 0);
+    const F = FRAME, rt = this.make.renderTexture({ x: 0, y: 0, width: F, height: F }, false);
+    for (const L of layers) {
+      if (L.expressive) rt.drawFrame(`${L.tex}__expr`, exprFrame, 0, 0);
+      else rt.drawFrame(`${L.tex}__idle`, idleFrame, 0, 0);
+    }
+    rt.setOrigin(0.5, 0.5).setScrollFactor(0).setDepth(DEPTH.OVERLAY + 14);
+    this._paperDoll = rt;
+    if (this._menuBox) this._menuBox.add(rt);   // inherit the panel's uiCamera + visibility
+    return rt;
   }
   _buildInput() {
     this.keys = this.input.keyboard.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,SHIFT,O,C');

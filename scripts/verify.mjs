@@ -943,6 +943,20 @@ const tile = (px) => Math.round(px / TILE);
   else ok('inventory-actions: Items tab resolves Equip/Unequip · Use · Drop · Compare per item; Equip syncs the loadout + the in-world weapon/shield visual; Use applies effects + consumes; Compare shows the stat delta');
 }
 
+// 25b5) GEAR & STATS PAPER-DOLL — a picture of the ACTUAL player character (the same forge layer rig the world
+//   uses) composited into the Gear & Stats tab, beside the full WORN/HELD loadout + stats.
+{
+  const offenders = [];
+  const ow = readFileSync(join(ROOT, 'src/scenes/OverworldScene.js'), 'utf8');
+  if (!/_buildPaperDoll\(/.test(ow)) offenders.push('no _buildPaperDoll — the Gear & Stats tab shows no character picture');
+  if (!/this\._playerParts/.test(ow)) offenders.push('the paper-doll does not reuse the player forge rig (_playerParts)');
+  if (!/rt\.drawFrame\(/.test(ow)) offenders.push('the paper-doll does not composite the layer rig (no drawFrame)');
+  if (!/const doll = this\._buildPaperDoll\(\)/.test(ow)) offenders.push('the Gear & Stats tab does not build + show the paper-doll');
+  if (!/Armour:.*equipped\('body'\)/.test(ow) || !/Trinket:.*equipped\('trinket'\)/.test(ow)) offenders.push('WORN/HELD does not list every equipment slot (weapon/shield/armour/trinket)');
+  if (offenders.length) fail('GEAR PAPER-DOLL broken:' + offenders.map((v) => '\n      ' + v).join(''));
+  else ok('gear-paper-doll: the Gear & Stats tab renders the actual player character (forge rig composite) beside the full WORN/HELD loadout + stats');
+}
+
 // 25c) ITEM-ICONS (buy/sell + inventory PICTURES, not just names) — every id in BootScene.ITEM_ICONS must have a
 //      real public/art/icons/<id>.png, be a REAL game item, and the scene must wire the pictures into the shop
 //      rows + the menu Items list (itemIconKey). Items WITHOUT an icon fall back to their name (honest).
