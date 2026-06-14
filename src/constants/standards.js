@@ -55,6 +55,13 @@ export const INTERACTION = Object.freeze({
 export const DOOR = Object.freeze({
   AREA_DEBOUNCE_MS: 180,         // [TUNE] after an area transition, ignore re-triggers for this long (anti double-fire)
   CHOICE_ENTER_REVEAL_MS: 440,   // [PLAY-JUDGED] after you CHOOSE to enter a shut door, let it visibly open before the cut
+  // THE ONE DOORSTEP RULE: the entry/exit tile is DERIVED FROM THE DOOR ART for every building — the doorstep sits
+  // this many px below the painted door's BOTTOM edge (doorWY + doorway.h/2). One reference (the door rect, same
+  // as the door VISUAL), so every building lands the player the SAME small distance in front of its door — never
+  // the per-building collision feet-line (which varies with footprint height = the "some land far out" bug).
+  // 16px ≈ half a tile, the gap the cottage already had + reads right; CHAR_FOOTPRINT.offY (26) below that keeps
+  // the avatar's feet past the building feet-line so it renders IN FRONT of the wall, not behind it.
+  DOORSTEP_OFFSET: 16,           // [PLAY-JUDGED] px below the painted door bottom where the avatar stands
 });
 
 // COMBAT tuning (Stage 2a — the first fight). One place to tune feel; the scene

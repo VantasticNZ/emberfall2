@@ -313,7 +313,13 @@ export class OverworldScene extends Phaser.Scene {
           const dw = (d.doorway && d.doorway.cx != null) ? d.doorway : { cx: 0, cy: 0, w: 28, h: 44 };
           const doorWX = p.x + dw.cx * sc, doorWY = p.y + dw.cy * sc;       // painted-door centre (world)
           const feetY = spr.y + (b.offY + b.h / 2) * sc;                    // = the building's DepthSort depth (feet line)
-          const dCol = Math.round((doorWX - TILE / 2) / TILE), dRow = Math.round((feetY - TILE / 2) / TILE);
+          // THE ONE DOORSTEP RULE — entry/exit DERIVED FROM THE DOOR ART (same rect as the visual), not the
+          // per-building feet line. doorstepY = the painted door BOTTOM + a single DOORSTEP_OFFSET, so EVERY
+          // building lands the avatar the same small step in front of its door (was the feet line → varied with
+          // footprint height = "some land far out, some trigger from too far back"). dCol from the door X.
+          const doorBottomY = doorWY + (dw.h / 2) * sc;
+          const stepY = doorBottomY + DOOR.DOORSTEP_OFFSET;                 // the doorstep (exact px, in front of the door)
+          const dCol = Math.round((doorWX - TILE / 2) / TILE), dRow = Math.floor(stepY / TILE);   // dRow = the tile CONTAINING the doorstep (trigger + seal)
           const bandL = ccx - cw / 2, bandR = ccx + cw / 2;
           const mkSolid = (x0, x1) => { if (x1 - x0 < 4) return; const r = this.add.rectangle((x0 + x1) / 2, ccy, x1 - x0, ch, 0x000000, 0).setVisible(false); this.physics.add.existing(r, true); this.solids.add(r); this._regionObjs.push(r); };
           mkSolid(bandL, dCol * TILE); mkSolid((dCol + 1) * TILE, bandR);   // tile-aligned solids flanking the door column
@@ -321,13 +327,13 @@ export class OverworldScene extends Phaser.Scene {
           // walked straight UP THROUGH the building and out the back (the entry-latency bug). Now only the
           // doorway tile (dRow) is walkable: you step ONTO it (trigger fires) but can't cross the footprint.
           { const sealTop = ccy - ch / 2, sealBot = dRow * TILE; if (sealBot - sealTop > 4) { const sr = this.add.rectangle(dCol * TILE + TILE / 2, (sealTop + sealBot) / 2, TILE, sealBot - sealTop, 0x000000, 0).setVisible(false); this.physics.add.existing(sr, true); this.solids.add(sr); this._regionObjs.push(sr); } }
-          const dcx = dCol * TILE + TILE / 2, dcy = dRow * TILE + TILE / 2;
+          const dcx = dCol * TILE + TILE / 2, dcy = stepY;   // dcx = door column centre; dcy = the EXACT doorstep (door-art-derived, identical step for every building)
           // THE MIX + BROKEN persistence: open/none → dark threshold only (always-open); closed/locked → a
           // door sprite (the building's `doorArt`); a door BROKEN earlier (saved) stays broken on re-entry.
           const [bcx, bcy] = cidOf(doorWX, doorWY);
           const effState = this.save.getChunkFlag(bcx, bcy, 'door_broken_' + bdoor.to) ? 'broken' : bdoor.state;
           const vis = this._buildDoorVisual(doorWX, doorWY, dw.w * sc, dw.h * sc, effState, feetY + 1, d.doorArt);
-          const builtDoor = { tx: dCol, ty: dRow, dcx, dcy, doorWX, doorWY, ...bdoor, state: effState, opening: vis.opening, doorSpr: vis.doorSpr, lockSpr: vis.lockSpr };
+          const builtDoor = { tx: dCol, ty: dRow, dcx, dcy, doorWX, doorWY, doorBottomY, feetY, ...bdoor, state: effState, opening: vis.opening, doorSpr: vis.doorSpr, lockSpr: vis.lockSpr };
           this._buildingDoors.push(builtDoor);
           // DOOR ENTRY — two consistent affordances, both at the SAME standard reach (INTERACTION_RADIUS, the one
           // talk/interact distance): (1) walk onto the doorway tile facing it (genre walk-in, in _checkDoorWalk);
