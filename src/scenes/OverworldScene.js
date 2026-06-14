@@ -60,9 +60,12 @@ const ITEM_ROWS = 9;   // visible item rows in the Items tab (the last rows of t
 
 const LOAD_RING = 2, UNLOAD_RING = 3;
 const WORLD_ZOOM = 1.25;          // the open-world camera zoom
-const INTERIOR_ZOOM_MAX = 2.0;    // interior closeness is a CONSISTENT 2x (Van's call): zoom toward the room but
-                                  // cap at 2x. Small rooms are then centred+clamped (whole room in view, nothing
-                                  // cut off); a dark surround is accepted in trade for the steady, readable zoom.
+// INTERIOR ZOOM = FIT-TO-ROOM, CAPPED (Van 2026-06-15): the zoom that fits the WHOLE room footprint inside the
+// HUD-safe play area (contain, not cover), then clamped. A SMALL room hits the MAX (cozy closeness); a LARGE room
+// pulls back to the fit zoom so the whole room is visible — never cropped, nothing important behind the HUD. The
+// MIN stops a huge room going tiny (in trade, a room too big to fit even at MIN pans+clamps at the walls).
+const INTERIOR_ZOOM_MAX = 2.0;    // cozy cap — small rooms sit here
+const INTERIOR_ZOOM_MIN = 1.25;   // floor — a big room never shrinks past this (matches the open-world zoom)
 const CUT_REGROW_MS = 180000;   // a cut bush regrows only after you LEAVE the area + ~3 min (anti-farm)
 // HUD SAFE-AREA LAYOUT LAW (systemic, not one-off) — the screen-space HUD lives in fixed bands: the stats panel
 // top-left + minimap/quests top-right (TOP band, RIGHT margin) and the controls help bar at the very BOTTOM.
@@ -820,7 +823,12 @@ export class OverworldScene extends Phaser.Scene {
       // interior, any window size. The cover-zoom uses the inset dims so the room still fills the framed area.
       const iw = Math.max(64, vw - HUD_SAFE.right), ih = Math.max(64, vh - HUD_SAFE.top - HUD_SAFE.bottom);
       cam.setViewport(0, HUD_SAFE.top, iw, ih);
-      const zoom = Math.min(INTERIOR_ZOOM_MAX, Math.max(WORLD_ZOOM, iw / b.w, ih / b.h));
+      // FIT-TO-ROOM (contain): the zoom that fits the WHOLE footprint in the inset area is the SMALLER of the two
+      // axis ratios (cover = max = crops the other axis; that was the bug — big rooms got zoom-capped + cropped).
+      // Clamp to the cozy MAX (small rooms) and the not-too-tiny MIN (huge rooms). setBounds still centres a room
+      // smaller than the view and pans+clamps at the walls for one too big to fit even at MIN.
+      const fit = Math.min(iw / b.w, ih / b.h);
+      const zoom = Math.min(INTERIOR_ZOOM_MAX, Math.max(INTERIOR_ZOOM_MIN, fit));
       cam.setZoom(zoom);
       cam.setBounds(b.x, b.y, b.w, b.h);
     } else {

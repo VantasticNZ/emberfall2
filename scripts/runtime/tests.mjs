@@ -238,28 +238,29 @@ const TESTS = [
   // the router actually reads, then assert which node the router resolved + the rendered line.
   async function t9_reactive_bram(page, R) {
     await toGH(page);
-    // talk() runs in ONE eval (no game-loop tick interleaves): neutralise building-door triggers, open Bram's
-    // social dialogue, read the router-resolved node. Between talks _dlg stays truthy (door-walk is gated off while
-    // a dialogue is open) so no idle building-entry can swap the region out from under us.
+    // Keep door-walk OFF for the whole test (_areaT=true → _checkDoorWalk early-returns), so an idle inter-eval tick
+    // never wanders the player into a building and swaps the region (taking Bram out of region.npcs) mid-test.
+    // talk() opens Bram's social dialogue and reads the router-resolved node — in one eval (no tick interleaves).
+    await evalGame(page, () => { const s = window.__EMBER.scene.getScene('Overworld'); s._areaT = true; s._buildingDoors = []; });
     const talk = () => evalGame(page, () => {
       const s = window.__EMBER.scene.getScene('Overworld');
-      s._buildingDoors = []; s._dlg = null;
+      s._areaT = true; s._buildingDoors = []; s._dlg = null;
       const b = (s.region && s.region.npcs || []).find((n) => n.name === 'Bram'); if (!b) return null;
       s._npcInteract(b);
       const node = s._dlg && s._dlg.node && s._dlg.node();
       return { id: s._dlg && s._dlg.nodeId, text: node && node.text, gold: s.inv.gold };
     });
     // (1) FIRST meeting (not greeted): the router greets BEFORE selling.
-    await evalGame(page, () => { const s = window.__EMBER.scene.getScene('Overworld'); s._buildingDoors = []; s.inv.gold = 50; });   // not broke, so the branch under test is purely "not greeted"
+    await evalGame(page, () => { const s = window.__EMBER.scene.getScene('Overworld'); s._areaT = true; s._buildingDoors = []; s.inv.gold = 50; });   // not broke, so the branch under test is purely "not greeted"
     const first = await talk();
     if (!first) { R.check('[bram] Bram present in GH', false, 'not found'); return; }
     R.check('[bram] FIRST meeting opens with a greeting, not the hard sell (router → firstmeet)', first.id === 'firstmeet' && /watch/i.test(String(first.text)), `node=${first.id}`);
     // (2) RETURN + BROKE (greeted, gold < 15 = the practice-sword price): the "mind the edge" nudge.
-    await evalGame(page, () => { const s = window.__EMBER.scene.getScene('Overworld'); s.karma.recordDeed('bram_greeted'); s.inv.gold = 5; });
+    await evalGame(page, () => { const s = window.__EMBER.scene.getScene('Overworld'); s._areaT = true; s.karma.recordDeed('bram_greeted'); s.inv.gold = 5; });
     const broke = await talk();
     R.check('[bram] a RETURN visit while BROKE gets the "mind the edge" nudge (router → broke)', broke && broke.id === 'broke' && /mind the edge/i.test(String(broke.text)), `node=${broke && broke.id} gold=${broke && broke.gold}`);
     // (3) RETURN + has coin: straight to the wares offer.
-    await evalGame(page, () => { const s = window.__EMBER.scene.getScene('Overworld'); s.inv.gold = 50; });
+    await evalGame(page, () => { const s = window.__EMBER.scene.getScene('Overworld'); s._areaT = true; s.inv.gold = 50; });
     const offer = await talk();
     R.check('[bram] a RETURN visit WITH coin goes straight to the wares (router → offer)', offer && offer.id === 'offer', `node=${offer && offer.id} gold=${offer && offer.gold}`);
   },
@@ -313,6 +314,42 @@ const TESTS = [
     R.check('[hit-escalation] three real punches each register on the same NPC (hit-count 1→2→3)', hc[0] === 1 && hc[1] === 2 && hc[2] === 3, `hitCount=${JSON.stringify(hc)}`);
     R.check('[hit-escalation] the three reactions ESCALATE — three distinct rendered lines (not one repeated)', distinct.size === 3, JSON.stringify(texts));
     R.check('[hit-escalation] the 3rd reaction is a BREAK-OFF (the NPC disengages)', /done with you|stalks off|leave me alone|bolt/i.test(String(texts[2])), `3rd="${texts[2]}"`);
+  },
+
+  // T11 — INTERIOR ZOOM = FIT-TO-ROOM, CAPPED. Van: a large interior was too zoomed-in (the fixed-2x COVER zoom
+  // cropped big rooms). Enter a SMALL room (cottage) + a LARGE room (the tavern hall) and assert the camera's
+  // visible world rect (cam.worldView — the rendered truth) CONTAINS the whole room bounds (no edge off-screen /
+  // behind the HUD), with the zoom inside [MIN 1.25, MAX 2.0]. Negative-prove: forcing 2.0 in the large room pushes
+  // a room edge off-screen → the same containment check FAILS (so the fit zoom is doing real work).
+  async function t11_interior_fit_zoom(page, R) {
+    const read = async (to) => {
+      await evalGame(page, (to) => { const s = window.__EMBER.scene.getScene('Overworld'); s._exitBlock = null; s._areaT = false; if (s._inInterior) s._enterArea('back'); s._areaT = false; s._enterArea(to); }, to);
+      await frames(page, 8);   // let the camera preRender recompute worldView for the new zoom/viewport/scroll
+      return evalGame(page, () => {
+        const s = window.__EMBER.scene.getScene('Overworld');
+        const cam = s.cameras.main, wv = cam.worldView, b = s.region && s.region.bounds;
+        const fits = b ? (wv.x <= b.x + 1 && wv.x + wv.width >= b.x + b.w - 1 && wv.y <= b.y + 1 && wv.y + wv.height >= b.y + b.h - 1) : false;
+        return { region: s.region && s.region.key, zoom: +cam.zoom.toFixed(3), bw: b && b.w, bh: b && b.h, viewW: Math.round(wv.width), viewH: Math.round(wv.height), fits };
+      });
+    };
+    for (const [to, label] of [['mara_cottage', 'small (cottage)'], ['tankard_f1', 'large (tavern hall)']]) {
+      await toGH(page);
+      const r = await read(to);
+      await shot(page, `interior-zoom-${to}.png`);
+      R.check(`[zoom ${label}] camera zoom is within the fit-cap band [1.25, 2.0]`, r.zoom >= 1.25 - 1e-3 && r.zoom <= 2.0 + 1e-3, `zoom=${r.zoom} room=${r.bw}x${r.bh}`);
+      R.check(`[zoom ${label}] the WHOLE room fits on-screen (visible world ${r.viewW}x${r.viewH} contains room ${r.bw}x${r.bh}) — no edge cropped`, r.fits, `zoom=${r.zoom} view=${r.viewW}x${r.viewH} room=${r.bw}x${r.bh}`);
+    }
+    // NEGATIVE: force the old fixed 2.0 in the large tavern → a room edge must fall off-screen (proves fit is needed)
+    await toGH(page);
+    await evalGame(page, () => { const s = window.__EMBER.scene.getScene('Overworld'); s._exitBlock = null; s._areaT = false; if (s._inInterior) s._enterArea('back'); s._areaT = false; s._enterArea('tankard_f1'); s.cameras.main.setZoom(2.0); });
+    await frames(page, 8);
+    const neg = await evalGame(page, () => {
+      const s = window.__EMBER.scene.getScene('Overworld');
+      const cam = s.cameras.main, wv = cam.worldView, b = s.region.bounds;
+      const fits = wv.x <= b.x + 1 && wv.x + wv.width >= b.x + b.w - 1 && wv.y <= b.y + 1 && wv.y + wv.height >= b.y + b.h - 1;
+      return { fits, zoom: +cam.zoom.toFixed(3), viewH: Math.round(wv.height), bh: b.h };
+    });
+    R.check('[zoom negative] forcing the old fixed 2.0 in the tavern CROPS the room (a room edge goes off-screen)', neg.fits === false, `at 2.0: visibleH=${neg.viewH} < roomH=${neg.bh} → cropped`);
   },
 ];
 
