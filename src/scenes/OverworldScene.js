@@ -227,7 +227,7 @@ export class OverworldScene extends Phaser.Scene {
   // PRIMARY region (the one the player is inside, or null in the belt) for safe-zone /
   // combat / interaction decisions; `_activeRegions` = the full loaded set (visuals +
   // NPCs + combat). On any change to that set, rebuild (cheap; only at border crossings).
-  _maybeToggleRegion(immediate = false) {
+  _maybeToggleRegion(immediate = false, primaryOnly = false) {
     let inRange = REGIONS.filter((R) => {
       const b = R.bounds;
       const cx = Math.max(b.x, Math.min(this.player.x, b.x + b.w)), cy = Math.max(b.y, Math.min(this.player.y, b.y + b.h));
@@ -238,6 +238,13 @@ export class OverworldScene extends Phaser.Scene {
     if (this._inInterior) {
       const here = REGIONS.find((R) => R.interior && this.player.x >= R.bounds.x && this.player.x < R.bounds.x + R.bounds.w && this.player.y >= R.bounds.y && this.player.y < R.bounds.y + R.bounds.h);
       inRange = here ? [here] : inRange.filter((R) => R.interior);
+    } else if (primaryOnly) {
+      // SNAPPY TRANSITION (door speed) — a building exit rebuilds the whole overworld synchronously; building
+      // ALL in-range regions at once is the ~250ms hitch (terrain autotiling × 5-6 regions). Build ONLY the
+      // region the player LANDS in; the infinite-world chunk floor (_restream) backs the background so there are
+      // no gaps, and the neighbour regions stream in on the first chunk-cross (normal amortized streaming).
+      const prim = regionAt(this.player.x, this.player.y);
+      if (prim && inRange.includes(prim)) inRange = [prim];
     }
     const cur = this._activeRegions || [];
     const same = inRange.length === cur.length && inRange.every((R) => cur.includes(R));
@@ -679,7 +686,8 @@ export class OverworldScene extends Phaser.Scene {
     }
     this.player.body.reset(this.player.x, this.player.y);
     this._lastTile = { tx: Math.floor(this.player.x / TILE), ty: Math.floor(this.player.y / TILE) };  // WALK-THROUGH: spawn ON the door tile → don't re-fire until the player steps OFF then back ON
-    this._unloadAllRegions(); this._maybeToggleRegion(true); this._restream(true);
+    this._unloadAllRegions(); this._maybeToggleRegion(true, true); this._restream(true);   // primaryOnly: build only the landing region for a SNAPPY swap (neighbours stream in on the first chunk-cross)
+    { const [cx, cy] = cidOf(this.player.x, this.player.y); this._lastChunk = `${cx},${cy}`; }   // pin the chunk so the next update frame doesn't immediately re-load ALL neighbours (which would undo the snappy swap)
     this.cameras.main.centerOn(this.player.x, this.player.y);
     this._setInteriorView(this._inInterior);
     this._banner(this._inInterior ? (this.region ? 'Entered ' + this.region.key : 'Inside') : 'Back outside', 1100);

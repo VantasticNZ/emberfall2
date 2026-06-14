@@ -957,6 +957,20 @@ const tile = (px) => Math.round(px / TILE);
   else ok('gear-paper-doll: the Gear & Stats tab renders the actual player character (forge rig composite) beside the full WORN/HELD loadout + stats');
 }
 
+// 25b6) DOOR TRANSITION SNAP — exiting a building rebuilt ALL in-range regions synchronously (~250ms hitch). The
+//   transition now builds ONLY the landing region (primaryOnly) + pins _lastChunk so the next update frame doesn't
+//   immediately re-load every neighbour; neighbours stream in on the first chunk-cross. (Runtime TIMING is asserted
+//   by the runtime harness; this guards the source wiring so the optimization can't be silently reverted.)
+{
+  const offenders = [];
+  const ow = readFileSync(join(ROOT, 'src/scenes/OverworldScene.js'), 'utf8');
+  if (!/_maybeToggleRegion\(immediate = false, primaryOnly = false\)/.test(ow)) offenders.push('_maybeToggleRegion lost its primaryOnly param');
+  if (!/_maybeToggleRegion\(true, true\)/.test(ow)) offenders.push('_enterArea no longer uses the primaryOnly snappy-swap (would rebuild ALL neighbours synchronously)');
+  if (!/this\._lastChunk = `\$\{cx\},\$\{cy\}`/.test(ow)) offenders.push('_enterArea does not pin _lastChunk after a transition (the next update frame would re-load all neighbours, undoing the snap)');
+  if (offenders.length) fail('DOOR-TRANSITION snap broken:' + offenders.map((v) => '\n      ' + v).join(''));
+  else ok('door-transition-snap: a building exit builds only the landing region (primaryOnly) + pins the chunk — neighbours stream on approach, no ~250ms full-overworld rebuild hitch');
+}
+
 // 25c) ITEM-ICONS (buy/sell + inventory PICTURES, not just names) — every id in BootScene.ITEM_ICONS must have a
 //      real public/art/icons/<id>.png, be a REAL game item, and the scene must wire the pictures into the shop
 //      rows + the menu Items list (itemIconKey). Items WITHOUT an icon fall back to their name (honest).
