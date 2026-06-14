@@ -1236,6 +1236,22 @@ const tile = (px) => Math.round(px / TILE);
   else ok(`panel-bounds-inside-viewport: all ${new Set(boxes).size} UI panel(s) register with the uiCamera (zoom-1, screen-space, clamped) — none can render off-screen`);
 }
 
+// 26d) MENU MAP-TAB NAV — navigating sideways to the Map tab must NOT look/feel like the menu closed.
+//   ROOT CAUSE (fixed): the full map was a hud2 CHILD, and _openMenu hides hud2 → the Map tab rendered nothing
+//   (parent invisible). FIX: the map is scene-root, listed on the uiCamera (independent of hud2), and the menu
+//   tab bar STAYS visible on Map (only the opaque panel bg hides). This gate guards all three.
+{
+  const offenders = [];
+  const ow = readFileSync(join(ROOT, 'src/scenes/OverworldScene.js'), 'utf8');
+  if (/this\._fullMap = add\(/.test(ow)) offenders.push('_fullMap is still a hud2 CHILD (add(...)) — the menu hiding hud2 will blank the Map tab');
+  if (!/_uiList = \[[^\]]*this\._fullMap[^\]]*\]/.test(ow)) offenders.push('_fullMap is not registered on the uiCamera _uiList — it will render on the wrong (zoomed) camera or not at all');
+  if (/this\._menuBox\.setVisible\(!onMap\)/.test(ow)) offenders.push('the menu box is hidden on the Map tab — the tab bar vanishes and the menu looks closed');
+  if (!/this\._menuBox\.setVisible\(true\)/.test(ow)) offenders.push('the menu box is not force-kept visible on every tab (tab bar must persist on Map)');
+  if (!/this\._menuBg\.setVisible\(!onMap\)/.test(ow)) offenders.push('the opaque panel bg is not hidden on Map — the map cannot show through under the tab bar');
+  if (offenders.length) fail('MENU MAP-TAB nav broken:' + offenders.map((v) => '\n      ' + v).join(''));
+  else ok('menu-map-tab: the Map tab keeps the tab bar visible + renders the map (scene-root on the uiCamera, independent of hud2) — navigating to Map never looks/acts closed');
+}
+
 // 27) GAME-WIDE DEPTH RULE — every WORLD sprite y-sorts by its FEET (baseY), one formula. Static props go
 //     through DepthSort.trackProp (origin/scale-agnostic opaque-base feet); only ACTORS use DepthSort.track,
 //     and their offset MUST be a body-derived feet line (never a per-case constant). A bare number / footprint

@@ -1566,10 +1566,14 @@ export class OverworldScene extends Phaser.Scene {
     this._menuBox = this.add.container(0, 0).setScrollFactor(0).setDepth(OD + 13);
     const bg = this.add.rectangle(X, Y, W, H, 0x0b0f17, 0.97).setOrigin(0, 0).setStrokeStyle(2, 0x7fa86a).setScrollFactor(0);
     this._menuBg = bg;
-    this._menuTabsTxt = this.add.text(X + 18, Y + 14, '', { fontFamily: 'monospace', fontSize: '16px', color: '#cfc3a8', fontStyle: 'bold' }).setScrollFactor(0);
+    // OPAQUE header strip behind the tab bar — stays visible on the Map tab (where the big panel bg hides) so the
+    // tabs read clearly over the map AND it covers the map's own top labels. The persistent tab bar is what keeps
+    // the menu from ever LOOKING closed on Map.
+    this._menuTabBg = this.add.rectangle(X, Y, W, 34, 0x0b0f17, 1).setOrigin(0, 0).setScrollFactor(0);
+    this._menuTabsTxt = this.add.text(X + 18, Y + 9, '', { fontFamily: 'monospace', fontSize: '16px', color: '#cfc3a8', fontStyle: 'bold' }).setScrollFactor(0);
     this._menuBody = this.add.text(X + 18, Y + 52, '', { fontFamily: 'monospace', fontSize: '14px', color: '#e8f5e0', wordWrap: { width: W - 40 }, lineSpacing: 5 }).setScrollFactor(0);
     this._menuHint = this.add.text(X + 18, Y + H - 26, '←→ tab · ↑↓ scroll · Enter (Settings) · B/Esc close', { fontFamily: 'monospace', fontSize: '11px', color: '#7a9a7a' }).setScrollFactor(0);
-    this._menuBox.add([bg, this._menuTabsTxt, this._menuBody, this._menuHint]);   // all CHILDREN of the box (one registered panel)
+    this._menuBox.add([bg, this._menuTabBg, this._menuTabsTxt, this._menuBody, this._menuHint]);   // all CHILDREN of the box (one registered panel)
     // Items tab — per-row PICTURE (eliza-objects) + label, populated in _renderMenu. Hidden on other tabs.
     this._menuRows = []; this._menuIcons = []; this._menuRowY0 = Y + 96; this._menuRowH = 23;
     for (let i = 0; i < 11; i++) {
@@ -1586,6 +1590,7 @@ export class OverworldScene extends Phaser.Scene {
     this._menuBox = this._menuTabsTxt = this._menuHint = this._menuBody = null;
     this._menuRows = null; this._menuIcons = null;
     if (this._fullMap) { this._fullMap.setVisible(false).setDepth(DEPTH.OVERLAY + 2); }
+    if (this._fullMapTitle) this._fullMapTitle.setVisible(true);   // restore the header for the standalone M/O world map
     if (this.hud2) this.hud2.setVisible(!this._hudHidden); if (this._helpText) this._helpText.setVisible(true);
     this._sfx('sfx_select', 0.5);
   }
@@ -1597,8 +1602,14 @@ export class OverworldScene extends Phaser.Scene {
     const TABS = ['Items', 'Gear & Stats', 'Map', 'Settings'];
     this._menuTabsTxt.setText(TABS.map((t, i) => (i === this._menuTab ? '▶ ' : '  ') + t).join('    '));
     const onMap = this._menuTab === 2;
-    if (this._fullMap) this._fullMap.setVisible(onMap).setDepth(DEPTH.OVERLAY + 14);   // the Map tab = the full world map (reused), raised above the menu
-    this._menuBox.setVisible(!onMap);                                                  // hide the menu panel under the full-screen map; ←→ returns, B/Esc closes
+    // Map tab: the full map shows BELOW the menu's tab bar (the box stays VISIBLE, only its opaque bg + body
+    // hide), so the tab chrome + hint persist on top and the menu never LOOKS closed (the nav-bug fix).
+    if (this._fullMap) this._fullMap.setVisible(onMap).setDepth(DEPTH.OVERLAY + 12);
+    this._menuBox.setVisible(true);                          // tab bar + hint must persist on EVERY tab
+    if (this._menuBg) this._menuBg.setVisible(!onMap);       // hide only the opaque panel backdrop on Map → the map shows through
+    this._menuBody.setVisible(!onMap);
+    if (this._fullMapTitle) this._fullMapTitle.setVisible(false);   // the menu tab bar is the header in-menu
+    if (onMap && this._menuHint) this._menuHint.setText('←→ tab · B/Esc close');
     const nm = (id) => { if (!id) return '(none)'; try { return itemDef(id).name; } catch (_) { return id; } };
     // hide the per-row item pictures/labels by default; only the Items tab repopulates them
     (this._menuRows || []).forEach((t) => t.setVisible(false));
@@ -2136,7 +2147,7 @@ export class OverworldScene extends Phaser.Scene {
     this.input.keyboard.on('keydown-F9', () => this.loadGame());
     this.input.keyboard.on('keydown-F8', () => this.newGame());   // FRESH GAME — clear the save + reload (stale-save preventative)
     // HUD toggles (control SSOT: O/M map · T quests · H hide HUD · Esc game menu). Gated while the menu is open.
-    const toggleMap = () => { if (!this._dlg && !this._menuOpen) this._fullMap.setVisible(!this._fullMap.visible); };
+    const toggleMap = () => { if (!this._dlg && !this._menuOpen) { const v = !this._fullMap.visible; this._fullMap.setVisible(v).setDepth(DEPTH.OVERLAY + 12); if (this._fullMapTitle) this._fullMapTitle.setVisible(true); } };   // map is scene-root on the uiCamera now — set depth above the HUD on show
     this.input.keyboard.on('keydown-O', toggleMap);
     this.input.keyboard.on('keydown-M', toggleMap);   // M = the full WORLD MAP / plan view
     this.input.keyboard.on('keydown-T', () => { if (!this._dlg && !this._menuOpen) this._trkState = (this._trkState + 2) % 3; });   // cycle tracker: full→title→off
@@ -2372,7 +2383,10 @@ export class OverworldScene extends Phaser.Scene {
     // FULL-MAP overlay (toggle M / O) — the whole-world PLAN: regions + corridors + gates + labels.
     // PROJECTION: fit the BOUNDING BOX of the built regions (not the empty 20480px world) so the plan
     // FILLS the view + reads. box = { x,y,scale, wx,wy } → screenPx = x + (worldPx - wx)*scale.
-    this._fullMap = add(this.add.container(0, 0).setScrollFactor(0).setDepth(OD + 2).setVisible(false));
+    // SCENE-ROOT (NOT a hud2 child) so the menu hiding hud2 can't hide the Map tab — registered on the
+    // uiCamera in _setupUICamera. ROOT CAUSE of the "menu closes navigating to Map" bug: the map was a hud2
+    // child, and _openMenu does hud2.setVisible(false), so the Map tab rendered NOTHING (parent invisible).
+    this._fullMap = this.add.container(0, 0).setScrollFactor(0).setDepth(OD + 2).setVisible(false);
     const fw = Math.min(W - 70, 760), fh = this.scale.height - 70, fx = (W - fw) / 2, fy = 40;
     let minx = Infinity, miny = Infinity, maxx = -Infinity, maxy = -Infinity;
     for (const R of REGIONS) { if (R.interior) continue; minx = Math.min(minx, R.bounds.x); miny = Math.min(miny, R.bounds.y); maxx = Math.max(maxx, R.bounds.x + R.bounds.w); maxy = Math.max(maxy, R.bounds.y + R.bounds.h); }
@@ -2407,7 +2421,8 @@ export class OverworldScene extends Phaser.Scene {
       if (e.reserved || !e.gate) continue; const k = [e.region, e.to].sort().join('|'); if (seen.has(k)) continue; seen.add(k);
       lbl(mX(e.at.tx * TILE), mY(e.at.ty * TILE) - 12, '🔒' + String(e.gate).replace('tool_', '').replace('shard_', 'shard '), 9, '#ffb077', 1);
     }
-    this._fullMap.add(this.add.text(fx, fy - 26, 'WORLD MAP — the whole plan  (M / O to close)', { fontFamily: 'monospace', fontSize: '14px', color: '#ffe9c2', fontStyle: 'bold' }).setScrollFactor(0));
+    this._fullMapTitle = this.add.text(fx, fy - 26, 'WORLD MAP — the whole plan  (M / O to close)', { fontFamily: 'monospace', fontSize: '14px', color: '#ffe9c2', fontStyle: 'bold' }).setScrollFactor(0);
+    this._fullMap.add(this._fullMapTitle);   // hidden when the map is shown via the Esc-menu Map tab (the menu's tab bar is the header there)
     this._fullMap.add(this.add.text(fx, fy + fh + 8, '● you  ·  ▭ region (greybox = nav skeleton)  ·  light tan = walkable corridor  ·  🔒 = tool-gate  ·  ○ entrance', { fontFamily: 'monospace', fontSize: '11px', color: '#9fb89a' }).setScrollFactor(0));
     this._fmDots = this.add.graphics().setScrollFactor(0); this._fullMap.add(this._fmDots);
     this._fmBox = box;
@@ -2549,7 +2564,7 @@ export class OverworldScene extends Phaser.Scene {
   // enumerate the world once — _reconcileCameras re-ignores all non-UI children, and is
   // called after every streaming/region/combat creation + once per frame as insurance.
   _setupUICamera() {
-    this._uiList = [this.hud2, this.dlgBox, this.playerHpUI, this.banner, this._helpText].filter(Boolean);
+    this._uiList = [this.hud2, this.dlgBox, this.playerHpUI, this.banner, this._helpText, this._fullMap].filter(Boolean);
     this.uiCamera = this.cameras.add(0, 0, this.scale.width, this.scale.height);
     this.uiCamera.setScroll(0, 0);
     this.cameras.main.ignore(this._uiList);   // world camera never draws the HUD
