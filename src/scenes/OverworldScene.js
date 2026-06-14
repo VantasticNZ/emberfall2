@@ -329,7 +329,7 @@ export class OverworldScene extends Phaser.Scene {
           if (effState === 'closed' || effState === 'locked') {
             Interaction.register({ x: dcx, y: dcy, prompt: 'Knock', onInteract: () => { if (!this._dlg && !this._areaT) this._openDoorChoice(builtDoor); } });
           } else {
-            Interaction.register({ x: dcx, y: dcy, prompt: bdoor.to ? `Enter${bdoor.owner ? " " + bdoor.owner + "'s" : ''}` : 'Enter', onInteract: () => { if (!this._dlg && !this._areaT) { this._openDoorVisual(builtDoor); this._enterArea(builtDoor.to, { x: dcx, y: dcy + TILE }); } } });
+            Interaction.register({ x: dcx, y: dcy, prompt: bdoor.to ? `Enter${bdoor.owner ? " " + bdoor.owner + "'s" : ''}` : 'Enter', onInteract: () => { if (!this._dlg && !this._areaT) { this._openDoorVisual(builtDoor); this._enterArea(builtDoor.to, { x: dcx, y: dcy }); } } });   // EXIT lands on the doorway tile = DIRECTLY in front of the door (was dcy+TILE = a tile too far out)
           }
         } else if (isSolid(p.key, p.solid)) {
           rect = this.add.rectangle(ccx, ccy, cw, ch, 0x000000, 0).setVisible(false);
@@ -725,7 +725,7 @@ export class OverworldScene extends Phaser.Scene {
       if (t.action === 'enter' || t.action === 'prompt') {
         this._doorFired = true; this._lastTile = { tx: ptx, ty: pty };
         if (t.action === 'prompt') this._openDoorChoice(t.door);
-        else { this._openDoorVisual(t.door); this._enterArea(t.door.to, { x: t.door.dcx, y: t.door.dcy + TILE }); }
+        else { this._openDoorVisual(t.door); this._enterArea(t.door.to, { x: t.door.dcx, y: t.door.dcy }); }   // EXIT lands directly in front of the door (the doorway tile), not a tile further out
         return;
       }
     }
@@ -1867,7 +1867,7 @@ export class OverworldScene extends Phaser.Scene {
       this._emitNoise(d.dcx, d.dcy + TILE, GUARD_HEARING.FORCE_DOOR_PX * (d.breakStrength || 1), 'forcing a door'); }   // NOISE radiates from the walkable threshold → in-earshot guards come to investigate
     else if (mode === 'key') { if (d.key) this.inv.remove(d.key, 1); this._banner('The key turns; the door swings open.', 1400); }
     this._openDoorVisual(d);                              // the door VISIBLY opens (sprite swaps to the threshold)
-    const ret = { x: d.dcx, y: d.dcy + TILE };           // clean yard return (no stuck-on-line)
+    const ret = { x: d.dcx, y: d.dcy };                  // EXIT lands directly in front of the door (the doorway tile)
     this.time.delayedCall(DOOR.CHOICE_ENTER_REVEAL_MS, () => this._enterArea(d.to, ret));   // let the OPEN read before walking through
   }
   // ---- REACTIVITY: GUARD CONFRONT + FINE -------------------------------------------------------------
