@@ -63,6 +63,7 @@ export class BootScene extends Phaser.Scene {
     // ITEM ICONS — inventory/buy/sell pictures (eliza-objects Small Items, OGA-BY 3.0; scripts/build_item_icons.py).
     // Only the items eliza-objects clearly covers (food + materials); the rest show their name (honest fallback).
     for (const id of ITEM_ICONS) this.load.image(`icon_${id}`, `art/icons/${id}.png`);
+    this.load.image('egg', 'art/icons/egg.png');   // M2 collectable ground egg (a physical world object, not a text step)
   }
 
   create() {

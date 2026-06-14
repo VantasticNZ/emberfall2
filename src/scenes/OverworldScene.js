@@ -423,10 +423,18 @@ export class OverworldScene extends Phaser.Scene {
     const ox = R.origin.x, oy = R.origin.y, c = (s) => ({ x: ox + s.tx * TILE + TILE / 2, y: oy + s.ty * TILE + TILE / 2 });
     this._m2Sites = { eggs: c(m2.eggs), water: c(m2.water), pen: c(m2.pen), henHome: c(m2.henHome),
       roam: { x0: ox + m2.roam.x0 * TILE, y0: oy + m2.roam.y0 * TILE, x1: ox + m2.roam.x1 * TILE, y1: oy + m2.roam.y1 * TILE } };
-    // the chore sites — real interacts; gated to the matching M2 step (else a flavour line).
-    Interaction.register({ x: this._m2Sites.eggs.x, y: this._m2Sites.eggs.y + 4, prompt: 'Gather the eggs', onInteract: () => this._m2Chore('eggs') });
+    // INTERACTION-VERB SYSTEM (item 3): the chores resolve to real VERBS, not text steps. The action button's
+    // prompt names the verb. COLLECT eggs (physical ground objects you pick up). WATER. PICK UP Henrietta.
+    // EGGS — physical collectable objects at the coop nest (COLLECT verb), present while the eggs chore is current.
+    this._eggs = [];
+    const eggsStep = this.isChild && this.quests.status('M2') === 'active' && this.quests.defs.M2.steps[this.quests.step.M2]?.id === 'eggs';
+    if (eggsStep) {
+      const nest = this._m2Sites.eggs;
+      for (let i = 0; i < 3; i++) { const e = this.add.image(nest.x + (i - 1) * 9, nest.y + (i % 2) * 5 - 2, 'egg').setScale(0.62).setDepth(DEPTH.FLOOR + 4); DepthSort.trackProp(e, { offX: 0, offY: 4, w: 9, h: 7 }); this._regionObjs.push(e); this._eggs.push(e); }
+    }
+    Interaction.register({ x: this._m2Sites.eggs.x, y: this._m2Sites.eggs.y + 4, prompt: 'Collect the eggs', onInteract: () => this._m2Chore('eggs') });
     Interaction.register({ x: this._m2Sites.water.x, y: this._m2Sites.water.y + 4, prompt: 'Water the saplings', onInteract: () => this._m2Chore('water') });
-    // Henrietta — child-only. Spawns at her roost; flees once the chase begins; settles by the player's choice.
+    // Henrietta — child-only. Spawns at her roost; flees once the chase begins; PICKED UP + carried on the catch.
     if (this.isChild) {
       const chosen = this.quests.chosenOn('M2'), done = this.quests.status('M2') === 'complete';
       const home = this._m2Sites.henHome, hen = this.add.sprite(home.x, home.y, 'hen').setScale(0.85).setTint(0xb9824a);   // brown hen (sheet is white)
@@ -438,7 +446,7 @@ export class OverworldScene extends Phaser.Scene {
         this._henState = stepId === 'hen' ? 'flee' : 'idle';
         hen.play(this._henState === 'flee' ? 'hen_down' : 'hen_peck');
       }
-      Interaction.register({ target: hen, targetOffY: -4, prompt: 'Catch Henrietta', onInteract: () => this._henCatch() });
+      Interaction.register({ target: hen, targetOffY: -4, prompt: 'Pick up Henrietta', onInteract: () => this._henCatch() });
     }
   }
 
@@ -448,8 +456,11 @@ export class OverworldScene extends Phaser.Scene {
     const active = this.quests.status('M2') === 'active';
     const stepId = active ? this.quests.defs.M2.steps[this.quests.step.M2]?.id : null;
     if (which === 'eggs' && stepId === 'eggs') {
-      this.quests.advance('M2'); this._sfx('sfx_pickup', 0.8); this._itemGetFx(this.player.x, this.player.y - 8, 'ow_orb', 0xfff0c0);
-      this._banner('Eggs gathered. Now water the orchard saplings.', 2200); this._refreshTracker && this._refreshTracker();
+      // COLLECT verb — pick up each physical egg object (remove its sprite with a pop), then advance.
+      for (const e of (this._eggs || [])) { if (e && e.active) { this._itemGetFx(e.x, e.y - 4, 'egg', 0xffffff); DepthSort.untrack(e); e.destroy(); } }
+      this._eggs = [];
+      this.quests.advance('M2'); this._sfx('sfx_pickup', 0.8);
+      this._banner('Eggs collected. Now water the orchard saplings.', 2200); this._refreshTracker && this._refreshTracker();
     } else if (which === 'water' && stepId === 'water') {
       this.quests.advance('M2'); this._sfx('sfx_confirm', 0.7);
       this._banner("Saplings watered. Now catch Henrietta — she's loose in the meadow!", 2400); this._refreshTracker && this._refreshTracker();
@@ -467,14 +478,56 @@ export class OverworldScene extends Phaser.Scene {
   _henCatch() {
     if (this._dlg) return;
     const onHenStep = this.quests.status('M2') === 'active' && this.quests.defs.M2.steps[this.quests.step.M2]?.id === 'hen';
-    if (onHenStep) { this._henState = 'caught'; this._sfx('sfx_select', 0.7); this._startQuestDialogue('M2'); }
-    else this._startGreeting('', ['Henrietta the brown hen pecks at the dirt, unbothered.']);
+    if (onHenStep) {
+      // PICK UP + CARRY verb — lift Henrietta OVERHEAD (held above the head, follows the player), then the moral
+      // choice (catch=place in pen / kick / free). FLAG: a held-overhead carry-pose + a throw arc are deferred
+      // (no LPC lift/carry frames; using the seated hen rendered above the head as the minimum coherent carry).
+      this._henState = 'carried'; this._sfx('sfx_select', 0.7);
+      if (this._hen) this._hen.play('hen_peck');
+      this._startQuestDialogue('M2');   // the seeded catch/kick/free choice — completes M2 on the pick (complete:M2)
+    } else this._startGreeting('', ['Henrietta the brown hen pecks at the dirt, unbothered.']);
+  }
+  // HIT verb reactions — the blunt unarmed punch makes nearby ANIMALS + NPCs REACT (never killed with safety on):
+  // the hen flees + squawks; an NPC staggers (a small recoil) + protests. Pure reaction; no damage, no harvest.
+  _applyHitReactions() {
+    const f = FACE_VEC[this.player.facing] || FACE_VEC.down;
+    const hx = this.player.x + f.x * 16, hy = this.player.y + f.y * 16, reach = 26;
+    if (this._hen && this._hen.active && this._henState !== 'carried' && this._henState !== 'settled' && Math.hypot(this._hen.x - hx, this._hen.y - hy) < reach) {
+      this._henState = 'flee'; this._sfx('sfx_deny', 0.5);                    // squawk-ish + bolt
+      const r = this._m2Sites && this._m2Sites.roam; const nx = this._hen.x + f.x * 10, ny = this._hen.y + f.y * 10;
+      this._hen.x = r ? Phaser.Math.Clamp(nx, r.x0, r.x1) : nx; this._hen.y = r ? Phaser.Math.Clamp(ny, r.y0, r.y1) : ny;
+      this._banner('*BWAAK!* Henrietta flaps off in a fury.', 1400);
+    }
+    for (const n of (this.npcSolids ? this.npcSolids.getChildren() : [])) {
+      if (!n.active || Math.hypot(n.x - hx, n.y - hy) >= reach + 6) continue;
+      this._sfx('sfx_hit', 0.4);
+      this.tweens.add({ targets: n, x: n.x + f.x * 6, y: n.y + f.y * 6, duration: 80, yoyo: true, ease: 'Quad.out', onComplete: () => { if (n.body) n.body.reset(n.x, n.y); } });   // flinch/recoil
+      this._banner(n.getData && n.getData('protected') ? '"Ow! Quit it!"' : '"Hey! What was THAT for?!"', 1500);
+      break;
+    }
   }
 
   // per-frame hen behaviour: peck at home, FLEE the player on the hen step (slower than the child, so it's
   // catchable by cornering), settle into the pen on a gentle catch / vanish on kick or freed.
+  // The eggs chore becomes current AFTER the region built (M2 starts at Mara, later), so (re)spawn the physical
+  // egg objects at the coop whenever the eggs step is active and none are placed. Collecting advances the step,
+  // so they never re-spawn after pickup.
+  _m2MaybeSpawnEggs() {
+    if (!this.isChild || !this._m2Sites) return;
+    const onEggs = this.quests.status('M2') === 'active' && this.quests.defs.M2.steps[this.quests.step.M2]?.id === 'eggs';
+    if (!onEggs || (this._eggs && this._eggs.length)) return;
+    const nest = this._m2Sites.eggs; this._eggs = [];
+    for (let i = 0; i < 3; i++) { const e = this.add.image(nest.x + (i - 1) * 9, nest.y + (i % 2) * 5 - 2, 'egg').setScale(0.62).setDepth(DEPTH.FLOOR + 4); DepthSort.trackProp(e, { offX: 0, offY: 4, w: 9, h: 7 }); this._regionObjs.push(e); this._eggs.push(e); }
+  }
   _henTick(dt) {
+    this._m2MaybeSpawnEggs();
     const hen = this._hen; if (!hen || !hen.active) return;
+    // CARRIED — held overhead, following the player (the PICK UP/CARRY verb). Drawn above the head.
+    if (this._henState === 'carried' && this.quests.status('M2') !== 'complete') {
+      hen.x = this.player.x; hen.y = this.player.y - 30; hen.setDepth(DEPTH.OVERLAY + 2);
+      if (hen.anims.currentAnim?.key !== 'hen_peck') hen.play('hen_peck');
+      return;
+    }
     if (this.quests.status('M2') === 'complete' && this._henState !== 'settled') {
       const ch = this.quests.chosenOn('M2'); this._henState = 'settled';
       if (ch === 'catch') this.tweens.add({ targets: hen, x: this._m2Sites.henHome.x, y: this._m2Sites.henHome.y, duration: 700, ease: 'Quad.out', onComplete: () => hen.active && hen.play('hen_peck') });
@@ -943,7 +996,7 @@ export class OverworldScene extends Phaser.Scene {
 
   _unloadAllRegions() {
     for (const o of (this._regionObjs || [])) { DepthSort.untrack(o); if (o.body) this.solids.remove(o); o.destroy(); }
-    this._regionObjs = []; this._chestSprites = []; this._hen = null; this._m2Sites = null; this._childSites = null;   // M2 hen/sites + childhood-spine triggers belong to the loaded region
+    this._regionObjs = []; this._chestSprites = []; this._hen = null; this._m2Sites = null; this._childSites = null; this._eggs = null;   // M2 hen/eggs/sites + childhood-spine triggers belong to the loaded region
     if (this.combat) this.combat.destroyAll();   // despawn enemies (killed state persists in save deltas)
     this._bossActive = false; this.boss = null;
     this.npcLife = new NpcLife(this);   // schedule STATE re-derives from TimeOfDay+deeds on reload; quest/karma/inv persist in the systems
@@ -1143,6 +1196,7 @@ export class OverworldScene extends Phaser.Scene {
     this._sfx(armed ? 'sfx_swing' : 'sfx_hit', armed ? 0.45 : 0.4);
     if (armed) this._cutSwing();   // only a bladed swing harvests foliage — a fist can't cut a bush
     else this._punchFx();          // UNARMED: a visible impact puff + lunge-pop so the blunt jab READS (no weapon to see)
+    this._applyHitReactions();     // HIT verb: nearby hen/NPCs REACT (flee/squawk · flinch/protest) — armed or not
     // COMBAT damage only OUTSIDE a safe zone AND outside the town safe-hub (Peaks town = sword inert for combat).
     if (!this.combat || this.region?.safeZone || this._inSafeHub() || this.isChild) return;   // a CHILD deals no combat damage (age-gate, sys 1) — they can still cut foliage above
     const out = this.combat.playerAttack(this.player, COMBAT.ATTACK_DAMAGE, { tool: this.playerAttackTool() });

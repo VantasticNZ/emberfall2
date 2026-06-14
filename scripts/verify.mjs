@@ -872,6 +872,35 @@ const tile = (px) => Math.round(px / TILE);
   else ok('m2-physical: Henrietta is a real chase — M2 advances by interact/catch (objective sites, no advance:M2; coop + hen placed; complete:M2 on the choice)');
 }
 
+// 25b2) INTERACTION-VERB SYSTEM — the action button resolves to a real VERB on the target, not a text step.
+//   COLLECT: M2 eggs are PHYSICAL 'egg' world objects (spawned when the chore is current, destroyed on pickup),
+//   not a dialogue line. CARRY: catching Henrietta PICKS HER UP overhead (_henState='carried' + a carry branch in
+//   _henTick that draws her above the player's head). HIT: the unarmed punch makes nearby animals/NPCs REACT
+//   (hen flees, NPC flinches + protests) and is wired into _playerAttack. Prompts read as verbs. (FOUNDATION PASS)
+{
+  const offenders = [];
+  const ow = readFileSync(join(ROOT, 'src/scenes/OverworldScene.js'), 'utf8');
+  const boot = readFileSync(join(ROOT, 'src/scenes/BootScene.js'), 'utf8');
+  // COLLECT — eggs as physical objects
+  if (!/this\.load\.image\('egg'/.test(boot)) offenders.push("BootScene does not load the 'egg' collectable object");
+  if (!existsSync(join(ROOT, 'public/art/icons/egg.png'))) offenders.push('public/art/icons/egg.png missing (the collectable egg sprite)');
+  if (!/_m2MaybeSpawnEggs\(/.test(ow)) offenders.push('OverworldScene missing _m2MaybeSpawnEggs (eggs never become physical objects)');
+  if (!/this\.add\.image\([^;]*?'egg'/.test(ow)) offenders.push('OverworldScene never instantiates an egg sprite (eggs are not placed in the world)');
+  if (!/Collect the eggs/.test(ow)) offenders.push("the eggs prompt is not the COLLECT verb ('Collect the eggs')");
+  if (!/for \(const e of \(this\._eggs[^]*?e\.destroy\(\)/.test(ow)) offenders.push('_m2Chore eggs does not destroy the physical egg sprites on collect');
+  // CARRY — pick up Henrietta overhead
+  if (!/_henState = 'carried'/.test(ow)) offenders.push("_henCatch does not PICK UP Henrietta (no _henState='carried')");
+  if (!/this\._henState === 'carried'[^]*?hen\.y = this\.player\.y -/.test(ow)) offenders.push('_henTick has no carried branch drawing the hen overhead (above the player)');
+  if (!/Pick up Henrietta/.test(ow)) offenders.push("the hen prompt is not the PICK UP verb ('Pick up Henrietta')");
+  // HIT — punch reactions
+  if (!/_applyHitReactions\(/.test(ow)) offenders.push('OverworldScene missing _applyHitReactions (the HIT verb has no reactions)');
+  if (!/_applyHitReactions\(\);/.test(ow)) offenders.push('_applyHitReactions is never CALLED from the attack path (hits cause no reaction)');
+  if (!/_henState = 'flee'[^]*?BWAAK/.test(ow)) offenders.push('a struck hen does not flee/squawk');
+  if (!/What was THAT for|Quit it/.test(ow)) offenders.push('a struck NPC does not protest');
+  if (offenders.length) fail('INTERACTION-VERB system broken:' + offenders.map((v) => '\n      ' + v).join(''));
+  else ok('verb-system: action resolves to real VERBS — COLLECT (eggs are physical objects, destroyed on pickup), CARRY (Henrietta picked up overhead), HIT (hen flees, NPC flinches+protests; wired into _playerAttack)');
+}
+
 // 25c) ITEM-ICONS (buy/sell + inventory PICTURES, not just names) — every id in BootScene.ITEM_ICONS must have a
 //      real public/art/icons/<id>.png, be a REAL game item, and the scene must wire the pictures into the shop
 //      rows + the menu Items list (itemIconKey). Items WITHOUT an icon fall back to their name (honest).
