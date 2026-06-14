@@ -318,7 +318,17 @@ export class OverworldScene extends Phaser.Scene {
           const [bcx, bcy] = cidOf(doorWX, doorWY);
           const effState = this.save.getChunkFlag(bcx, bcy, 'door_broken_' + bdoor.to) ? 'broken' : bdoor.state;
           const vis = this._buildDoorVisual(doorWX, doorWY, dw.w * sc, dw.h * sc, effState, feetY + 1, d.doorArt);
-          this._buildingDoors.push({ tx: dCol, ty: dRow, dcx, dcy, doorWX, doorWY, ...bdoor, state: effState, opening: vis.opening, doorSpr: vis.doorSpr, lockSpr: vis.lockSpr });
+          const builtDoor = { tx: dCol, ty: dRow, dcx, dcy, doorWX, doorWY, ...bdoor, state: effState, opening: vis.opening, doorSpr: vis.doorSpr, lockSpr: vis.lockSpr };
+          this._buildingDoors.push(builtDoor);
+          // DOOR ENTRY — two consistent affordances, both at the SAME standard reach (INTERACTION_RADIUS, the one
+          // talk/interact distance): (1) walk onto the doorway tile facing it (genre walk-in, in _checkDoorWalk);
+          // (2) press E at the door (immediate, ignored from afar). An OPEN door enters straight away; a CLOSED/
+          // LOCKED one opens the knock/try/break choice. Standing far = neither fires (the radius is one tile).
+          if (effState === 'closed' || effState === 'locked') {
+            Interaction.register({ x: dcx, y: dcy, prompt: 'Knock', onInteract: () => { if (!this._dlg && !this._areaT) this._openDoorChoice(builtDoor); } });
+          } else {
+            Interaction.register({ x: dcx, y: dcy, prompt: bdoor.to ? `Enter${bdoor.owner ? " " + bdoor.owner + "'s" : ''}` : 'Enter', onInteract: () => { if (!this._dlg && !this._areaT) { this._openDoorVisual(builtDoor); this._enterArea(builtDoor.to, { x: dcx, y: dcy + TILE }); } } });
+          }
         } else if (isSolid(p.key, p.solid)) {
           rect = this.add.rectangle(ccx, ccy, cw, ch, 0x000000, 0).setVisible(false);
           this.physics.add.existing(rect, true); this.solids.add(rect); this._regionObjs.push(rect);
