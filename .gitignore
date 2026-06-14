@@ -1,6 +1,8 @@
 node_modules/
 dist/
 *.log
+# runtime-harness scratch (probes, captured frames, run logs) — the harness itself (harness.mjs/tests.mjs) IS committed
+scripts/runtime/_*
 .DS_Store
 .vite/
 # Screenshots captured as gate proof live under proof/ and ARE committed.

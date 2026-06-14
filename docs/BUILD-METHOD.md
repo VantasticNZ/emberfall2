@@ -27,7 +27,10 @@ and added here with its birth-failure.
 
 ## 2. THE VERIFICATION DOCTRINE
 
-The throughline: **a green test is a proxy; the running game on the user's path is the truth.**
+The throughline: **a green test is a proxy; the running game on the user's path is the truth.** The doctrine is
+now **TWO gates**: a fast **data gate** (`npm run verify`, pre-commit) AND a **runtime gate** (`npm run
+verify:runtime`) that boots the real game headless, drives it with real keypresses, and asserts on the rendered
+screen. A data gate can be green while the screen renders the opposite — the runtime gate is what catches that.
 
 - **Pixel-truth, not flags.** A visual claim is proven by sampling real pixels (decode the sheet / framebuffer
   snapshot) or by depth-vs-occluder math — never by `.visible`/a data flag. (L1's flag-trust bug is the canon
@@ -46,10 +49,15 @@ The throughline: **a green test is a proxy; the running game on the user's path 
   exhaustive table / a new gate, so it can never recur. Bugs are converted into coverage.
 - **Negative-prove a gate.** A gate you haven't watched FAIL on the bad input is unproven. Feed it the broken
   case; confirm it fails; then confirm the fixed case passes.
-- **Runtime-assertion harness (build once, then cheap).** Behavioural promises (does the door actually block?
-  does the deferred deed actually fire? does the exit land on the door tile?) need a headless-browser harness
-  that boots a fresh save, drives input, and asserts state/pixels. Until it exists, those are honest
-  eyes-on residuals — logged, not hidden. Once built, each new behavioural assertion is a few lines.
+- **Runtime-assertion harness — BUILT (was deferred).** `scripts/runtime/` boots the real game in a headless
+  WebGL browser, drives it with REAL keypresses (the way the user plays), and asserts on the ACTUAL RENDERED
+  SCREEN (Phaser framebuffer snapshot), not a data flag. Run it with `npm run verify:runtime`; full how-to +
+  caveats in `docs/RUNTIME-HARNESS.md`. The first five assertions are the ported false-passes (char-select
+  front-facing · M2-cannot-complete-on-chat · punch-visible-and-is-a-punch · the smith's shop shows list+sell ·
+  menu-stays-open-on-Map) — each green on HEAD, kept as permanent regression tests. **For every new visual/feel
+  feature, add a runtime assertion** (a few lines): drive it with real input, assert the rendered outcome,
+  negative-prove it. Behavioural/visual promises (does the door block? does the shop render list+sell on the
+  keeper the user opens? does the menu stay open on Map?) are now LIVE-checked, not eyes-on residuals.
 
 ---
 

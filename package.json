@@ -9,12 +9,14 @@
     "build": "vite build",
     "preview": "vite preview --port 4273 --strictPort",
     "verify": "node scripts/verify.mjs",
+    "verify:runtime": "node scripts/runtime/tests.mjs",
     "test": "node src/systems/Karma.test.js && node src/systems/QuestEngine.test.js && node src/systems/Economy.test.js && node src/systems/TimeOfDay.test.js && node src/systems/Monsters.test.js && node src/systems/Combat.test.js && node src/systems/Modifiers.test.js && node src/systems/Social.test.js && node src/systems/Interactables.test.js && node src/systems/NpcLife.test.js && node src/systems/doorTrigger.test.js && node src/systems/SavePermanence.test.js && node scripts/fitcheck/fitcheck.test.mjs && node scripts/fitcheck/worldskeleton.test.mjs && node scripts/fitcheck/interiors.test.mjs && node scripts/fitcheck/furniture-whole.test.mjs && node scripts/fitcheck/gen.test.mjs && node src/systems/SaveManager.test.js && node src/data/quests/greenhollow.test.js && node src/data/quests/greenhollow.side.test.js && node src/data/quests/ashenmarsh.test.js && node src/data/quests/sunderedpeaks.test.js && node src/data/quests/tidewreck.test.js && node src/data/quests/emberwood.test.js && node src/data/quests/spire.test.js && node src/data/quests/philosophy.test.js && node src/data/quests/cameos.test.js"
   },
   "dependencies": {
     "phaser": "^3.90.0"
   },
   "devDependencies": {
+    "playwright": "1.60",
     "vite": "^6.3.5"
   }
 }
