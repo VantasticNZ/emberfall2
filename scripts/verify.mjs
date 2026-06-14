@@ -925,6 +925,24 @@ const tile = (px) => Math.round(px / TILE);
   else ok('shop-access: the smith Van reaches opens the real LIST+SELL shop (Bram→bram_forge via dialogue, Hodge→hodge_forge via topic); the wooden practice sword is childSafe+blunt — a child can buy + train, real weapons stay age-gated');
 }
 
+// 25b4) INVENTORY-ACTION DISPATCHER — selecting an Items-tab entry resolves real verbs (Equip/Unequip · Use ·
+//   Drop · Compare) by item type+slot, NOT a static list. EQUIP changes the loadout AND the in-world weapon/shield
+//   visual (the Character layer rig) together; USE applies effects + consumes; COMPARE shows the stat delta.
+{
+  const offenders = [];
+  const ow = readFileSync(join(ROOT, 'src/scenes/OverworldScene.js'), 'utf8');
+  if (!/_itemActionsFor\(/.test(ow)) offenders.push('no inventory-action dispatcher (_itemActionsFor) — items have no verbs');
+  if (!/_doItemAction\(/.test(ow)) offenders.push('no _doItemAction handler');
+  if (!/_syncEquipVisual\(/.test(ow)) offenders.push('no _syncEquipVisual — equipping would not change the in-world weapon');
+  if (!/this\.inv\.equip\(id\); this\._syncEquipVisual\(\)/.test(ow)) offenders.push('Equip does not change the loadout AND the in-world visual together');
+  if (!/this\.player\.equip\('sword'\)/.test(ow) || !/this\.player\.equip\('shield'\)/.test(ow)) offenders.push('the weapon/shield visual layer is not driven from the inventory loadout');
+  if (!/_useItem\(/.test(ow) || !/this\.inv\.remove\(id, 1\)/.test(ow)) offenders.push('Use does not apply effects + consume the item');
+  if (!/_compareText\(/.test(ow)) offenders.push('no Compare (stat delta vs the equipped item)');
+  if (!/_itemActionOpen/.test(ow)) offenders.push('no action sub-panel state (_itemActionOpen)');
+  if (offenders.length) fail('INVENTORY-ACTION dispatcher broken:' + offenders.map((v) => '\n      ' + v).join(''));
+  else ok('inventory-actions: Items tab resolves Equip/Unequip · Use · Drop · Compare per item; Equip syncs the loadout + the in-world weapon/shield visual; Use applies effects + consumes; Compare shows the stat delta');
+}
+
 // 25c) ITEM-ICONS (buy/sell + inventory PICTURES, not just names) — every id in BootScene.ITEM_ICONS must have a
 //      real public/art/icons/<id>.png, be a REAL game item, and the scene must wire the pictures into the shop
 //      rows + the menu Items list (itemIconKey). Items WITHOUT an icon fall back to their name (honest).

@@ -56,6 +56,7 @@ import { ENTRANCES } from '../data/entrances.js';
 import { generateDungeon, generateCave } from '../data/gen/index.js';
 
 const FACE_VEC = { up: { x: 0, y: -1 }, down: { x: 0, y: 1 }, left: { x: -1, y: 0 }, right: { x: 1, y: 0 } };
+const ITEM_ROWS = 9;   // visible item rows in the Items tab (the last rows of the 11-row pool host the action list)
 
 const LOAD_RING = 2, UNLOAD_RING = 3;
 const WORLD_ZOOM = 1.25;          // the open-world camera zoom
@@ -1587,22 +1588,98 @@ export class OverworldScene extends Phaser.Scene {
       const t = this.add.text(X + 50, this._menuRowY0 + i * this._menuRowH, '', { fontFamily: 'monospace', fontSize: '14px', color: '#e8f5e0' }).setScrollFactor(0).setVisible(false);
       this._menuIcons.push(ic); this._menuRows.push(t); this._menuBox.add(ic); this._menuBox.add(t);
     }
+    // DESCRIPTION / COMPARE line at the bottom of the panel — the selected item's note (Items list) or its
+    // description + stat-compare (Equip/Use/Drop action sub-panel). One shared text, repopulated per render.
+    this._menuDesc = this.add.text(X + 18, Y + H - 78, '', { fontFamily: 'monospace', fontSize: '13px', color: '#bfe6ff', wordWrap: { width: W - 40 }, lineSpacing: 3 }).setScrollFactor(0).setVisible(false);
+    this._menuBox.add(this._menuDesc);
+    this._itemSel = 0; this._itemActionOpen = false; this._itemActionSel = 0; this._itemActions = null;   // Items-tab action dispatcher state
     this._registerUIPanel(this._menuBox, X, Y, W, H);
     this._sfx('sfx_select', 0.5); this._renderMenu();
   }
   _closeMenu() {
     if (!this._menuOpen) return; this._menuOpen = false;
     if (this._menuBox) { this._unregisterUIPanel(this._menuBox); this._menuBox.destroy(true); }
-    this._menuBox = this._menuTabsTxt = this._menuHint = this._menuBody = null;
-    this._menuRows = null; this._menuIcons = null;
+    this._menuBox = this._menuTabsTxt = this._menuHint = this._menuBody = this._menuDesc = null;
+    this._menuRows = null; this._menuIcons = null; this._itemActionOpen = false; this._itemActions = null;
     if (this._fullMap) { this._fullMap.setVisible(false).setDepth(DEPTH.OVERLAY + 2); }
     if (this._fullMapTitle) this._fullMapTitle.setVisible(true);   // restore the header for the standalone M/O world map
     if (this.hud2) this.hud2.setVisible(!this._hudHidden); if (this._helpText) this._helpText.setVisible(true);
     this._sfx('sfx_select', 0.5);
   }
-  _menuNav(d) { if (!this._menuOpen) return; this._menuTab = (this._menuTab + d + 4) % 4; this._menuScroll = 0; this._sfx('sfx_select', 0.4); this._renderMenu(); }
-  _menuScrollBy(d) { if (!this._menuOpen || this._menuTab !== 0) return; this._menuScroll = Math.max(0, this._menuScroll + d); this._renderMenu(); }
-  _menuActivate() { if (this._menuOpen && this._menuTab === 3) this._openSettings(); }
+  _menuNav(d) { if (!this._menuOpen || this._itemActionOpen) return; this._menuTab = (this._menuTab + d + 4) % 4; this._menuScroll = 0; this._itemSel = 0; this._sfx('sfx_select', 0.4); this._renderMenu(); }   // ←→ is locked while an item action panel is open (E/B drive it)
+  // UP/DOWN: in the item ACTION sub-panel → move the action cursor; on the Items LIST → move the item cursor
+  // (auto-scrolling the 9-row window); elsewhere → nothing.
+  _menuScrollBy(d) {
+    if (!this._menuOpen) return;
+    if (this._itemActionOpen) { const n = (this._itemActions || []).length; if (n) this._itemActionSel = (this._itemActionSel + d + n) % n; this._sfx('sfx_select', 0.3); this._renderMenu(); return; }
+    if (this._menuTab !== 0) return;
+    const ids = Object.keys(this.inv.items || {}); if (!ids.length) return;
+    this._itemSel = Phaser.Math.Clamp((this._itemSel || 0) + d, 0, ids.length - 1);
+    if (this._itemSel < this._menuScroll) this._menuScroll = this._itemSel;
+    else if (this._itemSel >= this._menuScroll + ITEM_ROWS) this._menuScroll = this._itemSel - (ITEM_ROWS - 1);
+    this._sfx('sfx_select', 0.3); this._renderMenu();
+  }
+  // E/Enter: Settings tab → open settings; Items tab → open the action sub-panel for the selected item, or (if
+  // already open) DO the highlighted action (Equip/Unequip/Use/Drop/Compare).
+  _menuActivate() {
+    if (!this._menuOpen) return;
+    if (this._menuTab === 3) { this._openSettings(); return; }
+    if (this._menuTab !== 0) return;
+    if (this._itemActionOpen) { this._doItemAction(); return; }
+    const ids = Object.keys(this.inv.items || {}); const id = ids[this._itemSel || 0]; if (!id) return;
+    this._itemActions = this._itemActionsFor(id); this._itemActionSel = 0; this._itemActionOpen = true;
+    this._sfx('sfx_select', 0.5); this._renderMenu();
+  }
+  // INVENTORY-ACTION DISPATCHER — the verbs available on an item, resolved by its type + slot (one dispatcher,
+  // not per-item handlers; mirrors the world interaction-verb system). Equippables EQUIP/COMPARE; food/heal
+  // consumables USE; everything but a key item can be DROPped.
+  _itemActionsFor(id) {
+    const it = itemDef(id); const acts = [];
+    if (it.equipSlot) { acts.push(this.inv.equipped(it.equipSlot) === id ? 'Unequip' : 'Equip'); acts.push('Compare'); }
+    if (it.type === 'food' || (it.type === 'consumable' && (it.effects || []).some((e) => e.heal))) acts.push('Use');
+    if (it.type !== 'key') acts.push('Drop');
+    return acts.length ? acts : ['Drop'];
+  }
+  _doItemAction() {
+    const ids = Object.keys(this.inv.items || {}); const id = ids[this._itemSel || 0];
+    if (!id) { this._itemActionOpen = false; this._renderMenu(); return; }
+    const it = itemDef(id), act = (this._itemActions || [])[this._itemActionSel];
+    if (act === 'Compare') { this._sfx('sfx_select', 0.3); this._renderMenu(); return; }   // compare just shows the delta; stay in the panel
+    if (act === 'Equip') { this.inv.equip(id); this._syncEquipVisual(); this._sfx('sfx_confirm', 0.6); this._banner(`Equipped ${it.name}.`, 1200); }
+    else if (act === 'Unequip') { this.inv.unequip(it.equipSlot); this._syncEquipVisual(); this._sfx('sfx_select', 0.5); this._banner(`Unequipped ${it.name}.`, 1200); }
+    else if (act === 'Use') { this._useItem(id); }
+    else if (act === 'Drop') { this.inv.remove(id, 1); if (this.inv.equipped(it.equipSlot) === id && !this.inv.has(id)) this.inv.unequip(it.equipSlot), this._syncEquipVisual(); this._sfx('sfx_select', 0.4); this._banner(`Dropped ${it.name}.`, 1100); }
+    if (this.inv.save) this.inv.save();
+    this._itemActionOpen = false; this._itemActions = null;
+    const left = Object.keys(this.inv.items || {}); this._itemSel = Phaser.Math.Clamp(this._itemSel || 0, 0, Math.max(0, left.length - 1));
+    this._renderMenu();
+  }
+  // USE a consumable/food — apply heal + food effects, then consume one.
+  _useItem(id) {
+    const it = itemDef(id); let healed = 0;
+    (it.effects || []).forEach((e) => { if (e.heal) { const b = this.inv.hp; this.inv.heal(e.heal); healed += this.inv.hp - b; } if (e.food) this.inv.foodMeter = Math.min(120, (this.inv.foodMeter || 0) + e.food); });
+    this.inv.remove(id, 1); this._sfx('sfx_confirm', 0.6);
+    this._banner(`Used ${it.name}${healed ? ` (+${healed} HP)` : ''}.`, 1200);
+  }
+  // Sync the IN-WORLD weapon/shield visual to the inventory loadout (the Character layer rig). One sword/shield
+  // visual stands in for every weapon/shield (a distinct wooden-sword sprite is a flagged asset gap). Armour +
+  // trinkets change stats but have no body layer yet (flagged).
+  _syncEquipVisual() {
+    if (!this.player || !this.player.equip) return;
+    if (this.inv.equipped('weapon')) this.player.equip('sword'); else this.player.unequip && this.player.unequip('weapon');
+    if (this.inv.equipped('shield')) this.player.equip('shield'); else this.player.unequip && this.player.unequip('shield');
+  }
+  // Stat-DELTA vs the item currently in that slot (the COMPARE verb).
+  _compareText(id) {
+    const it = itemDef(id); if (!it.equipSlot) return '';
+    const sum = (x) => { let a = 0, d = 0; if (x) (itemDef(x).effects || []).forEach((e) => { if (e.atk) a += e.atk; if (e.def) d += e.def; }); return { a, d }; };
+    const cur = this.inv.equipped(it.equipSlot), n = sum(id), c = sum(cur), f = (v) => (v >= 0 ? '+' : '') + v;
+    return `vs ${cur ? itemDef(cur).name : '(nothing equipped)'}:  ATK ${f(n.a - c.a)}   DEF ${f(n.d - c.d)}`;
+  }
+  _itemSummary(it) {
+    const fx = []; (it.effects || []).forEach((e) => { if (e.atk) fx.push(`ATK +${e.atk}`); if (e.def) fx.push(`DEF +${e.def}`); if (e.heal) fx.push(`heal ${e.heal}`); if (e.food) fx.push(`food +${e.food}`); if (e.block) fx.push(`block ${Math.round(e.block * 100)}%`); });
+    return `${it.type}${fx.length ? ' · ' + fx.join(' · ') : ''}`;
+  }
   _renderMenu() {
     if (!this._menuOpen) return;
     const TABS = ['Items', 'Gear & Stats', 'Map', 'Settings'];
@@ -1620,20 +1697,36 @@ export class OverworldScene extends Phaser.Scene {
     // hide the per-row item pictures/labels by default; only the Items tab repopulates them
     (this._menuRows || []).forEach((t) => t.setVisible(false));
     (this._menuIcons || []).forEach((ic) => ic.setVisible(false));
+    if (this._menuDesc) this._menuDesc.setVisible(false);
     let body = '';
     if (this._menuTab === 0) {
       const ids = Object.keys(this.inv.items || {});
-      body = `Gold:  ${this.inv.gold}g       Carried: ${this.inv.count()} item(s)`;
-      if (!ids.length) body += '\n\n  (empty — no items yet)';
-      ids.slice(this._menuScroll, this._menuScroll + 11).forEach((id, i) => {
-        const key = itemIconKey(id), t = this._menuRows[i], ic = this._menuIcons[i];
-        if (key) ic.setTexture(key).setVisible(true); else ic.setVisible(false);   // picture when we have one; else a bullet
-        t.setText(`${key ? '' : '• '}${nm(id)}  ×${this.inv.items[id]}`).setVisible(true);
-      });
-      // "more" goes on the HINT line (appending to the top header would overlap row 0)
-      if (this._menuHint) this._menuHint.setText(ids.length > this._menuScroll + 11
-        ? `↓ ${ids.length - this._menuScroll - 11} more · ←→ tab · ↑↓ scroll · B/Esc close`
-        : '←→ tab · ↑↓ scroll · Enter (Settings) · B/Esc close');
+      this._itemSel = Phaser.Math.Clamp(this._itemSel || 0, 0, Math.max(0, ids.length - 1));
+      if (this._itemActionOpen && ids[this._itemSel]) {
+        // ACTION SUB-PANEL — the inventory-action dispatcher (Equip/Unequip/Use/Drop/Compare) for the selected item.
+        const id = ids[this._itemSel], it = itemDef(id);
+        body = `${it.name}  ×${this.inv.items[id]}`;
+        (this._itemActions || []).forEach((a, i) => {
+          const t = this._menuRows[i], ic = this._menuIcons[i]; if (!t) return; const sel = i === this._itemActionSel;
+          if (ic) ic.setVisible(false);
+          t.setText(`${sel ? '▶ ' : '  '}${a}`).setColor(sel ? '#ffe66d' : '#cfe8d6').setVisible(true);
+        });
+        if (this._menuDesc) this._menuDesc.setText(`${it.note || this._itemSummary(it)}${it.equipSlot ? '\nCompare ' + this._compareText(id) : ''}`).setVisible(true);
+        if (this._menuHint) this._menuHint.setText('↑↓ action · E do · B back');
+      } else {
+        body = `Gold:  ${this.inv.gold}g       Carried: ${this.inv.count()} item(s)`;
+        if (!ids.length) body += '\n\n  (empty — no items yet)';
+        ids.slice(this._menuScroll, this._menuScroll + ITEM_ROWS).forEach((id, i) => {
+          const key = itemIconKey(id), t = this._menuRows[i], ic = this._menuIcons[i];
+          const sel = (this._menuScroll + i) === this._itemSel;
+          const eq = ['weapon', 'shield', 'body', 'trinket'].some((s) => this.inv.equipped(s) === id) ? '  (worn)' : '';
+          if (key) ic.setTexture(key).setVisible(true); else ic.setVisible(false);   // picture when we have one; else a bullet
+          t.setText(`${sel ? '▶ ' : '  '}${key ? '' : '• '}${nm(id)}  ×${this.inv.items[id]}${eq}`).setColor(sel ? '#ffe66d' : '#e8f5e0').setVisible(true);
+        });
+        const selId = ids[this._itemSel];
+        if (selId && this._menuDesc) this._menuDesc.setText(`${itemDef(selId).note || this._itemSummary(itemDef(selId))}`).setVisible(true);
+        if (this._menuHint) this._menuHint.setText(`↑↓ select · E actions · ←→ tab · B close${ids.length > this._menuScroll + ITEM_ROWS ? `   (↓ ${ids.length - this._menuScroll - ITEM_ROWS} more)` : ''}`);
+      }
     } else if (this._menuTab === 1) {
       const st = this.inv.stats(), ks = this.karma.getStatus();
       body = `WORN / HELD\n  Weapon:  ${nm(this.inv.equipped('weapon'))}\n  Shield:  ${nm(this.inv.equipped('shield'))}\n\n`
@@ -2148,7 +2241,7 @@ export class OverworldScene extends Phaser.Scene {
     this.input.keyboard.on('keydown-ENTER', () => { if (this._menuOpen) this._menuActivate(); });
     // CLOSE KEY (WS1.4): B (or Q) closes ANY open panel/dialog/menu. Esc toggles the GAME MENU only (below)
     // — never a dual meaning. A dialog cancels cleanly (no quest auto-complete on cancel).
-    const closePanel = () => { if (this._shopOpen) this._closeShop(); else if (this._topicsOpen) this._closeTopics(); else if (this._dlg) this._cancelDialogue(); else if (this._menuOpen) this._closeMenu(); };
+    const closePanel = () => { if (this._shopOpen) this._closeShop(); else if (this._topicsOpen) this._closeTopics(); else if (this._dlg) this._cancelDialogue(); else if (this._menuOpen) { if (this._itemActionOpen) { this._itemActionOpen = false; this._itemActions = null; this._sfx('sfx_select', 0.4); this._renderMenu(); } else this._closeMenu(); } };   // B/Q backs out of the item-action sub-panel before closing the whole menu
     this.input.keyboard.on('keydown-Q', closePanel);
     this.input.keyboard.on('keydown-B', closePanel);
     this.input.keyboard.on('keydown-J', () => { if (this._canAct()) this._playerAttack(); });    // attack (swing+cut everywhere; combat damage gated inside _playerAttack)
@@ -2163,7 +2256,7 @@ export class OverworldScene extends Phaser.Scene {
     this.input.keyboard.on('keydown-T', () => { if (!this._dlg && !this._menuOpen) this._trkState = (this._trkState + 2) % 3; });   // cycle tracker: full→title→off
     this.input.keyboard.on('keydown-H', () => { if (!this._dlg && !this._menuOpen) { this._hudHidden = !this._hudHidden; this.hud2.setVisible(!this._hudHidden); } });
     // Esc = the GAME MENU (Items/Gear/Map/Settings). Toggles it; ignored while a panel/dialog is open (use B/Q).
-    this.input.keyboard.on('keydown-ESC', () => { if (this._shopOpen || this._topicsOpen || this._dlg) return; if (this._menuOpen) this._closeMenu(); else this._openMenu(); });
+    this.input.keyboard.on('keydown-ESC', () => { if (this._shopOpen || this._topicsOpen || this._dlg) return; if (this._menuOpen) { if (this._itemActionOpen) { this._itemActionOpen = false; this._itemActions = null; this._renderMenu(); } else this._closeMenu(); } else this._openMenu(); });
     this._setupDebug();   // dev-only world-skeleton walkthrough aids (gated by ?debug)
   }
 
