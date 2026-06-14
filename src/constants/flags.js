@@ -20,6 +20,12 @@ export const SKILLS = ids(
   'skill_repair_discount', 'skill_see_markers',
 );
 
+// STORY-STATE markers — karma-NEUTRAL "have I done X once" flags (live in the deed namespace, recorded via a
+// dialogue `deed:` option, read by reactive `route` nodes). Not moral; kept here so the orphan-check passes.
+export const STATE = ids(
+  'bram_greeted',   // talked to Bram at the forge once → his shop opens with the wares, not the first-meeting greeting
+);
+
 // faction "lean" markers (set during a region) + the resolved faction flags.
 export const FACTIONS = ids(
   'lean_authority', 'lean_owner', 'lean_smugglers', 'lean_workers', 'faction_authority', 'faction_owner',
@@ -27,4 +33,4 @@ export const FACTIONS = ids(
 );
 
 // every flag id, unioned (for the verify orphan-check).
-export const ALL_FLAGS = Object.freeze({ ...TOOLS, ...SHARDS, ...SKILLS, ...FACTIONS });
+export const ALL_FLAGS = Object.freeze({ ...TOOLS, ...SHARDS, ...SKILLS, ...FACTIONS, ...STATE });

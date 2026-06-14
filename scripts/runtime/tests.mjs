@@ -231,6 +231,89 @@ const TESTS = [
       R.check(`[${label}] entry does NOT fire from 3 tiles away (no far-fire)`, afar === false, `entered-from-afar=${afar}`);
     }
   ),
+
+  // T9 — REACTIVE BRAM DIALOGUE (router resolves on the LIVE ctx — karma deeds + gold). Van: "Bram should offer
+  // the sword AFTER a greeting; say 'mind the edge' when the player is broke." Drive the REAL _npcInteract +
+  // Dialogue engine through all three branches; reach each precondition (greeted? broke?) via the live karma/inv
+  // the router actually reads, then assert which node the router resolved + the rendered line.
+  async function t9_reactive_bram(page, R) {
+    await toGH(page);
+    // talk() runs in ONE eval (no game-loop tick interleaves): neutralise building-door triggers, open Bram's
+    // social dialogue, read the router-resolved node. Between talks _dlg stays truthy (door-walk is gated off while
+    // a dialogue is open) so no idle building-entry can swap the region out from under us.
+    const talk = () => evalGame(page, () => {
+      const s = window.__EMBER.scene.getScene('Overworld');
+      s._buildingDoors = []; s._dlg = null;
+      const b = (s.region && s.region.npcs || []).find((n) => n.name === 'Bram'); if (!b) return null;
+      s._npcInteract(b);
+      const node = s._dlg && s._dlg.node && s._dlg.node();
+      return { id: s._dlg && s._dlg.nodeId, text: node && node.text, gold: s.inv.gold };
+    });
+    // (1) FIRST meeting (not greeted): the router greets BEFORE selling.
+    await evalGame(page, () => { const s = window.__EMBER.scene.getScene('Overworld'); s._buildingDoors = []; s.inv.gold = 50; });   // not broke, so the branch under test is purely "not greeted"
+    const first = await talk();
+    if (!first) { R.check('[bram] Bram present in GH', false, 'not found'); return; }
+    R.check('[bram] FIRST meeting opens with a greeting, not the hard sell (router → firstmeet)', first.id === 'firstmeet' && /watch/i.test(String(first.text)), `node=${first.id}`);
+    // (2) RETURN + BROKE (greeted, gold < 15 = the practice-sword price): the "mind the edge" nudge.
+    await evalGame(page, () => { const s = window.__EMBER.scene.getScene('Overworld'); s.karma.recordDeed('bram_greeted'); s.inv.gold = 5; });
+    const broke = await talk();
+    R.check('[bram] a RETURN visit while BROKE gets the "mind the edge" nudge (router → broke)', broke && broke.id === 'broke' && /mind the edge/i.test(String(broke.text)), `node=${broke && broke.id} gold=${broke && broke.gold}`);
+    // (3) RETURN + has coin: straight to the wares offer.
+    await evalGame(page, () => { const s = window.__EMBER.scene.getScene('Overworld'); s.inv.gold = 50; });
+    const offer = await talk();
+    R.check('[bram] a RETURN visit WITH coin goes straight to the wares (router → offer)', offer && offer.id === 'offer', `node=${offer && offer.id} gold=${offer && offer.gold}`);
+  },
+
+  // T10 — HIT-ESCALATION: repeatedly punching the SAME NPC ramps protest → warning → break-off (not one flat line
+  // forever). REAL punches (J) on a REAL placed NPC; assert the RENDERED banner escalates across 3 distinct lines
+  // and the 3rd is the disengage.
+  async function t10_hit_escalation(page, R) {
+    await toGH(page);
+    // Isolate the HIT verb: bring a non-protected NPC to the player, PIN the player at a fixed open spot, and
+    // neutralise the building-door triggers for the duration (else a re-pin near a doorway fires a door entry and
+    // clobbers the banner under test). The HIT reaction itself is exercised with REAL punches.
+    // Stand the player at the OPEN GH spawn (clear of building walls + doors) — wherever a fresh exit dumped them
+    // can be the cottage doorstep, where a solid NPC placed beside them gets shoved into a wall out of punch reach.
+    // _areaT=true suppresses _checkDoorWalk (early-returns) without blocking the punch (_canAct ignores _areaT).
+    await evalGame(page, () => { const s = window.__EMBER.scene.getScene('Overworld'); const sp = (s.region && s.region.player) || { x: 9920, y: 9824 }; s._dlg = null; s._areaT = true; s._buildingDoors = []; s.player.x = sp.x; s.player.y = sp.y; s.player.facing = 'right'; s.player.body.reset(sp.x, sp.y); });
+    await frames(page, 10);   // settle the re-stream at the spawn (areaT keeps door-walk off so nothing enters)
+    const ok = await evalGame(page, () => {
+      const s = window.__EMBER.scene.getScene('Overworld');
+      const all = (s.npcSolids ? s.npcSolids.getChildren() : []).filter((x) => x.active);
+      const n = all.find((x) => !(x.getData && x.getData('protected')));
+      if (!n) return false;
+      s._dlg = null; s._buildingDoors = []; s._areaT = true; s.__hitHome = { x: s.player.x, y: s.player.y };
+      s.player.facing = 'right'; s.player.body.reset(s.player.x, s.player.y);
+      s.__hitTarget = n; n.setData('hitCount', 0);
+      for (const o of all) { if (o !== n) { o.x = s.player.x + 4000; if (o.body) o.body.reset(o.x, o.y); } }   // shove every OTHER npc out of reach → only the target is ever hit
+      n.x = s.player.x + 24; n.y = s.player.y; if (n.body) n.body.reset(n.x, n.y);   // +24: in punch reach (hx=player+16, reach 32) but past body-overlap (no collision shove)
+      return true;
+    });
+    if (!ok) { R.check('[hit-escalation] a non-protected NPC is present in GH', false, 'none found'); return; }
+    const banners = [];
+    for (let i = 0; i < 3; i++) {
+      // Land EXACTLY one more hit: re-press J (each gated on the 360ms cooldown + busy-anim being clear, else the
+      // press is dropped) until the target's hit-count actually advances to i+1 — so a dropped press never desyncs
+      // the read from the real reaction. Then read the FRESH banner the hit raised.
+      for (let attempt = 0; attempt < 12; attempt++) {
+        const hcNow = await evalGame(page, () => { const s = window.__EMBER.scene.getScene('Overworld'); return (s.__hitTarget && s.__hitTarget.getData('hitCount')) || 0; });
+        if (hcNow >= i + 1) break;
+        await page.waitForFunction(() => { const s = window.__EMBER.scene.getScene('Overworld'); return s.time.now >= s._atkReady && !s.player.isBusy(); }, null, { timeout: 2000, polling: 25 }).catch(() => {});
+        await evalGame(page, () => { const s = window.__EMBER.scene.getScene('Overworld'); const n = s.__hitTarget, h = s.__hitHome; s._buildingDoors = []; s._areaT = true; s.player.x = h.x; s.player.y = h.y; s.player.facing = 'right'; s.player.body.reset(h.x, h.y); if (s.banner) s.banner.setVisible(false); if (n) { n.x = h.x + 24; n.y = h.y; if (n.body) n.body.reset(n.x, n.y); } });
+        await page.keyboard.press('j');           // REAL punch (keydown-J)
+        await page.waitForFunction((want) => { const s = window.__EMBER.scene.getScene('Overworld'); return ((s.__hitTarget && s.__hitTarget.getData('hitCount')) || 0) >= want; }, i + 1, { timeout: 800, polling: 20 }).catch(() => {});
+      }
+      const b = await evalGame(page, () => { const s = window.__EMBER.scene.getScene('Overworld'); return { txt: s.banner && s.banner.visible ? s.banner.text : null, hc: s.__hitTarget && s.__hitTarget.getData('hitCount') }; });
+      banners.push(b);
+    }
+    await shot(page, 'hit-escalation.png');
+    const texts = banners.map((b) => b && b.txt);
+    const distinct = new Set(texts.filter(Boolean));
+    const hc = banners.map((b) => b && b.hc);
+    R.check('[hit-escalation] three real punches each register on the same NPC (hit-count 1→2→3)', hc[0] === 1 && hc[1] === 2 && hc[2] === 3, `hitCount=${JSON.stringify(hc)}`);
+    R.check('[hit-escalation] the three reactions ESCALATE — three distinct rendered lines (not one repeated)', distinct.size === 3, JSON.stringify(texts));
+    R.check('[hit-escalation] the 3rd reaction is a BREAK-OFF (the NPC disengages)', /done with you|stalks off|leave me alone|bolt/i.test(String(texts[2])), `3rd="${texts[2]}"`);
+  },
 ];
 
 // ---- runner ----------------------------------------------------------------

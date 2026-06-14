@@ -515,9 +515,24 @@ export class OverworldScene extends Phaser.Scene {
     }
     for (const n of (this.npcSolids ? this.npcSolids.getChildren() : [])) {
       if (!n.active || Math.hypot(n.x - hx, n.y - hy) >= reach + 6) continue;
-      this._sfx('sfx_hit', 0.4);
-      this.tweens.add({ targets: n, x: n.x + f.x * 6, y: n.y + f.y * 6, duration: 80, yoyo: true, ease: 'Quad.out', onComplete: () => { if (n.body) n.body.reset(n.x, n.y); } });   // flinch/recoil
-      this._banner(n.getData && n.getData('protected') ? '"Ow! Quit it!"' : '"Hey! What was THAT for?!"', 1500);
+      // HIT-ESCALATION — a repeated assault on the SAME NPC ramps the reaction: protest → warning → they break off
+      // and leave (per-NPC count on the sprite). A protected child cries off; an adult stalks away. (Reaction only —
+      // never damage; combat safety unchanged.) Genre ref: Zelda/Stardew villagers escalate then disengage if you
+      // keep swinging at them, rather than repeating one flat line forever.
+      const prot = !!(n.getData && n.getData('protected'));
+      const c = ((n.getData && n.getData('hitCount')) || 0) + 1; n.setData('hitCount', c);
+      const lines = prot
+        ? ['"Ow! Quit it!"', '"Stop it — I\'ll tell on you!"', '"Leave me ALONE!" *they bolt away in tears*']
+        : ['"Hey! What was THAT for?!"', '"Quit it — I\'m warning you, whelp."', '"That\'s IT. I\'m done with you." *turns and stalks off*'];
+      this._banner(lines[Math.min(c, lines.length) - 1], 1600);
+      if (c >= 3) {   // third strike: break off — the NPC retreats two tiles AWAY from the player (no more flat flinch)
+        this._sfx('sfx_deny', 0.5);
+        const ax = n.x - this.player.x, ay = n.y - this.player.y, m = Math.hypot(ax, ay) || 1;
+        this.tweens.add({ targets: n, x: n.x + (ax / m) * 64, y: n.y + (ay / m) * 64, duration: 600, ease: 'Quad.out', onComplete: () => { if (n.body) n.body.reset(n.x, n.y); } });
+      } else {
+        this._sfx('sfx_hit', 0.4);
+        this.tweens.add({ targets: n, x: n.x + f.x * 6, y: n.y + f.y * 6, duration: 80, yoyo: true, ease: 'Quad.out', onComplete: () => { if (n.body) n.body.reset(n.x, n.y); } });   // flinch/recoil
+      }
       break;
     }
   }

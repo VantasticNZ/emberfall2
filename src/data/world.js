@@ -185,13 +185,32 @@ export const WORLD = {
     ],
       // SHOP (child era): Bram offers the blunt PRACTICE SWORD via the real list+sell UI (openshop:bram_forge),
       // not a one-line buy. Coherent for a childOnly smith — steel is gated behind "earn some years" (Hodge sells
-      // steel in the adult era). [Reactive depth — offer-after-greeting / "mind the edge" when broke — deferred.]
-      social: { start: 'shop', nodes: {
-        shop: { speaker: 'Bram', text: "Swinging your fists at the hens again? Here — every smith starts with wood. Blunt as a spoon, but it'll teach your arm the grip.",
+      // steel in the adult era). REACTIVE DEPTH (route nodes read the live ctx — karma deeds + gold):
+      //  · FIRST meeting → a warm watch-me-work greeting BEFORE any sell (records `bram_greeted`);
+      //  · RETURN visit with coin → straight to the wares;
+      //  · RETURN visit while BROKE (gold < the 15g practice sword) → he softens to a "mind the edge / come back
+      //    with coin" nudge instead of pitching a sword you can't buy.
+      social: { start: 'enter', nodes: {
+        enter: { route: [
+          { when: (c) => !c.karma.hasDeed('bram_greeted'), to: 'firstmeet' },
+          { when: (c) => c.inv && c.inv.gold < 15, to: 'broke' },
+          { to: 'offer' },
+        ] },
+        firstmeet: { speaker: 'Bram', text: "Swinging your fists at the hens again? Sit a moment — watch how a real edge gets its bite. THEN we'll see about arming that arm of yours.",
+          options: [
+            { label: '(Watch him work, then ask about the wood sword.)', deed: 'bram_greeted', to: 'offer' },
+            { label: '(Just watch a while.)', deed: 'bram_greeted', end: true },
+          ] },
+        offer: { speaker: 'Bram', text: "Every smith starts with wood. Blunt as a spoon, but it'll teach your arm the grip.",
           options: [
             { label: 'Look over his wares', set: 'openshop:bram_forge', end: true },
             { label: 'Ask about a real sword', to: 'steel' },
             { label: '(Maybe later.)', end: true },
+          ] },
+        broke: { speaker: 'Bram', text: "Back already? *glances at your thin purse* No coin, no wood even — mind the edge of wanting what you can't yet buy, lad. Come back when your purse has some jingle to it.",
+          options: [
+            { label: 'Ask about a real sword', to: 'steel' },
+            { label: "(I'll go earn some.)", end: true },
           ] },
         steel: { speaker: 'Bram', text: "Steel? Hah — earn some years first. Master the practice blade, then we'll talk edges.", options: [{ label: '(Fair enough.)', end: true }] },
       } },
