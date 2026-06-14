@@ -28,6 +28,9 @@ which SLICE ORDER step you are on.
   `docs/RPG-FEEL-STANDARD.md` — the open-world-but-gated bar (6 pillars). `docs/DOOR-SYSTEM.md` —
   the door/entrance SET standard (inset doorways you walk INTO; OPEN/CLOSED/LOCKED states).
   `docs/DEFERRED.md` — the living deferred-work tracker (log every deferral with when-to-build; clear when built).
+  `docs/FEEDBACK-LEDGER.md` — the append-only record of EVERY Van report → status (FIXED commit / IN-PROGRESS /
+  DEFERRED+trigger / DECISION-NEEDED) + the SYSTEMIC fix; never drop feedback silently, fix the CLASS not the
+  instance (BUILD-METHOD §3).
 - **`src/constants/{deeds,flags,items,endings}.js`** — the SSOT for every canonical
   id (import these, never hardcode). `scripts/verify.mjs` fails on drift.
 - **Governance:** `docs/ADR.md` (why settled decisions stand), `docs/STYLE-GUIDE.md`

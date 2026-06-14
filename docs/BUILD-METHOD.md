@@ -74,6 +74,13 @@ The throughline: **a green test is a proxy; the running game on the user's path 
 - **Player-pass + reference-check.** After the table passes, play it as a skeptical player on the owner's load
   path (approach wrong, try to break it); hand-offs include "what I noticed." Every spec names its genre
   reference and is diffed against it.
+- **Fix the CLASS, not the instance.** When a bug or a piece of feedback lands, fix the *category* — one
+  verb-dispatcher, not a handler per object; one collision law, not a collider patched per prop; one
+  sell-eligibility rule, not a special-case for the wooden sword. Before closing the item, **check whether the
+  same bug *pattern* exists elsewhere** (the other 21 buildings, the other tabs, the other props) and sweep them
+  in the same pass — a per-instance patch that leaves siblings broken is the patch-loop (§6) re-opening. Every
+  owner report is logged in `docs/FEEDBACK-LEDGER.md` and closed only by a systemic fix (+ commit) or an explicit
+  deferral with a trigger-to-revisit; feedback is never silently dropped.
 - **Conservative unattended rules.** When running without the owner: locked designs/specs/frozen systems only;
   ambiguity → defer + the conservative reading; commit+push per item; never email; never force-push; a region/
   feel build that needs the owner's eyes (per the render-verification rule) is deferred with a plan, not built
