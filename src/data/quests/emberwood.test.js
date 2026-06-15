@@ -142,6 +142,15 @@ pass('SE3 Ashen Relics is fire/frost-gated (open with tool_firefrost, locked wit
   pass('SE4 Weeping Tree: witnessing records weeping_tree (+P compassion, ET11)');
 }
 
+// 7b) SE5 bounty — the Cinder Stag (M15-gated epic-loot hunt) plays to completion --
+{
+  assert.equal(main.engine.status('SE5'), 'available');   // M15 done -> the Emberwood bounty opens
+  play(main.engine, main.karma, 'SE5', 'slay');
+  assert.equal(main.karma.hasDeed('cinder_stag_slain'), true);
+  assert.equal(main.engine.defs.SE5.reward.items[0], 'cinderhide_cloak');   // the epic reward is wired
+  pass('SE5 Cinder Stag bounty: M15-gated (available), plays to slay -> cinder_stag_slain + Cinderhide Cloak reward');
+}
+
 // 8) persists through save -> reload -----------------------------------------
 main.karma.save(); main.engine.save();
 const karma2 = new KarmaEngine({ storage: main.karma.storage });

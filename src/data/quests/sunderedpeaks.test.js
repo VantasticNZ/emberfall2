@@ -123,6 +123,16 @@ pass('M12 truth is reactive to the M10 permanent decision (believed vs reported)
   pass('SP4 High-Pass Climb is grapple-gated (locked without tool_grapple)');
 }
 
+// 4b) SP2 bounty — the Crag Beast (optional epic-loot hunt) plays to completion --
+{
+  const { karma, engine } = main; // leaned workers -> SP1/SP2/SP3 unlocked; grapple earned
+  assert.equal(engine.status('SP2'), 'available');   // unlocked by the lean_workers dispute choice
+  play(engine, karma, 'SP2', 'slay');
+  assert.equal(karma.hasDeed('crag_beast_slain'), true);
+  assert.equal(engine.defs.SP2.reward.items[0], 'crag_maul');   // the epic reward is wired
+  pass('SP2 Crag Beast bounty: available (lean_workers), plays to slay -> crag_beast_slain + Crag Maul reward');
+}
+
 // 5) SP5 THE TRICK — outcome flips on CURRENT karma -------------------------
 const kind = newPeaks();                       // kind run (high Morality)
 assert.ok(kind.karma.get('morality') >= 20);

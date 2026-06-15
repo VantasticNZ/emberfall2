@@ -113,6 +113,21 @@ assert.equal(blank.status('SA3'), 'locked');             // no lantern at the st
 assert.equal(believe.engine.status('SA3'), 'available'); // lantern earned -> open
 pass('SA3 The Sunken Dead is lantern-gated (locked without tool_lantern, open with it)');
 
+// 6b) PH5 The Experience Stone — the bliss-vs-truth fork genuinely diverges --
+{
+  assert.equal(believe.engine.status('PH5'), 'available');   // M8 done -> the bog-mystic's offer opens
+  const p0 = believe.karma.get('purity');
+  play(believe.engine, believe.karma, 'PH5', 'refuse');       // keep the real, hard world (+P)
+  assert.equal(believe.karma.hasDeed('stone_refused'), true);
+  assert.equal(believe.karma.get('purity'), p0 + 10);
+  const dark = newMarsh();                                     // a separate run takes the stone (-P)
+  const dp0 = dark.karma.get('purity');
+  play(dark.engine, dark.karma, 'PH5', 'take');
+  assert.equal(dark.karma.hasDeed('stone_taken'), true);
+  assert.equal(dark.karma.get('purity'), dp0 - 10);
+  pass('PH5 Experience Stone: refuse -> stone_refused (+P, keep the truth) vs take -> stone_taken (-P, choose the dream)');
+}
+
 // 7) save -> reload keeps the whole region + its memory ---------------------
 believe.karma.save(); believe.engine.save();
 const karma2 = new KarmaEngine({ storage: believe.karma.storage });

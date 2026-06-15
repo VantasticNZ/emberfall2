@@ -150,6 +150,15 @@ pass('M14 betrayal truth is reactive to the M10 decision (mirrors your own betra
   pass('ST5 Saltbreak Betrayal: reactive to your faction; vengeance (-M, ET7) vs mercy (+M+P, ET7) distinct');
 }
 
+// 6b) ST4 bounty — the Wreck Wraith (M13-gated epic-loot hunt) plays to completion --
+{
+  assert.equal(main.engine.status('ST4'), 'available');   // M13 done -> the coast bounty opens
+  play(main.engine, main.karma, 'ST4', 'slay');
+  assert.equal(main.karma.hasDeed('wreck_wraith_slain'), true);
+  assert.equal(main.engine.defs.ST4.reward.items[0], 'tideglass_blade');   // the epic reward is wired
+  pass('ST4 Wreck Wraith bounty: M13-gated (available), plays to slay -> wreck_wraith_slain + Tideglass Blade reward');
+}
+
 // 7) persists through save -> reload ----------------------------------------
 main.karma.save(); main.engine.save();
 const karma2 = new KarmaEngine({ storage: main.karma.storage });
