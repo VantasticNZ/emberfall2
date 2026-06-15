@@ -72,6 +72,12 @@ const CUT_REGROW_MS = 180000;   // a cut bush regrows only after you LEAVE the a
 // Interiors INSET the world viewport into the area these bands leave free, so the HUD never overlaps the room
 // (the room frames inside; the dark border carries the HUD). The layout gate asserts these bands stay clear.
 const HUD_SAFE = { top: 138, right: 198, bottom: 30 };
+// PAPER-DOLL (Gear & Stats) — the doll canvas is sized to the 128px weapon frame so a held sword draws uncropped
+// (the body is 64px; the weapon/swing frame is 128px, sharing the same centre as the in-world rig). The weapon +
+// shield art lives ONLY in the slash (__attack) sheet — no idle/held frame — so when gear is worn the whole doll
+// is rendered at one attack column (the HELD pose), which is the only way the weapon aligns with the hand.
+const DOLL_SIZE = 128;        // doll render-texture px (fits the 128px weapon frame uncropped)
+const DOLL_HELD_COL = 0;      // [PLAY-JUDGED] the __attack column used as the static HELD pose (ready stance)
 const HERO = ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_chestnut', 'shirt_blue', 'pants_black', 'shoes_brown'];
 // The protagonist as a CHILD — fully-clothed child body (shirt+pants+shoes), child head (face baked, no adult
 // brows), and SEATED child hair (oy-offset so it sits on the smaller child skull). L1: complete, matched.
@@ -1775,7 +1781,7 @@ export class OverworldScene extends Phaser.Scene {
       // PAPER-DOLL — the actual player character (forge rig) with the current loadout, on the right of the panel.
       // Rebuilt each time the tab renders so it reflects equip changes. (item 4)
       const doll = this._buildPaperDoll();
-      if (doll) { doll.setPosition(20 + 728 - 150, 30 + 195).setScale(3.2).setVisible(true); }
+      if (doll) { doll.setPosition(20 + 728 - 160, 30 + 175).setScale(1.9).setVisible(true); }   // 128px doll (was 64) → ~half the old scale; the body shows ~120px with room for the held weapon
       if (this._menuHint) this._menuHint.setText('←→ tab · B/Esc close');
     } else if (this._menuTab === 3) {
       body = 'SETTINGS\n\n  Press Enter to open the full settings menu:\n  controls · audio · invert aim · threat indicators ·\n  objective arrow · modifiers.';
@@ -2276,21 +2282,40 @@ export class OverworldScene extends Phaser.Scene {
     this.dlgBox.add(rt); this._portrait = rt;   // inside dlgBox → inherits its camera visibility
   }
   // GEAR & STATS PAPER-DOLL — a full-body picture of the actual player character, composited from the SAME forge
-  // layer rig the world uses (body/head/hair/clothes, idle + front). Rendered into the menu panel (uiCamera).
-  // FLAG: the equipped weapon/shield/armour are LISTED in WORN/HELD, not drawn on the doll — the rig's weapon
-  // sprite is attack-only (no held/idle pose frame), and armour/trinket have no body layer yet. Rendering gear
-  // in-hand on the static doll is deferred to a held-pose asset.
+  // layer rig the world uses (body/head/hair/clothes), WITH the equipped weapon + shield drawn ON the body. The
+  // weapon/shield art exists only in the slash (__attack) sheet, so when gear is worn the WHOLE doll renders at one
+  // attack column (DOLL_HELD_COL) — the only frame where the weapon aligns with the hand (LPC: the weapon frame
+  // matches the body hand only within the same animation+frame). No gear → the calm idle pose, same as before.
+  // The doll rebuilds on every Gear-tab render, so it reflects equip/unequip live. FLAG: armour (body) + trinket
+  // have NO body-layer art (the rig has no armour/trinket layer) — they change stats + are LISTED in WORN/HELD,
+  // but cannot be drawn on the doll without new art; honest gap, not faked.
   _buildPaperDoll() {
     if (this._paperDoll) { this._paperDoll.destroy(); this._paperDoll = null; }
     if (!this._playerParts) return null;
+    const hasWeapon = !!(this.inv && this.inv.equipped('weapon'));
+    const hasShield = !!(this.inv && this.inv.equipped('shield'));
+    const combat = hasWeapon || hasShield;
+    const poseState = combat ? 'attack' : 'idle';            // held pose only exists in the slash sheet
+    const col = combat ? DOLL_HELD_COL : 0;
+    // body/clothes/hair (the worn rig) + the sword/shield parts when equipped (they show only in 'attack')
+    const partKeys = [...this._playerParts];
+    if (hasWeapon) partKeys.push('sword');
+    if (hasShield) partKeys.push('shield');
     const layers = [];
-    for (const pk of this._playerParts) { const part = PARTS[pk]; if (!part) continue; for (const L of part.layers) { if (L.states && !L.states.includes('idle')) continue; layers.push({ ...L }); } }
+    for (const pk of partKeys) { const part = PARTS[pk]; if (!part) continue; for (const L of part.layers) { if (L.states && !L.states.includes(poseState)) continue; layers.push({ ...L }); } }
     layers.sort((a, b) => a.z - b.z);
-    const idleFrame = DIR_ROW.down * ANIMS.idle.frames, exprFrame = EXPR_ROW.down * EXPR_COLS + (EXPRESSIONS.neutral ?? 0);
-    const F = FRAME, rt = this.make.renderTexture({ x: 0, y: 0, width: F, height: F }, false);
+    const frames = (ANIMS[poseState] || ANIMS.idle).frames;
+    const poseFrame = DIR_ROW.down * frames + col;
+    const exprFrame = EXPR_ROW.down * EXPR_COLS + (EXPRESSIONS.neutral ?? 0);
+    const S = DOLL_SIZE, cx = S / 2, cy = S / 2;             // centre every layer on one anchor (as the in-world rig does)
+    const rt = this.make.renderTexture({ x: 0, y: 0, width: S, height: S }, false);
     for (const L of layers) {
-      if (L.expressive) rt.drawFrame(`${L.tex}__expr`, exprFrame, 0, 0);
-      else rt.drawFrame(`${L.tex}__idle`, idleFrame, 0, 0);
+      const fsz = L.fw || FRAME;                             // 64px body/clothes, 128px weapon (share the same centre)
+      const dx = cx - fsz / 2, dy = cy - fsz / 2;
+      const sheet = `${L.tex}__${poseState}`;
+      if (!combat && L.expressive && this.textures.exists(`${L.tex}__expr`)) rt.drawFrame(`${L.tex}__expr`, exprFrame, dx, dy);
+      else if (this.textures.exists(sheet)) rt.drawFrame(sheet, poseFrame, dx, dy);
+      else if (this.textures.exists(`${L.tex}__idle`)) rt.drawFrame(`${L.tex}__idle`, DIR_ROW.down * ANIMS.idle.frames, dx, dy);   // fallback: a layer missing this pose's sheet stays present (not naked)
     }
     rt.setOrigin(0.5, 0.5).setScrollFactor(0).setDepth(DEPTH.OVERLAY + 14);
     this._paperDoll = rt;
