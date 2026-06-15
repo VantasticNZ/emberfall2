@@ -861,8 +861,71 @@ function griddedSettlement(spec) {
 
 // THE HALVED-SCOPE WORLD: 1 city + 2 towns + 5 villages + 2 dungeons (greybox, walkable). Far band
 // (tiles 400+), entered by doors from Greenhollow's WORLD-LAYOUT board (reachable + walkable).
+// SALTBREAK (the Coast city) — BUILT from the locked spec (MASTER-WORLD-SPEC §2 + the audit): a storm harbour
+// of smugglers vs harbour authority. Dressed onto the FROZEN griddedSettlement/door pattern (as Fenwick/Mirefen),
+// pitch 7 kept so the 4 district chest-seeds (docks 7,7 · market 28,14 · mansion 49,28 · backstreet 14,28) stay on
+// walkable lanes. Cast + shop placed per spec roles. NOTE: the LIGHTHOUSE building is an art GAP (no lighthouse
+// sprite) → omitted, flagged; M13/M14/ST quests need the Coast quest-set loaded into the runtime QuestEngine
+// (a separate wiring item) to be live-startable — the Harbourmaster is placed + talkable now.
+const COAST_FOLK = [
+  ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_parted_gray', 'beard_gray', 'shirt_leather', 'pants_black', 'shoes_brown'], // weathered Harbourmaster (authority)
+  ['body_tan', 'head_tan', 'brows_chestnut', 'hair_black', 'shirt_amber', 'pants_brown', 'shoes_brown'],                           // Hugh Jass (smuggler)
+  ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_parted_gray', 'beard_gray', 'shirt_teal', 'pants_brown', 'shoes_brown'],    // Holden McGroin (old keeper)
+  ['body_deep', 'head_deep', 'brows_chestnut', 'hair_black', 'shirt_forest', 'pants_brown', 'shoes_brown_fem'],                     // a fisher / market trader
+];
+const _SB_DRESS = [];
+for (let x = 4; x <= 11; x++) _SB_DRESS.push({ tx: x, ty: 3, key: 'prop_dock' });                                                    // the boardwalk along the N waterfront
+_SB_DRESS.push({ tx: 16, ty: 2, key: 'prop_wreck', scale: 0.85 });                                                                   // the namesake beached shipwreck
+_SB_DRESS.push({ tx: 9, ty: 2, key: 'prop_boat' });                                                                                  // a rowboat at the dock
+_SB_DRESS.push({ tx: 5, ty: 5, key: 'prop_barrel' }, { tx: 12, ty: 5, key: 'prop_barrel', tint: 0x8a7a6a }, { tx: 26, ty: 12, key: 'prop_barrel' }, { tx: 12, ty: 26, key: 'prop_barrel', tint: 0x6a6258 });
 export const CITY_SALTBREAK = griddedSettlement({ key: 'city_saltbreak', label: 'SALTBREAK (city)', otx: 400, oty: 400, W: 56, H: 40, pitch: 7, street: 2, mapColor: 0x4a6e8a,
-  doors: [{ tx: 1, ty: 1, to: 'back', label: 'Leave Saltbreak' }],
+  floor: 'dirt', groundTint: 0xb3ab97, spawnTile: { tx: 4, ty: 1 },   // sandy-grey shore tint; arrive on the quayside
+  doors: [
+    { tx: 1, ty: 1, to: 'back', label: 'Leave Saltbreak' },
+    { tx: 28, ty: 11, to: 'gh_store', label: 'Enter the market' },     // the market hall (existing store interior + shop)
+    { tx: 32, ty: 21, to: 'house_v2', label: 'Enter the tavern' },     // the dockside tavern
+    { tx: 49, ty: 25, to: 'house_v5', label: 'Enter the manor' },      // the merchant mansion (inland SE)
+    { tx: 14, ty: 25, to: 'house_v3', label: 'Enter the tenement' },   // a backstreet tenement
+  ],
+  buildings: [
+    { tx: 25, ty: 11, key: 'prop_house_paneled', scale: 0.66, tint: 0x9aa6ac, dy: -6 },   // MARKET hall (central)
+    { tx: 32, ty: 18, key: 'prop_house_paneled', scale: 0.66, tint: 0x8a8478, dy: -6 },   // TAVERN
+    { tx: 46, ty: 25, key: 'prop_house_a', scale: 0.6, tint: 0xa6a09a, dy: -8 },          // MANSION (inland SE)
+    { tx: 11, ty: 25, key: 'prop_house_b', scale: 0.64, tint: 0x6e6a64, dy: -6 },         // BACKSTREET tenement (underworld, dark)
+    { tx: 18, ty: 25, key: 'prop_house_b', scale: 0.64, tint: 0x726c66, dy: -6 },         // BACKSTREET tenement
+    { tx: 39, ty: 11, key: 'prop_house_b', scale: 0.62, tint: 0x8a857c, dy: -6 },         // a housing row
+  ],
+  dressing: _SB_DRESS,
+  npcs: [
+    { tx: 8, ty: 7, facing: 'down', name: 'Harbourmaster', speed: 0, expression: 'neutral', parts: COAST_FOLK[0], quests: ['M13'],
+      greeting: ['*squints out at the grey swell* Another inland face. Mind yourself here — half this town runs honest nets and the other half runs Hugh Jass\'s contraband, and the two are a bad word from blood.', "Storm's always coming in off the Tidewreck. Keep your feet on the boards and your nose out of the backstreets."],
+      topics: [
+        { q: 'The smugglers', a: [`"Hugh Jass and his crew. Run goods past the king's tithe through the tide-caves. Half the harbour looks the other way — the other half I'd hang if the law reached this far out."`] },
+        { q: 'The lighthouse', a: [`"Old Holden keeps the light on the point. Kept it for his boy, once — the sea took the lad and Holden kept the lamp anyway. Go easy on him."`] },
+        { q: 'The drowned oracle', a: [`"*lowers his voice* They say one of the Flame's own oracles refused the lie and washed up here, years back. Her papers are up in the lighthouse, if Holden lets you look. Some truths the sea keeps better than the temple."`] },
+      ] },
+    { tx: 14, ty: 24, facing: 'down', name: 'Hugh Jass', speed: 35, expression: 'neutral', parts: COAST_FOLK[1],
+      greeting: ['*leaning in a backstreet doorway, eyeing the lane* You\'re not harbour law. Good. A body can make honest coin the dishonest way down here — if a body\'s got the nerve.', "Keep it quiet and we'll get along. The Harbourmaster's got eyes; I've got more."],
+      topics: [
+        { q: 'Contraband', a: [`"Tide-caves open at the ebb. Goods in, tithe-free, before the harbourmaster's done his rounds. Risk and reward, same as everything. You in?"`] },
+        { q: 'The Harbourmaster', a: [`"Honest as the day's long and twice as dull. He'd love to see me swing. Won't, though — this town runs on what I move."`] },
+      ] },
+    { tx: 1, ty: 8, facing: 'right', name: 'Holden McGroin', speed: 0, expression: 'sad', parts: COAST_FOLK[2],
+      greeting: ['*an old man, weather-scoured, watching the water* I keep the light for the boats. ...Kept it for my boy, once — he went out in a blow and the lamp wasn\'t enough.', "You climbed all this way for an old fool's lamp? Sit, then. The sea takes its time."],
+      topics: [
+        { q: 'Your boy', a: [`"Out in a winter blow. I lit the lamp and lit it and lit it. The sea doesn't care how bright you burn. ...I keep it for the next man's boy now."`] },
+        { q: "The oracle's papers", a: [`"Aye, I have them. An oracle who wouldn't tell the warm lie — they drowned her quiet. I keep her words with my lamp. Someone should. Maybe you."`] },
+      ] },
+    { tx: 28, ty: 13, facing: 'down', name: 'Market trader Pell', speed: 0, expression: 'happy', parts: COAST_FOLK[3],
+      greeting: ["Saltbreak market — tideglass, frostweave, and a hot pie if the morning's gone long. What'll it be?"],
+      topics: [
+        { q: 'Show me your wares', openshop: 'saltbreak_market', a: [`"Coast goods and contraband's cheaper cousin. Coin first, friend."`] },
+        { q: 'The town', a: [`"Loud, salt-bitten, and half-honest. You'll either love it or be robbed by it. Sometimes both before noon."`] },
+      ] },
+    { tx: 22, ty: 8, facing: 'down', name: 'Shy Fisher', speed: 30, expression: 'neutral', parts: COAST_FOLK[3],
+      greeting: ["*mending a net, barely looking up* ...Storm's coming. Always is. Mind the boards."],
+      topics: [{ q: 'The nets', a: [`"Honest work, this. The sea gives if you don't grab. ...Not everyone here believes that."`] }] },
+  ],
   chests: [{ tx: 7, ty: 7, id: 'saltbreak_docks', gold: 40 }, { tx: 28, ty: 14, id: 'saltbreak_market', gold: 35 }, { tx: 49, ty: 28, id: 'saltbreak_mansion', gold: 50 }, { tx: 14, ty: 28, id: 'saltbreak_under', gold: 30 }] });
 export const TOWN_STONEREACH = griddedSettlement({ key: 'town_stonereach', label: 'Stonereach (town)', otx: 400, oty: 446, W: 36, H: 28, pitch: 8, street: 2, mapColor: 0x8a93a8,
   doors: [{ tx: 1, ty: 1, to: 'back', label: 'Leave Stonereach' }], chests: [{ tx: 8, ty: 8, id: 'stonereach_hall', gold: 30 }, { tx: 24, ty: 16, id: 'stonereach_mine', gold: 25 }] });

@@ -48,6 +48,11 @@ export const IX_CLASS = {
   prop_grave_open: { solid: true }, prop_grave_large: { solid: true },
   prop_door: { solid: false },  // a walk-through doorway marker (entrance/exit) — non-solid, the walk-trigger handles it
   prop_sign: { solid: false, readable: true },  // a sign/waypost/notice board — press-E to READ its `text`
+  // --- COAST PROPS (Saltbreak) ---
+  prop_dock: { solid: false },                  // walkable boardwalk decking laid along the shore
+  prop_boat: { solid: true },                   // a beached rowboat — solid scenery
+  prop_wreck: { solid: true },                  // the beached shipwreck hull — solid mass
+  prop_seawater: { solid: true },               // open sea — visual mass, never walkable (the water-collision law)
 
   // --- SPEC'd-but-GAP assets (Van's table; art not in repo — class DEFINED + ready) --
   // ⚑ prop_bush_big: { solid:true,  cuttable:true, throwable:true }  (needs art + throw engine)

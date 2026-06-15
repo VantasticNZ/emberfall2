@@ -47,7 +47,7 @@ import { bindings } from '../constants/controls.js';
 import { AssetLoader } from '../art/AssetLoader.js';
 import { PROPS, PARTS, DIR_ROW, ANIMS, EXPRESSIONS, EXPR_COLS, EXPR_ROW, FRAME, solidBox } from '../data/assets.js';
 import { TERRAIN } from '../data/terrainTiles.js';
-import { GREENHOLLOW_CHILDHOOD, GREENHOLLOW_SLICE, GREENHOLLOW_SIDE, ASHEN_MARSH, SUNDERED_PEAKS as PEAKS_QUESTS, SUNDERED_PEAKS_SIDE } from '../data/quests/index.js';
+import { GREENHOLLOW_CHILDHOOD, GREENHOLLOW_SLICE, GREENHOLLOW_SIDE, ASHEN_MARSH, SUNDERED_PEAKS as PEAKS_QUESTS, SUNDERED_PEAKS_SIDE, TIDEWRECK_COAST, TIDEWRECK_COAST_SIDE } from '../data/quests/index.js';
 import { TILE, CHUNK_PX, WORLD_CHUNKS, WORLD_PX, chunkContent, groundTintAt, GREENHOLLOW, ASHEN_MARSH as MARSH_REGION, REGIONS, regionAt, inGreenhollow, inMarsh } from '../data/worldmap.js';
 import { item as itemDef } from '../data/items/index.js';
 import { shop as shopDef, buyPrice, sellPrice, availableStock } from '../systems/Economy.js';
@@ -205,7 +205,7 @@ export class OverworldScene extends Phaser.Scene {
   _buildSystems() {
     const storage = memoryStorage();   // per-session; the SaveManager owns durable composition via link()
     this.karma = new KarmaEngine({ storage });
-    this.quests = new QuestEngine({ karma: this.karma, storage, quests: [...GREENHOLLOW_CHILDHOOD, ...GREENHOLLOW_SLICE, ...GREENHOLLOW_SIDE, ...ASHEN_MARSH, ...PEAKS_QUESTS, ...SUNDERED_PEAKS_SIDE] });
+    this.quests = new QuestEngine({ karma: this.karma, storage, quests: [...GREENHOLLOW_CHILDHOOD, ...GREENHOLLOW_SLICE, ...GREENHOLLOW_SIDE, ...ASHEN_MARSH, ...PEAKS_QUESTS, ...SUNDERED_PEAKS_SIDE, ...TIDEWRECK_COAST, ...TIDEWRECK_COAST_SIDE] });
     this.tod = new TimeOfDay({ storage });
     this.inv = new Inventory({ storage });
     this.inv.hp = this.inv.stats().maxHp;

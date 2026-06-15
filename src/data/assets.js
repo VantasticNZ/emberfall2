@@ -228,6 +228,7 @@ export const PROPS = {
   prop_dock:      { src: 'art/coast/dock_planks.png', width: 96, height: 96, footprint: null },   // walkable harbour boardwalk (lay over the shore as floor decking)
   prop_boat:      { src: 'art/coast/boat.png', width: 80, height: 29, footprint: { w: 60, h: 12, offX: 0, offY: 6 } },   // a small rowboat at the dock
   prop_wreck:     { src: 'art/coast/shipwreck.png', width: 96, height: 192, footprint: { w: 64, h: 36, offX: 0, offY: 74 } }, // the beached shipwreck (solid hull base)
+  prop_seawater:  { src: 'art/terrain/water.png', width: 32, height: 32, footprint: null },   // a single ocean tile (reuses the ledgered water tile) — lay as a sea strip in coast settlements
 
   // REAL INTERIOR FURNITURE (ElizaWy LPC Objects, OGA-BY 3.0; altar = LPC Statues, CC-BY/CC-BY-SA) —
   // cropped single sprites for the furnished interiors. footprint:null — interiorRegion carves the nav

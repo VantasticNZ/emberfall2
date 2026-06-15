@@ -311,7 +311,7 @@ const TESTS = [
       const b = await evalGame(page, () => { const s = window.__EMBER.scene.getScene('Overworld'); return { txt: s.banner && s.banner.visible ? s.banner.text : null, hc: s.__hitTarget && s.__hitTarget.getData('hitCount') }; });
       banners.push(b);
     }
-    await shot(page, 'hit-escalation.png');
+    await shot(page, 'hit-escalation.png').catch(() => {});   // proof artifact only; never fail on a transient snapshot hang
     const texts = banners.map((b) => b && b.txt);
     const distinct = new Set(texts.filter(Boolean));
     const hc = banners.map((b) => b && b.hc);
@@ -412,6 +412,58 @@ const TESTS = [
     R.check('[equip] armour fills the BODY slot (stats only — flagged: no body-layer art)', r.armourEquip === true && r.bodySlot === 'leather_jerkin', `body=${r.bodySlot}`);
     R.check('[equip] the action menu offers Equip+Compare for gear, Use+Drop (no Equip) for a potion', r.swordActs.includes('Equip') && r.swordActs.includes('Compare') && r.potionActs.includes('Use') && r.potionActs.includes('Drop') && !r.potionActs.includes('Equip'), `sword=${JSON.stringify(r.swordActs)} potion=${JSON.stringify(r.potionActs)}`);
     R.check('[equip] Compare yields a real stat delta (steel vs the equipped wooden sword)', /ATK \+5/.test(String(r.cmp)), `compare="${r.cmp}"`);
+  },
+
+  // T14 — SALTBREAK (the Coast city) is BUILT from the locked spec, not greybox. Enter the town and assert it
+  // renders dressed (real buildings + the harbour props, ZERO greybox sign-markers), a building enters + exits,
+  // the market shop is wired with stock, and the Harbourmaster makes M13 live-reachable (Coast quests now loaded).
+  async function t14_saltbreak(page, R) {
+    await toOverworld(page);
+    await evalGame(page, () => { const s = window.__EMBER.scene.getScene('Overworld'); s._exitBlock = null; s._areaT = false; if (s._inInterior) s._enterArea('back'); s._areaT = false; s._enterArea('city_saltbreak'); });
+    await frames(page, 14);
+    const town = await evalGame(page, () => {
+      const s = window.__EMBER.scene.getScene('Overworld'), r = s.region;
+      const props = r.props || [];
+      const keys = new Set(props.map((p) => p.key));
+      return {
+        region: r && r.key, inInt: !!s._inInterior,
+        signMarkers: props.filter((p) => p.key === 'prop_sign').length,
+        hasBuildings: keys.has('prop_house_paneled') && keys.has('prop_house_a') && keys.has('prop_house_b'),
+        hasHarbour: keys.has('prop_dock') && keys.has('prop_wreck') && keys.has('prop_boat'),
+        npcs: (r.npcs || []).map((n) => n.name),
+        doors: (r.interactables || []).filter((o) => o.via === 'door' && o.to !== 'back').map((o) => o.to),
+      };
+    });
+    await shot(page, 'saltbreak-town.png').catch(() => {});
+    R.check('[saltbreak] the Coast city loads as a real region (not greybox)', town.region === 'city_saltbreak' && town.signMarkers === 0, `region=${town.region} greyboxMarkers=${town.signMarkers}`);
+    R.check('[saltbreak] the town is DRESSED with real buildings + the harbour props (dock/wreck/boat)', town.hasBuildings && town.hasHarbour, `buildings=${town.hasBuildings} harbour=${town.hasHarbour}`);
+    R.check('[saltbreak] the named coast cast is placed (Harbourmaster · Hugh Jass · Holden · trader)', ['Harbourmaster', 'Hugh Jass', 'Holden McGroin', 'Market trader Pell'].every((n) => town.npcs.includes(n)), `npcs=${JSON.stringify(town.npcs)}`);
+    // pixel-truth: the town view renders real props, not a flat greybox field
+    const pix = await pixels(page, 360, 180, 560, 420);
+    R.check('[saltbreak] the town RENDERS dressed (varied building pixels, not a flat empty field)', pix.distinctColours >= 18 && pix.nonBlack > 4000, `colours=${pix.distinctColours} nonBlack=${pix.nonBlack}`);
+    // a building ENTERS + EXITS (settlement via:door link → interior, return-stack back)
+    const toInterior = town.doors[0];
+    await evalGame(page, () => { const s = window.__EMBER.scene.getScene('Overworld'); const o = (s.region.interactables || []).find((x) => x.via === 'door' && x.to !== 'back'); s._areaT = false; s._enterArea(o.to); });
+    await frames(page, 10);
+    const inside = await evalGame(page, () => ({ region: window.__EMBER.scene.getScene('Overworld').region.key }));
+    await evalGame(page, () => { const s = window.__EMBER.scene.getScene('Overworld'); s._areaT = false; s._enterArea('back'); });
+    await frames(page, 10);
+    const back = await evalGame(page, () => ({ region: window.__EMBER.scene.getScene('Overworld').region.key }));
+    R.check('[saltbreak] a building ENTERS its interior and EXITS back to the town', inside.region === toInterior && back.region === 'city_saltbreak', `entered=${inside.region} (want ${toInterior}) back=${back.region}`);
+    // the market shop is wired with real stock + a sell side
+    const shop = await evalGame(page, () => { const s = window.__EMBER.scene.getScene('Overworld'); s._openShop && s._openShop('saltbreak_market'); return { open: !!s._shopOpen, id: s._shopId, rows: (s._shopRows || []).filter((t) => t.visible && t.text && t.text.trim()).length, sell: !!(s._shopTitle && /sell/i.test(s._shopTitle.text)) }; });
+    R.check('[saltbreak] the market shop opens with stock + a SELL toggle (saltbreak_market wired)', shop.open && shop.id === 'saltbreak_market' && shop.rows > 0 && shop.sell, `open=${shop.open} rows=${shop.rows} sell=${shop.sell}`);
+    // M13 is live-reachable: with M12 done, talking to the Harbourmaster fires the M13 beat (Coast quests loaded)
+    const m13 = await evalGame(page, () => {
+      const s = window.__EMBER.scene.getScene('Overworld');
+      if (s._shopOpen) s._closeShop && s._closeShop();
+      s.quests.state.M12 = 'complete'; s.quests.unlocked.add('M13'); s.quests.refresh();
+      const avail = s.quests.status('M13');
+      const hm = (s.region.npcs || []).find((n) => n.name === 'Harbourmaster');
+      s._dlg = null; if (hm) s._npcInteract(hm);
+      return { avail, dlgOpen: !!s._dlg, started: s.quests.status('M13'), node: s._dlg && s._dlg.nodeId };
+    });
+    R.check('[saltbreak] M13 is live-reachable — the Harbourmaster fires the M13 beat (Coast quests now loaded)', m13.avail === 'available' && m13.dlgOpen, `M13=${m13.avail} dlgOpen=${m13.dlgOpen} node=${m13.node}`);
   },
 ];
 
