@@ -48,7 +48,21 @@ through its streets seamlessly). Apply the SAME pattern to the rest.
 | **Thornwell** | Emberwood (S) | next pass |
 | **Mirage Oasis** | needs a Desert region (M3) | M3 |
 
-### NEXT-AREA build (WS4 of the long-push) — CHOSEN + planned, deferred to an eyes-on session
+### NEXT-AREA build (WS4) — ✅ FIRST PASS BUILT 2026-06-15 (`474b5ec0` props · `0da05c36` town)
+**SALTBREAK is no longer greybox.** The audit's sole blocker (missing coast props) was resolved — fetched +
+vetted + extracted **dock / boat / shipwreck** (CC-BY-SA, ledgered, `public/art/coast/`). Then `CITY_SALTBREAK`
+was DRESSED from the locked spec via the frozen griddedSettlement/door pattern: sandy shore floor, the harbour
+(boardwalk + wreck + rowboat), 6 buildings in the 4 spec'd district zones, the named cast (Harbourmaster/Hugh
+Jass/Holden/Pell/Fisher) with coast lore, the `saltbreak_market` shop wired to a keeper, and **M13 made
+live-reachable** (loaded the Coast quest-set into the runtime engine + wired the Harbourmaster as giver).
+Harness T14 (verify:runtime 56/56): loads non-greybox, renders dressed, building enter/exit, shop opens, M13 fires.
+**STILL OPEN (eyes-on polish / art — Van):** (a) **LIGHTHOUSE** building = art GAP (no sprite) → omitted; (b) the
+open-ocean **water band** (sea tiles) — `prop_seawater` exists, not laid (collision/nav care needed); (c) **density
++ storm-coast FEEL** (currently a sparse, calm read — needs more dressing/mood, HARD RULE 9); (d) **bespoke per-
+building interiors** (currently reuse the generic interiors + gh_store); (e) **M14 + ST quest givers** placed (only
+M13 wired so far); (f) fishing-net/mooring-post props (substituted). Original plan below kept for reference.
+
+### NEXT-AREA build (WS4 of the long-push) — original plan (now first-pass built, above)
 **Choice: COAST / SALTBREAK town** (over deepening the Marsh). Why: the Marsh (Mirefen) is already deep —
 inline town, Elder Yssa's moot-hall, Hagga, the hut interior, M8/M9; "deepening" it has no locked *what-to-add*
 spec (= design decisions). The Coast is the better-specified next build: MASTER-WORLD-SPEC + Van's map give
