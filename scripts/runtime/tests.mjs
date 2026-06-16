@@ -465,6 +465,22 @@ const TESTS = [
     });
     R.check('[saltbreak] M13 is live-reachable — the Harbourmaster fires the M13 beat (Coast quests now loaded)', m13.avail === 'available' && m13.dlgOpen, `M13=${m13.avail} dlgOpen=${m13.dlgOpen} node=${m13.node}`);
   },
+
+  // T15 — PURITY drives everyday NPC reactions (cohesion-fix item 4). The greeting resolver must read the PURITY
+  // tier as a real second axis: a pure soul and a corrupt one get DIFFERENT greetings AT EQUAL morality, and
+  // neutral purity falls through to the morality greeting (purity modifies, doesn't clobber). Exercised on the
+  // REAL _greetSet resolution with a constructed NPC; the data gate (cohesion-wire) proves real NPCs declare it.
+  async function t15_purity_greeting(page, R) {
+    await toOverworld(page);
+    const res = await evalGame(page, () => {
+      const s = window.__EMBER.scene.getScene('Overworld');
+      const npc = { greetByPurity: { pure: ['PURE-LINE'], corrupt: ['CORRUPT-LINE'] }, greetByKarma: { good: ['G'], neutral: ['NEUTRAL-LINE'], bad: ['B'] }, greeting: ['plain'] };
+      const get = (m, p) => { s.karma.morality = m; s.karma.purity = p; return s._greetSet(npc)[0]; };
+      return { pure: get(0, 30), corrupt: get(0, -30), neutralP: get(0, 0) };
+    });
+    R.check('[purity] a PURE soul gets a different everyday greeting than a CORRUPT one AT EQUAL morality', res.pure === 'PURE-LINE' && res.corrupt === 'CORRUPT-LINE' && res.pure !== res.corrupt, JSON.stringify(res));
+    R.check('[purity] neutral purity falls through to the morality greeting (purity modifies, not clobbers)', res.neutralP === 'NEUTRAL-LINE', `neutralPurity=${res.neutralP}`);
+  },
 ];
 
 // ---- runner ----------------------------------------------------------------

@@ -249,7 +249,11 @@ export const WORLD = {
       greetByKarma: {
         good: ["The kids tell everyone how you came when no one answered. ...Bless you, love. I'll not forget it."],
         neutral: ["*a thin, tired smile* I'm on the mend, thanks to that fenwort. The young ones were so frightened."],
-        bad: ["...You're the one who put my door through, they say. A sick old woman's door. Mind how you go."] } },
+        bad: ["...You're the one who put my door through, they say. A sick old woman's door. Mind how you go."] },
+      // PURITY: a frail elder reads the aura you carry, kind-handed or cold, apart from any one good or ill deed.
+      greetByPurity: {
+        pure: ["*she takes your hand in both of hers* There's a CLEAN light on you, child. I can feel it from the cot. Whatever you've done, you carry grace. Sit a moment with an old woman."],
+        corrupt: ["*she draws the blanket up, will not take your hand* ...There's a cold come in with you. I don't know what you've let into your heart, but I feel it across the room. ...Don't stay long."] } },
     // BRACKEN — the orchard-keeper (GH3 "Teeth in the Orchard"). Weathered, proud of his trees.
     { tx: 40, ty: 28, facing: 'down', name: 'Bracken', adultOnly: true, tempo: 'ambler', speed: 64, expression: 'neutral', parts: PHIL, quest: 'GH3',
       greeting: ['Forty years I\'ve kept this orchard. Never seen the like of what\'s in the back rows now.'],
@@ -265,12 +269,20 @@ export const WORLD = {
         good: ['You\'ve done right by Greenhollow. ...What you found down there — I think of it every time I tend the ward. Thank you for telling me.'],
         neutral: ['The Flame keep you. ...Whatever you saw beneath us, you carry it well.'],
         bad: ['*will not meet your eye* ...You went down there and you took from it. From a SHRINE. The Flame sees, even when I look away.'] },
+      // PURITY: the one who tends the ward reads the Flame's regard for you (the chapel flame itself tints to it).
+      greetByPurity: {
+        pure: ['*the ward-flame leans toward you as you near* The Flame KNOWS you, friend. It burns the gladder when you stand in the chapel. I have tended it forty years and never seen it so at ease. Walk in its grace.'],
+        corrupt: ['*the ward-flame gutters low and blue as you approach* ...The Flame shrinks from you. I feel it through the stone. Whatever you have become, the fire reads it and recoils. ...State your business and go.'] },
       schedule: sched([['dawn', 18, 12, 'tend'], ['day', 18, 12, 'tend'], ['dusk', 19, 13, 'idle'], ['night', 19, 14, 'sleep']]) },
     // SELA, of the Oracles (adult) — sent the orphaned child west after the burning; present in the rebuilt town
     // for M7's charge. She hosts M7 (the adult-return beat also auto-opens on arrival; she's the in-world giver).
     { tx: 21, ty: 12, facing: 'down', name: 'Sela', adultOnly: true, speed: 0, expression: 'neutral', parts: ['body_fem', 'head_fem', 'brows_chestnut', 'hair_parted_gray', 'shirt_plum', 'pants_brown', 'shoes_brown_fem'], quest: 'M7',
       greeting: ['The west road gave you back to us. The Flame is tended again — by safer hands than a grieving child\'s. Walk easy in Greenhollow.'],
-      done: ['Tend to the living, child. The dead keep their own counsel — and so, for now, do the Oracles.'] },
+      done: ['Tend to the living, child. The dead keep their own counsel — and so, for now, do the Oracles.'],
+      // PURITY: an oracle reads the Flame's mark on a soul — she watches the pure with hope, the corrupt with wary calm.
+      greetByPurity: {
+        pure: ['*she studies you a moment longer than is comfortable* The Flame favours you — I can see its mark, clear as a brand. The Oracles could use a soul that burns so clean. ...Remember you came back to us.'],
+        corrupt: ['*her composure does not waver, but her eyes go cool and measuring* Something has dimmed in you since the west road. I read the Flame for a living, child — and the Flame does not trust what you have become. Nor, quite, do I.'] } },
     { tx: 30, ty: 18, facing: 'down', name: 'Fazy Lastard', tempo: 'dawdler', speed: 0, expression: 'neutral', parts: FATLEY, quest: 'SG1',
       greeting: ['*hic* Oi. You. ...nah, later. Me back\'s gone.'],
       schedule: sched([['dawn', 30, 18, 'idle'], ['day', 30, 18, 'chat'], ['dusk', 30, 18, 'chat'], ['night', 29, 18, 'idle']]) },   // the drunk never leaves the tavern

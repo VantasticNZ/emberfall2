@@ -1459,6 +1459,15 @@ export class OverworldScene extends Phaser.Scene {
     if (n.greetByDeed && this.karma) {
       for (const e of n.greetByDeed) if (this.karma.hasDeed(e.deed)) return Array.isArray(e.lines) ? e.lines : [e.lines];
     }
+    // PURITY ECHO (the second axis people respond to — favourable to the pure; independent of morality). When an
+    // NPC declares purity-keyed lines AND the player's purity tier is non-neutral, the PURITY line wins over the
+    // morality greeting — so a pure-but-only-neutral-morality soul is met kindly and a corrupt one warily, EVEN
+    // AT EQUAL MORALITY (closes the cohesion-audit drift: purity now changes how everyday folk treat you).
+    if (n.greetByPurity && this.karma) {
+      const p = this.karma.purity || 0;
+      const tier = p >= 15 ? 'pure' : p <= -15 ? 'corrupt' : null;
+      if (tier && n.greetByPurity[tier]) { const s = n.greetByPurity[tier]; return Array.isArray(s) ? s : [s]; }
+    }
     if (n.greetByKarma) {
       const m = (this.karma ? this.karma.morality : 0) || 0;
       const tier = m >= 15 ? 'good' : m <= -15 ? 'bad' : 'neutral';
