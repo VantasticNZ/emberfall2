@@ -272,6 +272,14 @@ export const WORLD = {
     // ACOLYTE — tends the chapel ward (GH4 "The Boarded Cave"); uneasy, devout, relents once you've earned it.
     { tx: 18, ty: 12, facing: 'down', name: 'Acolyte', adultOnly: true, tempo: 'normal', speed: 60, expression: 'neutral', parts: ['body_ivory', 'head_ivory', 'brows_chestnut', 'hair_parted_gray', 'shirt_plum', 'pants_black', 'shoes_brown'], quest: 'GH4',   // item 6: distinct robed acolyte (was MARA's skin)
       greeting: ['The Flame keep you. ...The boards on the old cave stay up. Tradition. Don\'t ask me why; I only tend the ward.'],
+      // EMBER-SHRINE ECHO (cohesion #2): the GH4 shrine fork (tell / keep / desecrate) was purity-only — now the
+      // Acolyte reads the SPECIFIC choice you made below the chapel. Checked before greetByKarma so the exact
+      // decision wins over the morality tier.
+      greetByDeed: [
+        { deed: 'shrine_looted', lines: ['*will not meet your eye* You pried something loose from the shrine and carried it up into the light. ...The cold deepened in the chapel that day; I felt it through the stone. The Flame remembers what was taken from it. So do I.'] },
+        { deed: 'shrine_told', lines: ['Because you told me what truly grieves beneath us — the weeping flame — I tend the ward changed, now. I cannot un-know it. ...I am not sure I thank you, but I will not lie to a fire again. That is your doing.'] },
+        { deed: 'shrine_kept', lines: ['You went down, and came back, and said nothing — and I see the keeping of it on you. ...Some burdens are quieter carried alone, perhaps. The Flame keeps its silences. So, it seems, do you.'] },
+      ],
       greetByKarma: {
         good: ['You\'ve done right by Greenhollow. ...What you found down there — I think of it every time I tend the ward. Thank you for telling me.'],
         neutral: ['The Flame keep you. ...Whatever you saw beneath us, you carry it well.'],

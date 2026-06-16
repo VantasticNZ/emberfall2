@@ -31,4 +31,11 @@ pass('item4 PURITY: Maren/Acolyte/Sela each react distinctly to a pure vs a corr
   pass('item1 TAM: adult greeting reacts to the childhood cave-dare (dared_friend / cave_lore / chicken_kicked)');
 }
 
+// ---- item 2: the EMBER-SHRINE fork (tell/keep/desecrate) is now read by the Acolyte (was purity-only) ----
+{
+  const ac = npc('Acolyte'); assert.ok(ac, 'Acolyte placed');
+  for (const d of ['shrine_told', 'shrine_kept', 'shrine_looted']) assert.ok(hasDeedLine(ac, d), `Acolyte reads ${d}`);
+  pass('item2 EMBER-SHRINE: the Acolyte reads the specific shrine choice (told / kept / looted), not just purity');
+}
+
 console.log(`\nALL ${n} CHECKS PASSED ✅`);
