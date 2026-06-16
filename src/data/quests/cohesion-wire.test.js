@@ -38,4 +38,13 @@ pass('item4 PURITY: Maren/Acolyte/Sela each react distinctly to a pure vs a corr
   pass('item2 EMBER-SHRINE: the Acolyte reads the specific shrine choice (told / kept / looted), not just purity');
 }
 
+// ---- item 3: sela_doubt (M7 "press her") pays off in M17 as a foreshadow node ----
+{
+  const M17 = QUESTS.find((q) => q.id === 'M17').dialogue; assert.ok(M17, 'M17 dialogue present');
+  const node = (deeds) => { const k = new KarmaEngine(); deeds.forEach((d) => k.recordDeed(d)); return new Dialogue({ start: 'doubt_check', nodes: M17.nodes }, { karma: k, engine: { choose() {} } }).nodeId; };
+  assert.equal(node(['sela_doubt']), 'doubt_seen', 'sela_doubt → M17 doubt_seen foreshadow');
+  assert.notEqual(node([]), 'doubt_seen', 'no sela_doubt → no doubt_seen (straight to the reveal)');
+  pass('item3 SELA_DOUBT: pressing Sela as a child now pays off as an M17 foreshadow (doubt_seen)');
+}
+
 console.log(`\nALL ${n} CHECKS PASSED ✅`);

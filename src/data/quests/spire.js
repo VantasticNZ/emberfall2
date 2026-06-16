@@ -45,7 +45,17 @@ export const SPIRE = [
         "Four shards. *Sela's hands open for them, calm as still water* You've done what no one in five " +
         "hundred years could. Give them to me now, child, and I'll see the Hearthflame made whole — the " +
         "way it was always meant to be.",
-        options: [ { label: '(The way it was meant to be...?)', to: 'reveal' } ] },
+        options: [ { label: '(The way it was meant to be...?)', to: 'doubt_check' } ] },
+      // CHILDHOOD ECHO (cohesion #3): if you PRESSED Sela for answers as a child (M7 sela_doubt), she marks it
+      // here — the seed pays off as a one-line foreshadow before the reveal. Otherwise straight to the reveal.
+      doubt_check: { route: [
+        { when: (c) => c.karma.hasDeed('sela_doubt'), to: 'doubt_seen' },
+        { to: 'reveal' } ] },
+      doubt_seen: { speaker: 'Sela', text:
+        "*she pauses, reading your face* ...You always did press. Even as a child, the night I sent you west — " +
+        "you wanted the question under the question. I should have known a mind like that would come back asking. " +
+        "*the calm settles again* It changes nothing now. But I remember it.",
+        options: [ { label: '(Say nothing, and let her go on.)', to: 'reveal' } ] },
       // the reveal reads the whole game: betray hardest if you sold Hagga out / went corrupt
       reveal: { route: [
         { when: (c) => c.karma.hasDeed('hagga_reported') || c.karma.get('purity') <= -20, to: 'betray' },
