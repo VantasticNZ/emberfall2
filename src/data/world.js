@@ -234,6 +234,13 @@ export const WORLD = {
       schedule: sched([['dawn', 9, 23, 'idle'], ['day', 9, 23, 'hammer'], ['dusk', 11, 22, 'chat'], ['night', 8, 26, 'sleep']]) },
     { tx: 25, ty: 18, facing: 'down', name: 'Tam', tempo: 'brisk', speed: 70, expression: 'happy', parts: TAM, quests: ['GH2'],   // item 3: M2 moved to Mara (its giver) — M2 opens with Mara's line, so Mara must be who you talk to
       greeting: ['Race you to the old cave! ...if your ma ever lets you off chores.'],
+      // CHILDHOOD ECHO (cohesion #1): as a grown-up Tam remembers the boarded-cave dare we shared as kids. Lines
+      // surface only once their deed is set (i.e. in adulthood); as a child these don't match → the race line plays.
+      greetByDeed: [
+        { deed: 'dared_friend', lines: ["*grins, older now* You DID it — dared one of us down that boarded cave, when we were small. We talked of nothing else a whole winter. ...You always were the brave one of us."] },
+        { deed: 'cave_lore', lines: ["You actually went down the old cave, didn't you. I never had the nerve. ...You went quiet after, though. I always wondered what you saw down there."] },
+        { deed: 'chicken_kicked', lines: ["*the old grin doesn't quite come* I remember you and that hen of Ada's, when we were knee-high. ...Hope the years took some of the mean off you."] },
+      ],
       topics: [
         { q: 'The old cave', a: [`"Up the north hills! It's BOARDED but there's a gap. Bet there's treasure. ...Or a bear."`] },
         { q: 'Your friends', a: [`"Nettle's fast but I'm FASTER. Wisp just hums all day. Boring."`] },

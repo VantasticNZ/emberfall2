@@ -24,4 +24,11 @@ for (const name of ['Maren', 'Acolyte', 'Sela']) {
 }
 pass('item4 PURITY: Maren/Acolyte/Sela each react distinctly to a pure vs a corrupt soul (greetByPurity)');
 
+// ---- item 1: TAM's adult greeting reads childhood deeds (the shared cave-dare) ----
+{
+  const tam = npc('Tam'); assert.ok(tam, 'Tam placed');
+  assert.ok(hasDeedLine(tam, 'dared_friend') && hasDeedLine(tam, 'cave_lore'), 'Tam reads dared_friend + cave_lore');
+  pass('item1 TAM: adult greeting reacts to the childhood cave-dare (dared_friend / cave_lore / chicken_kicked)');
+}
+
 console.log(`\nALL ${n} CHECKS PASSED ✅`);
