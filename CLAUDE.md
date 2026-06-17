@@ -1,12 +1,16 @@
 # EMBERFALL 2 — the shared brain (auto-read every session)
 
-This file is read automatically at the start of every session. **Read `docs/THE-SLICE.md` FIRST** — the
-governing plan (build the Greenhollow vertical slice to Van's bar, one system at a time, nothing else,
-until Van signs off). Then `docs/PLAN.md` for the current step. **The rest of the doc library is
-REFERENCE — consult it when a task needs it, NOT mandatory reading.** Do not start work until you know
-which SLICE ORDER step you are on.
+This file is read automatically at the start of every session. **Read `docs/DECISION-CHARTER.md` FIRST**
+— the governing doc for making BOTH feel-level and detail-level calls autonomously (the feel bible, the
+locked intents, the MAY-decide-alone vs MUST-surface boundary, the quality gates, the build loop). Then
+**`docs/THE-SLICE.md`** (the slice plan/roadmap) and **`docs/PLAN.md`** (the current step). **The rest of
+the doc library is REFERENCE — consult it when a task needs it, NOT mandatory reading.** Do not start work
+until you know which SLICE ORDER step you are on.
 
 ## Where everything lives
+- **`docs/DECISION-CHARTER.md`** — ★★ the SESSION GOVERNING doc: the feel bible + locked intents + the
+  self-authorise rules (MAY decide alone vs MUST surface to Van) + the quality gates + the build loop. Read
+  it first; it tells you when to decide from the spec yourself vs stop and ask. Living doc.
 - **`docs/THE-SLICE.md`** — ★ the governing one-pager (scope = GH slice only; the per-system method:
   build → exhaustive PIXEL-TRUTH table → 5-min VAN-TEST → sign-off → FROZEN; the ORDER; the discipline).
 - **`docs/PLAN.md`** — SSOT. The locked master plan + the CURRENT STEP (what this
