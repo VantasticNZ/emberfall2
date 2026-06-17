@@ -94,6 +94,44 @@ These are settled design. Build *toward* them; never contradict them without a M
 6. **Asset law:** only AI-safe licences (CC0/CC-BY/CC-BY-SA/GPL/OGA-BY, no anti-AI clause). **This is a 2D
    game.** Reuse canonical SSOT ids (`src/constants/`). Do not disturb the live LPC/ElizaWy pipeline carelessly.
 
+### Locked by Van 2026-06-17 — the 5 COHESION-AUDIT DECIDE answers (now intents, build toward them)
+7. **WISP RETURNS.** A grown Wisp is placed in the Greenhollow adult-era hub (the mirror to the grown player);
+   her greeting **reads a shared childhood deed** (`cave_lore` / `dared_friend`, or the M2 hen). **Build-ready
+   now** — a single NPC placement + a `greetByDeed`, exactly the Tam/Ada pattern. (Closes the one vanished
+   character; was DECIDE #6.)
+8. **PURITY = A TRUE SECOND AXIS** (strengthen intent #3). **Author purity-INDEPENDENT choices across content**
+   so **pure-but-cruel** and **corrupt-but-kind** are *genuinely reachable* — purity must NOT just ~91% co-move
+   with morality. Purity drives reactions, dialogue, AND some quest/content gating **distinct from morality**.
+   When authoring any new fork, ask: *does this move purity on its own axis?* Add purity-only choices deliberately.
+   (Was DECIDE #7.)
+9. **ONE MID-GAME BRANCH GATES REAL CONTENT.** Branching must not be only back-loaded to the 3 endgame permanent
+   decisions — **earmark a mid-game choice that unlocks/locks an actual quest or area** (real content, not just a
+   karma move). Build it so a mid-game fork opens/closes something the player can go *do*. (Was DECIDE #8.)
+10. **SECRET (ASHBEARER) ENDING — earned, not stumbled into.** Gated on `cave_lore` **PLUS a rarer second
+   condition**, so it is genuinely earned. *Proposed second condition (from canon — Van to confirm):* **`stone_refused`**
+   (PH5 "The Experience Stone" — refusing the perfect dream to keep the hard, true world). It is thematically
+   exact: the Ashbearer *carries the burden rather than take the easy out*, which is precisely PH5's choice; it's
+   an optional Marsh side-quest, so it's rare/earned. *(Alternatives if Van prefers: `pem_found` — the cross-
+   region clue hunt; or `mercy_shown` + a silent-Hagga path.)* Lock the **intent**; the exact condition awaits
+   Van's nod. (Was DECIDE #9.)
+11. **WEALTH-AND-LEGACY SYSTEM** *(a roadmap EPIC, not a single sink — its own build track).* Gold can buy
+   **PROPERTY** and **PAY TO BETTER THE WORLD** — settle debts, rebuild, fund the recovery: **money as a force
+   for good**, tied to the morality / purity / Flame themes (Fable-style legacy). **Design intent:** the epic,
+   world-changing purchases (major property; rebuilding a settlement; funding the god's recovery) are a **REAL
+   GRIND** — not easily affordable; reaching them is a deliberate **FOCUS SHIFT** (e.g. buy income-generating
+   property early → compound the returns → afford the big things later). **But the path must FLOW and feel
+   ACHIEVABLE** — *hard and deliberate, never hopeless or grind-for-grind's-sake*. A player who **chooses the
+   wealth path is rewarded** (legacy, world-state changes, themed payoffs); a player who **doesn't still
+   completes the game**. This supersedes the old "Act-3 dead-excess gold" flag — gold now has a deep, optional,
+   thematic use. (Was DECIDE #10; carry as its own roadmap epic + spec it just-in-time before building.)
+
+> **Tone note (governs all five):** these serve the **wholesome-deep-core + earned-consequence** feel — Wisp's
+> return and the dead-end reads honour that *the world remembers you*; Purity-as-a-true-axis and the mid-game
+> branch make *your choices change how the world treats you and what it opens*; the Ashbearer gate keeps the
+> rarest ending *earned*; and Wealth-and-Legacy turns gold into *caring for the world* (a Fable-warm, money-as-
+> kindness throughline), with a grind that is **deliberate and achievable, never punishing**. None deflate a
+> beat; all deepen the "your choices mattered" core.
+
 ---
 
 ## §3 — SELF-AUTHORISE (the heart of the doc): MAY decide alone vs MUST surface

@@ -231,12 +231,12 @@ Per-region buy/sell multipliers create coherent arbitrage (Coast cheap, Spire de
 
 *All 5 gated by `src/data/quests/cohesion-wire.test.js` (data) + verify:runtime T15 (the purity engine). data verify + verify:runtime 58/58 green at each commit.*
 
-### B. DECIDE (needs Van — design calls, not wiring)
-6. **WISP's return** — approve placing a grown Wisp in the GH hub (§2 proposal #1), or confirm she's meant to be gone.
-7. **Purity as a true 2nd axis** — decide whether to add more purity-INDEPENDENT choices (so pure-but-cruel / corrupt-but-kind are reachable), or accept purity as a morality-modifier + endgame gate.
-8. **Mid-game branching depth** — accept the linear-DAG + back-loaded-branching shape (3 permanent decisions + L-path + epilogue cards), or earmark one mid-game choice to gate real content (a quest/area), not just karma. (§5)
-9. **Ashbearer gate** — confirm `cave_lore` alone is the intended (easy) gate for the secret ending, or add a rarer second condition. (§5)
-10. **Act-3 gold use** — add a late-game sink/use for excess gold (a final-act purchase, a meaningful donation, or fold gold into an ending), or accept the dead-excess. (§6)
+### B. DECIDE — ✅ ALL 5 RESOLVED by Van 2026-06-17 (now LOCKED INTENTS in `docs/DECISION-CHARTER.md` §2.7–§2.11)
+6. ✅ **WISP's return** → **DECIDED: YES.** A grown Wisp is placed in the GH hub, greeting reads a shared childhood deed (`cave_lore`/`dared_friend`/hen). **Build-ready.** (Charter §2.7)
+7. ✅ **Purity as a true 2nd axis** → **DECIDED: TRUE AXIS.** Author purity-INDEPENDENT choices so pure-but-cruel / corrupt-but-kind are reachable (not ~91% co-moving); purity drives reactions, dialogue, and some quest/content gating distinct from morality. (Charter §2.8)
+8. ✅ **Mid-game branching depth** → **DECIDED: GATE REAL CONTENT.** Earmark a mid-game choice that unlocks/locks an actual quest or area, not just karma. (Charter §2.9)
+9. ✅ **Ashbearer gate** → **DECIDED: cave_lore + a rarer 2nd condition** (earned, not stumbled into). Proposed 2nd condition: `stone_refused` (PH5) — Van to confirm. (Charter §2.10)
+10. ✅ **Act-3 gold use** → **DECIDED: a WEALTH-AND-LEGACY SYSTEM** (a roadmap epic, not a single sink) — gold buys property + pays to better the world (settle debts/rebuild/fund recovery; money as a force for good, Fable-style), epic purchases a deliberate-but-achievable grind. (Charter §2.11)
 
 ### C. VERIFY (cheap confirmations)
 11. Confirm `marsh_blade` is a defined item (SA3 reward). (§6)
