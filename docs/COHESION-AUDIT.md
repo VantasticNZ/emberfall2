@@ -222,12 +222,14 @@ Per-region buy/sell multipliers create coherent arbitrage (Coast cheap, Spire de
 
 ## PRIORITISED FIX-LIST
 
-### A. WIRE (small, data-only, high cohesion-per-effort)
-1. **TAM deed-reactive adult greeting** — branch on `cave_lore` / `dared_friend` / `chicken_*`. (§2) *One NPC dialogue; makes an existing return mean something.*
-2. **Ember-shrine fork echo** — give `shrine_told` / `shrine_kept` / `shrine_looted` ONE downstream read (an acolyte/villager line, or an epilogue card). (§1) *The headline drift Van flagged; currently purity-only.*
-3. **`sela_doubt` payoff** — have M17 read it as a one-line foreshadow. (§1/§2) *Seed already planted.*
-4. **Purity touches everyday NPCs** — let `greetByKarma` (or a parallel) read a purity tier for at least a few NPCs, so "how people deal with you" reflects purity, not only morality. (§3) *The clearest intent-miss; even 3–4 NPCs would close it.*
-5. **Clear the dead-end childhood deeds** — `coin_gifted` / `told_adult` / `comforted_child` / `orchard_cleared` each want one adult read (an NPC line or epilogue card), or be consciously de-scoped. (§1)
+### A. WIRE (small, data-only, high cohesion-per-effort) — ✅ ALL 5 DONE 2026-06-17
+1. ✅ **TAM deed-reactive adult greeting** `e429ff14` — greetByDeed on `dared_friend` / `cave_lore` / `chicken_kicked` (the shared cave-dare). (§2)
+2. ✅ **Ember-shrine fork echo** `84d48b2d` — the Acolyte's greetByDeed reads the specific `shrine_told` / `shrine_kept` / `shrine_looted` choice (was purity-only). (§1) *The headline drift.*
+3. ✅ **`sela_doubt` payoff** `47b48e7e` — M17 routes through a `doubt_check`; `sela_doubt` → a `doubt_seen` foreshadow before the reveal. (§1/§2)
+4. ✅ **Purity touches everyday NPCs** `f58fd5a1` — added a `greetByPurity` tier to `_greetSet` (read before greetByKarma); wired on Maren/Acolyte/Sela so a pure vs corrupt soul is treated differently AT EQUAL morality. Proven by verify:runtime T15. (§3) *The clearest intent-miss, now closed.*
+5. ✅ **Cleared the dead-end childhood deeds** `2aed6096` — `coin_gifted`→McCracken, `comforted_child`→Maren, `orchard_cleared`→Bracken, `told_adult`→Acolyte (each a greetByDeed read). (§1)
+
+*All 5 gated by `src/data/quests/cohesion-wire.test.js` (data) + verify:runtime T15 (the purity engine). data verify + verify:runtime 58/58 green at each commit.*
 
 ### B. DECIDE (needs Van — design calls, not wiring)
 6. **WISP's return** — approve placing a grown Wisp in the GH hub (§2 proposal #1), or confirm she's meant to be gone.
