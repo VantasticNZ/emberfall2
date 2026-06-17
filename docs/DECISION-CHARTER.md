@@ -107,13 +107,12 @@ These are settled design. Build *toward* them; never contradict them without a M
 9. **ONE MID-GAME BRANCH GATES REAL CONTENT.** Branching must not be only back-loaded to the 3 endgame permanent
    decisions — **earmark a mid-game choice that unlocks/locks an actual quest or area** (real content, not just a
    karma move). Build it so a mid-game fork opens/closes something the player can go *do*. (Was DECIDE #8.)
-10. **SECRET (ASHBEARER) ENDING — earned, not stumbled into.** Gated on `cave_lore` **PLUS a rarer second
-   condition**, so it is genuinely earned. *Proposed second condition (from canon — Van to confirm):* **`stone_refused`**
-   (PH5 "The Experience Stone" — refusing the perfect dream to keep the hard, true world). It is thematically
-   exact: the Ashbearer *carries the burden rather than take the easy out*, which is precisely PH5's choice; it's
-   an optional Marsh side-quest, so it's rare/earned. *(Alternatives if Van prefers: `pem_found` — the cross-
-   region clue hunt; or `mercy_shown` + a silent-Hagga path.)* Lock the **intent**; the exact condition awaits
-   Van's nod. (Was DECIDE #9.)
+10. **SECRET (ASHBEARER) ENDING — earned, not stumbled into. ✅ LOCKED 2026-06-17 (Van confirmed).** Gated on
+   **`cave_lore` + `stone_refused`** (BOTH required; either alone is not enough). `stone_refused` = PH5 "The
+   Experience Stone" — refusing the perfect dream to keep the hard, true world; thematically exact (the Ashbearer
+   *carries the burden rather than take the easy out*), and an optional Marsh side-quest, so it's rare/earned.
+   Wired in `Karma.js` (the `A` gate) + `ENDING_DEEDS`; asserted by `Karma.test.js` + `spire.test.js`
+   (both deeds → the secret path opens; either alone → not). (Was DECIDE #9.)
 11. **WEALTH-AND-LEGACY SYSTEM** *(a roadmap EPIC, not a single sink — its own build track).* Gold can buy
    **PROPERTY** and **PAY TO BETTER THE WORLD** — settle debts, rebuild, fund the recovery: **money as a force
    for good**, tied to the morality / purity / Flame themes (Fable-style legacy). **Design intent:** the epic,

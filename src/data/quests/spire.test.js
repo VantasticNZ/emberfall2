@@ -119,7 +119,7 @@ const warden = endingState(() => {});                                   // defau
 const tyrant = endingState((k) => { k.set('morality', -40); k.set('purity', -40); });
 const liberator = endingState((k) => { k.set('purity', 40);
   ['mercy_shown', 'hagga_believed', 'sela_opposed'].forEach((d) => k.recordDeed(d)); });
-const ashbearer = endingState((k) => { ['cave_lore', 'pem_found', 'mercy_shown'].forEach((d) => k.recordDeed(d)); });
+const ashbearer = endingState((k) => { ['cave_lore', 'stone_refused'].forEach((d) => k.recordDeed(d)); });   // LOCKED gate: cave_lore + stone_refused
 
 for (const [name, k, expect] of [
   ['Warden(default)', warden, ['W']],

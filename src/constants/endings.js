@@ -19,6 +19,7 @@ export const ENDING_DEEDS = Object.freeze({
   mercy_shown: DEEDS.mercy_shown,     // M16: mercy to the god-fragment
   hagga_believed: DEEDS.hagga_believed, // M10: believed Hagga's truth
   sela_opposed: DEEDS.sela_opposed,   // M17: opposed Sela
+  stone_refused: DEEDS.stone_refused, // PH5: refused the Experience Stone (kept the hard, true world) — Ashbearer gate
 });
 
 // Epilogue twist cards (ET1..ET12), layered by deed at M20 (spire epilogueCards()).

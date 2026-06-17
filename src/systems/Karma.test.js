@@ -61,7 +61,7 @@ assert.equal(r.W.reachable, true);
 assert.equal(r.L.reachable, true);   // Pure + mercy + believed Hagga + opposed Sela
 assert.equal(r.T.reachable, false);  // not cruel/corrupt
 assert.equal(r.S.reachable, false);  // not Kind enough
-assert.equal(r.A.reachable, false);  // missing cave_lore + pem_found
+assert.equal(r.A.reachable, false);  // missing cave_lore + stone_refused
 assert.equal(r.A.secret, true);
 pass('ending-gating: Warden + Liberator reachable; Tyrant/Saint/Ashbearer not');
 
@@ -75,12 +75,15 @@ assert.deepEqual(B.deedIds().sort(), A.deedIds().sort());
 assert.deepEqual(B.reachableEndingIds(), A.reachableEndingIds()); // gating survives reload
 pass('save -> reload (new instance): karma + deeds + gating all restored');
 
-// 6) secret Ashbearer unlocks via deeds ------------------------------------
-assert.equal(B.reachableEndings().A.reachable, false);
+// 6) secret Ashbearer — LOCKED gate (Van 2026-06-17): cave_lore + stone_refused (BOTH required) -------------
+assert.equal(B.reachableEndings().A.reachable, false);   // neither deed yet
 B.recordDeed(ENDING_DEEDS.cave_lore);
-B.recordDeed(ENDING_DEEDS.pem_found);
-assert.equal(B.reachableEndings().A.reachable, true);    // cave-lore + Pem + (already) mercy
-pass('secret Ashbearer becomes reachable once its 3 deeds are logged');
+assert.equal(B.reachableEndings().A.reachable, false);   // cave_lore ALONE → NOT enough (earned, not stumbled into)
+B.recordDeed(ENDING_DEEDS.stone_refused);
+assert.equal(B.reachableEndings().A.reachable, true);    // cave_lore + stone_refused → the secret path opens
+{ const only = new KarmaEngine({ storage: memoryStorage() }); only.recordDeed(ENDING_DEEDS.stone_refused);
+  assert.equal(only.reachableEndings().A.reachable, false); }   // stone_refused ALONE → NOT enough either
+pass('secret Ashbearer gate LOCKED: cave_lore + stone_refused (both required; either alone is not enough)');
 
 // 7) Tyrant + Saint paths --------------------------------------------------
 const T = new KarmaEngine({ storage: memoryStorage() });

@@ -58,9 +58,10 @@ export const ENDINGS = {
        gate: (v) => v.purity >= GATE.pure && v.has(ENDING_DEEDS.mercy_shown)
               && v.has(ENDING_DEEDS.hagga_believed) && v.has(ENDING_DEEDS.sela_opposed) },
   A: { name: 'Ashbearer', secret: true,  desc: 'take the burden yourself — break the cycle',
-       req: 'SECRET: cave-lore + Pem + hidden mercy',
-       gate: (v) => v.has(ENDING_DEEDS.cave_lore) && v.has(ENDING_DEEDS.pem_found)
-              && v.has(ENDING_DEEDS.mercy_shown) },
+       req: 'SECRET: the weeping-flame carving (cave_lore) + refusing the Experience Stone (stone_refused)',
+       // LOCKED 2026-06-17 (Van): earned, not stumbled into — cave_lore PLUS the rarer stone_refused (PH5:
+       // chose the hard true world over the perfect dream — the Ashbearer's own choice, carrying the burden).
+       gate: (v) => v.has(ENDING_DEEDS.cave_lore) && v.has(ENDING_DEEDS.stone_refused) },
 };
 
 const SAVE_VERSION = 1;

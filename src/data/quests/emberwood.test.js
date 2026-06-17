@@ -104,10 +104,11 @@ pass('M16 split: mercy (mercy_shown, L open) / seize (god_seized, L LOCKED, T op
   assert.equal(e.engine.status('SG2'), 'available');         // all four clues now in
   play(e.engine, e.karma, 'SG2', 'find_pem');
   assert.equal(e.karma.hasDeed('pem_found'), true);          // hunt finished
-  // secret Ashbearer now in reach (cave_lore + pem_found + mercy_shown)
-  play(e.engine, e.karma, 'M16', 'mercy');
-  assert.equal(e.karma.reachableEndings().A.reachable, true);
-  pass('SE1 drops the 4th Pem clue -> SG2 completable (pem_found); secret Ashbearer reachable');
+  // secret Ashbearer is gated SEPARATELY (LOCKED: cave_lore + stone_refused) — the Pem hunt no longer gates it
+  assert.equal(e.karma.reachableEndings().A.reachable, false);   // pem_found alone does NOT open the secret ending
+  e.karma.recordDeed('cave_lore'); e.karma.recordDeed('stone_refused');
+  assert.equal(e.karma.reachableEndings().A.reachable, true);    // cave_lore + stone_refused -> Ashbearer in reach
+  pass('SE1 drops the 4th Pem clue -> SG2 completable (pem_found); secret Ashbearer reachable via cave_lore + stone_refused');
 }
 
 // 5) E3 firefrost-gated -----------------------------------------------------
