@@ -47,4 +47,14 @@ pass('item4 PURITY: Maren/Acolyte/Sela each react distinctly to a pure vs a corr
   pass('item3 SELA_DOUBT: pressing Sela as a child now pays off as an M17 foreshadow (doubt_seen)');
 }
 
+// ---- item 5: the four DEAD-END childhood deeds each gain an adult read ----
+{
+  const reads = { 'Phil McCracken': 'coin_gifted', Maren: 'comforted_child', Bracken: 'orchard_cleared', Acolyte: 'told_adult' };
+  for (const [name, deed] of Object.entries(reads)) {
+    const g = npc(name); assert.ok(g, `${name} placed`);
+    assert.ok(hasDeedLine(g, deed), `${name} reads ${deed}`);
+  }
+  pass('item5 DEAD-ENDS closed: coin_gifted (McCracken) · comforted_child (Maren) · orchard_cleared (Bracken) · told_adult (Acolyte)');
+}
+
 console.log(`\nALL ${n} CHECKS PASSED ✅`);

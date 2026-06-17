@@ -248,11 +248,19 @@ export const WORLD = {
       schedule: sched([['dawn', 22, 16, 'idle'], ['day', 25, 18, 'chat'], ['dusk', 28, 21, 'idle'], ['night', 28, 22, 'sleep']]) },
     { tx: 15, ty: 16, facing: 'down', name: 'Phil McCracken', speed: 70, expression: 'neutral', parts: PHIL, quest: 'M3',
       greeting: ['Coin\'s coin, friend. Mind you don\'t lose any.'],
+      // DEAD-END FIX (cohesion #5): coin_gifted (M3 — gave the coin away, not kept, not returned) had no adult read.
+      greetByDeed: [
+        { deed: 'coin_gifted', lines: ["I remember you small — you gave that coin clean away to someone worse off. Not returned, not pocketed. GAVE it. ...Soft-hearted. The world eats the soft-hearted, friend. But it remembers them kind, and so do I."] },
+      ],
       schedule: sched([['dawn', 15, 16, 'tend'], ['day', 15, 16, 'tend'], ['dusk', 17, 18, 'chat'], ['night', 16, 18, 'sleep']]) },
     // MAREN — an ailing elder (GH2 "Nobody Answered"); the kids' gran. Static near her door, frail. After
     // GH2 she's on the mend (a warmer line). Reuses the elder-woman skin; her grandkids are the GH2 givers.
     { tx: 36, ty: 14, facing: 'down', name: 'Maren', adultOnly: true, speed: 0, expression: 'sad', parts: ['body_fem', 'head_fem', 'brows_chestnut', 'hair_parted_gray', 'shirt_maroon', 'pants_brown', 'shoes_brown_fem'],   // item 6: distinct from Mara (was MARA's skin)
       schedule: sched([['dawn', 36, 14, 'sleep'], ['day', 36, 14, 'sleep'], ['dusk', 36, 14, 'sleep'], ['night', 36, 14, 'sleep']]),   // bedridden/frail — static (not a wandering villager)
+      // DEAD-END FIX (cohesion #5): comforted_child (M5/GH2 — knelt and steadied the frightened kids) had no read.
+      greetByDeed: [
+        { deed: 'comforted_child', lines: ["My grandkids still talk of you — how you knelt right down to their height and steadied them when they were so frightened. A small thing. ...Children never forget who got DOWN to them. Nor do their grans."] },
+      ],
       greetByKarma: {
         good: ["The kids tell everyone how you came when no one answered. ...Bless you, love. I'll not forget it."],
         neutral: ["*a thin, tired smile* I'm on the mend, thanks to that fenwort. The young ones were so frightened."],
@@ -264,6 +272,11 @@ export const WORLD = {
     // BRACKEN — the orchard-keeper (GH3 "Teeth in the Orchard"). Weathered, proud of his trees.
     { tx: 40, ty: 28, facing: 'down', name: 'Bracken', adultOnly: true, tempo: 'ambler', speed: 64, expression: 'neutral', parts: PHIL, quest: 'GH3',
       greeting: ['Forty years I\'ve kept this orchard. Never seen the like of what\'s in the back rows now.'],
+      // DEAD-END FIX (cohesion #5): orchard_cleared (GH3 cull-them-all) had no adult read; now Bracken marks it
+      // (contrast with mercy_shown, which his greetByKarma 'good' line already honours).
+      greetByDeed: [
+        { deed: 'orchard_cleared', lines: ["You cleared the whole den — every last one, pups and all. Thorough work; the back rows have stayed quiet since. ...Some'd have let the young ones go, mind. Not my place to say. The orchard's safe, and that's what I asked."] },
+      ],
       greetByKarma: {
         good: ["The orchard's yours to walk any time — you earned it, going in there. Take an apple, go on."],
         neutral: ['Quiet in the back rows now, thanks to you. Take an apple if you\'re passing.'],
@@ -279,6 +292,8 @@ export const WORLD = {
         { deed: 'shrine_looted', lines: ['*will not meet your eye* You pried something loose from the shrine and carried it up into the light. ...The cold deepened in the chapel that day; I felt it through the stone. The Flame remembers what was taken from it. So do I.'] },
         { deed: 'shrine_told', lines: ['Because you told me what truly grieves beneath us — the weeping flame — I tend the ward changed, now. I cannot un-know it. ...I am not sure I thank you, but I will not lie to a fire again. That is your doing.'] },
         { deed: 'shrine_kept', lines: ['You went down, and came back, and said nothing — and I see the keeping of it on you. ...Some burdens are quieter carried alone, perhaps. The Flame keeps its silences. So, it seems, do you.'] },
+        // DEAD-END FIX (cohesion #5): told_adult (M4 — brought the cave to a grown-up rather than sneaking down).
+        { deed: 'told_adult', lines: ['You came to us as a child about the old cave, didn\'t you — told a grown-up, careful, instead of slipping down alone. ...A rare thing in a small one. The ward could use more who bring us the truth before the trouble finds us.'] },
       ],
       greetByKarma: {
         good: ['You\'ve done right by Greenhollow. ...What you found down there — I think of it every time I tend the ward. Thank you for telling me.'],
