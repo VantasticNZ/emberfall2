@@ -29,12 +29,15 @@ the two flagged inside it (combat dodge-roll visual; Spire boss art).
 ## PHASE 0 — SLICE COMPLETION (THE-SLICE steps 5–7; the sign-off gate)
 *The GH vertical slice (M1–M7 childhood → adult GH1–GH4) is built + cohesion-wired; these three close it.*
 
-- **0.1 Combat-feel — the first fight** (THE-SLICE step 5). The GH3 orchard-den encounter goes LIVE: real
-  spawned enemies (the "orchard-teeth"), the feel loop — **telegraph → hit → dodge → block → punish**. Mechanics
-  + hit-feedback (flash/knockback/sfx/hitstop) build on existing LPC monster art + the procedural dodge.
-  *Depends:* GH3 (built). *MAY* (mechanics, feel-tuning, telegraph/feedback) · the **dodge-ROLL visual is ART**
-  (logic works; currently a procedural squash — flag). *Size M.* *Gate:* verify:runtime — a real-input fight
-  asserts telegraph→hit→dodge i-frames→block; **Van play-judges the FEEL** (HARD RULE 9).
+- ~~**0.1 Combat-feel — the first fight**~~ **DONE** (2026-06-18). The GH3 orchard-den is now a LIVE arena
+  (`gh_orchard_den` interior + combat): cutting in during GH3 spawns the orchard-teeth (3 chargers); the feel
+  loop — **telegraph → hit → dodge → block → kill** — runs on the already-built/tuned EnemyController +
+  PlayerCombat. Clearing the den re-opens the GH3 mercy/cull fork (the cleared→fork handshake). Gated by
+  **verify:runtime T16** (10 assertions on real input: arena+spawn, telegraph, J→damage+hitstop, SPACE dodge
+  i-frames + window, C block-reduce, lethal-J KILL at the harder freeze tier, full clear, fork re-open).
+  **Still open: the dodge-ROLL visual is ART** (logic works; currently a procedural duck-squash — flagged GAP),
+  and **Van play-judges the FEEL** (HARD RULE 9 — telegraph readability, hitstop/knockback weight, dodge/block
+  responsiveness, the death beat). The feel-constants are [TUNE]-tagged in `src/constants/standards.js`.
 - **0.2 Audio / polish** (THE-SLICE step 6). Region music beds + ambient + sfx actually play; interior audio
   beds (hooks pending). **The current `mus_*` beds are licence-UNVERIFIED placeholders** (shipping at LOCAL
   scope; HARD-FAIL at SHIP) → **fetch licence-clean (CC0/OGA) beds + ledger** before sign-off. Day/night clock
