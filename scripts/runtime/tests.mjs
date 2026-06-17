@@ -10,7 +10,7 @@
 // under test is always exercised with real input, and the ASSERTION is on the real
 // rendered screen / the real outcome, never the data flag that false-passed.
 // =============================================================================
-import { ensureServer, launch, boot, press, hold, frames, evalGame, pixels, shot, makeReporter } from './harness.mjs';
+import { ensureServer, launch, boot, press, hold, frames, evalGame, pixels, shot, makeReporter, sleep } from './harness.mjs';
 
 // drive the REAL New Game flow (menu → char-select → intro cards → Overworld) with keypresses
 async function toOverworld(page) {
@@ -49,6 +49,27 @@ async function toGH(page) {
   await toOverworld(page);
   await evalGame(page, () => { const sc = window.__EMBER.scene.getScene('Overworld'); sc._exitBlock = null; sc._areaT = false; if (sc._inInterior) sc._enterArea('back'); });
   await frames(page, 12);
+}
+// Reach the GH3 ORCHARD-DEN arena as the ADULT (the den is the adult path): leave any interior, age up + arm the
+// sword, chain GH1→GH2→GH3 to ACTIVE (GH3 active is what arms the den), then ENTER the arena. The combat build
+// path (_buildRegionCombat) spawns the orchard-teeth on entry. State is set via eval ONLY to reach the scenario;
+// the fight itself (T16) is driven with REAL keys.
+async function toDen(page) {
+  await toOverworld(page);
+  await evalGame(page, () => {
+    const s = window.__EMBER.scene.getScene('Overworld');
+    s._exitBlock = null; s._areaT = false; if (s._inInterior) s._enterArea('back');
+    s.isChild = false; s.player.isAdult = true; s.player.isMinor = false;
+    if (!s.player.equippedIn('weapon')) s.player.equip('sword');
+    // Force GH3 ACTIVE (what ARMS the den) — start()/complete() only step from available/active, which a fast-
+    // forwarded adult game may not satisfy; the den-gate only reads status('GH3')==='active'.
+    s.quests.state.GH1 = 'complete'; s.quests.state.GH2 = 'complete';
+    s.quests.state.GH3 = 'active'; s.quests.step.GH3 = 0; s.quests.refresh();
+  });
+  await frames(page, 6);
+  await evalGame(page, () => { const s = window.__EMBER.scene.getScene('Overworld'); s._exitBlock = null; s._areaT = false; s._enterArea('gh_orchard_den'); });
+  await page.waitForFunction(() => { const s = window.__EMBER.scene.getScene('Overworld'); return s.region && s.region.key === 'gh_orchard_den' && s.combat; }, null, { timeout: 10000, polling: 100 });
+  await frames(page, 8);
 }
 
 const TESTS = [
@@ -480,6 +501,126 @@ const TESTS = [
     });
     R.check('[purity] a PURE soul gets a different everyday greeting than a CORRUPT one AT EQUAL morality', res.pure === 'PURE-LINE' && res.corrupt === 'CORRUPT-LINE' && res.pure !== res.corrupt, JSON.stringify(res));
     R.check('[purity] neutral purity falls through to the morality greeting (purity modifies, not clobbers)', res.neutralP === 'NEUTRAL-LINE', `neutralPurity=${res.neutralP}`);
+  },
+
+  // T16 — COMBAT-FEEL: the GH3 ORCHARD-DEN fight (ROADMAP 0.1). The den was narrated; it is now a REAL fight (the
+  // slice's combat showcase). Boot, become the ADULT (the den is the adult path), set GH3 active, ENTER the arena,
+  // and drive the loop with REAL keys: the orchard-teeth spawn + TELEGRAPH their wind-up; a real J lands DAMAGE +
+  // HITSTOP; SPACE grants DODGE i-frames (and they're a WINDOW, not permanent); C BLOCKS + reduces frontal damage;
+  // a lethal J KILLS (harder freeze); clearing all teeth RE-OPENS the GH3 mercy/cull fork (the cleared→fork
+  // handshake). Asserts on real outcomes, never a data flag. (Dodge-roll ART is a flagged GAP — a procedural duck.)
+  async function t16_den_combat_feel(page, R) {
+    await toDen(page);
+    // 1) the arena loaded as the adult path + the orchard-teeth spawned (armed)
+    const spawned = await evalGame(page, () => {
+      const s = window.__EMBER.scene.getScene('Overworld');
+      return { region: s.region && s.region.key, live: s.combat ? s.combat.live.length : -1, armed: !!s._denArmed, adult: !s.isChild };
+    });
+    R.check('T16 den ARENA loaded (adult path) with the orchard-teeth spawned + armed', spawned.region === 'gh_orchard_den' && spawned.live === 3 && spawned.armed && spawned.adult, JSON.stringify(spawned));
+
+    // 2) TELEGRAPH — stand in range; a charger winds up (the telegraphing flag) BEFORE it strikes (a readable tell)
+    const tele = await page.evaluate(() => new Promise((resolve) => {
+      const s = window.__EMBER.scene.getScene('Overworld');
+      const e = s.combat.live[0];
+      s.player.x = e.spr.x; s.player.y = e.spr.y + 44; if (s.player.body) s.player.body.reset(s.player.x, s.player.y);
+      let seen = false, ticks = 0;
+      const tick = () => {
+        ticks++;
+        for (const m of s.combat.live) if (m.mon.isTelegraphing && m.mon.isTelegraphing()) seen = true;
+        if (seen || ticks > 600) return resolve({ seen, ticks });
+        requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    }));
+    R.check('T16 an orchard-tooth TELEGRAPHS its wind-up before striking (readable tell)', tele.seen, `seen=${tele.seen} after ${tele.ticks} ticks`);
+
+    // 3) HIT + FEEDBACK — a REAL J adjacent+facing an enemy DROPS its hp AND fires hitstop (the juice)
+    await evalGame(page, () => {
+      const s = window.__EMBER.scene.getScene('Overworld');
+      if (s.inv) s.inv.hp = (s.inv.maxHp || 100);
+      const e = s.combat.live[0];
+      s._tIdx = s.combat.enemies.indexOf(e);
+      s.player.x = e.spr.x; s.player.y = e.spr.y + 22; s.player.facing = 'up';
+      if (s.player.body) s.player.body.reset(s.player.x, s.player.y);
+      s._hitFreeze = 0; s._atkReady = 0; s._preHp = e.mon.hp;
+    });
+    await page.keyboard.press('j');   // REAL attack key
+    await frames(page, 2);
+    const hit = await evalGame(page, () => {
+      const s = window.__EMBER.scene.getScene('Overworld'); const e = s.combat.enemies[s._tIdx];
+      return { pre: s._preHp, post: e ? e.mon.hp : -1, freeze: s._hitFreeze };
+    });
+    R.check('T16 a real J HIT applies damage to the enemy', hit.post < hit.pre && hit.post >= 0, `hp ${hit.pre}->${hit.post}`);
+    R.check('T16 the hit fires HITSTOP feedback (_hitFreeze juice)', hit.freeze > 0, `freeze=${hit.freeze}`);
+
+    // 4) DODGE — a REAL SPACE grants i-frames (damage during is NEGATED); and it's a WINDOW (a hit lands after)
+    await evalGame(page, () => { const s = window.__EMBER.scene.getScene('Overworld'); s._hitFreeze = 0; s.pc.dodgeReadyAt = 0; s.pc.dodgeIframeUntil = 0; });
+    await press(page, 'SPACE', 2);   // REAL dodge key
+    const dodge = await evalGame(page, () => {
+      const s = window.__EMBER.scene.getScene('Overworld'); const now = s.time.now;
+      return { inv: s.pc.isInvulnerable(now), during: s.pc.takeDamage(now, 20, { fromFront: true }) };
+    });
+    // resolve damage at a timestamp deterministically PAST the i-frame window (no real-time sleep race)
+    const afterRoll = await evalGame(page, () => { const s = window.__EMBER.scene.getScene('Overworld'); const now = s.pc.dodgeIframeUntil + 50; return s.pc.takeDamage(now, 20, { fromFront: true }); });
+    R.check('T16 a real SPACE DODGE grants i-frames — damage during is negated', dodge.inv && dodge.during.taken === 0 && dodge.during.outcome === 'dodged', JSON.stringify(dodge));
+    R.check('T16 the i-frames are a WINDOW — a hit lands once they expire (not permanent invuln)', afterRoll.outcome === 'hit' && afterRoll.taken === 20, JSON.stringify(afterRoll));
+
+    // 5) BLOCK — holding C reduces FRONTAL damage. Engage the block with a REAL held C, then resolve damage at a
+    // timestamp deterministically PAST the parry window (blockStart + PARRY + margin) so it's a BLOCK, not a parry
+    // (the real-time approach raced the parry window under headless jitter).
+    await evalGame(page, () => { const s = window.__EMBER.scene.getScene('Overworld'); s._hitFreeze = 0; });
+    await page.keyboard.down('c');     // REAL block (held)
+    await page.waitForFunction(() => window.__EMBER.scene.getScene('Overworld').pc.isBlocking(), null, { timeout: 3000, polling: 16 }).catch(() => {});
+    const blk = await evalGame(page, () => {
+      const s = window.__EMBER.scene.getScene('Overworld'); const now = s.pc.blockStart + s.pc.cfg.PARRY_WINDOW_MS + 100;
+      return { blocking: s.pc.isBlocking(), r: s.pc.takeDamage(now, 100, { fromFront: true }) };
+    });
+    await page.keyboard.up('c');
+    R.check('T16 holding C BLOCKS + REDUCES frontal damage (neither zero nor full)', blk.blocking && blk.r.outcome === 'blocked' && blk.r.taken > 0 && blk.r.taken < 100, JSON.stringify(blk));
+
+    // PARK the next live enemy motionless DIRECTLY in front of the (stationary) player so a real swing connects —
+    // the chargers actively rush, which raced them out of the arc when the player chased them. hp=1 → one blow lethal.
+    const parkTarget = () => evalGame(page, () => {
+      const s = window.__EMBER.scene.getScene('Overworld');
+      if (s.inv) s.inv.hp = (s.inv.maxHp || 100);
+      const e = s.combat.live[0]; if (!e) return;
+      e.knockFrames = 0; e.knockVx = 0; e.knockVy = 0; if (e.spr.body) e.spr.body.setVelocity(0, 0);
+      if (e.mon) { e.mon.state = 'idle'; e.mon.elapsed = 0; e.mon.hp = 1; }
+      e.spr.x = s.player.x; e.spr.y = s.player.y - 24; if (e.spr.body) e.spr.body.reset(e.spr.x, e.spr.y);
+      s.player.facing = 'up';
+      s._hitFreeze = 0; s._atkReady = 0; s._preLive = s.combat.live.length;
+    });
+    // 6) KILL — a REAL J on a lethal-hp enemy KILLS it AND the killing blow freezes HARDER (KILL_FREEZE 9 vs HIT 5).
+    // Read _hitFreeze at frames(1) (near its peak; it decays a frame at a time). Retry past a dropped headless keydown.
+    let tierKilled = false, killFreeze = 0;
+    for (let t = 0; t < 5 && !tierKilled; t++) {
+      await parkTarget();
+      await page.keyboard.press('j');   // REAL attack key
+      await frames(page, 1);
+      const k = await evalGame(page, () => { const s = window.__EMBER.scene.getScene('Overworld'); return { live: s.combat.live.length, pre: s._preLive, freeze: s._hitFreeze }; });
+      if (k.live < k.pre) { tierKilled = true; killFreeze = k.freeze; }
+    }
+    R.check('T16 a real J KILLS on a lethal blow (the killing blow freezes HARDER — KILL tier > HIT tier)', tierKilled && killFreeze >= 5, `killed=${tierKilled} killFreeze=${killFreeze}`);
+
+    // 6b) CLEAR the rest with real lethal J's. frames(2) for reliable keydown registration (frames(1) dropped rapid keys).
+    for (let i = 0; i < 24; i++) {
+      const live = await evalGame(page, () => window.__EMBER.scene.getScene('Overworld').combat.live.length);
+      if (live === 0) break;
+      await parkTarget();
+      await page.keyboard.press('j');
+      await frames(page, 2);
+    }
+
+    // 7) the fight COMPLETES: all teeth down -> den CLEARED -> the GH3 mercy/cull fork RE-OPENS (the handshake)
+    await sleep(1100);   // _checkDenCleared sets _denCleared, then delayedCall(700) opens the 'den' fork
+    await frames(page, 6);
+    const done = await evalGame(page, () => {
+      const s = window.__EMBER.scene.getScene('Overworld');
+      return { live: s.combat.live.length, cleared: !!s._denCleared, dlg: !!s._dlg, node: s._dlg && s._dlg.nodeId };
+    });
+    await shot(page, 't16-den-cleared.png').catch(() => {});
+    R.check('T16 the fight COMPLETES — all teeth down, the den is CLEARED', done.live === 0 && done.cleared, JSON.stringify(done));
+    R.check('T16 clearing the den RE-OPENS the GH3 mercy/cull fork (the cleared->fork handshake)', done.dlg && done.node === 'den', `dlg=${done.dlg} node=${done.node}`);
   },
 ];
 

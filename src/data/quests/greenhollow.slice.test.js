@@ -83,6 +83,9 @@ function play(engine, ctx, qid, wantChoices = []) {
   assert.equal(engine.isAvailable('GH4'), false, 'GH4 still gated after only GH1+GH2');
 
   play(engine, ctx, 'GH3', ['mercy', 'letter_keep']);
+  // GH3's fight is now LIVE (the dialogue ends at the den-entry; the mercy/cull fork re-opens AFTER the fight —
+  // see verify:runtime T16). Fire the post-fight fork at the engine level so the data test still exercises its deeds.
+  engine.choose('GH3', 'mercy'); engine.choose('GH3', 'letter_keep');
   assert.equal(engine.status('GH3'), 'complete', 'GH3 completes');
   assert.equal(engine.isAvailable('GH4'), true, 'GH4 opens once GH1–GH3 are all complete');
 
