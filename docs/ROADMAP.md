@@ -1,123 +1,174 @@
-# EMBERFALL — BUILD ROADMAP TO A FINISHED GAME
+# ROADMAP — the sequenced full-steam plan to a complete game
 
-> The ordered, robust path from where we are now to an amazing finished game. Each step is a
-> scoped, verifiable slice. Built on the principle: prove ONE complete vertical slice, then scale.
-> Companion to MASTER-DESIGN.md (the what) - this is the (in what order + how safely).
-
----
-
-## THE ROBUSTNESS DISCIPLINE (applies to EVERY step)
-Every slice from here follows these rules, so nothing breaks and quality stays high:
-1. ADDITIVE ONLY: new work builds on top; never removes/rewrites a working system unless that IS
-   the explicit task. Every hand-off carries the preservation rule (preserve all existing
-   systems/content; STOP + flag if a change would break something).
-2. ONE SCOPED SLICE per session: small enough to verify fully, big enough to be real progress.
-3. VERIFY IN THE LIVE GAME: not a proof scene - New Game, play the actual path, with image
-   evidence. "Auto-checks prove it runs; only Van proves it's good."
-4. VAN JUDGES FEEL: after each slice, Van plays + judges fun/tone/look. Reports verify function;
-   only play verifies fun.
-5. PER-FILE COMMITS + PUSH: commit each unit; PUSH to a remote backup so nothing is ever lost.
-6. HONEST REPORTING: no "fake done" - HTTP/again evidence, real screenshots, honest gaps flagged.
-7. DATA-DRIVEN: new content (NPCs, quests, items, secrets, regions) as DATA entries on proven
-   systems - so scaling is authoring, not re-coding.
-
-## ZERO-LOSS BACKUP (do this once, now)
-- Push the repo to a private remote (GitHub/GitLab). Every session pushes after committing.
-- This is the single best "never lose anything" insurance. Without it, all work is local-only.
+> The single ordered backlog Claude Code marches, **charter-in-hand** (`DECISION-CHARTER.md`): build to spec,
+> self-authorise every MAY-decision, surface only MUST-decisions, gate every item (both verifies green +
+> pixel/runtime-truth + no-fake), commit + push per item. Sequenced so each phase **unblocks the most** next.
+> Living doc — re-order as items land; spec each system just-in-time before building it.
+> *(Supersedes the June-3 scaffold roadmap; the robustness discipline now lives in `BUILD-METHOD.md` + the charter §4.)*
+>
+> **Legend:** **MAY** = Claude Code decides + builds alone (charter §3). **VAN** = a MUST-surface decision (batch
+> them — see the end). **ART** = needs art that doesn't exist → flag, don't fake. **Size:** S (≤1 session) ·
+> M (a few) · L (a system, multi-session). **Gate** = the harness/quality proof for "done".
 
 ---
 
-## WHERE WE ARE (done + verified)
-- Engine, movement, combat, save, karma, character creation, age arc, OoT-style menu, settings.
-- Art: cohesive 32px CC0 world + LPC characters (faces fixed - heads composited), dialogue
-  portraits, quest system (HUD + pause + items), distinct NPCs.
-- Childhood act: bigger Greenhollow + outskirts, gated cave, named cast + portraits + dialogue,
-  3 quests incl. the seeded chicken choice, paced catastrophe -> adult arc.
-- Audio: (in progress this session) music + SFX wired to settings.
-- Design: full master bible (story/progression/karma web/mysteries/map/world-rules) + this roadmap.
+## ★ THE CRITICAL PATH (build in this order for the most progress)
+1. **Slice sign-off** — combat-feel → audio/polish → the 30-min playthrough (Phase 0). *Makes the GH slice a
+   complete, shippable demo — the "the game is real" milestone.*
+2. **Cohesion quick-wins** — Wisp · purity-independent choices · the mid-game branch · Ashbearer condition
+   (Phase 1). *Small, mostly MAY, locks the design coherence the charter just committed to.*
+3. **World build-out** — Emberwood/Thornwell town · Saltbreak polish · Spire endgame wiring (Phase 2).
+   *Makes M1–M20 playable end-to-end in the live world.*
+4. **Wealth-and-Legacy system** (Phase 3) — the deep optional layer, spec-first.
+
+Art gaps (Phase 4) + Van decisions are **batched** and run in parallel — none block the critical path except
+the two flagged inside it (combat dodge-roll visual; Spire boss art).
 
 ---
 
-## PHASE 1 — COMPLETE THE VERTICAL SLICE (the proof the whole game works)
-Goal: one COMPLETE playable arc - childhood -> catastrophe -> first full region -> a milestone -
-so the entire loop is proven before scaling. This is the most important phase.
+## PHASE 0 — SLICE COMPLETION (THE-SLICE steps 5–7; the sign-off gate)
+*The GH vertical slice (M1–M7 childhood → adult GH1–GH4) is built + cohesion-wired; these three close it.*
 
-STEP 1.1 — AUDIO (in progress): music per context + SFX, wired to settings. [robust: additive]
-STEP 1.2 — POLISH THE CHILDHOOD ACT to "great":
-  - A proper CHOICE-MENU UI for weighty dilemmas (the Coin, the Secret) - not just verb-based.
-  - Deepen dialogue (NPC personality, a bit of branching, reactions to the chicken choice).
-  - Make the CATASTROPHE land: build it as the emotional hinge (pacing, the sad cue, Bram's
-    loss, visual drama, a beat of aftermath). This is the Act1->2 gut-punch.
-  - Light day/night OR a festival beat (optional) to deepen attachment before the fall.
-  [robust: each is an additive sub-slice; verify the arc still completes]
-STEP 1.3 — THE FIRST ADULT REGION + DUNGEON (the big one - proves Act 2):
-  Open the (now-adult) cave/first region. Build the full region loop ONCE, completely:
-  - A region area to explore (biome, layout, varied density, landmarks).
-  - A new TOOL/ABILITY (e.g. the LANTERN) that gates + adds puzzle/combat options.
-  - A DUNGEON: one core mechanic, the lock-and-key rhythm, puzzles + combat + traversal, a
-    completability guarantee (the check we have).
-  - A BOSS (the tool-mastery test) + a heart container.
-  - An EMBER SHARD + a TRUTH fragment (story payoff).
-  - KARMA CHOICES in the region + NPC reactions by tier (wire the social web here for real).
-  - The region's local story that ties back to the Ember.
-  [robust: build sub-slices - area, then tool+gating, then dungeon, then boss, then story/karma -
-   each verified before the next; never one mega-build]
-STEP 1.4 — WIRE THE SYSTEMIC RULES into the slice (prove them once):
-  - Respawn rules (breakables/monsters on re-entry; chests/puzzles persist).
-  - Safe-zone rule (monsters out of towns; the catastrophe as the exception).
-  - The gating/ability registry (tools actually unlock seeded gates - incl. the childhood-seeded
-    cracked walls).
-  - Fast-travel point + map screen for the slice.
-STEP 1.5 — PLAYTEST THE SLICE: Van plays start->milestone. Refine for FUN. This is the gate to
-  Phase 2 - do not scale until the slice is genuinely good.
-
-## PHASE 2 — SCALE TO THE FULL GAME (repeat the proven pattern)
-Goal: build the remaining 4 regions + the endgame, reusing the proven region loop as a template.
-STEP 2.1-2.4 — REGIONS 2-5: each = area + tool + dungeon + boss + shard + truth + local story +
-  karma choices, authored as DATA/content on the proven systems. (Ashen Marsh, Sundered Peaks,
-  Tidewreck Coast, Emberwood, Hollow Spire per MASTER-DESIGN - one already done in Phase 1.)
-  [robust: each region is the same verified sub-slice pattern; interlink choices/characters across
-   regions per the web]
-STEP 2.5 — THE INTERLINKING WEB: wire choice->consequence across regions + the childhood seeds
-  (one choice -> many payoffs). Recurring characters. The karma social web fully active.
-STEP 2.6 — THE THREE ENDINGS: build Warden/Tyrant/Liberator + their gating (karma + truths +
-  key choices). The convergence event. Make each ending land.
-
-## PHASE 3 — DEPTH, POLISH & JUICE (make it AMAZING, not just complete)
-- COMBAT depth: enemy variety (each a different question), abilities/skills, boss design.
-- GAME-FEEL/JUICE pass: hit-pause, screen-shake, particles, satisfying feedback everywhere.
-- SECRETS populated densely (the pervasive system: rituals, hidden areas, fart bush, finds).
-- MYSTERIES paid off (Bram's fate, the rival seeker, the childhood Secret).
-- AUDIO depth: per-region themes, boss music, ambient SFX, the emotional cues.
-- ECONOMY: shops that work, upgrades, money sinks/sources balanced.
-- LORE + environmental storytelling throughout.
-- DAY/NIGHT + NPC schedules (if not earlier) for a living world.
-- ACCESSIBILITY: remappable controls, text size, colourblind cues, difficulty.
-
-## PHASE 4 — SHIP IT (finished + releasable)
-- Full playtest passes (others playing - the real fun-test). Balance + bug fixing.
-- Title/intro/credits (LPC + all CC-BY credits shipped - required).
-- Save robustness at full scale; multiple slots tested.
-- Performance pass (smooth in-browser).
-- Build/package for release (web/itch.io etc.). License/credits compliance check (CC0 vs CC-BY
-  vs LPC share-alike all documented + shipped).
-- A name/store page/marketing if selling.
+- **0.1 Combat-feel — the first fight** (THE-SLICE step 5). The GH3 orchard-den encounter goes LIVE: real
+  spawned enemies (the "orchard-teeth"), the feel loop — **telegraph → hit → dodge → block → punish**. Mechanics
+  + hit-feedback (flash/knockback/sfx/hitstop) build on existing LPC monster art + the procedural dodge.
+  *Depends:* GH3 (built). *MAY* (mechanics, feel-tuning, telegraph/feedback) · the **dodge-ROLL visual is ART**
+  (logic works; currently a procedural squash — flag). *Size M.* *Gate:* verify:runtime — a real-input fight
+  asserts telegraph→hit→dodge i-frames→block; **Van play-judges the FEEL** (HARD RULE 9).
+- **0.2 Audio / polish** (THE-SLICE step 6). Region music beds + ambient + sfx actually play; interior audio
+  beds (hooks pending). **The current `mus_*` beds are licence-UNVERIFIED placeholders** (shipping at LOCAL
+  scope; HARD-FAIL at SHIP) → **fetch licence-clean (CC0/OGA) beds + ledger** before sign-off. Day/night clock
+  wiring is a smaller polish item here. *Depends:* none. *MAY* (wiring, sfx) · the bed FETCH is MAY (free,
+  licence-vet) — **VAN only if a bed must be commissioned**. *Size M.* *Gate:* verify (asset-licence + the
+  no-unverified-at-ship gate goes green) + eyes/ears-on.
+- **0.3 The 30-minute playthrough → VAN SIGN-OFF → slice FROZEN** (THE-SLICE step 7). The skeptical-player pass
+  on Van's exact load path; fix every snag found; hand to Van. *Depends:* 0.1 + 0.2. *VAN* (the sign-off is his).
+  *Size S–M.* *Gate:* the `DONE-DEFINITION.md` runtime checklist, eyes-on, zero known snags.
 
 ---
 
-## THE GUIDING PRINCIPLES (so it becomes AMAZING)
-1. PROVE ONE SLICE, THEN SCALE. A finished small Emberfall beats an unfinished huge one. Phase 1
-   is the whole game in miniature - get it great, the rest is repetition.
-2. EVERY PIECE MAKES YOU FEEL SOMETHING (the tone golden rule). Cut/punch-up flavourless content.
-3. SYSTEMS ONCE, CONTENT MANY. Build each system robustly once; pour content as data.
-4. PLAY DECIDES FUN. Build -> play -> feel -> refine. Van's play is the real verification.
-5. ROBUST + ADDITIVE ALWAYS. Preserve everything; push to backup; never lose progress.
-6. SCOPE HONESTLY. If a slice is too big, split it. Solid-partial beats half-broken.
+## PHASE 1 — COHESION BUILD-OUT (charter §2.7–§2.10 — the locked intents)
+*Small, high cohesion-per-effort; mostly MAY; the charter already decided the design.*
 
-## IMMEDIATE NEXT STEPS (the order)
-1. [running] Audio (1.1).
-2. Set up the git remote backup (zero-loss).
-3. Polish the childhood act (1.2) - choice UI + catastrophe punch.
-4. Build the first region/dungeon (1.3) - the big Act-2 proof, in sub-slices.
-5. Wire systemic rules (1.4) + playtest (1.5).
--> Then Phase 2 scaling.
+- **1.1 WISP returns** (§2.7). Place a grown Wisp in the GH adult hub; `greetByDeed` reads a shared childhood
+  deed (`cave_lore`/`dared_friend`/hen) — the Tam/Ada pattern just shipped. *Depends:* none — **build-ready.**
+  *MAY.* *Size S.* *Gate:* `cohesion-wire.test.js` asserts Wisp placed + reads the deed.
+- **1.2 PURITY-independent choices** (§2.8). Author purity-only forks across existing + new content so
+  **pure-but-cruel / corrupt-but-kind** are genuinely reachable (kill the ~91% morality co-move). Each new fork:
+  *does it move purity on its own axis?* *Depends:* none (the `greetByPurity` engine + purity gates exist).
+  *MAY* (authoring forks in-voice on the established axis). *Size M* (spread across content). *Gate:* a data
+  test — N choices move purity without morality; a runtime check that a pure-low-morality state is reachable +
+  read differently.
+- **1.3 The MID-GAME BRANCH gates real content** (§2.9). Earmark one mid-game choice (a region fork) that
+  **unlocks/locks an actual quest or area**, not just karma — so branching isn't only the 3 endgame decisions.
+  Candidate: a Peaks/Coast faction fork opening a quest the other side locks. *Depends:* the host region built.
+  *MAY* to pick + wire **from the existing factions** (it's build-craft on locked quests); *VAN* only if it
+  needs a NEW area/quest not on the roadmap. *Size M.* *Gate:* data test — the fork unlocks X + locks Y;
+  runtime that the gated content is reachable on one branch, not the other.
+- **1.4 ASHBEARER 2nd condition** (§2.10). Gate the secret ending on `cave_lore` **+ a rarer condition**.
+  *Proposed:* `stone_refused` (PH5 — keep the hard true world; thematically exact). *Depends:* none.
+  *VAN confirms the condition* (MUST), then *MAY* wire. *Size S.* *Gate:* spire.test — Ashbearer offered only
+  with both deeds, not `cave_lore` alone.
+
+---
+
+## PHASE 2 — WORLD BUILD-OUT (the remaining regions live end-to-end)
+*Make the full M1–M20 playable in the built world. Same proven dress-the-greybox pattern as Saltbreak.*
+
+- **2.1 EMBERWOOD / Thornwell town** (greybox → built). Dress `vil_thornwell` from the locked spec (the
+  fire/frost-split caught settlement) via the frozen griddedSettlement/door pattern: terrain, buildings, cast
+  per the role palette, shop, M15/M16 + SE-quest givers live (load the Emberwood quest-set into the runtime
+  engine, like the Coast). *Depends:* the Emberwood spec (M15/M16 data complete). *MAY* (placement/cast/dialogue
+  from spec) · *VAN* only for layout decisions the spec genuinely leaves open (per the Saltbreak audit pattern —
+  audit it first). *Size L.* *Gate:* a Saltbreak-style runtime test (loads non-greybox, building enter/exit,
+  shop, M15 reachable) + eyes-on feel for Van.
+- **2.2 SALTBREAK polish** (first-pass built; close the flagged items). (a) **lighthouse building = ART gap**
+  (flag); (b) the **open-ocean water band** (`prop_seawater` exists — lay it with collision/nav care); (c)
+  **density + storm-coast mood** (more dressing/weather — eyes-on for Van); (d) **M14 + ST quest givers** placed
+  (only M13 wired). *Depends:* 1-pass Saltbreak (done). *MAY* (b/d + density) · *ART* (a lighthouse) · *VAN*
+  (feel sign-off). *Size M.* *Gate:* extend the Saltbreak runtime test (water nav-blocks; M14/ST givers fire).
+- **2.3 SPIRE endgame wiring** (M17–M20). The quest/ending logic is complete + tested; make it **live-reachable**:
+  load the Spire quest-set into the runtime engine, place M17's beat, wire the **ending-UI** (the 5-ending
+  choice screen + epilogue cards). *Depends:* all regions' tools/shards reachable. *MAY* (engine load, M20
+  ending-UI from the existing data) · **the M19 final-boss (Warden) is ART** (flag) · *VAN* (the finale feel).
+  *Size M–L.* *Gate:* runtime — M17 reachable with 4 shards; M20 offers only the reachable endings; epilogue
+  cards fire per deeds.
+- **2.4 Remaining greybox towns + landmark entrances.** Stonereach/Cribbins/Cragfoot inline conversion (gate
+  #19 seamless-overworld) + overworld entrances for the landmark/dungeon nodes (High Pass, Lighthouse, Drowned
+  Vault, Caught, Weeping, Ember Hollow). **Cribbins Cove is UNSPECIFIED** (audit) → *VAN* to spec or drop.
+  *Depends:* the regions built. *MAY* (inline conversion of spec'd towns) · *VAN* (Cribbins design). *Size L.*
+  *Gate:* designed-vs-built + seamless-overworld gates go green; navGate + perf.
+
+---
+
+## PHASE 3 — THE WEALTH-AND-LEGACY SYSTEM (charter §2.11 — a major system, its own track)
+*Spec-FIRST (full-expectation spec → Van ~2-min review → build). Gold becomes "care for the world", Fable-style.*
+
+- **3.1 Spec the system** (`SPEC-WEALTH-LEGACY.md`). Decompose: property ownership + income loop; the
+  world-betterment purchases (settle debts · rebuild a settlement · fund the god's recovery) tied to
+  morality/purity/Flame; the grind curve (earnable-but-hard, a deliberate focus-shift, **flowing not hopeless**);
+  the reward shape (legacy/world-state changes); the non-wealth path still completes. *Depends:* the economy
+  audit (done). *VAN reviews the spec* (MUST, per BUILD-METHOD RULE 1). *Size S (the spec).*
+- **3.2 Property ownership + income** (the deed schema ships in-slice; build the loop). Purchase UI · rent/income
+  accrual · furnish/rename. *Depends:* 3.1. *MAY* (build to the approved spec). *Size M.* *Gate:* runtime — buy a
+  property, income accrues, the world-state flag sets.
+- **3.3 World-betterment purchases.** The themed sinks — pay off a settlement's debt, fund a rebuild, fund the
+  recovery — each setting a visible world-state change + a karma/purity/Flame tie. *Depends:* 3.2 + the regions
+  built (a thing to rebuild). *MAY* (content on the approved system) · *VAN* (which world-changes are canonical).
+  *Size M–L.* *Gate:* runtime — a purchase changes a visible world-state + the right karma/Flame read.
+- **3.4 Economy REBALANCE for the focus-shift.** Re-curve so the epic purchases are a real grind reachable by
+  the income-compound path, the early/mid curve still flows, and the **5–12g→200g** seam smooths into the new
+  income loop (supersedes the old Act-3 dead-excess flag). *Depends:* 3.2–3.3. *MAY* (values on the approved
+  curve) · *VAN* (the target grind length / "how hard is hard"). *Size M.* *Gate:* a data test — the curve has
+  no cliff + the epic tier is reachable-but-hard (a modelled affordability check); economy gates green.
+
+---
+
+## PHASE 4 — ART GAPS (flag, DON'T fake — batch as commission / hand-edit decisions for Van)
+*All currently held at a graceful stopgap or omitted; none faked. Each = a VAN call: commission, free-fetch, or accept the stopgap.*
+
+| Art gap | Where it bites | Current state (no-fake) | Decision for Van |
+|---|---|---|---|
+| **Lighthouse building** | Saltbreak (ST3, the point) | omitted; Holden in-town stand-in | commission/fetch a top-down lighthouse, or accept omitted |
+| **Boss sprites** (Drowned Guardian · Keep Sentinel · Tideward · Feverheart · **Warden**) | the named region/finale bosses | grant-at-entrance / generic monster stand-in | commission LPC humanoid bosses (the Warden gates the M19 finale feel) |
+| **Dodge-ROLL animation** | combat-feel (0.1) | logic works (i-frames+burst); visual = procedural squash | commission/fetch an LPC ground-roll per layer, or accept the squash |
+| **Carry-pose style-match** | M2 hen carry | frames acquired (`asset-library/2d/lpc-carry`), not integrated | match/recolour to the ElizaWy rig + child variant (needs Van's eye) |
+| **Fat body** (Fazy) | the Fazy NPC | `muscular` stopgap (reads bigger, not fat) | commission an LPC fat body (~15 anim sheets), or accept the stopgap |
+| **Proper child art** (kids) | the GH kids | scaled-down adults | fetch/commission ElizaWy child layers + a `child` variant |
+| **Music beds** | every region (0.2) | licence-UNVERIFIED placeholders | free-fetch licence-clean beds + ledger (mostly MAY), commission only if needed |
+
+---
+
+## PHASE 5 — INFRA / POLISH RESIDUALS (parallelisable; mostly MAY)
+- **Verb dispatcher — COLLECT/CARRY registry** (HIT already generalised). *Trigger:* the first new pick-up/carry
+  target outside M2 → build the target→verb registry. *MAY.* *Size M.*
+- **Guard-confront ladder** (chase → knock-out → lock-up, past "flee"). *Depends:* combat (0.1). *MAY.* *Size M.*
+- **Day/night cycle** — advance the TimeOfDay clock live + NPC schedules. *MAY* (system) — small. *Size S–M.*
+- **Pem cross-region clue trail** (SG2) — place the four `pem_clue_*` graffiti + Pem's hidden reveal. *Depends:*
+  the regions built. *MAY.* *Size M.*
+- **Cast variety** (clothing/hat/apron STYLES) — recolours done; new shapes need a forge fetch (ART). *Size S* (fetch).
+- The **runtime-assertion harness is BUILT** (the gate-truth layer); residual flakes are hardened as they bite.
+
+---
+
+## BATCHED VAN-DECISIONS (resolve these together to unblock the most)
+1. **Slice sign-off** (0.3) — the 30-min playthrough is his to bless.
+2. **Ashbearer 2nd condition** (1.4) — confirm `stone_refused` (or pick from the alternatives).
+3. **Cribbins Cove** (2.4) — spec it (cast/layout/role) or drop it (it's currently unspecified).
+4. **Wealth-and-Legacy spec** (3.1) — the ~2-min spec review; + the "how hard is hard" grind target (3.4) +
+   which world-changes are canonical (3.3).
+5. **The mid-game branch** (1.3) — confirm the chosen faction fork is fine, or name a different content gate.
+
+## BATCHED ART-GAP DECISIONS (commission vs free-fetch vs accept-stopgap)
+Lighthouse · the 5 boss sprites (esp. the **Warden** for the finale) · dodge-roll · carry-pose style-match ·
+fat body · child art · music beds. (Music + carry-pose are mostly free-fetch/integration = MAY; the rest are
+true commission/hand-edit calls.) See Phase 4 for each gap's current no-fake stopgap.
+
+---
+
+### Bottom line
+The **critical path is Phase 0 → 1 → 2 → 3**: finish the slice to sign-off, lock the cohesion intents, build the
+remaining regions live (Emberwood town, Saltbreak polish, Spire wiring), then the Wealth-and-Legacy system —
+with art gaps and Van-decisions **batched** so they never stall the build. Everything inside a phase is
+**MAY-build to spec** except the explicitly-marked VAN/ART items; Claude Code can march this full-steam,
+gating each item and surfacing only the batched decisions in its session reports.

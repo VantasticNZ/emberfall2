@@ -13,6 +13,9 @@ until you know which SLICE ORDER step you are on.
   it first; it tells you when to decide from the spec yourself vs stop and ask. Living doc.
 - **`docs/THE-SLICE.md`** — ★ the governing one-pager (scope = GH slice only; the per-system method:
   build → exhaustive PIXEL-TRUTH table → 5-min VAN-TEST → sign-off → FROZEN; the ORDER; the discipline).
+- **`docs/ROADMAP.md`** — ★ the SEQUENCED full-steam backlog (all remaining work → a complete game): the
+  critical path, phases (slice sign-off → cohesion → world build-out → wealth-legacy), per-item MAY/VAN/ART +
+  size + gate, and the batched Van-decisions/art-gaps. The build loop PICKS the next item from here.
 - **`docs/PLAN.md`** — SSOT. The locked master plan + the CURRENT STEP (what this
   session does + what is already done). Every session states its plan step.
 - **`docs/WORKING-AGREEMENT.md`** — how we work (scope, DoD, automation, owner
