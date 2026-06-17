@@ -1154,6 +1154,31 @@ export const HOUSE_V5 = interiorRegion({   // v5 — tidy / hearth-front
   chests: [{ tx: 1, ty: 5, id: 'house_v5_chest', gold: 10, private: true }],
 });
 const HOME_VARIANTS = ['house_generic', 'house_v2', 'house_v3', 'house_v4', 'house_v5'];
+// GH3 ORCHARD DEN — the slice's FIRST real fight (THE-SLICE step 5 / ROADMAP 0.1). A small combat ARENA reached
+// by cutting into the orchard's bramble-choked back rows (GH3). interior + safeZone:false + combat → the entered-
+// region build runs _buildRegionCombat → the orchard-teeth (chargers) spawn + the full feel loop applies. Kept a
+// separate arena so the GH town stays a safe hub (its safeZone is untouched). Cleared → the GH3 mercy/cull fork.
+export const GH_ORCHARD_DEN = (() => {
+  const r = interiorRegion({ key: 'gh_orchard_den', otx: 660, oty: 600, W: 14, H: 12, floor: 'dirt', mapColor: 0x2a2016, groundTint: 0x4a3d2c, spawn: { tx: 7, ty: 10 },
+    doors: [{ tx: 7, ty: 10, to: 'back', label: 'Climb back out of the den' }],
+    // DEN STRUCTURE — a bramble/rock CHOKE band (GH3's "bramble-choked back rows") with a 2-tile mouth at the
+    // spawn column funnels the player UP into the lair (channelled, not an open field), plus crags + the dead
+    // orchard tree for cover. Mouth = local x6,7 (aligned to spawn x7). Clear of the fight tiles (local 4,3 / 9,3 / 7,5).
+    furniture: [
+      { tx: 2, ty: 7, key: 'prop_bush', solid: true }, { tx: 3, ty: 7, key: 'prop_bush', solid: true },
+      { tx: 4, ty: 6, key: 'prop_rock_small', solid: true }, { tx: 5, ty: 7, key: 'prop_bush', solid: true },
+      { tx: 8, ty: 7, key: 'prop_bush', solid: true }, { tx: 9, ty: 6, key: 'prop_rock_small', solid: true },
+      { tx: 10, ty: 7, key: 'prop_bush', solid: true }, { tx: 11, ty: 7, key: 'prop_bush', solid: true },
+      { tx: 2, ty: 2, key: 'prop_rock_crag', solid: true, scale: 0.9 }, { tx: 11, ty: 2, key: 'prop_rock_crag', solid: true, scale: 0.9 },
+      { tx: 6, ty: 3, key: 'prop_tree_oak', solid: true, scale: 0.8 },
+    ] });
+  return { ...r, safeZone: false, combat: { enabled: true, spawn: { x: r.spawn.x, y: r.spawn.y },
+    enemies: [
+      { id: 'charger', tx: 664, ty: 603, placeId: 'den_teeth_1' },
+      { id: 'charger', tx: 669, ty: 603, placeId: 'den_teeth_2' },
+      { id: 'charger', tx: 667, ty: 605, placeId: 'den_teeth_3' },
+    ] } };
+})();
 export const FORGE_GENERIC = interiorRegion({
   key: 'forge_generic', otx: 612, oty: 615, W: 10, H: 8, floor: 'dirt', mapColor: 0x4a3a2e, spawn: { tx: 5, ty: 6 },
   doors: [{ tx: 5, ty: 6, to: 'back', label: 'Step outside' }],
@@ -1215,7 +1240,7 @@ export const MARA_COTTAGE = interiorRegion({
   ],
   chests: [],
 });
-export const INTERIORS = [TANKARD_F1, TANKARD_F2, TEST_CAVE_F1, TEST_CAVE_F2, GH_FORGE, GH_STORE, GH_CHAPEL, GH_HOME1, GH_HOME2, HOUSE_GENERIC, HOUSE_V2, HOUSE_V3, HOUSE_V4, HOUSE_V5, FORGE_GENERIC, LOST_CEMETERY, MIREFEN_HUT, FENWICK_HOME, MARA_COTTAGE, ...WORLD_LAYOUT];
+export const INTERIORS = [TANKARD_F1, TANKARD_F2, TEST_CAVE_F1, TEST_CAVE_F2, GH_FORGE, GH_STORE, GH_CHAPEL, GH_HOME1, GH_HOME2, HOUSE_GENERIC, HOUSE_V2, HOUSE_V3, HOUSE_V4, HOUSE_V5, FORGE_GENERIC, GH_ORCHARD_DEN, LOST_CEMETERY, MIREFEN_HUT, FENWICK_HOME, MARA_COTTAGE, ...WORLD_LAYOUT];
 
 export const REGIONS = [GREENHOLLOW, ASHEN_MARSH, WEST_BELT, SUNDERED_PEAKS, FOOTHILL_ROUTE, TIDEWRECK_COAST, EMBERWOOD, HOLLOW_SPIRE, ...INTERIORS];
 const inBounds = (b, x, y) => x >= b.x && x < b.x + b.w && y >= b.y && y < b.y + b.h;

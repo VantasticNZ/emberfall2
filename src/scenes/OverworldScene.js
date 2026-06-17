@@ -1119,6 +1119,10 @@ export class OverworldScene extends Phaser.Scene {
   // ---- COMBAT region (Marsh): enemy spawns, no-aggro hub, shrine/boss trigger ----
   _buildRegionCombat(R) {
     const c = R.combat;
+    // GH3 ORCHARD DEN — the first-fight arena: only spawn the orchard-teeth while GH3 is the live quest (you reach
+    // the den only by cutting in during GH3). _denArmed/_denCleared drive the cleared→mercy/cull-fork handshake.
+    const isDen = R.key === 'gh_orchard_den';
+    if (isDen && this.quests && this.quests.status('GH3') !== 'active') { this._denArmed = false; this._denCleared = true; return; }
     for (const en of c.enemies) {
       const [cx, cy] = cidOf(en.tx * TILE, en.ty * TILE);
       if (this.save.isKilled(cx, cy, en.placeId)) continue;          // stays dead (delta)
@@ -1127,6 +1131,16 @@ export class OverworldScene extends Phaser.Scene {
     }
     if (c.safe) this.combat.setSafeZone(c.safe.x, c.safe.y, c.safe.r);
     if (R.shrine) this._buildRegionShrine(R);
+    if (isDen) { this._denArmed = this.combat.enemies.length > 0; this._denCleared = !this._denArmed; }   // armed if any spawned; else already-done
+  }
+  // The den-cleared → re-open GH3 at the mercy/cull fork (the live fight has just resolved). Called from update.
+  _checkDenCleared() {
+    if (this.region && this.region.key === 'gh_orchard_den' && this._denArmed && !this._denCleared
+        && this.combat && this.combat.live.length === 0 && !this._dlg && !this._areaT) {   // .live (dead enemies stay in .enemies, alive=false)
+      this._denCleared = true;
+      this._sfx('sfx_confirm', 0.7); this._banner('The den is cleared.', 1500);
+      this.time.delayedCall(700, () => { if (!this._dlg) this._startDialogue({ start: 'den', nodes: this.quests.defs.GH3.dialogue.nodes }, ''); });
+    }
   }
   _buildRegionShrine(R) {
     const sh = R.shrine;
@@ -1862,6 +1876,9 @@ export class OverworldScene extends Phaser.Scene {
     // sell": a keeper who ALSO gives quests/topics (Bram, Hodge) opens the full _openShop list via this command,
     // instead of a one-line dialogue buy. Deferred a tick so the closing dialogue doesn't swallow the new panel.
     else if (cmd.startsWith('openshop:')) { const id = cmd.slice(9), nm = this._dlg && this._dlg.speaker; this._cancelDialogue && this._cancelDialogue(); this.time.delayedCall(10, () => { if (!this._shopOpen && !this._dlg) this._openShop(id, nm); }); }
+    // ENTER a region from a dialogue option (e.g. cut into the orchard-den combat arena; climb back out). Defer a
+    // tick so the closing dialogue doesn't race the area transition. 'enter:back' uses the return-stack exit.
+    else if (cmd.startsWith('enter:')) { const to = cmd.slice(6); this._cancelDialogue && this._cancelDialogue(); this.time.delayedCall(10, () => { if (!this._dlg && !this._areaT) this._enterArea(to); }); }
   }
 
   // DOOR-SYSTEM — the CLOSED / LOCKED entry choice (the morality entrance). Walking into a shut door ALWAYS
@@ -2512,6 +2529,7 @@ export class OverworldScene extends Phaser.Scene {
     this._henTick(dt);                                      // M2: Henrietta pecks / flees / settles (physical chase)
     this._reactivityTick(dlgOpen, now);                     // guard confront/fine + repair-worker event
     if (this.combat) this.combat.update(dt, this.player);   // enemies behave (no-op when none spawned)
+    this._checkDenCleared();   // GH3 den: all orchard-teeth down → re-open the mercy/cull fork
     if (this.uiCamera) this._reconcileCameras();   // keep this frame's new streamed/combat objects off the HUD camera (before render)
     // HARD INTERIOR CONTAINMENT — even if a dash/swept-dodge tunnels a 1-tile wall, snap the player back
     // inside the interior's bounds (the void is BEYOND the bounds). A backstop behind the wall colliders.

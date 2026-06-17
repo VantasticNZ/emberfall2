@@ -175,6 +175,8 @@ export const GREENHOLLOW_SLICE = [
   {
     id: 'GH3', title: 'Teeth in the Orchard', region: 'Greenhollow', act: 2,
     type: 'main', tone: 'warm-then-danger', perm: true,
+    worldDriven: true,   // ROADMAP 0.1: the den fight splits the dialogue (enter the arena → fight → re-opened fork)
+                         // so GH3 must NOT auto-complete on the billhook dialogue close — it completes via `complete:GH3` after the post-fight fork.
     unlocks: ['GH4'],
     reward: { gold: 12 },
     steps: [
@@ -209,13 +211,13 @@ export const GREENHOLLOW_SLICE = [
         "The billhook bites through the bramble-choke in long, satisfying sweeps — the first thing you've " +
         "had that says CUT and means it. The thorns part. Beyond them, a hollow of torn earth and bone, " +
         "and low in the dark, the gleam of small eyes. Several of them. They come at you.",
-        options: [ { label: '(Fight.)', to: 'den' } ] },
-      // FIRST COMBAT — the den. (The LIVE spawned fight lands with step-5 combat-feel; the quest scaffolds
-      // the encounter + the mercy fork. For now the beat resolves the fight + offers the moral choice.)
+        // FIRST COMBAT (THE-SLICE step 5 / ROADMAP 0.1) — the LIVE fight: enter the orchard-den arena. On clearing
+        // the orchard-teeth, the scene re-opens this quest at the 'den' fork below (the mercy/cull moral beat).
+        options: [ { label: '(Cut in and FIGHT.)', set: 'enter:gh_orchard_den', end: true } ] },
+      // POST-FIGHT — re-opened by the scene once the den is cleared (the live fight has just resolved).
       den: { speaker: '', text:
-        "Quick, snapping things — orchard-teeth, all hunger and no sense. You learn their rhythm: the " +
-        "tell before they lunge, the beat to strike, the roll when they swarm. One by one they break and " +
-        "scatter — until only a litter of pups is left, cornered and shaking at the back of the den.",
+        "The last of the orchard-teeth breaks and scatters into the dark — until only a litter of pups is " +
+        "left, cornered and shaking at the back of the den. Steel, or mercy?",
         options: [
           { label: '(Let the pups go — they\'re no threat now.)', choice: { quest: 'GH3', id: 'mercy' }, to: 'letter' },
           { label: '(Finish it. All of them.)', choice: { quest: 'GH3', id: 'cull' }, to: 'letter' },
@@ -228,11 +230,13 @@ export const GREENHOLLOW_SLICE = [
           { label: '(Pocket the sealed letter.)', choice: { quest: 'GH3', id: 'letter_keep' }, to: 'reportback' },
           { label: "(Leave it — give it to Bracken to pass on.)", to: 'reportback' },
         ] },
-      reportback: { speaker: 'Bracken', text:
-        "*looks you over for missing pieces, finds none* ...You went IN there. And walked back out. " +
-        "*lets out a breath he's held forty years* Good as gold, you. The orchard's yours to walk, any " +
-        "hour. ...And whatever you found in that pit — that's a worry for another day.",
-        options: [ { label: "(Head back to the village.)", end: true } ] },
+      reportback: { speaker: '', text:
+        "The back rows are quiet at last — the orchard's yours to walk again. Bracken will breathe easier " +
+        "tonight. ...Whatever that letter meant is a worry for another day.",
+        options: [ { label: "(It's done.)", set: 'complete:GH3', to: 'climbout' } ] },
+      climbout: { speaker: '', text:
+        "You climb back out of the den into the clean orchard light.",
+        options: [ { label: '(Back to the orchard.)', set: 'enter:back', end: true } ] },
     } },
   },
 
